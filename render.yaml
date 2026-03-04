@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: tech-monitor
+    name: tech-monitor-agency
     env: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
