@@ -33,10 +33,19 @@ const regions = [
     }
 ];
 
-const RegionSelector = ({ activeRegion, onSelectRegion }) => {
+const RegionSelector = ({ activeRegion, onSelectRegion, viewMode }) => {
+    const activeRegions = viewMode === 'depa'
+        ? [
+            { id: 'global', name: 'Global', viewState: { longitude: 0, latitude: 20, zoom: 1.5, pitch: 0, bearing: 0 } },
+            { id: 'asia', name: 'Asia', viewState: { longitude: 100, latitude: 35, zoom: 3, pitch: 0, bearing: 0 } },
+            { id: 'asean', name: 'ASEAN', viewState: { longitude: 105, latitude: 10, zoom: 4, pitch: 0, bearing: 0 } },
+            { id: 'thailand', name: 'Thailand', viewState: { longitude: 100.9925, latitude: 15.8700, zoom: 5.5, pitch: 0, bearing: 0 } }
+        ]
+        : regions;
+
     return (
         <div className="region-selector">
-            {regions.map((region) => (
+            {activeRegions.map((region) => (
                 <button
                     key={region.id}
                     className={`region-btn ${activeRegion === region.id ? 'active' : ''}`}
