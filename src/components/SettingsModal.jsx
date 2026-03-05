@@ -1,18 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { INTELLIGENCE_SOURCES } from '../services/liveNews';
 import { X, Check } from 'lucide-react';
 
+const TABS = [
+    { id: 'all', label: 'ALL' },
+    { id: 'worldwide', label: 'WORLDWIDE' },
+    { id: 'united-states', label: 'UNITED STATES' },
+    { id: 'europe', label: 'EUROPE' },
+    { id: 'middle-east', label: 'MIDDLE EAST' },
+    { id: 'africa', label: 'AFRICA' },
+    { id: 'latin-america', label: 'LATIN AMERICA' },
+    { id: 'asia', label: 'ASIA' },
+    { id: 'thailand', label: 'THAILAND' }
+];
+
 const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSources }) => {
+    const [activeTab, setActiveTab] = useState('middle-east');
+    const [filterText, setFilterText] = useState('');
+
     if (!isOpen) return null;
 
-    const groupCounts = INTELLIGENCE_SOURCES.reduce((acc, source) => {
-        acc[source.group] = (acc[source.group] || 0) + 1;
-        return acc;
-    }, {});
+    const filteredSources = INTELLIGENCE_SOURCES.filter(source => {
+        const matchesTab = activeTab === 'all' || source.group === activeTab;
+        const matchesText = source.name.toLowerCase().includes(filterText.toLowerCase());
+        return matchesTab && matchesText;
+    });
 
     return (
         <div className="modal-overlay">
-            <div className="grid-panel" style={{ width: '800px', maxWidth: '90vw', maxHeight: '85vh', padding: 0 }}>
+            <div className="grid-panel" style={{ width: '800px', maxWidth: '90vw', maxHeight: '85vh', padding: 0, display: 'flex', flexDirection: 'column' }}>
 
                 {/* Header */}
                 <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333' }}>
@@ -22,25 +38,60 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                     </button>
                 </div>
 
-                {/* Tabs Area Placeholder */}
+                {/* Main Tabs */}
                 <div style={{ padding: '0 24px', display: 'flex', gap: '32px', borderBottom: '1px solid #333' }}>
                     <div style={{ padding: '16px 0', color: '#666', fontSize: '0.85rem', letterSpacing: '1px', cursor: 'pointer' }}>GENERAL</div>
                     <div style={{ padding: '16px 0', color: '#666', fontSize: '0.85rem', letterSpacing: '1px', cursor: 'pointer' }}>PANELS</div>
                     <div style={{ padding: '16px 0', color: '#fff', fontSize: '0.85rem', letterSpacing: '1px', borderBottom: '2px solid #fff', fontWeight: 'bold' }}>SOURCES</div>
                 </div>
 
-                {/* Sub-Filters Placeholder */}
-                <div style={{ padding: '16px 24px', display: 'flex', gap: '12px', borderBottom: '1px solid #222' }}>
-                    <span style={{ fontSize: '0.75rem', padding: '6px 16px', borderRadius: '20px', border: '1px solid #10b981', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)' }}>GLOBAL {groupCounts.global || 0}</span>
-                    <span style={{ fontSize: '0.75rem', padding: '6px 16px', borderRadius: '20px', border: '1px solid #333', color: '#888' }}>ASIA {groupCounts.asia || 0}</span>
-                    <span style={{ fontSize: '0.75rem', padding: '6px 16px', borderRadius: '20px', border: '1px solid #333', color: '#888' }}>MIDDLE EAST {groupCounts['middle-east'] || 0}</span>
-                    <span style={{ fontSize: '0.75rem', padding: '6px 16px', borderRadius: '20px', border: '1px solid #333', color: '#888' }}>THAILAND {groupCounts.thailand || 0}</span>
-                    <span style={{ fontSize: '0.75rem', padding: '6px 16px', borderRadius: '20px', border: '1px solid #333', color: '#888' }}>URBAN {groupCounts.urban || 0}</span>
+                {/* Sub-Filters & Search */}
+                <div style={{ padding: '16px 24px', borderBottom: '1px solid #222' }}>
+                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+                        {TABS.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                style={{
+                                    padding: '6px 16px',
+                                    borderRadius: '20px',
+                                    border: `1px solid ${activeTab === tab.id ? '#10b981' : '#333'}`,
+                                    color: activeTab === tab.id ? '#10b981' : '#888',
+                                    background: 'transparent',
+                                    fontSize: '0.75rem',
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    transition: 'all 0.2s',
+                                    letterSpacing: '1px'
+                                }}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div style={{ marginTop: '12px' }}>
+                        <input
+                            type="text"
+                            placeholder="Filter sources..."
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                background: 'transparent',
+                                border: '1px solid #333',
+                                color: '#fff',
+                                borderRadius: '4px',
+                                fontFamily: 'inherit',
+                                fontSize: '0.85rem'
+                            }}
+                        />
+                    </div>
                 </div>
 
                 {/* Grid of Sources */}
-                <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-                    {INTELLIGENCE_SOURCES.map((source) => {
+                <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px', alignContent: 'start' }}>
+                    {filteredSources.map((source) => {
                         const isActive = activeSources.includes(source.id);
                         return (
                             <div
@@ -70,9 +121,6 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                     <span style={{ fontSize: '0.85rem', color: isActive ? '#fff' : '#888', fontWeight: isActive ? 500 : 400 }}>
                                         {source.name}
                                     </span>
-                                    <span style={{ fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                        {source.group}
-                                    </span>
                                 </div>
                             </div>
                         );
@@ -85,12 +133,12 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button
                             onClick={() => setAllSources(true)}
-                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px' }}>
+                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'all 0.2s' }}>
                             SELECT ALL
                         </button>
                         <button
                             onClick={() => setAllSources(false)}
-                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px' }}>
+                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'all 0.2s' }}>
                             SELECT NONE
                         </button>
                     </div>

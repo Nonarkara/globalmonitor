@@ -3,7 +3,7 @@ import { fetchBackendJson } from './backendClient.js';
 
 const FEED_PROXY = 'https://api.allorigins.win/get?url=';
 const FEED_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
-export const DEFAULT_SOURCE_IDS = ['bbc_world', 'aljazeera', 'guardian_world', 'bangkok_post', 'cna', 'nikkei'];
+export const DEFAULT_SOURCE_IDS = ['bbc_world', 'bbc_middleeast', 'aljazeera', 'guardian_world', 'guardian_me', 'al_monitor', 'toi', 'jpost', 'presstv', 'national_uae', 'bangkok_post', 'cna', 'nikkei'];
 
 export const KEYWORD_GROUPS = [
     { tag: 'strikes', weight: 22, terms: ['strike', 'missile', 'bomb', 'explosion', 'airstrike', 'drone', 'intercept', 'retaliation', 'attack', 'shelling', 'barrage'] },
@@ -24,14 +24,23 @@ export const buildGoogleNewsSearchUrl = (query, locale = 'en-US') => {
 };
 
 export const INTELLIGENCE_SOURCES = [
-    { id: 'bbc_world', name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', group: 'global', trustScore: 14 },
+    { id: 'bbc_world', name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', group: 'worldwide', trustScore: 14 },
     { id: 'bbc_middleeast', name: 'BBC Middle East', url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', group: 'middle-east', trustScore: 15 },
-    { id: 'bbc_business', name: 'BBC Business', url: 'https://feeds.bbci.co.uk/news/business/rss.xml', group: 'global', trustScore: 12 },
+    { id: 'bbc_business', name: 'BBC Business', url: 'https://feeds.bbci.co.uk/news/business/rss.xml', group: 'worldwide', trustScore: 12 },
+    { id: 'bbc_persian', name: 'BBC Persian', url: 'https://feeds.bbci.co.uk/persian/rss.xml', group: 'middle-east', trustScore: 13 },
     { id: 'aljazeera', name: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', group: 'middle-east', trustScore: 14 },
-    { id: 'guardian_world', name: 'Guardian World', url: 'https://www.theguardian.com/world/rss', group: 'global', trustScore: 12 },
-    { id: 'reuters_world', name: 'Reuters World', url: 'https://www.reutersagency.com/feed/', group: 'global', trustScore: 15 },
+    { id: 'asharq', name: 'Asharq Al-Awsat', url: 'https://english.aawsat.com/feed', group: 'middle-east', trustScore: 13 },
+    { id: 'national_uae', name: 'The National UAE', url: 'https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml', group: 'middle-east', trustScore: 12 },
+    { id: 'guardian_world', name: 'Guardian World', url: 'https://www.theguardian.com/world/rss', group: 'worldwide', trustScore: 12 },
+    { id: 'guardian_me', name: 'Guardian ME', url: 'https://www.theguardian.com/world/middleeast/rss', group: 'middle-east', trustScore: 12 },
+    { id: 'reuters_world', name: 'Reuters World', url: 'https://www.reutersagency.com/feed/', group: 'worldwide', trustScore: 15 },
     { id: 'ap_mideast', name: 'AP Middle East', url: 'https://rsshub.app/apnews/topics/middle-east', group: 'middle-east', trustScore: 14 },
     { id: 'toi', name: 'Times of Israel', url: 'https://www.timesofisrael.com/feed/', group: 'middle-east', trustScore: 12 },
+    { id: 'jpost', name: 'Jerusalem Post', url: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx', group: 'middle-east', trustScore: 12 },
+    { id: 'presstv', name: 'Press TV', url: 'https://www.presstv.ir/rss.xml', group: 'middle-east', trustScore: 10 },
+    { id: 'iran_intl', name: 'Iran International', url: buildGoogleNewsSearchUrl('Iran International news Middle East'), group: 'middle-east', trustScore: 12 },
+    { id: 'al_monitor', name: 'Al-Monitor', url: 'https://www.al-monitor.com/rss', group: 'middle-east', trustScore: 13 },
+    { id: 'memo', name: 'Middle East Monitor', url: 'https://www.middleeastmonitor.com/feed/', group: 'middle-east', trustScore: 11 },
     { id: 'cna', name: 'Channel NewsAsia', url: 'https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml', group: 'asia', trustScore: 11 },
     { id: 'nikkei', name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed', group: 'asia', trustScore: 10 },
     { id: 'bangkok_post', name: 'Bangkok Post', url: 'https://www.bangkokpost.com/rss/data/news.xml', group: 'thailand', trustScore: 9 },
@@ -52,7 +61,7 @@ export const BRIEFING_DEFINITIONS = {
             'Israel Iran war escalation'
         ],
         locale: 'en-US',
-        sourceFilter: (source) => ['global', 'middle-east'].includes(source.group),
+        sourceFilter: (source) => ['worldwide', 'middle-east'].includes(source.group),
         focusTags: ['strikes', 'conflict', 'airspace', 'naval'],
         primarySources: [
             { label: 'ACLED', url: 'https://acleddata.com/' },
@@ -74,7 +83,7 @@ export const BRIEFING_DEFINITIONS = {
             'Iran foreign minister OR ambassador OR negotiations'
         ],
         locale: 'en-US',
-        sourceFilter: (source) => ['global', 'middle-east'].includes(source.group),
+        sourceFilter: (source) => ['worldwide', 'middle-east'].includes(source.group),
         focusTags: ['nuclear', 'sanctions', 'diplomacy', 'conflict'],
         primarySources: [
             { label: 'IAEA', url: 'https://www.iaea.org/' },
@@ -96,7 +105,7 @@ export const BRIEFING_DEFINITIONS = {
             'Emirates Etihad Qatar Airways flights Iran'
         ],
         locale: 'en-AE',
-        sourceFilter: (source) => ['global', 'middle-east'].includes(source.group),
+        sourceFilter: (source) => ['worldwide', 'middle-east'].includes(source.group),
         focusTags: ['naval', 'airspace', 'energy', 'conflict'],
         primarySources: [
             { label: 'MarineTraffic', url: 'https://www.marinetraffic.com/' },
@@ -118,7 +127,7 @@ export const BRIEFING_DEFINITIONS = {
             'Syria Iran IRGC OR Israel strike'
         ],
         locale: 'en-US',
-        sourceFilter: (source) => ['global', 'middle-east'].includes(source.group),
+        sourceFilter: (source) => ['worldwide', 'middle-east'].includes(source.group),
         focusTags: ['proxy', 'conflict', 'strikes', 'humanitarian'],
         primarySources: [
             { label: 'ReliefWeb', url: 'https://reliefweb.int/' },
@@ -140,7 +149,7 @@ export const BRIEFING_DEFINITIONS = {
             'energy supply disruption Iran OR Gulf'
         ],
         locale: 'en-US',
-        sourceFilter: (source) => ['global', 'middle-east'].includes(source.group),
+        sourceFilter: (source) => ['worldwide', 'middle-east'].includes(source.group),
         focusTags: ['energy', 'sanctions', 'conflict', 'naval'],
         primarySources: [
             { label: 'OPEC', url: 'https://www.opec.org/' },
