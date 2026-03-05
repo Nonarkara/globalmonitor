@@ -652,26 +652,83 @@ body {
    ═══════════════════════════════════════════ */
 
 @media (max-width: 1024px) {
+  /* CRITICAL: Allow scrolling on mobile — override desktop lock */
+  body {
+    overflow: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  #root {
+    width: 100%;
+    height: auto !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
+
   .app-container {
-    display: flex; flex-direction: column;
-    overflow-y: auto; overflow-x: hidden;
-    pointer-events: auto; height: 100vh;
-    padding: 8px; padding-bottom: 68px; gap: 8px;
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    pointer-events: auto;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
     width: 100%;
     max-width: 100%;
+    padding: 8px;
+    padding-bottom: 56px;
+    gap: 8px;
+  }
+  .app-container::after {
+    position: relative;
+    bottom: auto;
+    padding: 8px 0;
   }
   .app-container > * { width: 100%; max-width: 100%; }
-  .grid-panel, .bottom-card { height: auto !important; min-height: min-content; overflow-y: visible; flex: 0 0 auto; }
-  .header-bar, .left-sidebar, .live-media-dock, .right-sidebar, .bottom-bar {
-    position: relative; z-index: 10; width: 100%;
-    height: auto; display: flex; flex-direction: column; pointer-events: auto;
-  }
-  .left-sidebar, .live-media-dock, .right-sidebar { grid-column: auto; grid-row: auto; }
 
+  /* Reset panels to flow naturally */
+  .grid-panel, .bottom-card {
+    height: auto !important;
+    max-height: none !important;
+    min-height: min-content;
+    overflow-y: visible;
+    flex: 0 0 auto;
+  }
+  .header-bar, .left-sidebar, .live-media-dock, .right-sidebar, .bottom-bar {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+  }
+  .left-sidebar, .live-media-dock, .right-sidebar {
+    grid-column: auto;
+    grid-row: auto;
+    overflow-y: visible;
+  }
+  .right-sidebar > .bottom-card {
+    max-height: none !important;
+    flex-shrink: 0;
+  }
+  .bottom-bar > .bottom-card {
+    max-height: none !important;
+  }
+
+  /* Mobile ordering: header, map, ticker, then all panels stacked */
   .top-bar-clock {
-    order: 0; position: relative; width: 100%;
-    flex-direction: column; gap: 6px; align-items: stretch;
-    padding: 8px 10px; border-radius: var(--radius-md);
+    order: 0;
+    position: relative;
+    width: 100%;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
     background: linear-gradient(180deg, rgba(9,23,52,0.7), rgba(5,14,32,0.85));
     border: 1px solid rgba(255,255,255,0.05);
   }
@@ -683,62 +740,213 @@ body {
     gap: 8px;
   }
   .header-bar > * { flex: 0 1 auto; max-width: 100%; }
-  .map-wrapper { position: relative; height: 32vh; width: 100%; order: 2; z-index: 10; border-radius: var(--radius-lg); overflow: hidden; flex-shrink: 0; pointer-events: auto; }
-  .news-ticker-wrapper { order: 3; position: relative; width: 100%; min-height: 38px; border-radius: var(--radius-sm); overflow: hidden; }
-  .live-media-dock { order: 4; width: 100%; min-width: 0; margin: 0; }
+
+  /* Map becomes a contained card, not full-screen */
+  .map-wrapper {
+    position: relative !important;
+    inset: auto !important;
+    height: 35vh;
+    height: 35dvh;
+    width: 100%;
+    order: 2;
+    z-index: 10;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
+
+  /* News ticker sits right under the map */
+  .news-ticker-wrapper {
+    order: 3;
+    position: relative;
+    width: 100%;
+    min-height: 38px;
+    height: auto;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* Stack all panels below */
+  .live-media-dock {
+    order: 4;
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    min-width: 0;
+    margin: 0;
+    opacity: 1 !important;
+  }
   .left-sidebar { order: 5; }
   .right-sidebar { order: 6; }
-  .bottom-bar { order: 7; display: flex; flex-direction: column; gap: 8px; }
-  .left-sidebar > *, .right-sidebar > *, .bottom-bar > *, .live-media-dock > * { width: 100%; max-width: 100%; }
+  .bottom-bar {
+    order: 7;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: none;
+  }
+  .left-sidebar > *, .right-sidebar > *, .bottom-bar > *, .live-media-dock > * {
+    width: 100%;
+    max-width: 100%;
+  }
 
+  /* Clock adjustments */
   .secondary-clocks-side { justify-content: space-between !important; gap: 4px; }
   .secondary-clock-h { flex: 1; }
   .primary-clock-center { margin: 0; }
   .primary-clock-content .clock-time-large { font-size: 1.6rem; }
   .primary-clock-content .clock-city { font-size: 0.64rem; }
-  .news-item { margin-right: 20px; font-size: 0.76rem; }
+
+  /* Ensure text wraps and doesn't overflow */
   .grid-panel, .bottom-card, .panel-content, .panel-header, .signal-item, .live-media-body { min-width: 0; }
-  .signal-item-title, .panel-lead, .live-media-note, .news-item { overflow-wrap: anywhere; }
+  .signal-item-title, .panel-lead, .live-media-note, .news-item { overflow-wrap: anywhere; word-break: break-word; }
   .panel-header { padding: 8px 10px; font-size: 0.66rem; }
   .panel-content, .sidebar-content { padding: 10px; }
+  .panel-content { overflow-y: visible; }
+  .signal-list { max-height: none; overflow-y: visible; }
+
+  /* News ticker mobile */
+  .news-item { margin-right: 20px; font-size: 0.76rem; }
+
+  /* Media panel mobile */
   .live-media-preview { aspect-ratio: 4 / 3; }
   .live-media-fallback { flex-direction: column; align-items: flex-start; }
+
+  /* Map HUD */
   .map-story-cards, .map-hud-metrics { grid-template-columns: 1fr; }
   .map-hud { top: 12px; left: 12px; right: 12px; transform: none; width: auto; min-width: 0; padding: 10px; }
   .map-story-strip { display: none; }
+
+  /* Region selector: sticky bottom bar */
   .region-selector {
     position: fixed;
     bottom: 0;
     left: 0;
+    right: 0;
     width: 100%;
     margin: 0;
     border-radius: 0;
+    transform: none;
     justify-content: flex-start;
     overflow-x: auto;
     gap: 6px;
-    padding: 6px 10px;
-    background: rgba(5,14,32,0.95);
+    padding: 8px 10px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    background: rgba(5,14,32,0.97);
     z-index: 100;
     border-top: 1px solid var(--border-color);
     -webkit-overflow-scrolling: touch;
   }
   .region-btn { padding: 6px 10px; font-size: 0.76rem; flex: 0 0 auto; }
+
+  /* Market radar groups */
+  .radar-groups { gap: 6px; }
 }
 
+/* ═══════════════════════════════════════════
+   SMALL PHONES (< 680px)
+   ═══════════════════════════════════════════ */
+
 @media (max-width: 680px) {
-  .app-container { padding: 6px 6px 68px; gap: 6px; }
-  .secondary-clocks-side.left-side .secondary-clock-h:nth-child(n+2),
-  .secondary-clocks-side.right-side .secondary-clock-h:nth-child(n+2) { display: none; }
+  .app-container { padding: 4px; padding-bottom: 52px; gap: 6px; }
+
+  /* Show only 2 secondary clocks per side on small screens */
+  .secondary-clocks-side.left-side .secondary-clock-h:nth-child(n+3),
+  .secondary-clocks-side.right-side .secondary-clock-h:nth-child(n+3) { display: none; }
   .secondary-clocks-side { gap: 2px; }
-  .clock-city-small { font-size: 0.54rem; }
-  .clock-time-small { font-size: 0.74rem; }
-  .header-bar { padding: 0 10px; }
-  .header-bar button { font-size: 0.72rem !important; padding: 6px 8px !important; }
-  .map-wrapper { height: 30vh; }
+  .clock-city-small { font-size: 0.52rem; }
+  .clock-time-small { font-size: 0.7rem; }
+
+  .header-bar { padding: 6px 8px; min-height: 36px; }
+  .header-bar button { font-size: 0.68rem !important; padding: 5px 8px !important; }
+  .header-bar span[style] { font-size: 0.78rem !important; letter-spacing: 1.5px !important; }
+
+  /* Smaller map on phones */
+  .map-wrapper { height: 28vh; height: 28dvh; }
+
+  /* Tighter panels */
+  .panel-header { padding: 7px 8px; font-size: 0.62rem; }
+  .panel-content, .sidebar-content { padding: 8px; }
+  .panel-lead { font-size: 0.7rem; }
+
+  /* Smaller signal items */
+  .signal-item { padding: 6px; }
+  .signal-item-title { font-size: 0.74rem; }
+  .signal-item-meta { font-size: 0.6rem; }
+  .briefing-summary { padding: 6px; font-size: 0.68rem; }
+
+  /* Market radar compact */
+  .radar-item { padding: 5px 6px; }
+  .radar-token strong { font-size: 0.72rem; }
+  .radar-price { font-size: 0.7rem; gap: 4px; }
+  .radar-price .change { font-size: 0.62rem; padding: 1px 4px; }
+  .radar-group-label { font-size: 0.54rem; }
+
+  /* Layer cards compact */
+  .layer-card { padding: 8px 10px; }
+  .layer-title { font-size: 0.8rem; }
+  .layer-desc { font-size: 0.68rem; }
+  .layer-icon-wrapper { width: 30px; height: 30px; }
+
+  /* Signal chips/tags */
+  .signal-chip, .signal-tag, .source-pill { font-size: 0.58rem; padding: 2px 6px; }
+
+  /* Live pill */
+  .live-pill { font-size: 0.54rem; }
+
+  /* Map HUD */
   .map-hud { top: 8px; left: 8px; right: 8px; padding: 8px; }
   .map-hud-copy { display: none; }
   .map-hud-metrics { display: none; }
+
+  /* Media panel */
   .live-media-tab { flex: 1 1 auto; text-align: center; }
   .live-media-title { font-size: 0.82rem; }
-  .signal-item, .briefing-summary { padding: 6px; }
+
+  /* News ticker */
+  .news-ticker-wrapper { min-height: 34px; }
+  .news-badge { padding: 0 8px; }
+  .news-item { font-size: 0.72rem; margin-right: 16px; }
+
+  /* Region selector */
+  .region-btn { padding: 5px 8px; font-size: 0.72rem; }
+}
+
+/* ═══════════════════════════════════════════
+   VERY SMALL PHONES (< 400px)
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 400px) {
+  .app-container { padding: 3px; padding-bottom: 48px; gap: 4px; }
+
+  /* Hide secondary clocks entirely, just show primary */
+  .secondary-clocks-side { display: none; }
+  .primary-clock-center { margin: 0; }
+  .primary-clock-content .clock-time-large { font-size: 1.3rem; }
+  .top-bar-clock { padding: 6px 8px; }
+
+  .header-bar span[style] { font-size: 0.7rem !important; }
+  .map-wrapper { height: 25vh; height: 25dvh; }
+  .radar-token strong { font-size: 0.66rem; }
+  .radar-price { font-size: 0.64rem; }
+}
+
+/* ═══════════════════════════════════════════
+   SAFE AREA INSETS (notch phones)
+   ═══════════════════════════════════════════ */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  @media (max-width: 1024px) {
+    .region-selector {
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+    .app-container {
+      padding-left: max(4px, env(safe-area-inset-left));
+      padding-right: max(4px, env(safe-area-inset-right));
+    }
+  }
 }
