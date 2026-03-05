@@ -86,7 +86,7 @@ export const fetchConflictsAndCrises = async () => {
 
     try {
         const response = await axios.post(
-            'https://api.reliefweb.int/v2/disasters?appname=techmonitor',
+            'https://api.reliefweb.int/v2/disasters',
             {
                 profile: 'full',
                 limit: 12,

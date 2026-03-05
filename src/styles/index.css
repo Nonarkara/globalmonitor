@@ -655,7 +655,10 @@ body {
     overflow-y: auto; overflow-x: hidden;
     pointer-events: auto; height: 100vh;
     padding: 8px; padding-bottom: 68px; gap: 8px;
+    width: 100%;
+    max-width: 100%;
   }
+  .app-container > * { width: 100%; max-width: 100%; }
   .grid-panel, .bottom-card { height: auto !important; min-height: min-content; overflow-y: visible; flex: 0 0 auto; }
   .header-bar, .left-sidebar, .live-media-dock, .right-sidebar, .bottom-bar {
     position: relative; z-index: 10; width: 100%;
@@ -670,13 +673,21 @@ body {
     background: linear-gradient(180deg, rgba(9,23,52,0.7), rgba(5,14,32,0.85));
     border: 1px solid rgba(255,255,255,0.05);
   }
-  .header-bar { order: 1; padding: 8px 12px; }
-  .map-wrapper { position: relative; height: 38vh; width: 100%; order: 2; z-index: 10; border-radius: var(--radius-lg); overflow: hidden; flex-shrink: 0; pointer-events: auto; }
+  .header-bar {
+    order: 1;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .header-bar > * { flex: 0 1 auto; max-width: 100%; }
+  .map-wrapper { position: relative; height: 32vh; width: 100%; order: 2; z-index: 10; border-radius: var(--radius-lg); overflow: hidden; flex-shrink: 0; pointer-events: auto; }
   .news-ticker-wrapper { order: 3; position: relative; width: 100%; min-height: 38px; border-radius: var(--radius-sm); overflow: hidden; }
   .live-media-dock { order: 4; width: 100%; min-width: 0; margin: 0; }
   .left-sidebar { order: 5; }
   .right-sidebar { order: 6; }
   .bottom-bar { order: 7; display: flex; flex-direction: column; gap: 8px; }
+  .left-sidebar > *, .right-sidebar > *, .bottom-bar > *, .live-media-dock > * { width: 100%; max-width: 100%; }
 
   .secondary-clocks-side { justify-content: space-between !important; gap: 4px; }
   .secondary-clock-h { flex: 1; }
@@ -684,6 +695,8 @@ body {
   .primary-clock-content .clock-time-large { font-size: 1.6rem; }
   .primary-clock-content .clock-city { font-size: 0.64rem; }
   .news-item { margin-right: 20px; font-size: 0.76rem; }
+  .grid-panel, .bottom-card, .panel-content, .panel-header, .signal-item, .live-media-body { min-width: 0; }
+  .signal-item-title, .panel-lead, .live-media-note, .news-item { overflow-wrap: anywhere; }
   .panel-header { padding: 8px 10px; font-size: 0.66rem; }
   .panel-content, .sidebar-content { padding: 10px; }
   .live-media-preview { aspect-ratio: 4 / 3; }
@@ -691,17 +704,38 @@ body {
   .map-story-cards, .map-hud-metrics { grid-template-columns: 1fr; }
   .map-hud { top: 12px; left: 12px; right: 12px; transform: none; width: auto; min-width: 0; padding: 10px; }
   .map-story-strip { display: none; }
-  .region-selector { position: fixed; bottom: 0; left: 0; width: 100%; margin: 0; border-radius: 0; justify-content: center; padding: 6px 0; background: rgba(5,14,32,0.95); z-index: 100; border-top: 1px solid var(--border-color); }
-  .region-btn { padding: 6px 10px; font-size: 0.76rem; }
+  .region-selector {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(5,14,32,0.95);
+    z-index: 100;
+    border-top: 1px solid var(--border-color);
+    -webkit-overflow-scrolling: touch;
+  }
+  .region-btn { padding: 6px 10px; font-size: 0.76rem; flex: 0 0 auto; }
 }
 
 @media (max-width: 680px) {
   .app-container { padding: 6px 6px 68px; gap: 6px; }
-  .secondary-clocks-side.left-side .secondary-clock-h:nth-child(n+3),
-  .secondary-clocks-side.right-side .secondary-clock-h:nth-child(n+3) { display: none; }
+  .secondary-clocks-side.left-side .secondary-clock-h:nth-child(n+2),
+  .secondary-clocks-side.right-side .secondary-clock-h:nth-child(n+2) { display: none; }
+  .secondary-clocks-side { gap: 2px; }
+  .clock-city-small { font-size: 0.54rem; }
+  .clock-time-small { font-size: 0.74rem; }
   .header-bar { padding: 0 10px; }
-  .map-wrapper { height: 42vh; }
+  .header-bar button { font-size: 0.72rem !important; padding: 6px 8px !important; }
+  .map-wrapper { height: 30vh; }
   .map-hud { top: 8px; left: 8px; right: 8px; padding: 8px; }
+  .map-hud-copy { display: none; }
+  .map-hud-metrics { display: none; }
   .live-media-tab { flex: 1 1 auto; text-align: center; }
   .live-media-title { font-size: 0.82rem; }
   .signal-item, .briefing-summary { padding: 6px; }

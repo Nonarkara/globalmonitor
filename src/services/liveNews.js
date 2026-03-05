@@ -369,11 +369,12 @@ const deriveBriefingStats = (items) => {
 
 export const fetchBriefing = async (briefingId, activeSourceIds = null) => {
     try {
-        return await fetchBackendJson(`/api/briefings/${briefingId}`, {
+        const backendData = await fetchBackendJson(`/api/briefings/${briefingId}`, {
             sourceIds: Array.isArray(activeSourceIds) ? activeSourceIds.join(',') : undefined
         });
+        if (backendData && backendData.items && backendData.items.length > 0) return backendData;
     } catch (error) {
-        console.warn(`Backend briefing fetch failed for ${briefingId}`, error.message);
+        // Fall back to direct fetching if backend proxy is offline
     }
 
     const briefing = BRIEFING_DEFINITIONS[briefingId];
@@ -400,11 +401,12 @@ export const fetchBriefing = async (briefingId, activeSourceIds = null) => {
 
 export const fetchLiveNews = async (activeSourceIds = null) => {
     try {
-        return await fetchBackendJson('/api/ticker', {
+        const backendData = await fetchBackendJson('/api/ticker', {
             sourceIds: Array.isArray(activeSourceIds) ? activeSourceIds.join(',') : undefined
         });
+        if (backendData && backendData.length > 0) return backendData;
     } catch (error) {
-        console.warn('Backend ticker fetch failed', error.message);
+        // Fall back to direct fetching if backend proxy is offline
     }
 
     const sources = makeSourceWindow(activeSourceIds, () => true, 8);
