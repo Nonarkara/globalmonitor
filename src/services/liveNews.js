@@ -382,7 +382,7 @@ export const fetchBriefing = async (briefingId, activeSourceIds = null) => {
             sourceIds: Array.isArray(activeSourceIds) ? activeSourceIds.join(',') : undefined
         });
         if (backendData && backendData.items && backendData.items.length > 0) return backendData;
-    } catch (error) {
+    } catch {
         // Fall back to direct fetching if backend proxy is offline
     }
 
@@ -414,7 +414,7 @@ export const fetchLiveNews = async (activeSourceIds = null) => {
             sourceIds: Array.isArray(activeSourceIds) ? activeSourceIds.join(',') : undefined
         });
         if (backendData && backendData.length > 0) return backendData;
-    } catch (error) {
+    } catch {
         // Fall back to direct fetching if backend proxy is offline
     }
 

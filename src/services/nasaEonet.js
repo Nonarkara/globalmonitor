@@ -4,7 +4,7 @@ import axios from 'axios';
 // Returns active events like wildfires, volcanoes, storms
 export const fetchNaturalDisasters = async () => {
     try {
-        const response = await axios.get('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=30');
+        const response = await axios.get('https://eonet.gsfc.nasa.gov/api/v2.1/events?status=open&days=30');
 
         // Transform NASA EONET data into GeoJSON format for MapLibre
         const features = response.data.events

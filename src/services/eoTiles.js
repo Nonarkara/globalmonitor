@@ -15,7 +15,6 @@ const gibsTileUrl = (layer, tileMatrix = 'GoogleMapsCompatible_Level9', format =
     `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/{time}/${tileMatrix}/{z}/{y}/{x}.${format}`;
 
 /** Today in YYYY-MM-DD for tile requests */
-const today = () => new Date().toISOString().slice(0, 10);
 const yesterday = () => {
     const d = new Date();
     d.setDate(d.getDate() - 1);

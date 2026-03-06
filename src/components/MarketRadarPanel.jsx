@@ -4,10 +4,10 @@ import { Activity, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
 
 const CATEGORIES = [
-    { label: 'COMMODITIES', match: (s) => ['Gold', 'Brent Oil', 'WTI Crude'].includes(s) },
-    { label: 'INDICES', match: (s) => s.startsWith('S&P') || s.startsWith('TASI') || s.startsWith('TA-125') },
-    { label: 'CRYPTO', match: (s) => ['BTC', 'ETH'].includes(s) },
-    { label: 'FX RATES', match: (s) => s.includes('/') },
+    { label: 'COMMODITIES', match: (s) => s?.includes && (s.includes('Gold') || s.includes('Silver') || s.includes('Oil') || s.includes('Crude')) },
+    { label: 'INDICES', match: (s) => s?.startsWith && (s.startsWith('S&P') || s.startsWith('TASI') || s.startsWith('TA-125')) },
+    { label: 'CRYPTO', match: (s) => s && ['BTC', 'ETH'].includes(s) },
+    { label: 'FX RATES', match: (s) => s?.includes && s.includes('/') },
 ];
 
 const categorize = (items) => {
@@ -43,7 +43,7 @@ const MarketRadarPanel = () => {
         <div className="bottom-card flex-column">
             <div className="panel-header">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Activity size={14} /> OIL, FX & MARKETS
+                    <Activity size={14} /> MARKET RADAR
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
@@ -56,9 +56,9 @@ const MarketRadarPanel = () => {
                     <span className={`live-pill ${statusLabel !== 'LIVE' ? 'live-pill-muted' : ''}`}>{statusLabel}</span>
                 </div>
             </div>
-            <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div className="panel-lead" style={{ marginBottom: 0 }}>
-                    {lastUpdated ? `Last live update ${new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Waiting for first live quote...'}
+            <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div className="panel-lead" style={{ marginBottom: 0, fontFamily: 'var(--font-mono)', fontSize: '0.68rem', letterSpacing: '0.3px' }}>
+                    {lastUpdated ? `Last update ${new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Waiting for first live quote...'}
                 </div>
                 <div className="radar-groups">
                     {groups.map((group) => (

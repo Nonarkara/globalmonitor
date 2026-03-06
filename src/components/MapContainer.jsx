@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Map, { Marker, Source, Layer } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -62,7 +62,8 @@ const OPERATIONAL_CORRIDORS = {
             properties: {
                 color: '#ef4444',
                 width: 2.8,
-                glow: 12
+                glow: 12,
+                label: 'Energy Trade Route (Gulf → India → Bangkok)'
             }
         },
         {
@@ -74,7 +75,8 @@ const OPERATIONAL_CORRIDORS = {
             properties: {
                 color: '#f59e0b',
                 width: 2.4,
-                glow: 10
+                glow: 10,
+                label: 'Maritime Shipping Lane (Red Sea → Singapore)'
             }
         },
         {
@@ -86,7 +88,8 @@ const OPERATIONAL_CORRIDORS = {
             properties: {
                 color: '#38bdf8',
                 width: 2.2,
-                glow: 9
+                glow: 9,
+                label: 'East Asia Trade Corridor (Shanghai → Singapore)'
             }
         }
     ]
@@ -261,7 +264,14 @@ const renderSpatialAura = (data, id, color, baseRadius) => {
     );
 };
 
+const MAP_STYLES = {
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    satellite: 'https://api.maptiler.com/maps/hybrid/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL',
+    voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+};
+
 const MapContainer = ({ viewState, onMove, activeLayers, onMarkerClick }) => {
+    const [mapStyle, setMapStyle] = useState('dark');
     const disasterResource = useLiveResource(useCallback(() => fetchNaturalDisasters(), []), {
         cacheKey: 'map:disasters',
         enabled: activeLayers.includes('disasters'),
@@ -369,7 +379,7 @@ const MapContainer = ({ viewState, onMove, activeLayers, onMarkerClick }) => {
                 {...viewState}
                 onMove={(event) => onMove(event.viewState)}
                 style={{ width: '100%', height: '100%' }}
-                mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                mapStyle={MAP_STYLES[mapStyle] || MAP_STYLES.dark}
             >
                 <Source id="strategic-zones" type="geojson" data={STRATEGIC_ZONES}>
                     <Layer
@@ -532,7 +542,6 @@ const MapContainer = ({ viewState, onMove, activeLayers, onMarkerClick }) => {
                             id="rainviewer-layer"
                             type="raster"
                             paint={{ 'raster-opacity': 0.42 }}
-                            beforeId="waterway-label"
                         />
                     </Source>
                 )}
@@ -643,6 +652,50 @@ const MapContainer = ({ viewState, onMove, activeLayers, onMarkerClick }) => {
                             <span>{signal.label}</span>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Satellite/Map style toggle */}
+            <div className="map-style-toggle">
+                {Object.entries({ dark: '🌑', satellite: '🛰️', voyager: '🗺️' }).map(([key, icon]) => (
+                    <button
+                        key={key}
+                        className={`map-style-btn ${mapStyle === key ? 'active' : ''}`}
+                        onClick={() => setMapStyle(key)}
+                        title={`${key.charAt(0).toUpperCase() + key.slice(1)} view`}
+                    >
+                        {icon}
+                    </button>
+                ))}
+            </div>
+
+            {/* Map Legend */}
+            <div className="map-legend">
+                <div className="map-legend-title">TRADE & SHIPPING CORRIDORS</div>
+                <div className="map-legend-item">
+                    <span className="map-legend-line" style={{ background: '#ef4444' }} />
+                    <span>Energy Route (Gulf → Bangkok)</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-line" style={{ background: '#f59e0b' }} />
+                    <span>Shipping Lane (Red Sea → Singapore)</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-line" style={{ background: '#38bdf8' }} />
+                    <span>East Asia Corridor (Shanghai → SG)</span>
+                </div>
+                <div className="map-legend-title" style={{ marginTop: '6px' }}>STRATEGIC ZONES</div>
+                <div className="map-legend-item">
+                    <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#fca5a5' }} />
+                    <span>Persian Gulf Conflict Zone</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#fcd34d' }} />
+                    <span>Horn of Africa / Yemen</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#6ee7b7' }} />
+                    <span>ASEAN Tech Hub</span>
                 </div>
             </div>
         </div>

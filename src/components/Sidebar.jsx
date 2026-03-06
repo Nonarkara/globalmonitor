@@ -39,22 +39,30 @@ const Sidebar = ({ activeLayers, toggleLayer }) => {
     return (
         <aside className="grid-panel" style={{ flex: 1 }}>
             <div className="sidebar-header">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* White Container Interventions for JPEGs */}
-                    <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                        {/* DEPA is the largest/primary logo */}
-                        <img src="/Logo on White BG-01.jpg" alt="depa" style={{ height: '48px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {/* Logo badge */}
+                    <div style={{
+                        backgroundColor: '#ffffff',
+                        padding: '10px 14px',
+                        borderRadius: '14px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '10px',
+                        boxShadow: '0 2px 12px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.8)'
+                    }}>
+                        <img src="/Logo on White BG-01.jpg" alt="depa" style={{ height: '44px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
 
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#0f172a', padding: '6px 10px', borderRadius: '999px', background: '#e2e8f0' }}>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px', color: '#0f172a', padding: '5px 10px', borderRadius: '999px', background: 'linear-gradient(135deg, #e2e8f0, #cbd5e1)' }}>
                                 SMART CITY TH
                             </span>
-                            <img src="/mdes.png" alt="MDES" style={{ height: '36px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                            <img src="/mdes.png" alt="MDES" style={{ height: '32px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                         </div>
                     </div>
-                    <div className="brand" style={{ fontSize: '1.2rem', lineHeight: '1.4', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                        <span>Iran Conflict Monitor</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>by Dr Non / depa.</span>
+                    <div className="brand" style={{ fontSize: '1.15rem', lineHeight: '1.4', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                        <span style={{ letterSpacing: '-0.3px' }}>Iran Conflict Monitor</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'normal', letterSpacing: '0.2px' }}>by Dr Non / depa.</span>
                     </div>
                 </div>
             </div>
