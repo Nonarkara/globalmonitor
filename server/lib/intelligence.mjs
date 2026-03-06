@@ -7,7 +7,7 @@ import {
     buildGoogleNewsSearchUrl
 } from '../../src/services/liveNews.js';
 
-const FEED_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
 const normalizeTitle = (value = '') => value.toLowerCase().replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 
@@ -88,12 +88,68 @@ const parseJsonFallback = (payload, source) => {
     });
 };
 
+const parseXmlFeed = (xml, source) => {
+    // Lightweight server-side XML parsing using regex (no DOMParser in Node)
+    const items = [];
+    const feedTitleMatch = xml.match(/<channel>[\s\S]*?<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/);
+    const feedTitle = feedTitleMatch?.[1]?.trim() || source.name;
+
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+    while ((match = itemRegex.exec(xml)) !== null) {
+        const block = match[1];
+        const title = (block.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] || '').trim();
+        const link = (block.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/)?.[1] || '').trim();
+        const pubDate = (block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || '').trim();
+        const itemSource = (block.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || '').trim()
+            || (block.match(/<author>([\s\S]*?)<\/author>/)?.[1] || '').trim()
+            || feedTitle;
+
+        if (!title || !link) continue;
+        if (normalizeTitle(title) === normalizeTitle(feedTitle) || title === feedTitle) continue;
+
+        items.push({ title, link, pubDate: resolveDate(pubDate), source: itemSource });
+    }
+
+    // Try Atom <entry> if no RSS <item> found
+    if (items.length === 0) {
+        const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+        while ((match = entryRegex.exec(xml)) !== null) {
+            const block = match[1];
+            const title = (block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1] || '').trim();
+            const link = (block.match(/<link[^>]*href="([^"]*)"[^>]*\/?>/)?.[1] || '').trim();
+            const pubDate = (block.match(/<updated>([\s\S]*?)<\/updated>/)?.[1]
+                || block.match(/<published>([\s\S]*?)<\/published>/)?.[1] || '').trim();
+
+            if (!title || !link) continue;
+            items.push({ title, link, pubDate: resolveDate(pubDate), source: feedTitle });
+        }
+    }
+
+    return items;
+};
+
 const fetchFeedItems = async (source) => {
+    // Primary: fetch RSS directly (server-side, no CORS issue)
     try {
-        const response = await axios.get(`${FEED_FALLBACK}${encodeURIComponent(source.url)}`, { timeout: 15000 });
+        const response = await axios.get(source.url, {
+            timeout: 12000,
+            headers: { 'Accept': 'application/rss+xml, application/xml, text/xml, */*' },
+            responseType: 'text'
+        });
+        if (typeof response.data === 'string' && response.data.includes('<')) {
+            const parsed = parseXmlFeed(response.data, source);
+            if (parsed.length > 0) return parsed;
+        }
+    } catch {
+        // Fall through to JSON fallback
+    }
+
+    // Fallback: rss2json
+    try {
+        const response = await axios.get(`${FEED_JSON_FALLBACK}${encodeURIComponent(source.url)}`, { timeout: 12000 });
         return parseJsonFallback(response.data, source);
-    } catch (error) {
-        console.warn(`Server feed fetch failed for ${source.name}`, error.message);
+    } catch {
         return [];
     }
 };

@@ -377,7 +377,7 @@ body {
 
 .left-sidebar {
   grid-column: 1;
-  grid-row: 3;
+  grid-row: 3 / 5;
   gap: 8px;
   display: flex;
   flex-direction: column;
@@ -412,32 +412,13 @@ body {
 }
 
 
-/* ═══════════════════════════════════════════
-   ROW 3: Live media dock (floating over map)
-   ═══════════════════════════════════════════ */
-
-.live-media-dock {
-  width: 100%;
-  pointer-events: auto;
-  z-index: 50;
-  overflow: hidden;
-  opacity: 0.9;
-  transition: opacity 0.3s;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.live-media-dock:hover {
-  opacity: 1;
-}
-
 
 /* ═══════════════════════════════════════════
    ROW 4: Bottom bar — center + right columns
    ═══════════════════════════════════════════ */
 
 .bottom-bar {
-  grid-column: 1 / -1;
+  grid-column: 2 / -1;
   grid-row: 4;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1781,7 +1762,6 @@ body {
 
   .header-bar,
   .left-sidebar,
-  .live-media-dock,
   .right-sidebar,
   .bottom-bar {
     position: relative;
@@ -1794,7 +1774,6 @@ body {
   }
 
   .left-sidebar,
-  .live-media-dock,
   .right-sidebar {
     grid-column: auto;
     grid-row: auto;
@@ -1864,29 +1843,16 @@ body {
     flex-shrink: 0;
   }
 
-  /* Stack all panels below */
-  .live-media-dock {
-    order: 4;
-    position: relative !important;
-    bottom: auto !important;
-    left: auto !important;
-    width: 100% !important;
-    max-height: none !important;
-    min-width: 0;
-    margin: 0;
-    opacity: 1 !important;
-  }
-
   .left-sidebar {
-    order: 5;
+    order: 4;
   }
 
   .right-sidebar {
-    order: 6;
+    order: 5;
   }
 
   .bottom-bar {
-    order: 7;
+    order: 6;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1895,8 +1861,7 @@ body {
 
   .left-sidebar>*,
   .right-sidebar>*,
-  .bottom-bar>*,
-  .live-media-dock>* {
+  .bottom-bar>* {
     width: 100%;
     max-width: 100%;
   }

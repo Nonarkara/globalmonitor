@@ -17,44 +17,60 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds }) => {
         return () => { mountedRef.current = false; };
     }, []);
 
+    const parseDepaXml = (xml) => {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xml, "text/xml");
+        if (xmlDoc.querySelector("parsererror")) return [];
+        const items = xmlDoc.querySelectorAll("item");
+        const depaQueryStr = '"Digital Economy Promotion Agency" OR "สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"';
+        const newsItems = [];
+        Array.from(items).forEach(item => {
+            const itemTitle = item.querySelector("title")?.textContent;
+            const link = item.querySelector("link")?.textContent;
+            const pubDateStr = item.querySelector("pubDate")?.textContent;
+            const source = item.querySelector("source")?.textContent || 'Google News';
+            if (itemTitle && link) {
+                if (itemTitle.includes(depaQueryStr) || itemTitle === 'Google News') return;
+                newsItems.push({ title: itemTitle, link, pubDate: pubDateStr ? new Date(pubDateStr) : new Date(), source });
+            }
+        });
+        return newsItems.slice(0, 5);
+    };
+
     const fetchNews = useCallback(() => {
         setIsRefreshing(true);
         if (regionName === 'DEPA') {
             const depaSearchUrl = 'https://news.google.com/rss/search?q="Digital+Economy+Promotion+Agency"+OR+"สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"&hl=th&gl=TH&ceid=TH:th';
             const freshUrl = depaSearchUrl + '&cb=' + Date.now();
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(freshUrl)}`;
+            const encoded = encodeURIComponent(freshUrl);
 
-            fetch(proxyUrl)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.contents) {
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-                        const items = xmlDoc.querySelectorAll("item");
-                        const depaQueryStr = '"Digital Economy Promotion Agency" OR "สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"';
+            const tryProxy = async (url, extract) => {
+                const res = await fetch(url);
+                const data = await res.json();
+                const xml = extract(data);
+                if (!xml) throw new Error('No XML');
+                const items = parseDepaXml(xml);
+                if (items.length === 0) throw new Error('No items');
+                return items;
+            };
 
-                        const newsItems = [];
-                        Array.from(items).forEach(item => {
-                            const itemTitle = item.querySelector("title")?.textContent;
-                            const link = item.querySelector("link")?.textContent;
-                            const pubDateStr = item.querySelector("pubDate")?.textContent;
-                            const source = item.querySelector("source")?.textContent || 'Google News';
+            const tryRawProxy = async (url) => {
+                const res = await fetch(url);
+                const text = await res.text();
+                if (!text.includes('<')) throw new Error('Not XML');
+                const items = parseDepaXml(text);
+                if (items.length === 0) throw new Error('No items');
+                return items;
+            };
 
-                            if (itemTitle && link) {
-                                if (itemTitle.includes(depaQueryStr) || itemTitle === 'Google News') return;
-
-                                newsItems.push({
-                                    title: itemTitle,
-                                    link,
-                                    pubDate: pubDateStr ? new Date(pubDateStr) : new Date(),
-                                    source
-                                });
-                            }
-                        });
-                        if (mountedRef.current) setNews(newsItems.slice(0, 5));
-                    }
-                })
-                .catch(err => console.error("DEPA Social Listening failed:", err))
+            (async () => {
+                let items = null;
+                try { items = await tryProxy(`https://api.allorigins.win/get?url=${encoded}`, d => d?.contents); } catch {}
+                if (!items) try { items = await tryRawProxy(`https://api.codetabs.com/v1/proxy?quest=${encoded}`); } catch {}
+                if (!items) try { items = await tryRawProxy(`https://corsproxy.io/?url=${encoded}`); } catch {}
+                if (mountedRef.current) setNews(items || []);
+            })()
+                .catch(() => { if (mountedRef.current) setNews([]); })
                 .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
             return;
         }

@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { fetchBackendJson } from './backendClient.js';
 
-const FEED_PROXY = 'https://api.allorigins.win/get?url=';
-const FEED_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const CORS_PROXIES = [
+    { url: 'https://api.allorigins.win/get?url=', extract: (data) => data?.contents },
+    { url: 'https://api.codetabs.com/v1/proxy?quest=', extract: (data) => (typeof data === 'string' ? data : null) },
+    { url: 'https://corsproxy.io/?url=', extract: (data) => (typeof data === 'string' ? data : null) },
+];
+const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
 export const DEFAULT_SOURCE_IDS = ['bbc_world', 'bbc_middleeast', 'aljazeera', 'guardian_world', 'guardian_me', 'al_monitor', 'toi', 'jpost', 'presstv', 'national_uae', 'bangkok_post', 'cna', 'nikkei'];
 
 export const KEYWORD_GROUPS = [
@@ -305,25 +309,28 @@ const parseJsonFallback = (payload, source) => {
 };
 
 const fetchFeedItems = async (source) => {
-    try {
-        const proxied = `${FEED_PROXY}${encodeURIComponent(withCacheBuster(source.url))}`;
-        const response = await axios.get(proxied, { timeout: 15000 });
-        const xml = response.data?.contents;
+    const feedUrl = withCacheBuster(source.url);
 
-        if (xml) {
-            const parsed = parseXmlFeed(xml, source);
-            if (parsed.length > 0) return parsed;
+    for (const proxy of CORS_PROXIES) {
+        try {
+            const proxied = `${proxy.url}${encodeURIComponent(feedUrl)}`;
+            const response = await axios.get(proxied, { timeout: 12000 });
+            const xml = proxy.extract(response.data);
+
+            if (xml) {
+                const parsed = parseXmlFeed(xml, source);
+                if (parsed.length > 0) return parsed;
+            }
+        } catch {
+            // Try next proxy
         }
-    } catch (error) {
-        console.warn(`Primary feed fetch failed for ${source.name}`, error.message);
     }
 
     try {
-        const fallbackUrl = `${FEED_FALLBACK}${encodeURIComponent(source.url)}`;
-        const response = await axios.get(fallbackUrl, { timeout: 15000 });
+        const fallbackUrl = `${FEED_JSON_FALLBACK}${encodeURIComponent(source.url)}`;
+        const response = await axios.get(fallbackUrl, { timeout: 12000 });
         return parseJsonFallback(response.data, source);
-    } catch (error) {
-        console.warn(`Fallback feed fetch failed for ${source.name}`, error.message);
+    } catch {
         return [];
     }
 };

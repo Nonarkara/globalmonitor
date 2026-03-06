@@ -7,7 +7,6 @@ import WorldClock from './components/WorldClock';
 import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import IntelligencePanel from './components/IntelligencePanel';
 import RegionalNewsPanel from './components/RegionalNewsPanel';
-import LiveMediaPanel from './components/LiveMediaPanel';
 import MarketRadarPanel from './components/MarketRadarPanel';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -139,16 +138,11 @@ function App() {
           </div>
         </div>
 
-        {/* Row 3: Left sidebar */}
+        {/* Row 3-4: Left sidebar — spans down to bottom bar */}
         <div className="left-sidebar">
           <ErrorBoundary inline label="Sidebar">
             <Sidebar activeLayers={activeLayers} toggleLayer={toggleLayer} />
           </ErrorBoundary>
-          <div className="live-media-dock">
-            <ErrorBoundary inline label="Live Media">
-              <LiveMediaPanel />
-            </ErrorBoundary>
-          </div>
         </div>
 
         {/* Row 3: Right sidebar */}
