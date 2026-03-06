@@ -145,13 +145,11 @@ function App() {
           <ErrorBoundary inline label="Sidebar">
             <Sidebar activeLayers={activeLayers} toggleLayer={toggleLayer} />
           </ErrorBoundary>
-        </div>
-
-        {/* Row 3: Live media (tiny corner) */}
-        <div className="live-media-dock">
-          <ErrorBoundary inline label="Live Media">
-            <LiveMediaPanel />
-          </ErrorBoundary>
+          <div className="live-media-dock">
+            <ErrorBoundary inline label="Live Media">
+              <LiveMediaPanel />
+            </ErrorBoundary>
+          </div>
         </div>
 
         {/* Row 3: Right sidebar */}

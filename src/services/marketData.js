@@ -2,7 +2,7 @@ import axios from 'axios';
 import { fetchBackendJson } from './backendClient.js';
 
 const CRYPTO_SYMBOLS = ['BTCUSDT', 'ETHUSDT'];
-const YAHOO_PROXY = 'https://api.allorigins.win/get?url=';
+const YAHOO_PROXY = 'https://corsproxy.io/?';
 const YAHOO_BASE = 'https://query2.finance.yahoo.com/v8/finance/chart/';
 
 const YAHOO_SYMBOLS = [
@@ -14,11 +14,16 @@ const YAHOO_SYMBOLS = [
 ];
 
 const FX_PAIRS = [
-    { id: 'usd', name: 'USD/THB' },
-    { id: 'eur', name: 'EUR/THB' },
-    { id: 'jpy', name: 'JPY/THB' },
-    { id: 'cny', name: 'CNY/THB' },
-    { id: 'sgd', name: 'SGD/THB' }
+    { id: 'eur', name: 'EUR/USD', invert: true },
+    { id: 'gbp', name: 'GBP/USD', invert: true },
+    { id: 'ils', name: 'USD/ILS', invert: false },
+    { id: 'sar', name: 'USD/SAR', invert: false },
+    { id: 'aed', name: 'USD/AED', invert: false },
+    { id: 'irr', name: 'USD/IRR', invert: false },
+    { id: 'try', name: 'USD/TRY', invert: false },
+    { id: 'thb', name: 'USD/THB', invert: false },
+    { id: 'jpy', name: 'USD/JPY', invert: false },
+    { id: 'cny', name: 'USD/CNY', invert: false },
 ];
 
 const previousQuotes = new Map();
@@ -48,7 +53,7 @@ const fetchYahooQuote = async (symbolEncoded) => {
     const url = `${YAHOO_BASE}${symbolEncoded}?interval=1d&range=1d`;
     const proxied = `${YAHOO_PROXY}${encodeURIComponent(url)}`;
     const response = await axios.get(proxied, { timeout: 15000 });
-    const inner = JSON.parse(response.data.contents);
+    const inner = response.data;
     const meta = inner.chart.result[0].meta;
     return {
         price: meta.regularMarketPrice,
@@ -107,39 +112,24 @@ export const fetchMarketRadar = async () => {
     const yahooResults = await Promise.all(yahooPromises);
     yahooResults.filter(Boolean).forEach((item) => results.push(item));
 
-    // 3. Gold price + Forex (fawazahmed0 currency API THB base)
     try {
-        const forexResponse = await axios.get('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/thb.json', { timeout: 15000 });
-        const rates = forexResponse.data?.thb;
+        const forexResponse = await axios.get('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json', { timeout: 15000 });
+        const rates = forexResponse.data?.usd;
 
         if (rates) {
             // Gold from XAU rate
             try {
                 if (rates.xau && rates.xau > 0) {
                     const goldPrice = 1 / rates.xau;
-                    const delta = getDelta('Gold (XAU) (THB)', goldPrice);
+                    const delta = getDelta('Gold', goldPrice);
                     results.push({
-                        symbol: 'Gold (XAU) (THB)',
-                        price: '฿' + formatPrice(goldPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        symbol: 'Gold',
+                        price: formatPrice(goldPrice, { style: 'currency', currency: 'USD' }),
                         changePerc: delta.changePerc,
                         isPositive: delta.isPositive
                     });
                 }
             } catch (e) { console.warn('Gold price calc failed', e.message); }
-
-            // Silver from XAG rate
-            try {
-                if (rates.xag && rates.xag > 0) {
-                    const silverPrice = 1 / rates.xag;
-                    const delta = getDelta('Silver (XAG) (THB)', silverPrice);
-                    results.push({
-                        symbol: 'Silver (XAG) (THB)',
-                        price: '฿' + formatPrice(silverPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                        changePerc: delta.changePerc,
-                        isPositive: delta.isPositive
-                    });
-                }
-            } catch (e) { console.warn('Silver price calc failed', e.message); }
 
             // FX pairs
             FX_PAIRS.forEach((cross) => {
@@ -147,15 +137,14 @@ export const fetchMarketRadar = async () => {
                     const rate = rates[cross.id];
                     if (!rate || rate <= 0) return;
 
-                    const price = 1 / rate;
+                    const price = cross.invert ? (1 / rate) : rate;
                     if (!isFinite(price) || isNaN(price)) return;
 
-                    const isJpy = cross.id === 'jpy';
                     const delta = getDelta(cross.name, price);
 
                     results.push({
                         symbol: cross.name,
-                        price: '฿' + formatPrice(price, { minimumFractionDigits: isJpy ? 4 : 2, maximumFractionDigits: isJpy ? 4 : 2 }),
+                        price: cross.id === 'irr' ? Math.round(price).toLocaleString('en-US') : formatPrice(price),
                         changePerc: delta.changePerc,
                         isPositive: delta.isPositive
                     });
@@ -168,20 +157,21 @@ export const fetchMarketRadar = async () => {
         console.warn('Currency API failed', error.message);
         // Fallback to open.er-api for basic forex
         try {
-            const fallback = await axios.get('https://open.er-api.com/v6/latest/THB', { timeout: 15000 });
+            const fallback = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 15000 });
             const rates = fallback.data?.rates;
             if (rates) {
                 FX_PAIRS.forEach((cross) => {
                     try {
                         const key = cross.id.toUpperCase();
                         if (!rates[key] || rates[key] <= 0) return;
-                        const price = 1 / rates[key];
+
+                        const price = cross.invert ? (1 / rates[key]) : rates[key];
                         if (!isFinite(price) || isNaN(price)) return;
-                        const isJpy = cross.id === 'jpy';
+
                         const delta = getDelta(cross.name, price);
                         results.push({
                             symbol: cross.name,
-                            price: '฿' + formatPrice(price, { minimumFractionDigits: isJpy ? 4 : 2, maximumFractionDigits: isJpy ? 4 : 2 }),
+                            price: cross.id === 'irr' ? Math.round(price).toLocaleString('en-US') : formatPrice(price),
                             changePerc: delta.changePerc,
                             isPositive: delta.isPositive
                         });

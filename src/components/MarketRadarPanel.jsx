@@ -36,8 +36,9 @@ const MarketRadarPanel = () => {
         intervalMs: 60000,
         isUsable: (items) => Array.isArray(items) && items.length > 0
     });
-    const statusLabel = isStale ? 'STALE' : (error && markets.length === 0 ? 'OFFLINE' : 'LIVE');
-    const groups = categorize(markets);
+    const safeMarkets = markets || [];
+    const statusLabel = isStale ? 'STALE' : (error && safeMarkets.length === 0 ? 'OFFLINE' : 'LIVE');
+    const groups = categorize(safeMarkets);
 
     return (
         <div className="bottom-card flex-column">
@@ -84,7 +85,7 @@ const MarketRadarPanel = () => {
                     ))}
                 </div>
 
-                {markets.length === 0 && (
+                {safeMarkets.length === 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
                             {isLoading ? 'Connecting to live markets...' : 'No live market data available right now.'}

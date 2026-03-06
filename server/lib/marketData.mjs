@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const CRYPTO_SYMBOLS = ['BTCUSDT', 'ETHUSDT'];
 const CURRENCY_API = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json';
-const YAHOO_PROXY = 'https://api.allorigins.win/get?url=';
 const YAHOO_BASE = 'https://query2.finance.yahoo.com/v8/finance/chart/';
 
 const YAHOO_SYMBOLS = [
@@ -47,9 +46,13 @@ const formatPrice = (price) => {
 
 const fetchYahooQuote = async (symbolEncoded) => {
     const url = `${YAHOO_BASE}${symbolEncoded}?interval=1d&range=1d`;
-    const proxied = `${YAHOO_PROXY}${encodeURIComponent(url)}`;
-    const response = await axios.get(proxied, { timeout: 15000 });
-    const inner = JSON.parse(response.data.contents);
+    const response = await axios.get(url, {
+        timeout: 15000,
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+        }
+    });
+    const inner = response.data;
     const meta = inner.chart.result[0].meta;
     return { price: meta.regularMarketPrice, previousClose: meta.chartPreviousClose || meta.regularMarketPrice };
 };
