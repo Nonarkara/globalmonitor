@@ -15,9 +15,11 @@ import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
 import { Settings, RefreshCw, Eye } from 'lucide-react';
 import { getVisitorCount, BASE_COUNT } from './services/visitorTracker';
+import EscalationGauge from './components/EscalationGauge';
+import StrikeStatsPanel from './components/StrikeStatsPanel';
 
 function App() {
-  const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi']);
+  const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi', 'firms']);
   const [activeRegion, setActiveRegion] = useState('middleeast');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [viewMode, setViewMode] = useState('middleeast'); // 'middleeast' or 'depa'
@@ -106,27 +108,28 @@ function App() {
 
         {/* Row 2: Header bar */}
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
-              <span style={{ fontWeight: 700, letterSpacing: '1.8px', fontSize: '0.85rem', color: '#fff' }}>
-                DR NON'S GLOBEWATCH SYSTEM
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
+              <span style={{ fontWeight: 300, letterSpacing: '3px', fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase' }}>
+                GlobeWatch
               </span>
-              <span style={{ fontWeight: 600, letterSpacing: '2px', fontSize: '0.65rem', color: viewMode === 'depa' ? '#10b981' : '#ef4444' }}>
-                {viewMode === 'depa' ? 'INDO-PACIFIC COMMAND · DNGWS' : 'MIDDLE EAST THEATER · DNGWS'}
+              <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.52rem', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>
+                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS
               </span>
             </div>
+            <ErrorBoundary inline label="Escalation">
+              <EscalationGauge />
+            </ErrorBoundary>
             <div style={{
               display: 'flex', alignItems: 'center', gap: '5px',
-              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '4px', padding: '3px 8px', marginLeft: '12px',
-              fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px',
-              fontFamily: "'JetBrains Mono', monospace"
+              fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px',
+              fontFamily: 'var(--font-mono)'
             }}>
-              <Eye size={10} style={{ opacity: 0.5 }} />
+              <Eye size={10} style={{ opacity: 0.4 }} />
               {visitorCount.toLocaleString()}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => {
                 const newMode = viewMode === 'middleeast' ? 'depa' : 'middleeast';
@@ -139,41 +142,41 @@ function App() {
                 setActiveSources(newMode === 'middleeast' ? INTELLIGENCE_SOURCES.map(s => s.id) : APAC_SOURCES.map(s => s.id));
               }}
               style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: '#fff',
-                padding: '5px 12px',
-                borderRadius: '6px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.6)',
+                padding: '5px 14px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
-                fontSize: '0.75rem',
+                fontSize: '0.65rem',
                 fontFamily: 'inherit',
-                transition: 'all 0.2s',
-                marginRight: '10px'
+                transition: 'all 0.3s',
+                letterSpacing: '0.5px'
               }}
             >
-              <RefreshCw size={13} /> {viewMode === 'middleeast' ? 'Indo-Pacific' : 'Middle East'}
+              <RefreshCw size={11} /> {viewMode === 'middleeast' ? 'Indo-Pacific' : 'Middle East'}
             </button>
             <button
               onClick={() => setIsSettingsOpen(true)}
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'var(--text-muted)',
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.06)',
+                color: 'rgba(255,255,255,0.35)',
                 padding: '5px 12px',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
-                fontSize: '0.75rem',
+                fontSize: '0.65rem',
                 fontFamily: 'inherit',
-                transition: 'all 0.2s'
+                transition: 'all 0.3s'
               }}
             >
-              <Settings size={13} /> Sources
+              <Settings size={11} />
             </button>
           </div>
         </div>
@@ -221,6 +224,15 @@ function App() {
             </>
           )}
         </div>
+
+        {/* Strike Stats — above bottom bar */}
+        {viewMode === 'middleeast' && (
+          <div style={{ gridColumn: '2 / -1', display: 'grid', gridTemplateColumns: '1fr', gap: '8px', pointerEvents: 'auto' }}>
+            <ErrorBoundary inline label="Strike Stats">
+              <StrikeStatsPanel />
+            </ErrorBoundary>
+          </div>
+        )}
 
         {/* Row 4: Bottom bar */}
         <div className="bottom-bar">

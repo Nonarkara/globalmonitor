@@ -133,8 +133,12 @@ const fetchFeedItems = async (source) => {
     // Primary: fetch RSS directly (server-side, no CORS issue)
     try {
         const response = await axios.get(source.url, {
-            timeout: 12000,
-            headers: { 'Accept': 'application/rss+xml, application/xml, text/xml, */*' },
+            timeout: 15000,
+            maxRedirects: 5,
+            headers: {
+                'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
+                'User-Agent': 'DNGWS/1.0 (Intelligence Monitor; +https://github.com/Nonarkara/tech-monitor)',
+            },
             responseType: 'text'
         });
         if (typeof response.data === 'string' && response.data.includes('<')) {
@@ -210,8 +214,8 @@ const deriveBriefingStats = (items) => {
 };
 
 export const fetchTickerPayload = async (activeSourceIds = null) => {
-    const sources = makeSourceWindow(activeSourceIds, () => true, 6);
-    return gatherFeeds(sources, ['airspace', 'conflict', 'mobility', 'urban-policy'], 18);
+    const sources = makeSourceWindow(activeSourceIds, () => true, 8);
+    return gatherFeeds(sources, ['strikes', 'conflict', 'nuclear', 'airspace', 'naval', 'sanctions', 'energy', 'proxy'], 24);
 };
 
 export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) => {
@@ -223,7 +227,7 @@ export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) =
 
     const contextualSources = makeSourceWindow(activeSourceIds, briefing.sourceFilter, 4);
     const querySources = buildQuerySources(briefing);
-    const items = await gatherFeeds([...contextualSources, ...querySources], briefing.focusTags, 6);
+    const items = await gatherFeeds([...contextualSources, ...querySources], briefing.focusTags, 8);
     const stats = deriveBriefingStats(items);
 
     return {

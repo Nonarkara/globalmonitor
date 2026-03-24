@@ -154,6 +154,48 @@ export const EO_TILE_LAYERS = [
         attribution: 'NASA GIBS / MODIS',
         opacity: 0.55,
         maxzoom: 6
+    },
+    {
+        id: 'eo-sentinel2-cloudless',
+        name: 'Sentinel-2 Cloudless',
+        description: 'Cloud-free mosaic from ESA Sentinel-2 (EOX)',
+        group: 'satellite',
+        icon: '🛰️',
+        tiles: [
+            'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg'
+        ],
+        tileSize: 256,
+        attribution: 'EOX / ESA Sentinel-2',
+        opacity: 0.7,
+        maxzoom: 14
+    },
+    {
+        id: 'eo-surface-water',
+        name: 'Surface Water (JRC)',
+        description: 'Global surface water occurrence from Landsat archive',
+        group: 'satellite',
+        icon: '💧',
+        tiles: [
+            'https://storage.googleapis.com/global-surface-water/tiles2021/occurrence/{z}/{x}/{y}.png'
+        ],
+        tileSize: 256,
+        attribution: 'EC JRC / Google',
+        opacity: 0.6,
+        maxzoom: 13
+    },
+    {
+        id: 'eo-bathymetry',
+        name: 'Ocean Bathymetry',
+        description: 'Seabed depth from EMODnet',
+        group: 'satellite',
+        icon: '🌊',
+        tiles: [
+            'https://tiles.emodnet-bathymetry.eu/2020/baselayer/web_mercator/{z}/{x}/{y}.png'
+        ],
+        tileSize: 256,
+        attribution: 'EMODnet Bathymetry',
+        opacity: 0.55,
+        maxzoom: 12
     }
 ];
 

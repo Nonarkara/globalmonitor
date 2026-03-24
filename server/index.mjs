@@ -1,5 +1,7 @@
 import http from 'node:http';
-import { URL } from 'node:url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { URL, fileURLToPath } from 'node:url';
 import {
     buildCopernicusUnavailablePayload,
     fetchCopernicusPreview,
@@ -8,7 +10,16 @@ import {
 } from './lib/copernicus.mjs';
 import { fetchBriefingPayload, fetchTickerPayload } from './lib/intelligence.mjs';
 import { fetchMarketPayload } from './lib/marketData.mjs';
+import { fetchFirmsPayload } from './lib/firms.mjs';
+import { computeEscalation } from './lib/escalation.mjs';
+import { computeStrikeStats } from './lib/strikeStats.mjs';
+import { fetchHumanitarianPayload } from './lib/humanitarian.mjs';
+import { computeInfrastructureStatus } from './lib/infrastructure.mjs';
+import { fetchGdeltSentiment } from './lib/gdelt.mjs';
+import { fetchOpenSkyPayload } from './lib/opensky.mjs';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DIST_DIR = path.resolve(__dirname, '..', 'dist');
 const PORT = Number(process.env.PORT || 4000);
 const cache = new Map();
 const loaderHealth = new Map();
@@ -162,6 +173,72 @@ const server = http.createServer(async (request, response) => {
             return;
         }
 
+        if (url.pathname === '/api/firms') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const result = await useCached(
+                `firms:${theater}`,
+                10 * 60 * 1000,
+                () => fetchFirmsPayload(theater),
+                (payload) => payload?.type === 'FeatureCollection'
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/escalation') {
+            const payload = computeEscalation(cache);
+            json(response, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            return;
+        }
+
+        if (url.pathname === '/api/strike-stats') {
+            const payload = computeStrikeStats(cache);
+            json(response, 200, payload, { status: 'live', updatedAt: new Date().toISOString(), cache: 'miss' });
+            return;
+        }
+
+        if (url.pathname === '/api/humanitarian') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const result = await useCached(
+                `humanitarian:${theater}`,
+                60 * 60 * 1000,
+                () => fetchHumanitarianPayload(theater),
+                (p) => p?.geojson?.type === 'FeatureCollection'
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/infrastructure') {
+            const payload = computeInfrastructureStatus(cache);
+            json(response, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            return;
+        }
+
+        if (url.pathname === '/api/sentiment') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const result = await useCached(
+                `gdelt:${theater}`,
+                30 * 60 * 1000,
+                () => fetchGdeltSentiment(theater),
+                (p) => Array.isArray(p?.timeline)
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/flights') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const result = await useCached(
+                `opensky:${theater}`,
+                2 * 60 * 1000,
+                () => fetchOpenSkyPayload(theater),
+                (p) => p?.type === 'FeatureCollection'
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
         if (url.pathname === '/api/markets') {
             const result = await useCached(
                 'markets',
@@ -197,6 +274,41 @@ const server = http.createServer(async (request, response) => {
             return;
         }
 
+        // --- Static file serving for production ---
+        if (fs.existsSync(DIST_DIR)) {
+            const MIME_TYPES = {
+                '.html': 'text/html', '.js': 'application/javascript', '.mjs': 'application/javascript',
+                '.css': 'text/css', '.json': 'application/json', '.png': 'image/png',
+                '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
+                '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff': 'font/woff',
+                '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.webp': 'image/webp',
+                '.webm': 'video/webm', '.mp4': 'video/mp4',
+            };
+
+            let filePath = path.join(DIST_DIR, url.pathname === '/' ? 'index.html' : url.pathname);
+            if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+                filePath = path.join(DIST_DIR, 'index.html');
+            }
+
+            try {
+                const ext = path.extname(filePath).toLowerCase();
+                const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+                const data = fs.readFileSync(filePath);
+
+                const headers = { 'Content-Type': contentType, 'Content-Length': data.length };
+                // Cache static assets aggressively, but not index.html
+                if (ext !== '.html') {
+                    headers['Cache-Control'] = 'public, max-age=31536000, immutable';
+                }
+
+                response.writeHead(200, headers);
+                response.end(data);
+                return;
+            } catch {
+                // fall through to 404
+            }
+        }
+
         json(response, 404, { error: 'Not found' }, { status: 'offline' });
     } catch (error) {
         json(response, 502, {
@@ -206,6 +318,10 @@ const server = http.createServer(async (request, response) => {
     }
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-    console.log(`Tech Monitor API listening on http://127.0.0.1:${PORT}`);
+const HOST = process.env.RENDER ? '0.0.0.0' : '127.0.0.1';
+server.listen(PORT, HOST, () => {
+    console.log(`Tech Monitor API listening on http://${HOST}:${PORT}`);
+    if (fs.existsSync(DIST_DIR)) {
+        console.log(`Serving static files from ${DIST_DIR}`);
+    }
 });

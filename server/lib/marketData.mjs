@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const CRYPTO_SYMBOLS = ['BTCUSDT', 'ETHUSDT'];
 const CURRENCY_API = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json';
+const CURRENCY_API_FALLBACK = 'https://latest.currency-api.pages.dev/v1/currencies/usd.json';
 const YAHOO_BASE = 'https://query2.finance.yahoo.com/v8/finance/chart/';
 
 const YAHOO_SYMBOLS = [
@@ -63,10 +64,39 @@ const fetchYahooQuote = async (symbolEncoded) => {
     return { price: meta.regularMarketPrice, previousClose: meta.chartPreviousClose || meta.regularMarketPrice };
 };
 
+const fetchCurrencyRates = async () => {
+    try {
+        const resp = await axios.get(CURRENCY_API, { timeout: 12000 });
+        if (resp.data?.usd) return resp.data.usd;
+    } catch {
+        // try fallback
+    }
+    try {
+        const resp = await axios.get(CURRENCY_API_FALLBACK, { timeout: 12000 });
+        if (resp.data?.usd) return resp.data.usd;
+    } catch {
+        // try open.er-api
+    }
+    try {
+        const resp = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 12000 });
+        if (resp.data?.rates) {
+            // Convert to lowercase keys to match the format expected
+            const rates = {};
+            for (const [key, value] of Object.entries(resp.data.rates)) {
+                rates[key.toLowerCase()] = value;
+            }
+            return rates;
+        }
+    } catch {
+        // all failed
+    }
+    return null;
+};
+
 export const fetchMarketPayload = async () => {
     const results = [];
 
-    // Crypto
+    // Crypto (Binance — reliable, no auth needed)
     try {
         const cryptoResponses = await Promise.all(
             CRYPTO_SYMBOLS.map((sym) => axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${sym}`, { timeout: 15000 }))
@@ -83,7 +113,7 @@ export const fetchMarketPayload = async () => {
         });
     } catch (e) { console.warn('Crypto failed', e.message); }
 
-    // Yahoo Finance: Oil + Indices
+    // Yahoo Finance: Oil + Indices (may fail from server, that's okay)
     const yahooResults = await Promise.all(YAHOO_SYMBOLS.map(async ({ symbol, label }) => {
         try {
             const q = await fetchYahooQuote(symbol);
@@ -100,19 +130,19 @@ export const fetchMarketPayload = async () => {
     }));
     yahooResults.filter(Boolean).forEach((item) => results.push(item));
 
-    // Currency API: Gold + Forex
-    try {
-        const resp = await axios.get(CURRENCY_API, { timeout: 15000 });
-        const rates = resp.data?.usd;
-        if (rates?.xau > 0) {
+    // Currency API: Gold + Forex (with multi-source fallback)
+    const rates = await fetchCurrencyRates();
+    if (rates) {
+        if (rates.xau > 0) {
             const goldPrice = 1 / rates.xau;
             const delta = getDelta('Gold', goldPrice);
             results.push({ symbol: 'Gold', price: goldPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }), ...delta });
         }
         FX_PAIRS.forEach((cross) => {
-            const rate = rates?.[cross.id];
-            if (!rate) return;
+            const rate = rates[cross.id];
+            if (!rate || rate <= 0) return;
             const price = cross.invert ? (1 / rate) : rate;
+            if (!isFinite(price) || isNaN(price)) return;
             const delta = getDelta(cross.name, price);
             results.push({
                 symbol: cross.name,
@@ -120,7 +150,7 @@ export const fetchMarketPayload = async () => {
                 ...delta
             });
         });
-    } catch (e) { console.warn('Currency API failed', e.message); }
+    }
 
     return results;
 };

@@ -26,34 +26,61 @@ const getStatusLabel = ({ runtimeSource, preview, isStale, error }) => {
     return 'SYNC';
 };
 
-const getEmptyStateCopy = ({ runtimeSource, preview, isLoading, error, showOverlay }) => {
-    if (runtimeSource === 'public') {
-        return {
-            title: showOverlay ? 'Public satellite layer is active on the map' : 'Public satellite layer is ready',
-            body: preview?.configured === false
-                ? 'Using the no-auth fallback now. Add Copernicus credentials later and this control will upgrade to live Sentinel-2 automatically.'
-                : 'Using the public fallback while Copernicus is unavailable. Toggle Overlay On to project it onto the map.'
-        };
-    }
+/** Build a NASA GIBS static snapshot URL for the sidebar preview */
+const buildGibsSnapshotUrl = (viewMode, preset) => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
-    if (isLoading) {
-        return {
-            title: 'Pulling latest Sentinel scene',
-            body: 'Looking for the most recent cloud-filtered image inside the active theater.'
-        };
-    }
+    const layer = preset === 'ndvi'
+        ? 'MODIS_Terra_NDVI_8Day'
+        : 'VIIRS_SNPP_CorrectedReflectance_TrueColor';
 
-    if (error) {
-        return {
-            title: 'Sentinel preview unavailable',
-            body: 'The imagery request failed on the latest attempt. The rest of the dashboard remains usable while the feed retries.'
-        };
-    }
+    // GIBS WMTS snapshot API — returns a single tile image
+    // Use a zoom/row/col that frames the theater
+    const tiles = viewMode === 'depa'
+        ? { z: 5, y: 13, x: 25 }  // Bangkok area
+        : { z: 4, y: 5, x: 10 };  // Strait of Hormuz area
 
-    return {
-        title: 'Waiting for imagery',
-        body: 'This panel will show the latest processed Sentinel-2 scene for the current theater.'
-    };
+    const format = preset === 'ndvi' ? 'png' : 'jpg';
+    const dateStr = preset === 'ndvi'
+        ? new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10)
+        : yesterday;
+
+    return `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/${dateStr}/GoogleMapsCompatible_Level9/${tiles.z}/${tiles.y}/${tiles.x}.${format}`;
+};
+
+const NasaGibsPreview = ({ viewMode, preset }) => {
+    const src = buildGibsSnapshotUrl(viewMode, preset);
+    const label = `${viewMode === 'depa' ? 'Bangkok' : 'Strait of Hormuz'} ${preset === 'ndvi' ? 'Vegetation' : 'True Color'}`;
+
+    return (
+        <div style={{ position: 'relative', width: '100%', height: '100%', background: '#0a0e1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img
+                src={src}
+                alt={`NASA GIBS ${label} preview`}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: 0.85,
+                    borderRadius: '6px',
+                }}
+                onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <div style={{
+                position: 'absolute',
+                bottom: '6px',
+                left: '6px',
+                background: 'rgba(0,0,0,0.65)',
+                color: '#94a3b8',
+                fontSize: '0.6rem',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                letterSpacing: '0.5px',
+            }}>
+                NASA GIBS · {label}
+            </div>
+        </div>
+    );
 };
 
 const CopernicusPreviewPanel = ({
@@ -76,11 +103,10 @@ const CopernicusPreviewPanel = ({
     } = previewResource;
 
     const statusLabel = getStatusLabel({ runtimeSource, preview, isStale, error });
-    const emptyState = getEmptyStateCopy({ runtimeSource, preview, isLoading, error, showOverlay });
     const canOverlay = runtimeSource === 'public' || Boolean(preview?.available && preview?.imageDataUrl);
     const modeLabel = MODES.find((item) => item.id === preset)?.label || 'Optical';
     const theaterLabel = preview?.theaterLabel || (viewMode === 'depa' ? 'Bangkok Metro' : 'Strait of Hormuz');
-    const sourceLabel = runtimeSource === 'public' ? 'public satellite' : 'sentinel-2-l2a';
+    const sourceLabel = runtimeSource === 'public' ? 'NASA GIBS' : 'sentinel-2-l2a';
     const statusClassName = statusLabel === 'PUBLIC'
         ? 'live-pill live-pill-public'
         : `live-pill ${statusLabel !== 'LIVE' ? 'live-pill-muted' : ''}`;
@@ -137,10 +163,12 @@ const CopernicusPreviewPanel = ({
                             alt={`${preview.theaterLabel} ${preview.presetLabel} preview`}
                             className="eo-preview-image"
                         />
+                    ) : runtimeSource === 'public' ? (
+                        <NasaGibsPreview viewMode={viewMode} preset={preset} />
                     ) : (
                         <div className="eo-preview-empty">
-                            <strong>{emptyState.title}</strong>
-                            <span>{emptyState.body}</span>
+                            <strong>{isLoading ? 'Pulling latest Sentinel scene' : error ? 'Sentinel preview unavailable' : 'Waiting for imagery'}</strong>
+                            <span>{isLoading ? 'Looking for the most recent cloud-filtered image.' : error ? 'The feed will retry automatically.' : 'This panel will show the latest Sentinel-2 scene.'}</span>
                         </div>
                     )}
                 </div>
@@ -172,8 +200,8 @@ const CopernicusPreviewPanel = ({
                         </>
                     ) : (
                         <>
-                            <strong>{showOverlay ? 'Public fallback is visible on the map.' : 'Public fallback is ready.'}</strong>
-                            <span> Optical and vegetation modes reuse the app&apos;s existing public EO layers, then auto-upgrade to Copernicus when credentials exist.</span>
+                            <strong>{showOverlay ? 'Public layer active on map.' : 'NASA GIBS satellite preview.'}</strong>
+                            <span> Free public imagery from NASA. Upgrades to live Sentinel-2 when Copernicus credentials are added.</span>
                         </>
                     )}
                 </div>

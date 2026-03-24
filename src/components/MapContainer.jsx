@@ -7,6 +7,9 @@ import { fetchConflictsAndCrises } from '../services/reliefWeb';
 import { fetchLiveWeather } from '../services/weather';
 import { fetchMacroEconomy } from '../services/worldBank';
 import { fetchAirQuality } from '../services/airQuality';
+import { fetchFirmsData } from '../services/firms';
+import { fetchInfrastructure } from '../services/infrastructure';
+import { fetchOpenSky } from '../services/opensky';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
 import { fetchSdgLayer } from '../services/undpSdg';
@@ -354,6 +357,24 @@ const MapContainer = ({
         intervalMs: 24 * 60 * 60 * 1000,
         isUsable: (d) => d?.features?.length > 0
     });
+    const firmsResource = useLiveResource(useCallback(() => fetchFirmsData(), []), {
+        cacheKey: 'map:firms',
+        enabled: activeLayers.includes('firms'),
+        intervalMs: 10 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
+    const infraResource = useLiveResource(useCallback(() => fetchInfrastructure(), []), {
+        cacheKey: 'map:infrastructure',
+        enabled: activeLayers.includes('infrastructure'),
+        intervalMs: 10 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
+    const flightsResource = useLiveResource(useCallback(() => fetchOpenSky(), []), {
+        cacheKey: 'map:flights',
+        enabled: activeLayers.includes('flights'),
+        intervalMs: 2 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
 
     const disastersData = disasterResource.data;
     const crisesData = conflictResource.data;
@@ -361,6 +382,9 @@ const MapContainer = ({
     const economyData = economyResource.data;
     const aqiData = aqiResource.data;
     const sdgData = sdgResource.data;
+    const firmsData = firmsResource.data;
+    const infraData = infraResource.data;
+    const flightsData = flightsResource.data;
     const publicSentinelLayerId = getPublicSentinelLayerId(copernicusMode);
     const publicSentinelLayer = getEoLayerById(publicSentinelLayerId);
     const publicOverlayVisible = Boolean(
@@ -703,6 +727,111 @@ const MapContainer = ({
                             paint={{
                                 'line-color': 'rgba(255, 255, 255, 0.2)',
                                 'line-width': 1
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* FIRMS Fire/Strike Layer */}
+                {activeLayers.includes('firms') && firmsData?.features?.length > 0 && (
+                    <Source id="firms-data" type="geojson" data={firmsData}>
+                        <Layer
+                            id="firms-heatmap"
+                            type="heatmap"
+                            maxzoom={8}
+                            paint={{
+                                'heatmap-weight': ['interpolate', ['linear'], ['get', 'frp'], 0, 0.1, 50, 0.5, 200, 1],
+                                'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.3, 7, 1],
+                                'heatmap-color': [
+                                    'interpolate', ['linear'], ['heatmap-density'],
+                                    0, 'rgba(0,0,0,0)',
+                                    0.2, 'rgba(255,100,50,0.15)',
+                                    0.4, 'rgba(255,80,30,0.3)',
+                                    0.6, 'rgba(255,50,20,0.5)',
+                                    0.8, 'rgba(255,30,10,0.7)',
+                                    1, 'rgba(255,255,100,0.9)'
+                                ],
+                                'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 8, 6, 20, 8, 30],
+                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 6, 0.8, 8, 0]
+                            }}
+                        />
+                        <Layer
+                            id="firms-circles"
+                            type="circle"
+                            minzoom={5}
+                            paint={{
+                                'circle-color': [
+                                    'case',
+                                    ['==', ['get', 'confidence'], 'high'], '#ff3b30',
+                                    ['==', ['get', 'confidence'], 'h'], '#ff3b30',
+                                    '#ff8c42'
+                                ],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 8, 4, 12, 8],
+                                'circle-opacity': 0.8,
+                                'circle-blur': 0.3,
+                                'circle-stroke-width': 0.5,
+                                'circle-stroke-color': 'rgba(255,255,255,0.2)'
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Infrastructure Layer */}
+                {activeLayers.includes('infrastructure') && infraData?.features?.length > 0 && (
+                    <Source id="infrastructure-data" type="geojson" data={infraData}>
+                        <Layer
+                            id="infra-circles"
+                            type="circle"
+                            paint={{
+                                'circle-color': [
+                                    'match', ['get', 'status'],
+                                    'alert', '#ef4444',
+                                    'monitoring', '#f59e0b',
+                                    '#22c55e'
+                                ],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 8, 8],
+                                'circle-opacity': 0.7,
+                                'circle-stroke-width': 1.5,
+                                'circle-stroke-color': [
+                                    'match', ['get', 'status'],
+                                    'alert', '#ef4444',
+                                    'monitoring', '#f59e0b',
+                                    '#22c55e'
+                                ],
+                                'circle-stroke-opacity': 0.3
+                            }}
+                        />
+                        <Layer
+                            id="infra-labels"
+                            type="symbol"
+                            minzoom={6}
+                            layout={{
+                                'text-field': ['get', 'name'],
+                                'text-size': 10,
+                                'text-font': ['Open Sans Regular'],
+                                'text-offset': [0, 1.2],
+                                'text-anchor': 'top'
+                            }}
+                            paint={{
+                                'text-color': 'rgba(255,255,255,0.7)',
+                                'text-halo-color': 'rgba(0,0,0,0.8)',
+                                'text-halo-width': 1
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Flights Layer */}
+                {activeLayers.includes('flights') && flightsData?.features?.length > 0 && (
+                    <Source id="flights-data" type="geojson" data={flightsData}>
+                        <Layer
+                            id="flights-circles"
+                            type="circle"
+                            paint={{
+                                'circle-color': '#38bdf8',
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 8, 3],
+                                'circle-opacity': 0.5,
+                                'circle-blur': 0.3
                             }}
                         />
                     </Source>
