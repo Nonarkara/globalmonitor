@@ -114,7 +114,7 @@ function App() {
                 GlobeWatch
               </span>
               <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.52rem', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>
-                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS
+                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS · v2.0
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
