@@ -1588,6 +1588,16 @@ body {
   50% { opacity: 0.5; }
 }
 
+@keyframes alert-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px currentColor; }
+  50% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+}
+
 /* GlassCard component styles */
 .glass-card {
   pointer-events: auto;

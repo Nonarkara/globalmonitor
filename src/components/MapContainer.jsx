@@ -897,6 +897,54 @@ const MapContainer = ({
                     </div>
                 </div>
             )}
+
+            {/* Active EO Layer Labels */}
+            {(() => {
+                const activeEoLayers = EO_TILE_LAYERS.filter(l => activeLayers.includes(l.id));
+                if (activeEoLayers.length === 0) return null;
+                return (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '12px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        gap: '6px',
+                        zIndex: 10,
+                        pointerEvents: 'none'
+                    }}>
+                        {activeEoLayers.map(layer => (
+                            <div key={layer.id} style={{
+                                background: 'rgba(10, 12, 18, 0.8)',
+                                backdropFilter: 'blur(12px)',
+                                borderRadius: '6px',
+                                padding: '4px 10px',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}>
+                                <span style={{ fontSize: '0.7rem' }}>{layer.icon}</span>
+                                <span style={{
+                                    fontSize: '0.46rem',
+                                    fontWeight: 600,
+                                    color: 'rgba(255,255,255,0.7)',
+                                    letterSpacing: '0.5px'
+                                }}>
+                                    {layer.name}
+                                </span>
+                                <span style={{
+                                    fontSize: '0.38rem',
+                                    color: 'rgba(255,255,255,0.35)',
+                                    letterSpacing: '0.3px'
+                                }}>
+                                    {layer.attribution}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                );
+            })()}
         </div>
     );
 };

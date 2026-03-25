@@ -17,6 +17,7 @@ import { fetchHumanitarianPayload } from './lib/humanitarian.mjs';
 import { computeInfrastructureStatus } from './lib/infrastructure.mjs';
 import { fetchGdeltSentiment } from './lib/gdelt.mjs';
 import { fetchOpenSkyPayload } from './lib/opensky.mjs';
+import { computeFrontStatus } from './lib/frontStatus.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
@@ -211,6 +212,12 @@ const server = http.createServer(async (request, response) => {
 
         if (url.pathname === '/api/infrastructure') {
             const payload = computeInfrastructureStatus(cache);
+            json(response, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            return;
+        }
+
+        if (url.pathname === '/api/fronts') {
+            const payload = computeFrontStatus(cache);
             json(response, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
             return;
         }

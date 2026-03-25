@@ -17,6 +17,9 @@ import { Settings, RefreshCw, Eye } from 'lucide-react';
 import { getVisitorCount, BASE_COUNT } from './services/visitorTracker';
 import EscalationGauge from './components/EscalationGauge';
 import StrikeStatsPanel from './components/StrikeStatsPanel';
+import MultiFrontBoard from './components/MultiFrontBoard';
+import IranWarPanel from './components/IranWarPanel';
+import AlertBanner from './components/AlertBanner';
 
 function App() {
   const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi', 'firms']);
@@ -85,6 +88,13 @@ function App() {
 
   return (
     <>
+      {/* Alert Banner — fixed position at top */}
+      {viewMode === 'middleeast' && (
+        <ErrorBoundary inline label="Alert Banner">
+          <AlertBanner />
+        </ErrorBoundary>
+      )}
+
       <div className="app-container">
         {/* Full-screen map underneath */}
         <ErrorBoundary label="Map">
@@ -114,7 +124,7 @@ function App() {
                 GlobeWatch
               </span>
               <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.52rem', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>
-                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS · v2.0
+                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS · v3.0
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
@@ -181,6 +191,15 @@ function App() {
           </div>
         </div>
 
+        {/* Multi-Front Status Board */}
+        {viewMode === 'middleeast' && (
+          <div style={{ gridColumn: '2 / -1', pointerEvents: 'auto' }}>
+            <ErrorBoundary inline label="Multi-Front Board">
+              <MultiFrontBoard />
+            </ErrorBoundary>
+          </div>
+        )}
+
         {/* Row 3-4: Left sidebar — spans down to bottom bar */}
         <div className="left-sidebar">
           <ErrorBoundary inline label="Sidebar">
@@ -210,8 +229,8 @@ function App() {
           )}
           {viewMode === 'middleeast' ? (
             <>
-              <ErrorBoundary inline label="Iran Strikes">
-                <IntelligencePanel key={`iranStrikes:${sourceSetKey}`} briefingId="iranStrikes" activeSourceIds={activeSources} />
+              <ErrorBoundary inline label="Iran War Theater">
+                <IranWarPanel activeSourceIds={activeSources} />
               </ErrorBoundary>
               <ErrorBoundary inline label="Gulf Security">
                 <IntelligencePanel key={`gulfSecurity:${sourceSetKey}`} briefingId="gulfSecurity" activeSourceIds={activeSources} />

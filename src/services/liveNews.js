@@ -7,7 +7,7 @@ const CORS_PROXIES = [
     { url: 'https://corsproxy.io/?url=', extract: (data) => (typeof data === 'string' ? data : null) },
 ];
 const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
-export const DEFAULT_SOURCE_IDS = ['bbc_world', 'bbc_middleeast', 'aljazeera', 'guardian_world', 'guardian_me', 'al_monitor', 'toi', 'jpost', 'reuters_world', 'ap_mideast', 'google_me', 'cna', 'bangkok_post'];
+export const DEFAULT_SOURCE_IDS = ['bbc_world', 'bbc_middleeast', 'aljazeera', 'guardian_world', 'guardian_me', 'al_monitor', 'toi', 'jpost', 'reuters_world', 'ap_mideast', 'google_me', 'cna', 'bangkok_post', 'arab_news', 'rudaw', 'tasnim'];
 
 export const KEYWORD_GROUPS = [
     { tag: 'strikes', weight: 22, terms: ['strike', 'missile', 'bomb', 'explosion', 'airstrike', 'drone', 'intercept', 'retaliation', 'attack', 'shelling', 'barrage'] },
@@ -47,6 +47,9 @@ export const INTELLIGENCE_SOURCES = [
     { id: 'diplomat', name: 'The Diplomat', url: 'https://thediplomat.com/feed/', group: 'asia', trustScore: 10 },
     { id: 'google_me', name: 'Google News ME', url: buildGoogleNewsSearchUrl('Middle East Iran Israel conflict latest'), group: 'middle-east', trustScore: 13 },
     { id: 'google_gulf', name: 'Google News Gulf', url: buildGoogleNewsSearchUrl('Gulf Strait of Hormuz Iran naval shipping'), group: 'middle-east', trustScore: 12 },
+    { id: 'arab_news', name: 'Arab News', url: 'https://www.arabnews.com/rss.xml', group: 'middle-east', trustScore: 11 },
+    { id: 'rudaw', name: 'Rudaw', url: 'https://www.rudaw.net/english/rss', group: 'middle-east', trustScore: 10 },
+    { id: 'tasnim', name: 'Tasnim News', url: buildGoogleNewsSearchUrl('Tasnim News Agency Iran'), group: 'middle-east', trustScore: 8 },
 ];
 
 export const APAC_SOURCES = INTELLIGENCE_SOURCES;
