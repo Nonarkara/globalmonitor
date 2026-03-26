@@ -207,8 +207,8 @@ const Sidebar = ({
                     <SourceStack />
                 </div>
 
-                {/* Live TV — compact 2x2 grid at bottom of sidebar */}
-                {viewMode === 'middleeast' && (
+                {/* Live TV moved to floating panel in App.jsx */}
+                {false && (
                     <div>
                         <LiveTVPanel />
                     </div>

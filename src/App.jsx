@@ -16,7 +16,7 @@ import { useLiveResource } from './hooks/useLiveResource';
 import { Settings, RefreshCw, Eye } from 'lucide-react';
 import { getVisitorCount, BASE_COUNT } from './services/visitorTracker';
 import EscalationGauge from './components/EscalationGauge';
-// LiveTVPanel is rendered inside Sidebar
+import LiveTVPanel from './components/LiveTVPanel';
 import MultiFrontBoard from './components/MultiFrontBoard';
 import IranWarPanel from './components/IranWarPanel';
 import AlertBanner from './components/AlertBanner';
@@ -286,8 +286,6 @@ function App() {
           )}
         </div>
 
-{/* LiveTV is rendered inside the left sidebar */}
-
         {/* Row 5: Live news ticker */}
         <ErrorBoundary inline label="Live Feed">
           <LiveIntelligenceFeed key={`ticker:${sourceSetKey}`} activeSourceIds={activeSources} />
@@ -299,6 +297,22 @@ function App() {
           onSelectRegion={handleRegionSelect}
           viewMode={viewMode}
         />
+
+        {/* Floating: Live TV — bottom-left corner */}
+        {viewMode === 'middleeast' && (
+          <div style={{
+            position: 'fixed',
+            bottom: '46px',
+            left: '320px',
+            width: '320px',
+            zIndex: 50,
+            pointerEvents: 'auto'
+          }}>
+            <ErrorBoundary inline label="Live TV">
+              <LiveTVPanel />
+            </ErrorBoundary>
+          </div>
+        )}
 
         {/* Modal: Settings */}
         <SettingsModal
