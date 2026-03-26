@@ -18,6 +18,8 @@ import { computeInfrastructureStatus } from './lib/infrastructure.mjs';
 import { fetchGdeltSentiment } from './lib/gdelt.mjs';
 import { fetchOpenSkyPayload } from './lib/opensky.mjs';
 import { computeFrontStatus } from './lib/frontStatus.mjs';
+import { fetchNgaWarnings } from './lib/ngaWarnings.mjs';
+import { fetchUsgsQuakes } from './lib/usgsQuakes.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
@@ -219,6 +221,29 @@ const server = http.createServer(async (request, response) => {
         if (url.pathname === '/api/fronts') {
             const payload = computeFrontStatus(cache);
             json(response, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            return;
+        }
+
+        if (url.pathname === '/api/nga-warnings') {
+            const result = await useCached(
+                'nga-warnings',
+                30 * 60 * 1000,
+                () => fetchNgaWarnings(),
+                (p) => Array.isArray(p?.warnings)
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/quakes') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const result = await useCached(
+                `quakes:${theater}`,
+                10 * 60 * 1000,
+                () => fetchUsgsQuakes(theater),
+                (p) => p?.summary != null
+            );
+            json(response, 200, result.payload, result.meta);
             return;
         }
 

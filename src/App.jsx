@@ -20,6 +20,8 @@ import EscalationGauge from './components/EscalationGauge';
 import MultiFrontBoard from './components/MultiFrontBoard';
 import IranWarPanel from './components/IranWarPanel';
 import AlertBanner from './components/AlertBanner';
+import MaritimeWarningsPanel from './components/MaritimeWarningsPanel';
+import SeismicPanel from './components/SeismicPanel';
 
 function App() {
   const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi', 'firms']);
@@ -256,6 +258,12 @@ function App() {
               </ErrorBoundary>
               <ErrorBoundary inline label="Proxy Theater">
                 <IntelligencePanel key={`proxyTheater:${sourceSetKey}`} briefingId="proxyTheater" activeSourceIds={activeSources} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Maritime Warnings">
+                <MaritimeWarningsPanel />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Seismic Activity">
+                <SeismicPanel />
               </ErrorBoundary>
             </>
           ) : (
