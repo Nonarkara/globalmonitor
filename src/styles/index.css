@@ -295,7 +295,7 @@ body {
 }
 
 .app-container::after {
-  content: "\00A9 2026 Dr Non\2019s GlobeWatch System (DNGWS) \00B7 depa";
+  content: "\00A9 2026 Global Political Dashboard \00B7 PMUA \00B7 depa \00B7 Smart City Thailand \00B7 Axiom";
   position: absolute;
   bottom: 1px;
   left: 0;

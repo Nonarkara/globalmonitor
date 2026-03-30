@@ -148,12 +148,19 @@ function App() {
         {/* Row 2: Header bar */}
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Logo strip */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '12px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+              <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '20px', objectFit: 'contain', opacity: 0.85 }} />
+              <img src="/Logo depa-01.png" alt="depa" style={{ height: '20px', objectFit: 'contain', opacity: 0.85 }} />
+              <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '20px', objectFit: 'contain', opacity: 0.85, filter: 'brightness(1.5)' }} />
+              <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '18px', objectFit: 'contain', opacity: 0.85 }} />
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
               <span style={{ fontWeight: 300, letterSpacing: '3px', fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase' }}>
-                GlobeWatch
+                Global Political Dashboard
               </span>
               <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.52rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS · v6.0
+                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · GlobeWatch · v7.0
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
