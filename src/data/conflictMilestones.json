@@ -1,0 +1,182 @@
+[
+  {
+    "date": "2026-02-28",
+    "title": "Operation Begins",
+    "category": "military",
+    "description": "US-Israel joint strikes on Iranian nuclear facilities and IRGC command centers",
+    "lat": 32.65,
+    "lon": 51.68,
+    "severity": 5
+  },
+  {
+    "date": "2026-03-01",
+    "title": "Iran Retaliates",
+    "category": "military",
+    "description": "Ballistic missile salvo targeting US bases in Qatar and UAE",
+    "lat": 25.41,
+    "lon": 51.23,
+    "severity": 5
+  },
+  {
+    "date": "2026-03-02",
+    "title": "Hormuz Strait Closure",
+    "category": "maritime",
+    "description": "IRGC Navy mines and fast-boat operations disrupt tanker traffic",
+    "lat": 26.56,
+    "lon": 56.25,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-03",
+    "title": "Hezbollah Barrage",
+    "category": "proxy",
+    "description": "Hezbollah launches coordinated rocket attacks on northern Israel",
+    "lat": 33.27,
+    "lon": 35.21,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-04",
+    "title": "Oil Spikes $140",
+    "category": "economic",
+    "description": "Brent crude surges past $140/bbl on Hormuz disruption fears",
+    "lat": 26.0,
+    "lon": 52.0,
+    "severity": 3
+  },
+  {
+    "date": "2026-03-05",
+    "title": "UNSC Emergency Session",
+    "category": "diplomatic",
+    "description": "UN Security Council convenes emergency session; Russia and China call for ceasefire",
+    "lat": 40.75,
+    "lon": -73.97,
+    "severity": 2
+  },
+  {
+    "date": "2026-03-06",
+    "title": "Houthi Attacks Red Sea",
+    "category": "proxy",
+    "description": "Houthi anti-ship missiles target commercial vessels in Bab el-Mandeb",
+    "lat": 12.58,
+    "lon": 43.33,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-07",
+    "title": "Iraq PMU Strikes",
+    "category": "proxy",
+    "description": "Iran-backed PMU forces attack US forces at Al-Asad Airbase",
+    "lat": 33.78,
+    "lon": 43.58,
+    "severity": 3
+  },
+  {
+    "date": "2026-03-08",
+    "title": "Natanz Facility Destroyed",
+    "category": "military",
+    "description": "Second wave of strikes confirms destruction of Natanz enrichment centrifuges",
+    "lat": 33.72,
+    "lon": 51.73,
+    "severity": 5
+  },
+  {
+    "date": "2026-03-10",
+    "title": "EU Sanctions Package",
+    "category": "diplomatic",
+    "description": "European Union enacts comprehensive sanctions on Iranian oil and banking sectors",
+    "lat": 50.85,
+    "lon": 4.35,
+    "severity": 2
+  },
+  {
+    "date": "2026-03-11",
+    "title": "Refugee Crisis Escalates",
+    "category": "humanitarian",
+    "description": "UNHCR reports 500,000+ internally displaced in Iran; border crossings overwhelmed",
+    "lat": 35.69,
+    "lon": 51.39,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-13",
+    "title": "Damascus Hit",
+    "category": "military",
+    "description": "Israeli strikes target Iranian military advisors in Damascus suburbs",
+    "lat": 33.51,
+    "lon": 36.29,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-15",
+    "title": "China Mediation Offer",
+    "category": "diplomatic",
+    "description": "China proposes ceasefire framework; calls for immediate cessation of hostilities",
+    "lat": 39.9,
+    "lon": 116.4,
+    "severity": 2
+  },
+  {
+    "date": "2026-03-17",
+    "title": "Infrastructure Crisis",
+    "category": "humanitarian",
+    "description": "Iran reports widespread power grid failures; hospitals on emergency generators",
+    "lat": 32.65,
+    "lon": 51.68,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-18",
+    "title": "US Carrier Strike",
+    "category": "military",
+    "description": "USS Eisenhower carrier group engages IRGC fast boats in Persian Gulf",
+    "lat": 27.0,
+    "lon": 51.5,
+    "severity": 4
+  },
+  {
+    "date": "2026-03-20",
+    "title": "Nowruz Ceasefire Call",
+    "category": "diplomatic",
+    "description": "Iranian officials propose 72-hour Nowruz ceasefire; US demands preconditions",
+    "lat": 35.69,
+    "lon": 51.39,
+    "severity": 2
+  },
+  {
+    "date": "2026-03-22",
+    "title": "Cyber Attacks Surge",
+    "category": "military",
+    "description": "Widespread cyber operations target banking and infrastructure in Iran and Israel",
+    "lat": 32.07,
+    "lon": 34.78,
+    "severity": 3
+  },
+  {
+    "date": "2026-03-24",
+    "title": "Humanitarian Corridor",
+    "category": "humanitarian",
+    "description": "Red Cross negotiates limited humanitarian corridors for medical supplies",
+    "lat": 33.31,
+    "lon": 44.37,
+    "severity": 2
+  },
+  {
+    "date": "2026-03-26",
+    "title": "OPEC Emergency Meeting",
+    "category": "economic",
+    "description": "OPEC+ emergency session discusses production surge to stabilize markets",
+    "lat": 48.21,
+    "lon": 16.36,
+    "severity": 3
+  },
+  {
+    "date": "2026-03-28",
+    "title": "Escalation Warning",
+    "category": "military",
+    "description": "Iran threatens to target Gulf state oil facilities if strikes continue",
+    "lat": 27.0,
+    "lon": 49.65,
+    "severity": 5
+  }
+]

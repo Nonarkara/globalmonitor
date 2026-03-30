@@ -278,10 +278,12 @@ const server = http.createServer(async (request, response) => {
         }
 
         if (url.pathname === '/api/acled') {
+            const since = url.searchParams.get('since');
+            const cacheKey = since ? `acled:middleeast:${since}` : 'acled:middleeast';
             const result = await useCached(
-                'acled:middleeast',
+                cacheKey,
                 60 * 60 * 1000,  // 1 hour cache
-                () => fetchAcledEvents(),
+                () => fetchAcledEvents(since ? { since } : {}),
                 (p) => p?.type === 'FeatureCollection'
             );
             json(response, 200, result.payload, result.meta);

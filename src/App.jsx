@@ -13,7 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { INTELLIGENCE_SOURCES, APAC_SOURCES } from './services/liveNews';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
-import { Settings, RefreshCw, Eye } from 'lucide-react';
+import { Settings, RefreshCw, Eye, Network } from 'lucide-react';
 import { getVisitorCount, BASE_COUNT } from './services/visitorTracker';
 import EscalationGauge from './components/EscalationGauge';
 import LiveTVPanel from './components/LiveTVPanel';
@@ -29,6 +29,12 @@ import SentimentChart from './components/SentimentChart';
 import AcledAnalytics from './components/AcledAnalytics';
 import FlightRadarEmbed from './components/FlightRadarEmbed';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+// Long-term intelligence components
+import HumanitarianPanel from './components/HumanitarianPanel';
+import SanctionsPanel from './components/SanctionsPanel';
+import WarCostTracker from './components/WarCostTracker';
+import ConflictChronicle from './components/ConflictChronicle';
+import ActorNetworkModal from './components/ActorNetworkModal';
 
 function App() {
   const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi', 'firms']);
@@ -37,6 +43,7 @@ function App() {
   const [viewMode, setViewMode] = useState('middleeast'); // 'middleeast' or 'depa'
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNetworkOpen, setIsNetworkOpen] = useState(false);
   const [activeSources, setActiveSources] = useState(INTELLIGENCE_SOURCES.map((source) => source.id));
   const [copernicusMode, setCopernicusMode] = useState('true-color');
   const [showCopernicusOverlay, setShowCopernicusOverlay] = useState(true);
@@ -70,6 +77,15 @@ function App() {
       ...prev,
       ...targetViewState,
       transitionDuration: 1500,
+    }));
+  }, []);
+
+  /** Chronicle fly-to handler */
+  const handleChronicleFlyTo = useCallback((target) => {
+    setViewState(prev => ({
+      ...prev,
+      ...target,
+      transitionDuration: target.transitionDuration || 1500,
     }));
   }, []);
 
@@ -137,7 +153,7 @@ function App() {
                 GlobeWatch
               </span>
               <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.52rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS · v5.0
+                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · DNGWS · v6.0
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
@@ -163,6 +179,29 @@ function App() {
             )}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
+            {/* Actor Network button */}
+            {viewMode === 'middleeast' && (
+              <button
+                onClick={() => setIsNetworkOpen(true)}
+                style={{
+                  background: 'rgba(139,92,246,0.08)',
+                  border: '1px solid rgba(139,92,246,0.15)',
+                  color: 'rgba(139,92,246,0.7)',
+                  padding: '5px 12px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.6rem',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.3s',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                <Network size={11} /> Actors
+              </button>
+            )}
             <button
               onClick={() => {
                 const newMode = viewMode === 'middleeast' ? 'depa' : 'middleeast';
@@ -223,7 +262,7 @@ function App() {
           </div>
         )}
 
-        {/* Row 3-4: Left sidebar — spans down to bottom bar */}
+        {/* Row 3-5: Left sidebar — spans down to bottom bar */}
         <div className="left-sidebar">
           <ErrorBoundary inline label="Sidebar">
             <Sidebar
@@ -265,6 +304,9 @@ function App() {
               <ErrorBoundary inline label="Iran War Theater">
                 <IranWarPanel activeSourceIds={activeSources} />
               </ErrorBoundary>
+              <ErrorBoundary inline label="Humanitarian Impact">
+                <HumanitarianPanel />
+              </ErrorBoundary>
               <ErrorBoundary inline label="Conflict Analytics">
                 <AcledAnalytics />
               </ErrorBoundary>
@@ -286,7 +328,16 @@ function App() {
           )}
         </div>
 
-        {/* Row 4: Bottom bar */}
+        {/* Row 4: Conflict Chronicle — timeline between map and bottom bar */}
+        {viewMode === 'middleeast' && (
+          <div className="chronicle-row">
+            <ErrorBoundary inline label="Conflict Chronicle">
+              <ConflictChronicle onFlyTo={handleChronicleFlyTo} />
+            </ErrorBoundary>
+          </div>
+        )}
+
+        {/* Row 5: Bottom bar */}
         <div className="bottom-bar">
           <ErrorBoundary inline label="Market Radar">
             <MarketRadarPanel />
@@ -295,6 +346,12 @@ function App() {
             <>
               <ErrorBoundary inline label="Oil Price Chart">
                 <OilPriceChart />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Sanctions Tracker">
+                <SanctionsPanel />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="War Cost">
+                <WarCostTracker />
               </ErrorBoundary>
               <ErrorBoundary inline label="Hormuz Crisis">
                 <HormuzTracker />
@@ -320,7 +377,7 @@ function App() {
           )}
         </div>
 
-        {/* Row 5: Live news ticker */}
+        {/* Row 6: Live news ticker */}
         <ErrorBoundary inline label="Live Feed">
           <LiveIntelligenceFeed key={`ticker:${sourceSetKey}`} activeSourceIds={activeSources} />
         </ErrorBoundary>
@@ -339,8 +396,6 @@ function App() {
           viewMode={viewMode}
         />
 
-        {/* Live TV moved into left-sidebar above */}
-
         {/* Modal: Settings */}
         <SettingsModal
           isOpen={isSettingsOpen}
@@ -348,6 +403,12 @@ function App() {
           activeSources={activeSources}
           toggleSource={toggleSource}
           setAllSources={setAllSources}
+        />
+
+        {/* Modal: Actor Network */}
+        <ActorNetworkModal
+          isOpen={isNetworkOpen}
+          onClose={() => setIsNetworkOpen(false)}
         />
       </div>
     </>

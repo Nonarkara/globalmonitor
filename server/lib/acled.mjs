@@ -26,7 +26,8 @@ export const fetchAcledEvents = async (options = {}) => {
     const {
         key = process.env.ACLED_API_KEY,
         email = process.env.ACLED_EMAIL,
-        daysBack = 30
+        daysBack = 30,
+        since: sinceOverride
     } = options;
 
     // If no API key, return curated war events from verified reporting
@@ -34,7 +35,7 @@ export const fetchAcledEvents = async (options = {}) => {
         return buildFallbackEvents();
     }
 
-    const since = new Date(Date.now() - daysBack * 86400000).toISOString().slice(0, 10);
+    const since = sinceOverride || new Date(Date.now() - daysBack * 86400000).toISOString().slice(0, 10);
 
     try {
         const resp = await axios.get(ACLED_BASE, {

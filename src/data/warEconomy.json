@@ -1,0 +1,61 @@
+{
+  "dailyCostEstimate": 480,
+  "dailyCostUnit": "million USD",
+  "categories": [
+    {
+      "id": "military",
+      "label": "Military Operations",
+      "estimateTotal": 6200,
+      "unit": "million USD",
+      "color": "#ef4444",
+      "description": "US and coalition strike operations, carrier deployments, missile defense"
+    },
+    {
+      "id": "infrastructure",
+      "label": "Infrastructure Damage",
+      "estimateTotal": 4800,
+      "unit": "million USD",
+      "color": "#f97316",
+      "description": "Iranian nuclear facilities, power grid, transportation, military installations"
+    },
+    {
+      "id": "oil",
+      "label": "Oil Market Impact",
+      "estimateTotal": 3200,
+      "unit": "million USD",
+      "color": "#f59e0b",
+      "description": "Hormuz disruption, supply shortfalls, price spike costs to global economy"
+    },
+    {
+      "id": "trade",
+      "label": "Trade Disruption",
+      "estimateTotal": 1800,
+      "unit": "million USD",
+      "color": "#eab308",
+      "description": "Red Sea shipping rerouting, insurance premiums, supply chain delays"
+    },
+    {
+      "id": "humanitarian",
+      "label": "Humanitarian Aid",
+      "estimateTotal": 950,
+      "unit": "million USD",
+      "color": "#8b5cf6",
+      "description": "UNHCR, Red Cross, displaced populations, medical supplies, food aid"
+    },
+    {
+      "id": "cyber",
+      "label": "Cyber & Economic Warfare",
+      "estimateTotal": 620,
+      "unit": "million USD",
+      "color": "#38bdf8",
+      "description": "Cyber attacks on banking, infrastructure, and commercial systems"
+    }
+  ],
+  "gdpImpact": {
+    "iran": -12.5,
+    "iraq": -4.2,
+    "lebanon": -8.1,
+    "global": -0.3
+  },
+  "sources": "Estimates based on historical conflict cost models (SIPRI, World Bank, CSIS). Actual figures may vary significantly."
+}

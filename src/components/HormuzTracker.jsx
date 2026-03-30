@@ -1,13 +1,13 @@
 import React from 'react';
 import { Ship, AlertTriangle, DollarSign, Anchor } from 'lucide-react';
+import { WAR_START, getDayCount } from '../data/warConstants';
 
 /**
  * Strait of Hormuz Crisis Tracker — curated war-time status panel.
  * Data is manually curated from verified sources (updated periodically).
  */
 
-const WAR_START = new Date('2026-02-28');
-const warDay = Math.floor((Date.now() - WAR_START) / 86400000);
+const warDay = getDayCount();
 
 const HORMUZ_STATUS = {
     status: 'CLOSED',

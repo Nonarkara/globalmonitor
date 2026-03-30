@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Clock, Play, Pause, SkipBack } from 'lucide-react';
-
-const WAR_START = new Date('2026-02-28T00:00:00Z');
+import { WAR_START } from '../data/warConstants';
 
 const formatDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 

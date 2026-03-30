@@ -1,0 +1,98 @@
+[
+  {
+    "date": "2026-02-28",
+    "imposedBy": "US",
+    "target": "Iran Central Bank",
+    "type": "Financial",
+    "description": "Complete SWIFT disconnection and asset freeze on Iranian central bank",
+    "impact": "severe"
+  },
+  {
+    "date": "2026-03-01",
+    "imposedBy": "US",
+    "target": "IRGC Leadership",
+    "type": "Individual",
+    "description": "Sanctions on 47 IRGC senior commanders and their financial networks",
+    "impact": "high"
+  },
+  {
+    "date": "2026-03-02",
+    "imposedBy": "US",
+    "target": "Iranian Oil Exports",
+    "type": "Energy",
+    "description": "Executive order banning all Iranian crude purchases; secondary sanctions on buyers",
+    "impact": "severe"
+  },
+  {
+    "date": "2026-03-05",
+    "imposedBy": "EU",
+    "target": "Iranian Shipping",
+    "type": "Maritime",
+    "description": "EU bans port access for Iranian-flagged vessels; insurance blacklist expanded",
+    "impact": "high"
+  },
+  {
+    "date": "2026-03-07",
+    "imposedBy": "UK",
+    "target": "Iranian Tech Sector",
+    "type": "Technology",
+    "description": "Export ban on dual-use technology, semiconductors, and drone components to Iran",
+    "impact": "moderate"
+  },
+  {
+    "date": "2026-03-10",
+    "imposedBy": "EU",
+    "target": "Iranian Oil & Banking",
+    "type": "Comprehensive",
+    "description": "Full EU sanctions package: oil embargo, banking restrictions, asset freezes",
+    "impact": "severe"
+  },
+  {
+    "date": "2026-03-12",
+    "imposedBy": "US",
+    "target": "Hezbollah Networks",
+    "type": "Financial",
+    "description": "Treasury designates 120+ entities linked to Hezbollah financing",
+    "impact": "high"
+  },
+  {
+    "date": "2026-03-14",
+    "imposedBy": "UN",
+    "target": "Iranian Arms",
+    "type": "Arms Embargo",
+    "description": "UNSC Resolution extends and strengthens arms embargo on Iran (China/Russia abstain)",
+    "impact": "moderate"
+  },
+  {
+    "date": "2026-03-17",
+    "imposedBy": "US",
+    "target": "Iranian Metals",
+    "type": "Industrial",
+    "description": "Sanctions on Iranian steel, aluminum, copper, and iron sectors",
+    "impact": "moderate"
+  },
+  {
+    "date": "2026-03-20",
+    "imposedBy": "EU",
+    "target": "IRGC Proxies",
+    "type": "Individual",
+    "description": "EU designates PMU, Houthi, and Hezbollah financial facilitators",
+    "impact": "high"
+  },
+  {
+    "date": "2026-03-24",
+    "imposedBy": "US",
+    "target": "Chinese Oil Importers",
+    "type": "Secondary",
+    "description": "Secondary sanctions on Chinese companies purchasing Iranian crude",
+    "impact": "severe"
+  },
+  {
+    "date": "2026-03-27",
+    "imposedBy": "UK",
+    "target": "Iranian Cyber Units",
+    "type": "Cyber",
+    "description": "Sanctions on Iranian cyber warfare units responsible for attacks on allied infrastructure",
+    "impact": "moderate"
+  }
+]

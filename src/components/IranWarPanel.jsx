@@ -4,8 +4,7 @@ import { fetchStrikeStats } from '../services/strikeStats';
 import { fetchFrontStatus } from '../services/frontStatus';
 import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
-
-const WAR_START = new Date('2026-02-28T00:00:00Z');
+import { WAR_START } from '../data/warConstants';
 
 const SubFront = ({ front }) => (
     <div style={{

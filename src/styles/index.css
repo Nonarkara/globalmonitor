@@ -247,7 +247,7 @@ body {
   inset: 0;
   display: grid;
   grid-template-columns: 300px 1fr 320px;
-  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-rows: auto auto 1fr auto auto auto;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -256,6 +256,14 @@ body {
   z-index: 10;
   pointer-events: none;
   gap: 8px;
+}
+
+/* Conflict Chronicle row — between main content and bottom bar */
+.chronicle-row {
+  grid-column: 2;
+  grid-row: 4;
+  pointer-events: auto;
+  min-height: 0;
 }
 
 /* V4: Responsive breakpoints for tablets and small laptops */
@@ -276,13 +284,14 @@ body {
 @media (max-width: 900px) {
   .app-container {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
     overflow-y: auto;
     overflow-x: hidden;
   }
   .left-sidebar { display: none; }
   .right-sidebar { grid-column: 1; }
   .bottom-bar { grid-column: 1; flex-direction: column; }
+  .chronicle-row { grid-column: 1; }
 }
 
 .app-container::after {
@@ -388,7 +397,7 @@ body {
 
 .left-sidebar {
   grid-column: 1;
-  grid-row: 3 / 5;  /* spans main content and bottom bar rows */
+  grid-row: 3 / 6;  /* spans main content, chronicle, and bottom bar rows */
   gap: 8px;
   display: flex;
   flex-direction: column;
@@ -405,7 +414,7 @@ body {
 
 .right-sidebar {
   grid-column: 3;
-  grid-row: 3 / 5;
+  grid-row: 3 / 6;
   gap: 8px;
   display: flex;
   flex-direction: column;
@@ -430,7 +439,7 @@ body {
 
 .bottom-bar {
   grid-column: 2 / 3;
-  grid-row: 4;
+  grid-row: 5;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 6px;
@@ -454,7 +463,7 @@ body {
 
 .news-ticker-wrapper {
   grid-column: 1 / -1;
-  grid-row: 5;
+  grid-row: 6;
   height: 32px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
@@ -1709,19 +1718,23 @@ body {
 }
 
 .right-sidebar>.bottom-card:nth-child(2) .panel-header {
-  border-left-color: var(--accent-cyan);
+  border-left-color: #ec4899; /* humanitarian pink */
 }
 
 .right-sidebar>.bottom-card:nth-child(3) .panel-header {
-  border-left-color: var(--accent-amber);
+  border-left-color: #f97316; /* acled orange */
 }
 
 .right-sidebar>.bottom-card:nth-child(4) .panel-header {
-  border-left-color: var(--accent-green);
+  border-left-color: var(--accent-cyan);
 }
 
 .right-sidebar>.bottom-card:nth-child(5) .panel-header {
-  border-left-color: #8b5cf6;
+  border-left-color: var(--accent-amber);
+}
+
+.right-sidebar>.bottom-card:nth-child(6) .panel-header {
+  border-left-color: var(--accent-green);
 }
 
 .bottom-bar>.bottom-card:nth-child(2) .panel-header {
@@ -1729,6 +1742,14 @@ body {
 }
 
 .bottom-bar>.bottom-card:nth-child(3) .panel-header {
+  border-left-color: #8b5cf6; /* sanctions purple */
+}
+
+.bottom-bar>.bottom-card:nth-child(4) .panel-header {
+  border-left-color: var(--accent-amber); /* war cost */
+}
+
+.bottom-bar>.bottom-card:nth-child(5) .panel-header {
   border-left-color: var(--accent-green);
 }
 
@@ -1762,6 +1783,14 @@ body {
   animation-delay: 0.55s;
 }
 
+.right-sidebar>*:nth-child(6) {
+  animation-delay: 0.65s;
+}
+
+.chronicle-row {
+  animation-delay: 0.3s;
+}
+
 .bottom-bar>*:nth-child(1) {
   animation-delay: 0.2s;
 }
@@ -1772,6 +1801,14 @@ body {
 
 .bottom-bar>*:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+.bottom-bar>*:nth-child(4) {
+  animation-delay: 0.5s;
+}
+
+.bottom-bar>*:nth-child(5) {
+  animation-delay: 0.6s;
 }
 
 /* Signal items: hover sheen */
