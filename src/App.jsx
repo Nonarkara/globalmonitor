@@ -24,6 +24,10 @@ import MaritimeWarningsPanel from './components/MaritimeWarningsPanel';
 import SeismicPanel from './components/SeismicPanel';
 import TimeMachine from './components/TimeMachine';
 import HormuzTracker from './components/HormuzTracker';
+import OilPriceChart from './components/OilPriceChart';
+import SentimentChart from './components/SentimentChart';
+import AcledAnalytics from './components/AcledAnalytics';
+import FlightRadarEmbed from './components/FlightRadarEmbed';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 function App() {
@@ -237,9 +241,14 @@ function App() {
             />
           </ErrorBoundary>
           {viewMode === 'middleeast' && (
-            <ErrorBoundary inline label="Live TV">
-              <LiveTVPanel />
-            </ErrorBoundary>
+            <>
+              <ErrorBoundary inline label="Flight Radar">
+                <FlightRadarEmbed />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Live TV">
+                <LiveTVPanel />
+              </ErrorBoundary>
+            </>
           )}
         </div>
 
@@ -255,6 +264,9 @@ function App() {
             <>
               <ErrorBoundary inline label="Iran War Theater">
                 <IranWarPanel activeSourceIds={activeSources} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Conflict Analytics">
+                <AcledAnalytics />
               </ErrorBoundary>
               <ErrorBoundary inline label="Gulf Security">
                 <IntelligencePanel key={`gulfSecurity:${sourceSetKey}`} briefingId="gulfSecurity" activeSourceIds={activeSources} />
@@ -281,17 +293,20 @@ function App() {
           </ErrorBoundary>
           {viewMode === 'middleeast' ? (
             <>
-              <ErrorBoundary inline label="Diplomacy & Sanctions">
-                <IntelligencePanel key={`iranDiplomacy:${sourceSetKey}`} briefingId="iranDiplomacy" activeSourceIds={activeSources} />
-              </ErrorBoundary>
-              <ErrorBoundary inline label="Proxy Theater">
-                <IntelligencePanel key={`proxyTheater:${sourceSetKey}`} briefingId="proxyTheater" activeSourceIds={activeSources} />
+              <ErrorBoundary inline label="Oil Price Chart">
+                <OilPriceChart />
               </ErrorBoundary>
               <ErrorBoundary inline label="Hormuz Crisis">
                 <HormuzTracker />
               </ErrorBoundary>
-              <ErrorBoundary inline label="Maritime Warnings">
-                <MaritimeWarningsPanel />
+              <ErrorBoundary inline label="Diplomacy & Sanctions">
+                <IntelligencePanel key={`iranDiplomacy:${sourceSetKey}`} briefingId="iranDiplomacy" activeSourceIds={activeSources} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Media Sentiment">
+                <SentimentChart />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Proxy Theater">
+                <IntelligencePanel key={`proxyTheater:${sourceSetKey}`} briefingId="proxyTheater" activeSourceIds={activeSources} />
               </ErrorBoundary>
               <ErrorBoundary inline label="Seismic Activity">
                 <SeismicPanel />

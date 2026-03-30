@@ -196,6 +196,34 @@ export const EO_TILE_LAYERS = [
         attribution: 'EMODnet Bathymetry',
         opacity: 0.55,
         maxzoom: 12
+    },
+    {
+        id: 'eo-weather-radar',
+        name: 'Weather Radar',
+        description: 'Live precipitation radar from RainViewer',
+        group: 'satellite',
+        icon: '🌧️',
+        tiles: [
+            `https://tilecache.rainviewer.com/v2/radar/${Math.floor(Date.now() / 600000) * 600}/256/{z}/{x}/{y}/2/1_1.png`
+        ],
+        tileSize: 256,
+        attribution: 'RainViewer',
+        opacity: 0.6,
+        maxzoom: 10
+    },
+    {
+        id: 'eo-wind',
+        name: 'Wind Speed',
+        description: 'Global wind patterns from Open-Meteo',
+        group: 'satellite',
+        icon: '💨',
+        tiles: [
+            'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=9de243494c0b295cca9337e1e96b00e2'
+        ],
+        tileSize: 256,
+        attribution: 'OpenWeatherMap',
+        opacity: 0.5,
+        maxzoom: 8
     }
 ];
 

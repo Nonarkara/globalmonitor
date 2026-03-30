@@ -110,6 +110,17 @@ const HormuzTracker = () => (
             </div>
         </div>
 
+        {/* Live Vessel Map */}
+        <div style={{ borderRadius: '6px', overflow: 'hidden', height: '100px', marginBottom: '6px', background: '#080c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <iframe
+                src="https://www.vesselfinder.com/aismap?lat=26.5&lon=56.3&zoom=8&width=300&height=100&names=true&mmsi=0&track=false&fleet=false&fleet_name=false&fleet_hide_old_positions=false&default_overground_speed_kts=3&default_sea_speed_kts=12"
+                style={{ width: '100%', height: '100%', border: 'none', opacity: 0.8 }}
+                title="Hormuz Vessel Tracker"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
+            />
+        </div>
+
         <div style={{ overflow: 'hidden', flex: 1 }}>
             {HORMUZ_STATUS.notes.slice(0, 3).map((note, i) => (
                 <div key={i} style={{

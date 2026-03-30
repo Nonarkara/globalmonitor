@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Tv, Volume2, VolumeX } from 'lucide-react';
 
 const CHANNELS = [
+  // Page 1
   {
     id: 'aljazeera-en',
     name: 'Al Jazeera',
@@ -34,10 +35,48 @@ const CHANNELS = [
     embedUrl: 'https://www.youtube.com/embed/U--OjmpjF5o?autoplay=1&mute=1&enablejsapi=1&controls=0&modestbranding=1',
     embedUrlUnmuted: 'https://www.youtube.com/embed/U--OjmpjF5o?autoplay=1&mute=0&enablejsapi=1&controls=0&modestbranding=1',
   },
+  // Page 2 — conflict zone cameras + more networks
+  {
+    id: 'earthlive-me',
+    name: 'ME Cams',
+    lang: 'LIVE',
+    color: '#22c55e',
+    embedUrl: 'https://www.youtube.com/embed/gmtlJ_m2r5A?autoplay=1&mute=1&enablejsapi=1&controls=0&modestbranding=1',
+    embedUrlUnmuted: 'https://www.youtube.com/embed/gmtlJ_m2r5A?autoplay=1&mute=0&enablejsapi=1&controls=0&modestbranding=1',
+  },
+  {
+    id: 'earthlive-cctv',
+    name: 'City CCTV',
+    lang: 'LIVE',
+    color: '#22c55e',
+    embedUrl: 'https://www.youtube.com/embed/2Sl8n9clE8E?autoplay=1&mute=1&enablejsapi=1&controls=0&modestbranding=1',
+    embedUrlUnmuted: 'https://www.youtube.com/embed/2Sl8n9clE8E?autoplay=1&mute=0&enablejsapi=1&controls=0&modestbranding=1',
+  },
+  {
+    id: 'i24-news',
+    name: 'i24 News',
+    lang: 'EN',
+    color: '#0088CC',
+    embedUrl: 'https://www.youtube.com/embed/live_stream?channel=UCp1VEgMfOGBIIwlMDBJwFgA&autoplay=1&mute=1&controls=0&modestbranding=1',
+    embedUrlUnmuted: 'https://www.youtube.com/embed/live_stream?channel=UCp1VEgMfOGBIIwlMDBJwFgA&autoplay=1&mute=0&controls=0&modestbranding=1',
+  },
+  {
+    id: 'trt-world',
+    name: 'TRT World',
+    lang: 'EN',
+    color: '#E30A17',
+    embedUrl: 'https://www.youtube.com/embed/live_stream?channel=UC7fWeaHhqgM4Lba5uttl0SA&autoplay=1&mute=1&controls=0&modestbranding=1',
+    embedUrlUnmuted: 'https://www.youtube.com/embed/live_stream?channel=UC7fWeaHhqgM4Lba5uttl0SA&autoplay=1&mute=0&controls=0&modestbranding=1',
+  },
 ];
+
+const CHANNELS_PER_PAGE = 4;
 
 const LiveTVPanel = () => {
   const [activeChannel, setActiveChannel] = useState(null);
+  const [page, setPage] = useState(0);
+  const totalPages = Math.ceil(CHANNELS.length / CHANNELS_PER_PAGE);
+  const visibleChannels = CHANNELS.slice(page * CHANNELS_PER_PAGE, (page + 1) * CHANNELS_PER_PAGE);
 
   const handleChannelClick = useCallback((channelId) => {
     setActiveChannel((prev) => (prev === channelId ? null : channelId));
@@ -96,7 +135,7 @@ const LiveTVPanel = () => {
         flex: 1,
         minHeight: 0,
       }}>
-        {CHANNELS.map((ch) => {
+        {visibleChannels.map((ch) => {
           const isActive = activeChannel === ch.id;
           const src = isActive ? ch.embedUrlUnmuted : ch.embedUrl;
 
@@ -160,6 +199,26 @@ const LiveTVPanel = () => {
           );
         })}
       </div>
+      {/* Page dots */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: '4px',
+          padding: '3px 0 2px'
+        }}>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setPage(i)}
+              style={{
+                width: '12px', height: '3px', borderRadius: '2px',
+                background: i === page ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.15)',
+                border: 'none', cursor: 'pointer', padding: 0,
+                transition: 'background 0.3s'
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -432,9 +432,9 @@ body {
   grid-column: 2 / 3;
   grid-row: 4;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  max-height: 300px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+  max-height: 340px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1720,6 +1720,10 @@ body {
   border-left-color: var(--accent-green);
 }
 
+.right-sidebar>.bottom-card:nth-child(5) .panel-header {
+  border-left-color: #8b5cf6;
+}
+
 .bottom-bar>.bottom-card:nth-child(2) .panel-header {
   border-left-color: var(--accent-amber);
 }
@@ -1752,6 +1756,10 @@ body {
 
 .right-sidebar>*:nth-child(4) {
   animation-delay: 0.45s;
+}
+
+.right-sidebar>*:nth-child(5) {
+  animation-delay: 0.55s;
 }
 
 .bottom-bar>*:nth-child(1) {
