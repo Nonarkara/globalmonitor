@@ -14,7 +14,22 @@ const SentimentChart = () => {
     }, []);
 
     const timeline = data?.timeline || [];
-    if (timeline.length < 3) return null;
+    if (timeline.length < 3) return (
+        <div className="bottom-card" style={{ padding: '10px 12px' }}>
+            <div className="panel-header" style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                paddingBottom: '5px', marginBottom: '6px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderLeft: '2px solid var(--accent-cyan)', paddingLeft: '8px'
+            }}>
+                <Activity size={12} style={{ color: 'var(--accent-cyan)' }} />
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Media Sentiment</span>
+            </div>
+            <div style={{ textAlign: 'center', padding: '16px 0', color: 'rgba(255,255,255,0.25)', fontSize: '0.45rem' }}>
+                Awaiting GDELT data...
+            </div>
+        </div>
+    );
 
     const tones = timeline.map(d => d.tone || 0);
     const minT = Math.min(...tones, -5);

@@ -1,0 +1,28 @@
+{
+  "totalDisplaced": 2850000,
+  "internallyDisplaced": 1900000,
+  "crossBorderRefugees": 950000,
+  "countries": [
+    { "name": "Iran (internal)", "count": 1900000, "color": "#ef4444", "direction": "internal" },
+    { "name": "Iraq", "count": 320000, "color": "#f97316", "direction": "westward" },
+    { "name": "Turkey", "count": 280000, "color": "#f59e0b", "direction": "northward" },
+    { "name": "Afghanistan", "count": 190000, "color": "#eab308", "direction": "eastward" },
+    { "name": "Pakistan", "count": 95000, "color": "#84cc16", "direction": "eastward" },
+    { "name": "Lebanon", "count": 65000, "color": "#38bdf8", "direction": "regional" }
+  ],
+  "timeline": [
+    { "week": "W1", "cumulative": 180000 },
+    { "week": "W2", "cumulative": 520000 },
+    { "week": "W3", "cumulative": 1100000 },
+    { "week": "W4", "cumulative": 1850000 },
+    { "week": "W5", "cumulative": 2850000 }
+  ],
+  "aidResponse": {
+    "unhcrFunding": "$420M pledged",
+    "unhcrFundingGap": "62%",
+    "corridorsOpen": 3,
+    "corridorsBlocked": 5,
+    "campCapacity": "78% full"
+  },
+  "sources": "Estimates based on UNHCR, IOM, and OCHA displacement models. Updated weekly."
+}

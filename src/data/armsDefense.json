@@ -1,0 +1,27 @@
+{
+  "defenseSystems": [
+    { "name": "Iron Dome", "operator": "Israel", "status": "active", "interceptRate": "92%", "color": "#3b82f6" },
+    { "name": "Arrow-3", "operator": "Israel", "status": "active", "interceptRate": "95%", "color": "#3b82f6" },
+    { "name": "David's Sling", "operator": "Israel", "status": "active", "interceptRate": "88%", "color": "#3b82f6" },
+    { "name": "THAAD", "operator": "US (deployed)", "status": "active", "interceptRate": "97%", "color": "#6366f1" },
+    { "name": "Patriot PAC-3", "operator": "US / Saudi / UAE", "status": "active", "interceptRate": "90%", "color": "#6366f1" },
+    { "name": "S-300PMU2", "operator": "Iran", "status": "degraded", "interceptRate": "unknown", "color": "#ef4444" }
+  ],
+  "arsenalUsage": {
+    "iraniMissilesLaunched": 340,
+    "iraniDronesLaunched": 520,
+    "coalitionCruiseMissiles": 180,
+    "coalitionJDAMs": 450,
+    "interceptionsTotal": 680,
+    "interceptionRate": "79%"
+  },
+  "armsFlows": [
+    { "from": "Russia", "to": "Iran", "type": "SAM components, EW", "status": "restricted", "color": "#f59e0b" },
+    { "from": "China", "to": "Iran", "type": "Drone tech, electronics", "status": "covert", "color": "#f59e0b" },
+    { "from": "Iran", "to": "Hezbollah", "type": "Rockets, ATGMs", "status": "active", "color": "#ef4444" },
+    { "from": "Iran", "to": "Houthis", "type": "ASBMs, drones", "status": "active", "color": "#ef4444" },
+    { "from": "US", "to": "Israel", "type": "Interceptors, munitions", "status": "surge", "color": "#3b82f6" },
+    { "from": "US", "to": "Gulf States", "type": "Patriot reloads, ISR", "status": "active", "color": "#3b82f6" }
+  ],
+  "sources": "SIPRI, CSIS Missile Defense Project, open-source intelligence."
+}

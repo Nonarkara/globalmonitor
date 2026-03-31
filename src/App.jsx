@@ -38,6 +38,8 @@ import ActorNetworkModal from './components/ActorNetworkModal';
 import NuclearTrackerPanel from './components/NuclearTrackerPanel';
 import KeyFiguresPanel from './components/KeyFiguresPanel';
 import InternationalResponsePanel from './components/InternationalResponsePanel';
+import RefugeePanel from './components/RefugeePanel';
+import ArmsDefensePanel from './components/ArmsDefensePanel';
 
 function App() {
   const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi', 'firms']);
@@ -327,6 +329,12 @@ function App() {
               </ErrorBoundary>
               <ErrorBoundary inline label="International Response">
                 <InternationalResponsePanel />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Displacement Tracker">
+                <RefugeePanel />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Arms & Defense">
+                <ArmsDefensePanel />
               </ErrorBoundary>
               <ErrorBoundary inline label="Gulf Security">
                 <IntelligencePanel key={`gulfSecurity:${sourceSetKey}`} briefingId="gulfSecurity" activeSourceIds={activeSources} />

@@ -20,7 +20,22 @@ const OilPriceChart = () => {
             .catch(() => {});
     }, []);
 
-    if (!data?.brent?.length) return null;
+    if (!data?.brent?.length) return (
+        <div className="bottom-card" style={{ padding: '10px 12px' }}>
+            <div className="panel-header" style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                paddingBottom: '5px', marginBottom: '6px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderLeft: '2px solid var(--accent-amber)', paddingLeft: '8px'
+            }}>
+                <Droplets size={12} style={{ color: 'var(--accent-amber)' }} />
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Oil Price</span>
+            </div>
+            <div style={{ textAlign: 'center', padding: '16px 0', color: 'rgba(255,255,255,0.25)', fontSize: '0.45rem' }}>
+                Awaiting EIA data...
+            </div>
+        </div>
+    );
 
     const brent = data.brent;
     const prices = brent.map(d => d.price);
