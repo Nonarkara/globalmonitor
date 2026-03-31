@@ -148,22 +148,24 @@ function App() {
           <WorldClock viewMode={viewMode} />
         </ErrorBoundary>
 
-        {/* Row 2: Header bar */}
+        {/* Row 2: Header bar — 3-section layout: logos | center title | controls */}
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Logo strip */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '12px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-              <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '20px', objectFit: 'contain', opacity: 0.85 }} />
-              <img src="/Logo depa-01.png" alt="depa" style={{ height: '20px', objectFit: 'contain', opacity: 0.85 }} />
-              <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '20px', objectFit: 'contain', opacity: 0.85, filter: 'brightness(1.5)' }} />
-              <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '18px', objectFit: 'contain', opacity: 0.85 }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
+          {/* Left: Logo strip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '0 0 auto' }}>
+            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '18px', objectFit: 'contain', opacity: 0.8 }} />
+            <img src="/Logo depa-01.png" alt="depa" style={{ height: '18px', objectFit: 'contain', opacity: 0.8 }} />
+            <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain', opacity: 0.8, filter: 'brightness(1.5)' }} />
+            <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '16px', objectFit: 'contain', opacity: 0.8 }} />
+          </div>
+
+          {/* Center: Title + Escalation + Status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 auto', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, textAlign: 'center' }}>
               <span style={{ fontWeight: 300, letterSpacing: '3px', fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase' }}>
                 Global Political Dashboard
               </span>
-              <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.52rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · GlobeWatch · v7.0
+              <span style={{ fontWeight: 500, letterSpacing: '1.5px', fontSize: '0.48rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
+                {viewMode === 'depa' ? 'Indo-Pacific' : 'Middle East'} · GlobeWatch · v8.0
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
@@ -171,25 +173,25 @@ function App() {
             </ErrorBoundary>
             <div style={{
               display: 'flex', alignItems: 'center', gap: '5px',
-              fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px',
+              fontSize: '0.55rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px',
               fontFamily: 'var(--font-mono)'
             }}>
-              <Eye size={10} style={{ opacity: 0.4 }} />
+              <Eye size={9} style={{ opacity: 0.35 }} />
               {visitorCount.toLocaleString()}
             </div>
             {!backendUp && (
               <span style={{
-                fontSize: '0.5rem', fontWeight: 700, letterSpacing: '1px',
-                color: '#ef4444', padding: '2px 8px',
-                background: 'rgba(239,68,68,0.12)', borderRadius: '4px',
-                border: '1px solid rgba(239,68,68,0.25)'
+                fontSize: '0.45rem', fontWeight: 700, letterSpacing: '1px',
+                color: '#ef4444', padding: '2px 6px',
+                background: 'rgba(239,68,68,0.1)', borderRadius: '4px',
+                border: '1px solid rgba(239,68,68,0.2)'
               }}>
                 OFFLINE
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {/* Actor Network button */}
+          {/* Right: Controls */}
+          <div style={{ display: 'flex', gap: '6px', flex: '0 0 auto' }}>
             {viewMode === 'middleeast' && (
               <button
                 onClick={() => setIsNetworkOpen(true)}
@@ -353,36 +355,38 @@ function App() {
           </div>
         )}
 
-        {/* Row 5: Bottom bar */}
+        {/* Row 5: Bottom bar — 5-column grid, 2 rows */}
         <div className="bottom-bar">
           <ErrorBoundary inline label="Market Radar">
             <MarketRadarPanel />
           </ErrorBoundary>
           {viewMode === 'middleeast' ? (
             <>
+              {/* Row 1: Economics & Markets */}
               <ErrorBoundary inline label="Oil Price Chart">
                 <OilPriceChart />
-              </ErrorBoundary>
-              <ErrorBoundary inline label="Sanctions Tracker">
-                <SanctionsPanel />
               </ErrorBoundary>
               <ErrorBoundary inline label="War Cost">
                 <WarCostTracker />
               </ErrorBoundary>
-              <ErrorBoundary inline label="Nuclear Program">
-                <NuclearTrackerPanel onFlyTo={handleChronicleFlyTo} />
+              <ErrorBoundary inline label="Sanctions Tracker">
+                <SanctionsPanel />
               </ErrorBoundary>
               <ErrorBoundary inline label="Hormuz Crisis">
                 <HormuzTracker />
               </ErrorBoundary>
+              {/* Row 2: Military & Intelligence */}
+              <ErrorBoundary inline label="Nuclear Program">
+                <NuclearTrackerPanel onFlyTo={handleChronicleFlyTo} />
+              </ErrorBoundary>
               <ErrorBoundary inline label="Diplomacy & Sanctions">
                 <IntelligencePanel key={`iranDiplomacy:${sourceSetKey}`} briefingId="iranDiplomacy" activeSourceIds={activeSources} />
               </ErrorBoundary>
-              <ErrorBoundary inline label="Media Sentiment">
-                <SentimentChart />
-              </ErrorBoundary>
               <ErrorBoundary inline label="Proxy Theater">
                 <IntelligencePanel key={`proxyTheater:${sourceSetKey}`} briefingId="proxyTheater" activeSourceIds={activeSources} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Media Sentiment">
+                <SentimentChart />
               </ErrorBoundary>
               <ErrorBoundary inline label="Seismic Activity">
                 <SeismicPanel />

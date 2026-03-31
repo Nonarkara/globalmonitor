@@ -322,7 +322,7 @@ const MapContainer = ({
     showStrategicContext,
     timeMachineDate
 }) => {
-    const [mapStyle, setMapStyle] = useState('voyager');
+    const [mapStyle, setMapStyle] = useState('dark');
     const disasterResource = useLiveResource(useCallback(() => fetchNaturalDisasters(), []), {
         cacheKey: 'map:disasters',
         enabled: activeLayers.includes('disasters'),
