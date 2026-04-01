@@ -16,7 +16,19 @@ const EscalationGauge = () => {
         isUsable: (d) => typeof d?.score === 'number'
     });
 
-    if (!data) return null;
+    if (!data) return (
+        <div style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '2px 8px', borderRadius: '6px',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.06)'
+        }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+            <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px', fontFamily: 'var(--font-mono)' }}>
+                ESCALATION —
+            </span>
+        </div>
+    );
 
     const { score, level, label, history, sourceHealth } = data;
     const color = COLORS[level] || COLORS.amber;

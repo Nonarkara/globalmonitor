@@ -128,7 +128,16 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds }) => {
                         </div>
                     </a>
                 ))}
-                {news.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading streams...</span>}
+                {news.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', marginBottom: '4px' }}>
+                            {isRefreshing ? 'Connecting to live feeds...' : 'No live items are currently available.'}
+                        </div>
+                        <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.15)' }}>
+                            Connecting to live feeds...
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Activity } from 'lucide-react';
+import { useLiveResource } from '../hooks/useLiveResource';
+import DataStatus from './DataStatus';
 
 const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
 
 const SentimentChart = () => {
-    const [data, setData] = useState(null);
+    const fetcher = useCallback(() =>
+        fetch(`${API_BASE}/api/sentiment`).then(r => r.json()), []);
 
-    useEffect(() => {
-        fetch(`${API_BASE}/api/sentiment`)
-            .then(r => r.json())
-            .then(setData)
-            .catch(() => {});
-    }, []);
+    const { data, isLoading, isRefreshing, isStale, error, retryCount, refresh } = useLiveResource(fetcher, {
+        cacheKey: 'gdelt-sentiment',
+        intervalMs: 30 * 60 * 1000,
+        isUsable: (d) => d?.timeline?.length >= 3
+    });
 
     const timeline = data?.timeline || [];
     if (timeline.length < 3) return (
@@ -25,9 +27,8 @@ const SentimentChart = () => {
                 <Activity size={12} style={{ color: 'var(--accent-cyan)' }} />
                 <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Media Sentiment</span>
             </div>
-            <div style={{ textAlign: 'center', padding: '16px 0', color: 'rgba(255,255,255,0.25)', fontSize: '0.45rem' }}>
-                Awaiting GDELT data...
-            </div>
+            <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
+                isEmpty={!isLoading && timeline.length < 3} emptyMessage="Awaiting GDELT data" />
         </div>
     );
 
