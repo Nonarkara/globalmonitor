@@ -8,6 +8,13 @@ import { trackVisitor } from './services/visitorTracker.js'
 
 trackVisitor()
 
+// Register service worker for offline/PWA support
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>

@@ -1,0 +1,17 @@
+{
+  "name": "Global Political Dashboard",
+  "short_name": "GPD",
+  "description": "Real-time geopolitical intelligence monitoring and conflict analysis platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141a24",
+  "theme_color": "#050E20",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

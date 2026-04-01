@@ -13,7 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { INTELLIGENCE_SOURCES, APAC_SOURCES } from './services/liveNews';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
-import { Settings, RefreshCw, Eye, Network } from 'lucide-react';
+import { Settings, RefreshCw, Eye, Network, Database, FileText, Printer } from 'lucide-react';
 import { getVisitorCount, BASE_COUNT } from './services/visitorTracker';
 import EscalationGauge from './components/EscalationGauge';
 import LiveTVPanel from './components/LiveTVPanel';
@@ -40,6 +40,12 @@ import KeyFiguresPanel from './components/KeyFiguresPanel';
 import InternationalResponsePanel from './components/InternationalResponsePanel';
 import RefugeePanel from './components/RefugeePanel';
 import ArmsDefensePanel from './components/ArmsDefensePanel';
+// Government best-practice components
+import ClassificationBanner from './components/ClassificationBanner';
+import SourceHealthModal from './components/SourceHealthModal';
+import ActivityLogModal from './components/ActivityLogModal';
+import { logActivity, LOG_TYPES } from './services/activityLog';
+import './styles/print.css';
 
 function App() {
   const [activeLayers, setActiveLayers] = useState(['disasters', 'weather', 'economy', 'conflicts', 'aqi', 'firms']);
@@ -49,6 +55,8 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
+  const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
+  const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [activeSources, setActiveSources] = useState(INTELLIGENCE_SOURCES.map((source) => source.id));
   const [copernicusMode, setCopernicusMode] = useState('true-color');
   const [showCopernicusOverlay, setShowCopernicusOverlay] = useState(true);
@@ -245,23 +253,24 @@ function App() {
             >
               <RefreshCw size={11} /> {viewMode === 'middleeast' ? 'Indo-Pacific' : 'Middle East'}
             </button>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.06)',
-                color: 'rgba(255,255,255,0.35)',
-                padding: '5px 12px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                fontSize: '0.65rem',
-                fontFamily: 'inherit',
-                transition: 'all 0.3s'
-              }}
-            >
+            <button onClick={() => setIsSourceHealthOpen(true)} title="Data Sources & Health"
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
+                padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
+              <Database size={11} />
+            </button>
+            <button onClick={() => setIsActivityLogOpen(true)} title="Session Activity Log"
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
+                padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
+              <FileText size={11} />
+            </button>
+            <button onClick={() => { logActivity(LOG_TYPES.USER_ACTION, 'Print briefing initiated'); window.print(); }} title="Print Briefing"
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
+                padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
+              <Printer size={11} />
+            </button>
+            <button onClick={() => setIsSettingsOpen(true)} title="Settings"
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
+                padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
               <Settings size={11} />
             </button>
           </div>
@@ -441,7 +450,22 @@ function App() {
           isOpen={isNetworkOpen}
           onClose={() => setIsNetworkOpen(false)}
         />
+
+        {/* Modal: Source Health */}
+        <SourceHealthModal
+          isOpen={isSourceHealthOpen}
+          onClose={() => setIsSourceHealthOpen(false)}
+        />
+
+        {/* Modal: Activity Log */}
+        <ActivityLogModal
+          isOpen={isActivityLogOpen}
+          onClose={() => setIsActivityLogOpen(false)}
+        />
       </div>
+
+      {/* Classification Banner — always visible, top and bottom of viewport */}
+      <ClassificationBanner level="FOUO" />
     </>
   );
 }

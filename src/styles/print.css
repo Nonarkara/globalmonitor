@@ -1,0 +1,194 @@
+/**
+ * Print / Briefing Mode Stylesheet
+ * Activated via window.print() or Ctrl+P
+ * Renders a clean A4 intelligence briefing — no animations, iframes, or interactive elements.
+ */
+
+@media print {
+    /* Reset everything */
+    * {
+        animation: none !important;
+        transition: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    body {
+        background: #fff !important;
+        color: #111 !important;
+        font-size: 9pt !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Page setup */
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    /* Hide non-essential elements */
+    .map-wrapper,
+    .map-vignette,
+    .map-grid-overlay,
+    .classification-banner-bottom,
+    iframe,
+    video,
+    button,
+    .news-ticker-wrapper,
+    .time-machine-wrapper,
+    .region-selector,
+    .settings-modal,
+    .actor-network-modal {
+        display: none !important;
+    }
+
+    /* Remove the map background */
+    .app-container {
+        position: relative !important;
+        display: block !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        pointer-events: auto !important;
+        background: #fff !important;
+    }
+
+    /* Classification banner — keep top only */
+    .classification-banner-top {
+        position: relative !important;
+        background: #000 !important;
+        color: #fff !important;
+        text-align: center;
+        padding: 4px !important;
+        font-size: 8pt !important;
+        margin-bottom: 8px;
+    }
+
+    /* Header bar */
+    .header-bar {
+        background: #f5f5f5 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+        backdrop-filter: none !important;
+    }
+
+    .header-bar span {
+        color: #111 !important;
+    }
+
+    /* World clock */
+    .top-bar-clock {
+        background: #f5f5f5 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        padding: 4px 12px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .top-bar-clock * {
+        color: #333 !important;
+    }
+
+    /* Grid panels */
+    .grid-panel,
+    .bottom-card {
+        background: #fff !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        backdrop-filter: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 6px !important;
+    }
+
+    .panel-header {
+        border-bottom: 1px solid #eee !important;
+    }
+
+    .panel-header span {
+        color: #333 !important;
+    }
+
+    /* Sidebars become stacked sections */
+    .left-sidebar,
+    .right-sidebar {
+        position: relative !important;
+        width: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+        display: block !important;
+    }
+
+    .left-sidebar {
+        display: none !important; /* Hide layer controls in print */
+    }
+
+    /* Bottom bar becomes a grid */
+    .bottom-bar {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /* Chronicle */
+    .chronicle-row {
+        margin-bottom: 8px !important;
+    }
+
+    .chronicle-row svg {
+        max-height: 60px !important;
+    }
+
+    /* Fix text colors for print */
+    [style*="color: rgba(255"] {
+        color: #333 !important;
+    }
+
+    [style*="color: #ef4444"],
+    [style*="color: #f59e0b"],
+    [style*="color: #3b82f6"],
+    [style*="color: #22c55e"] {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Footer */
+    .app-container::after {
+        position: relative !important;
+        display: block !important;
+        text-align: center !important;
+        color: #666 !important;
+        font-size: 7pt !important;
+        padding: 8px 0 !important;
+        border-top: 1px solid #ddd !important;
+        margin-top: 8px !important;
+    }
+
+    /* Briefing timestamp */
+    .app-container::before {
+        content: "INTELLIGENCE BRIEFING — Generated: " attr(data-print-date) !important;
+        display: block !important;
+        text-align: right !important;
+        font-size: 7pt !important;
+        color: #999 !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Live TV and Flight Radar — hide iframes */
+    .live-tv-panel,
+    .flight-radar-panel {
+        display: none !important;
+    }
+
+    /* Logos in sidebar — print clearly */
+    .sidebar-header img {
+        filter: none !important;
+        opacity: 1 !important;
+    }
+}
