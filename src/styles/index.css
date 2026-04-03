@@ -1,5 +1,5 @@
 :root {
-  /* Jony Ive: near-black base, frosted glass surfaces */
+  /* ── Surface System ── */
   --bg-dark: #141a24;
   --bg-panel: rgba(22, 28, 40, 0.78);
   --surface-color: rgba(255, 255, 255, 0.09);
@@ -7,25 +7,49 @@
   --surface-hover: rgba(255, 255, 255, 0.13);
   --shadow-color: rgba(0, 0, 0, 0.22);
   --bg-blur: blur(24px);
-  /* Typography-driven hierarchy */
+
+  /* ── Typography Scale (6 stops only) ── */
+  --type-xs: 0.625rem;   /* 10px — labels, metadata, timestamps */
+  --type-sm: 0.75rem;    /* 12px — body small, panel content */
+  --type-base: 0.875rem; /* 14px — body text */
+  --type-lg: 1rem;       /* 16px — panel headers */
+  --type-xl: 1.25rem;    /* 20px — section titles */
+  --type-2xl: 1.75rem;   /* 28px — hero numbers (clock, day count) */
   --text-main: rgba(255, 255, 255, 0.92);
-  --text-muted: rgba(255, 255, 255, 0.62);
-  /* Meaning-only color — no decorative color */
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --text-dim: rgba(255, 255, 255, 0.28);
+
+  /* ── Spacing Scale (4px base grid) ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;  --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;  --sp-10: 40px;
+
+  /* ── Semantic Color Palette ── */
   --accent-blue: #3b82f6;
-  --accent-yellow: #3b82f6;
+  --accent-yellow: #eab308;
   --accent-green: #22c55e;
   --accent-red: #ef4444;
   --accent-amber: #f59e0b;
   --accent-cyan: #38bdf8;
+  --accent-purple: #a855f7;
+  --accent-pink: #ec4899;
   --border-color: rgba(255, 255, 255, 0.12);
-  /* Generous radii for glass feel */
+
+  /* ── Radii ── */
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;
   --radius-full: 9999px;
-  /* Spring-like transition */
+
+  /* ── Motion ── */
   --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Z-Index Layers ── */
+  --z-map: 0;
+  --z-panels: 10;
+  --z-header: 20;
+  --z-modal: 100;
+  --z-banner: 1000;
 }
 
 * {
@@ -89,67 +113,7 @@ body {
    MAP HUD + STORY STRIP (floating over map)
    ═══════════════════════════════════════════ */
 
-.map-hud {
-  display: none;
-}
-
-.map-hud-label {
-  display: inline-block;
-  margin-bottom: 6px;
-  padding: 3px 8px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 196, 0, 0.1);
-  border: 1px solid rgba(255, 196, 0, 0.18);
-  color: var(--accent-blue);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-}
-
-.map-hud-title {
-  font-size: 0.92rem;
-  line-height: 1.35;
-  margin-bottom: 5px;
-  max-width: 28ch;
-  font-weight: 500;
-}
-
-.map-hud-copy {
-  font-size: 0.72rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.map-hud-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.map-hud-metric {
-  padding: 7px 9px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.map-hud-metric strong {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 0.9rem;
-  color: var(--accent-blue);
-  font-variant-numeric: tabular-nums;
-}
-
-.map-hud-metric span {
-  display: block;
-  font-size: 0.58rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
+/* map-hud removed — dead code from v3 */
 
 .map-story-strip {
   display: none;
@@ -2623,3 +2587,99 @@ body {
     }
   }
 }
+
+/* ═══════════════════════════════════════════
+   ACCESSIBILITY — Red Dot requires this
+   ═══════════════════════════════════════════ */
+
+/* Focus visible — keyboard navigation indicator */
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove focus outline for mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  z-index: 99999;
+  padding: 8px 16px;
+  background: var(--accent-blue);
+  color: #fff;
+  font: 600 var(--type-sm)/1 var(--font-mono);
+  letter-spacing: 1px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 20px;
+}
+
+/* ═══════════════════════════════════════════
+   SKELETON LOADING STATES
+   ═══════════════════════════════════════════ */
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.06; }
+  50% { opacity: 0.12; }
+}
+
+.skeleton {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 10px;
+  margin-bottom: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-line:nth-child(2) { width: 85%; animation-delay: 0.1s; }
+.skeleton-line:nth-child(3) { width: 70%; animation-delay: 0.2s; }
+.skeleton-line:nth-child(4) { width: 90%; animation-delay: 0.3s; }
+
+.skeleton-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-kpi {
+  display: flex;
+  gap: var(--sp-1);
+}
+.skeleton-kpi > div {
+  flex: 1;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-kpi > div:nth-child(2) { animation-delay: 0.15s; }
+.skeleton-kpi > div:nth-child(3) { animation-delay: 0.3s; }

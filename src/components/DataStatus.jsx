@@ -1,86 +1,53 @@
 import React from 'react';
+import SkeletonLoader from './SkeletonLoader';
 
-const STATUS_STYLES = {
+const S = {
     container: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '12px 8px',
-        gap: '6px',
-        minHeight: 60,
-        textAlign: 'center'
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', padding: 'var(--sp-3) var(--sp-2)',
+        gap: 'var(--sp-2)', minHeight: 60, textAlign: 'center'
     },
-    icon: { fontSize: '18px', opacity: 0.6 },
-    label: { fontSize: '10px', color: '#aaa', letterSpacing: '0.5px' },
+    label: {
+        fontSize: 'var(--type-xs)', color: 'var(--text-dim)',
+        letterSpacing: '0.5px', fontFamily: 'var(--font-mono)'
+    },
     retryBtn: {
-        marginTop: '4px',
-        padding: '3px 10px',
-        fontSize: '9px',
-        background: 'rgba(255,255,255,0.08)',
-        border: '1px solid rgba(255,255,255,0.15)',
-        borderRadius: '4px',
-        color: '#ccc',
-        cursor: 'pointer',
-        letterSpacing: '0.5px',
-        textTransform: 'uppercase'
+        marginTop: 'var(--sp-1)', padding: '3px 10px',
+        fontSize: 'var(--type-xs)', background: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px',
+        color: 'var(--text-muted)', cursor: 'pointer',
+        letterSpacing: '0.5px', textTransform: 'uppercase',
+        fontFamily: 'var(--font-mono)', transition: 'var(--transition)'
     },
     staleBadge: {
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '4px',
-        fontSize: '9px',
-        color: '#f0ad4e',
-        padding: '2px 6px',
-        borderRadius: '3px',
-        background: 'rgba(240,173,78,0.12)',
-        letterSpacing: '0.3px'
-    },
-    spinner: {
-        width: 16,
-        height: 16,
-        border: '2px solid rgba(255,255,255,0.1)',
-        borderTopColor: 'rgba(255,255,255,0.5)',
-        borderRadius: '50%',
-        animation: 'dngws-spin 0.8s linear infinite'
+        display: 'inline-flex', alignItems: 'center', gap: '4px',
+        fontSize: 'var(--type-xs)', color: 'var(--accent-amber)',
+        padding: '2px 6px', borderRadius: '3px',
+        background: 'rgba(245,158,11,0.1)', letterSpacing: '0.3px',
+        fontFamily: 'var(--font-mono)'
     }
 };
 
-const spinnerKeyframes = `@keyframes dngws-spin { to { transform: rotate(360deg); } }`;
-
 const DataStatus = ({
-    isLoading,
-    isRefreshing,
-    isStale,
-    error,
-    retryCount,
-    data,
-    isEmpty,
-    emptyMessage = 'No data available',
-    refresh,
-    children
+    isLoading, isRefreshing, isStale, error, retryCount,
+    data, isEmpty, emptyMessage = 'No data available',
+    refresh, children
 }) => {
-    // First load — no data yet
+    // First load — skeleton placeholder
     if (!data && isLoading) {
-        return (
-            <div style={STATUS_STYLES.container}>
-                <style>{spinnerKeyframes}</style>
-                <div style={STATUS_STYLES.spinner} />
-                <span style={STATUS_STYLES.label}>LOADING</span>
-            </div>
-        );
+        return <SkeletonLoader lines={4} showKpi={true} />;
     }
 
-    // Error with no data at all
+    // Error with no data
     if (!data && error) {
         return (
-            <div style={STATUS_STYLES.container}>
-                <span style={STATUS_STYLES.icon}>⚠</span>
-                <span style={STATUS_STYLES.label}>
+            <div style={S.container} role="alert">
+                <span style={{ fontSize: '16px', opacity: 0.5 }} aria-hidden="true">⚠</span>
+                <span style={S.label}>
                     UNAVAILABLE{retryCount > 0 ? ` (${retryCount} ${retryCount === 1 ? 'retry' : 'retries'})` : ''}
                 </span>
                 {refresh && (
-                    <button style={STATUS_STYLES.retryBtn} onClick={refresh}>
+                    <button style={S.retryBtn} onClick={refresh} aria-label="Retry loading data">
                         TAP TO RETRY
                     </button>
                 )}
@@ -88,26 +55,26 @@ const DataStatus = ({
         );
     }
 
-    // Data exists but is empty
+    // Empty data
     if (isEmpty) {
         return (
-            <div style={STATUS_STYLES.container}>
-                <span style={STATUS_STYLES.label}>{emptyMessage}</span>
+            <div style={S.container}>
+                <span style={S.label}>{emptyMessage}</span>
             </div>
         );
     }
 
-    // Has data — render children with optional stale/refreshing indicators
+    // Has data — render children
     return (
         <>
             {(isStale || isRefreshing) && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '2px 8px 0' }}>
                     {isStale && !isRefreshing && (
-                        <span style={STATUS_STYLES.staleBadge}>⏳ STALE</span>
+                        <span style={S.staleBadge} role="status">STALE</span>
                     )}
                     {isRefreshing && (
-                        <span style={{ ...STATUS_STYLES.staleBadge, color: '#5bc0de', background: 'rgba(91,192,222,0.12)' }}>
-                            ↻ REFRESHING
+                        <span style={{ ...S.staleBadge, color: 'var(--accent-cyan)', background: 'rgba(56,189,248,0.1)' }} role="status">
+                            REFRESHING
                         </span>
                     )}
                 </div>

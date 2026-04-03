@@ -136,7 +136,7 @@ function App() {
         </ErrorBoundary>
       )}
 
-      <div className="app-container">
+      <div className="app-container" id="main-content" role="main">
         {/* Full-screen map underneath */}
         <ErrorBoundary label="Map">
           <MapContainer
@@ -205,6 +205,7 @@ function App() {
             {viewMode === 'middleeast' && (
               <button
                 onClick={() => setIsNetworkOpen(true)}
+                aria-label="Open actor and faction network analysis"
                 style={{
                   background: 'rgba(139,92,246,0.08)',
                   border: '1px solid rgba(139,92,246,0.15)',
@@ -221,7 +222,7 @@ function App() {
                   letterSpacing: '0.5px'
                 }}
               >
-                <Network size={11} /> Actors
+                <Network size={11} aria-hidden="true" /> Actors
               </button>
             )}
             <button
@@ -253,25 +254,25 @@ function App() {
             >
               <RefreshCw size={11} /> {viewMode === 'middleeast' ? 'Indo-Pacific' : 'Middle East'}
             </button>
-            <button onClick={() => setIsSourceHealthOpen(true)} title="Data Sources & Health"
+            <button onClick={() => setIsSourceHealthOpen(true)} title="Data Sources & Health" aria-label="View data source health and provenance"
               style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
                 padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
-              <Database size={11} />
+              <Database size={11} aria-hidden="true" />
             </button>
-            <button onClick={() => setIsActivityLogOpen(true)} title="Session Activity Log"
+            <button onClick={() => setIsActivityLogOpen(true)} title="Session Activity Log" aria-label="View session activity log"
               style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
                 padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
-              <FileText size={11} />
+              <FileText size={11} aria-hidden="true" />
             </button>
-            <button onClick={() => { logActivity(LOG_TYPES.USER_ACTION, 'Print briefing initiated'); window.print(); }} title="Print Briefing"
+            <button onClick={() => { logActivity(LOG_TYPES.USER_ACTION, 'Print briefing initiated'); window.print(); }} title="Print Briefing" aria-label="Print intelligence briefing"
               style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
                 padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
-              <Printer size={11} />
+              <Printer size={11} aria-hidden="true" />
             </button>
-            <button onClick={() => setIsSettingsOpen(true)} title="Settings"
+            <button onClick={() => setIsSettingsOpen(true)} title="Settings" aria-label="Open intelligence source settings"
               style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
                 padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
-              <Settings size={11} />
+              <Settings size={11} aria-hidden="true" />
             </button>
           </div>
         </div>

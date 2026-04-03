@@ -1,17 +1,19 @@
 {
   "name": "Global Political Dashboard",
   "short_name": "GPD",
-  "description": "Real-time geopolitical intelligence monitoring and conflict analysis platform",
+  "description": "Real-time geopolitical intelligence monitoring — ACLED, FIRMS, markets, nuclear tracking",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#141a24",
-  "theme_color": "#050E20",
+  "theme_color": "#141a24",
   "orientation": "landscape",
+  "categories": ["news", "politics", "productivity"],
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
