@@ -276,9 +276,9 @@ function App() {
           </div>
         </div>
 
-        {/* Multi-Front Status Board */}
+        {/* Row 3: Multi-Front Status Board */}
         {viewMode === 'middleeast' && (
-          <div style={{ gridColumn: '2 / -1', pointerEvents: 'auto' }}>
+          <div style={{ gridColumn: '2 / -1', gridRow: 3, pointerEvents: 'auto' }}>
             <ErrorBoundary inline label="Multi-Front Board">
               <MultiFrontBoard />
             </ErrorBoundary>
