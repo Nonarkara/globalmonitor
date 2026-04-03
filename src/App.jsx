@@ -162,10 +162,10 @@ function App() {
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Left: Logo strip */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
-            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '15px', objectFit: 'contain', opacity: 0.75 }} />
-            <img src="/Logo depa-01.png" alt="depa" style={{ height: '15px', objectFit: 'contain', opacity: 0.75 }} />
-            <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '15px', objectFit: 'contain', opacity: 0.75, filter: 'brightness(1.5)' }} />
-            <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '14px', objectFit: 'contain', opacity: 0.75 }} />
+            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '14px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
+            <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
+            <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '14px', objectFit: 'contain', opacity: 0.55, filter: 'brightness(1.5)' }} />
+            <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '13px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
           </div>
 
           {/* Center: Title + Escalation + Status */}

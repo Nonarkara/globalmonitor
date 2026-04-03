@@ -4,8 +4,8 @@ import SkeletonLoader from './SkeletonLoader';
 const S = {
     container: {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', padding: 'var(--sp-3) var(--sp-2)',
-        gap: 'var(--sp-2)', minHeight: 60, textAlign: 'center'
+        justifyContent: 'center', padding: 'var(--sp-2) var(--sp-2)',
+        gap: 'var(--sp-1)', minHeight: 40, textAlign: 'center'
     },
     label: {
         fontSize: 'var(--type-xs)', color: 'var(--text-dim)',
