@@ -26,6 +26,7 @@ import { searchStacScenes } from './lib/stacCatalog.mjs';
 import { searchPlanetaryComputer } from './lib/planetaryComputer.mjs';
 import { listPresets as listEvalscriptPresets } from './lib/evalscripts.mjs';
 import { probeCog } from './lib/cogReader.mjs';
+import { recordToSheets, recordEscalation, getRecordingHealth } from './lib/sheetsRecorder.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
@@ -84,6 +85,8 @@ const useCached = async (key, ttlMs, loader, isUsable) => {
             expiresAt: now + ttlMs
         });
         recordHealth(key, true, null);
+        // Fire-and-forget: record to Google Sheets
+        recordToSheets(key, payload, updatedAt).catch(() => {});
 
         return {
             payload,
@@ -143,6 +146,11 @@ const server = http.createServer(async (request, response) => {
     const sourceIds = parseSourceIds(url.searchParams);
 
     try {
+        if (url.pathname === '/api/sheets-health') {
+            json(response, 200, getRecordingHealth(), { status: 'live', updatedAt: new Date().toISOString(), cache: 'miss' });
+            return;
+        }
+
         if (url.pathname === '/api/health') {
             const entries = Array.from(cache.entries()).map(([key, value]) => ({
                 key,
@@ -196,6 +204,7 @@ const server = http.createServer(async (request, response) => {
 
         if (url.pathname === '/api/escalation') {
             const payload = computeEscalation(cache);
+            recordEscalation(payload).catch(() => {});
             json(response, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
             return;
         }

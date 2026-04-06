@@ -17,6 +17,7 @@ import { fetchAcledEvents } from '../server/lib/acled.mjs';
 import { fetchOilPriceTimeline } from '../server/lib/eia.mjs';
 import { fetchNgaWarnings } from '../server/lib/ngaWarnings.mjs';
 import { fetchUsgsQuakes } from '../server/lib/usgsQuakes.mjs';
+import { recordToSheets, recordEscalation, getRecordingHealth } from '../server/lib/sheetsRecorder.mjs';
 
 // In-memory cache (lives per serverless instance, resets on cold start)
 const cache = new Map();
@@ -32,6 +33,8 @@ const useCached = async (key, ttlMs, loader, isUsable) => {
         if (!isUsable(payload)) throw new Error('No usable payload');
         const updatedAt = new Date().toISOString();
         cache.set(key, { payload, updatedAt, expiresAt: now + ttlMs });
+        // Fire-and-forget: record to Google Sheets for persistent analysis
+        recordToSheets(key, payload, updatedAt).catch(() => {});
         return { payload, meta: { status: 'live', updatedAt, cache: current ? 'refresh' : 'miss' } };
     } catch (error) {
         if (current) {
@@ -92,8 +95,13 @@ export default async function handler(req, res) {
             return json(res, 200, result.payload, result.meta);
         }
 
+        if (pathname === '/api/sheets-health' || pathname === '/api/sheets-health/') {
+            return json(res, 200, getRecordingHealth(), { status: 'live', updatedAt: new Date().toISOString(), cache: 'miss' });
+        }
+
         if (pathname === '/api/escalation' || pathname === '/api/escalation/') {
             const payload = computeEscalation(cache);
+            recordEscalation(payload).catch(() => {});
             return json(res, 200, payload, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
         }
 
