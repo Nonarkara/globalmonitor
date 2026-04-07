@@ -13,7 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { INTELLIGENCE_SOURCES, APAC_SOURCES } from './services/liveNews';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
-import { Settings, RefreshCw, Eye, Network, Database, FileText, Printer } from 'lucide-react';
+import { Settings, RefreshCw, Eye, Network, Database, FileText, Printer, Info } from 'lucide-react';
 import { getVisitorCount, BASE_COUNT } from './services/visitorTracker';
 import EscalationGauge from './components/EscalationGauge';
 import LiveTVPanel from './components/LiveTVPanel';
@@ -57,6 +57,7 @@ function App() {
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [activeSources, setActiveSources] = useState(INTELLIGENCE_SOURCES.map((source) => source.id));
   const [copernicusMode, setCopernicusMode] = useState('true-color');
   const [showCopernicusOverlay, setShowCopernicusOverlay] = useState(true);
@@ -160,12 +161,22 @@ function App() {
 
         {/* Row 2: Header bar — 3-section layout: logos | center title | controls */}
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Left: Logo strip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
-            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '14px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
-            <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
-            <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '14px', objectFit: 'contain', opacity: 0.55, filter: 'brightness(1.5)' }} />
-            <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '13px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
+          {/* Left: Sponsor logos with names */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '0 0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '16px', objectFit: 'contain', opacity: 0.7, filter: 'brightness(1.8) contrast(0.9)' }} />
+              <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>PMUA</span>
+            </div>
+            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <img src="/Logo depa-01.png" alt="depa" style={{ height: '16px', objectFit: 'contain', opacity: 0.7, filter: 'brightness(1.8) contrast(0.9)' }} />
+              <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>depa</span>
+            </div>
+            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '14px', objectFit: 'contain', opacity: 0.7, filter: 'brightness(1.8) contrast(0.9)' }} />
+              <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>Axiom</span>
+            </div>
           </div>
 
           {/* Center: Title + Escalation + Status */}
@@ -268,6 +279,11 @@ function App() {
               style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
                 padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
               <Printer size={11} aria-hidden="true" />
+            </button>
+            <button onClick={() => setIsAboutOpen(true)} title="About this project" aria-label="About this project"
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
+                padding: '5px 8px', borderRadius: '8px', display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s' }}>
+              <Info size={11} aria-hidden="true" />
             </button>
             <button onClick={() => setIsSettingsOpen(true)} title="Settings" aria-label="Open intelligence source settings"
               style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)',
@@ -463,6 +479,61 @@ function App() {
           isOpen={isActivityLogOpen}
           onClose={() => setIsActivityLogOpen(false)}
         />
+
+        {/* Modal: About */}
+        {isAboutOpen && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 10000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)'
+          }} onClick={() => setIsAboutOpen(false)}>
+            <div style={{
+              width: '520px', maxWidth: '90vw', maxHeight: '80vh',
+              background: 'rgba(14,18,28,0.95)', backdropFilter: 'blur(24px)',
+              borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)',
+              overflow: 'auto', padding: '28px 32px'
+            }} onClick={e => e.stopPropagation()}>
+              {/* Logos */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '20px', padding: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px' }}>
+                <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '28px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.85 }} />
+                <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.08)' }} />
+                <img src="/Logo depa-01.png" alt="depa" style={{ height: '24px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.85 }} />
+                <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.08)' }} />
+                <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '22px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.85 }} />
+              </div>
+
+              <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '6px', letterSpacing: '0.5px' }}>
+                Global Political Dashboard
+              </h2>
+              <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '1px', marginBottom: '16px' }}>
+                GLOBEWATCH v8.0 · REAL-TIME GEOPOLITICAL INTELLIGENCE
+              </p>
+
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, marginBottom: '16px' }}>
+                <p style={{ marginBottom: '10px' }}>
+                  This project is supported by the <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Program Management Unit for Area Based Development (PMU A)</strong> and the <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Digital Economy Promotion Agency (depa)</strong>.
+                </p>
+                <p style={{ marginBottom: '10px' }}>
+                  Created by <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Non Arkaraprasertkul</strong> — architect, urban designer, and smart city specialist; Harvard-affiliated doctoral researcher in anthropology and cities focused on human-centered smart cities and real-world implementation — and <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Associate Professor Poon Thiengburanathum</strong> as a public ranking model designed to explore alternative ways of understanding urban performance.
+                </p>
+                <p>
+                  Their work sits at the intersection of urban design, data, and human behavior, bringing a distinctly people-centered perspective to how cities are measured and experienced.
+                </p>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>
+                  12 live data sources · 43 components · Open-source intelligence
+                </span>
+                <button onClick={() => setIsAboutOpen(false)} style={{
+                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '6px', padding: '6px 16px', color: 'rgba(255,255,255,0.6)',
+                  cursor: 'pointer', fontSize: '0.65rem', fontFamily: 'inherit'
+                }}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Classification Banner — always visible, top and bottom of viewport */}
