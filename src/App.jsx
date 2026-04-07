@@ -161,22 +161,16 @@ function App() {
 
         {/* Row 2: Header bar — 3-section layout: logos | center title | controls */}
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Left: Sponsor logos with names */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '0 0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '16px', objectFit: 'contain', opacity: 0.7, filter: 'brightness(1.8) contrast(0.9)' }} />
-              <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>PMUA</span>
-            </div>
-            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.06)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <img src="/Logo depa-01.png" alt="depa" style={{ height: '16px', objectFit: 'contain', opacity: 0.7, filter: 'brightness(1.8) contrast(0.9)' }} />
-              <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>depa</span>
-            </div>
-            <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.06)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '14px', objectFit: 'contain', opacity: 0.7, filter: 'brightness(1.8) contrast(0.9)' }} />
-              <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>Axiom</span>
-            </div>
+          {/* Left: Sponsor logos — PMUA primary funder, then partners */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
+            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '18px', objectFit: 'contain', opacity: 0.75, filter: 'brightness(1.8) contrast(0.9)' }} />
+            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.06)' }} />
+            <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain', opacity: 0.65, filter: 'brightness(1.8) contrast(0.9)' }} />
+            <img src="/mdes.png" alt="Ministry of Digital Economy" style={{ height: '14px', objectFit: 'contain', opacity: 0.55, filter: 'brightness(1.8) contrast(0.9)' }} />
+            <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '13px', objectFit: 'contain', opacity: 0.55, filter: 'brightness(1.5)' }} />
+            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.06)' }} />
+            <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '13px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
+            <img src="/retl-logo.svg" alt="ReTL" style={{ height: '13px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) invert(1)' }} />
           </div>
 
           {/* Center: Title + Escalation + Status */}
@@ -488,42 +482,67 @@ function App() {
             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)'
           }} onClick={() => setIsAboutOpen(false)}>
             <div style={{
-              width: '520px', maxWidth: '90vw', maxHeight: '80vh',
+              width: '560px', maxWidth: '92vw', maxHeight: '85vh',
               background: 'rgba(14,18,28,0.95)', backdropFilter: 'blur(24px)',
               borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)',
               overflow: 'auto', padding: '28px 32px'
             }} onClick={e => e.stopPropagation()}>
-              {/* Logos */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '20px', padding: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px' }}>
-                <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '28px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.85 }} />
-                <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.08)' }} />
-                <img src="/Logo depa-01.png" alt="depa" style={{ height: '24px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.85 }} />
-                <div style={{ width: '1px', height: '22px', background: 'rgba(255,255,255,0.08)' }} />
-                <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '22px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.85 }} />
+              {/* Primary funder */}
+              <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+                <div style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)', letterSpacing: '2px', marginBottom: '8px' }}>FUNDED BY</div>
+                <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '36px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.9 }} />
+                <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.45)', marginTop: '4px' }}>Program Management Unit for Area Based Development</div>
               </div>
 
-              <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '6px', letterSpacing: '0.5px' }}>
+              {/* Supporting organizations */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                <img src="/Logo depa-01.png" alt="depa" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.75 }} />
+                <img src="/mdes.png" alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.65 }} />
+                <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain', filter: 'brightness(1.5)', opacity: 0.6 }} />
+              </div>
+
+              {/* Executed by */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '18px' }}>
+                <div style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)', letterSpacing: '2px' }}>EXECUTED BY</div>
+                <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.8 }} />
+                <img src="/retl-logo.svg" alt="ReTL" style={{ height: '18px', objectFit: 'contain', filter: 'brightness(1.8) invert(1)', opacity: 0.8 }} />
+              </div>
+
+              <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px', letterSpacing: '0.5px' }}>
                 Global Political Dashboard
               </h2>
-              <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '1px', marginBottom: '16px' }}>
-                GLOBEWATCH v8.0 · REAL-TIME GEOPOLITICAL INTELLIGENCE
+              <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', letterSpacing: '1px', marginBottom: '14px' }}>
+                GLOBEWATCH v8.0
               </p>
 
-              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, marginBottom: '16px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, marginBottom: '14px' }}>
                 <p style={{ marginBottom: '10px' }}>
-                  This project is supported by the <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Program Management Unit for Area Based Development (PMU A)</strong> and the <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Digital Economy Promotion Agency (depa)</strong>.
+                  This project is supported by the <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Program Management Unit for Area Based Development (PMU A)</strong> and the <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Digital Economy Promotion Agency (depa)</strong>, with project execution by <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Axiom</strong> and <strong style={{ color: 'rgba(255,255,255,0.85)' }}>ReTL (The Reason to Live Company)</strong>.
                 </p>
                 <p style={{ marginBottom: '10px' }}>
-                  Created by <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Non Arkaraprasertkul</strong> — architect, urban designer, and smart city specialist; Harvard-affiliated doctoral researcher in anthropology and cities focused on human-centered smart cities and real-world implementation — and <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Associate Professor Poon Thiengburanathum</strong> as a public ranking model designed to explore alternative ways of understanding urban performance.
+                  Created by <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Dr. Non Arkaraprasertkul</strong> — architect, urban designer, and smart city specialist; Harvard-affiliated doctoral researcher in anthropology and cities focused on human-centered smart cities and real-world implementation — and <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Associate Professor Dr. Poon Thiengburanathum</strong>, as a public ranking model designed to explore alternative ways of understanding urban performance.
                 </p>
                 <p>
                   Their work sits at the intersection of urban design, data, and human behavior, bringing a distinctly people-centered perspective to how cities are measured and experienced.
                 </p>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>
-                  12 live data sources · 43 components · Open-source intelligence
+              {/* Legal fine print */}
+              <div style={{
+                padding: '10px 12px', marginBottom: '14px',
+                background: 'rgba(255,255,255,0.02)', borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.04)',
+                fontSize: '0.55rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.6
+              }}>
+                <strong style={{ color: 'rgba(255,255,255,0.4)' }}>Legal Notice</strong><br />
+                This dashboard and all associated intellectual property — including but not limited to its design, source code, data architecture, analytical methodologies, and visual identity — are the proprietary work of Dr. Non Arkaraprasertkul and Associate Professor Dr. Poon Thiengburanathum. All rights reserved.<br /><br />
+                This work is provided for informational and research purposes only. The data presented is aggregated from publicly available open-source intelligence (OSINT) feeds and should not be construed as official government intelligence or policy guidance. The creators assume no liability for decisions made based on this information.<br /><br />
+                Unauthorized reproduction, redistribution, reverse engineering, or use of this work in bad faith — including but not limited to commercial exploitation, misrepresentation of authorship, or derivative works without written consent — is strictly prohibited and may be subject to legal action under applicable intellectual property laws.
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-mono)' }}>
+                  12 data sources · PMUA · depa · Axiom · ReTL
                 </span>
                 <button onClick={() => setIsAboutOpen(false)} style={{
                   background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
