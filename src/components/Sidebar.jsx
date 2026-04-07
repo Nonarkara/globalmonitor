@@ -82,25 +82,22 @@ const Sidebar = ({
         <aside className="grid-panel" style={{ flex: 1 }}>
             <div className="sidebar-header">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {/* Logo strip — dark glass, no white box */}
+                    {/* Logo strip — white pill for visibility */}
                     <div style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        padding: '6px 10px',
+                        background: '#ffffff',
+                        padding: '5px 10px',
                         borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px'
                     }}>
-                        <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.8 }} onError={(e) => e.target.style.display = 'none'} />
-                        <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.06)' }} />
-                        <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.65 }} onError={(e) => e.target.style.display = 'none'} />
-                        <img src="/mdes.png" alt="MDES" style={{ height: '14px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.55 }} onError={(e) => e.target.style.display = 'none'} />
-                        <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '13px', objectFit: 'contain', filter: 'brightness(1.5)', opacity: 0.55 }} onError={(e) => e.target.style.display = 'none'} />
-                        <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.06)' }} />
-                        <img src="/axiom-logo.png" alt="Axiom" style={{ height: '13px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.65 }} onError={(e) => e.target.style.display = 'none'} />
-                        <img src="/retl-logo.svg" alt="ReTL" style={{ height: '13px', objectFit: 'contain', filter: 'brightness(1.8) invert(1)', opacity: 0.65 }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '22px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <div style={{ width: '1px', height: '16px', background: 'rgba(0,0,0,0.08)' }} />
+                        <img src="/Logo depa-01.png" alt="depa" style={{ height: '16px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <div style={{ width: '1px', height: '16px', background: 'rgba(0,0,0,0.08)' }} />
+                        <img src="/axiom-logo.png" alt="Axiom" style={{ height: '16px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src="/retl-logo.svg" alt="ReTL" style={{ height: '15px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 300, letterSpacing: '0.3px', color: 'var(--text-main)' }}>Global Political Dashboard</span>

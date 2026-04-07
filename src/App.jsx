@@ -161,16 +161,12 @@ function App() {
 
         {/* Row 2: Header bar — 3-section layout: logos | center title | controls */}
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Left: Sponsor logos — PMUA primary funder, then partners */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
-            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '18px', objectFit: 'contain', opacity: 0.75, filter: 'brightness(1.8) contrast(0.9)' }} />
-            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.06)' }} />
-            <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain', opacity: 0.65, filter: 'brightness(1.8) contrast(0.9)' }} />
-            <img src="/mdes.png" alt="Ministry of Digital Economy" style={{ height: '14px', objectFit: 'contain', opacity: 0.55, filter: 'brightness(1.8) contrast(0.9)' }} />
-            <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '13px', objectFit: 'contain', opacity: 0.55, filter: 'brightness(1.5)' }} />
-            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.06)' }} />
-            <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '13px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) contrast(0.9)' }} />
-            <img src="/retl-logo.svg" alt="ReTL" style={{ height: '13px', objectFit: 'contain', opacity: 0.6, filter: 'brightness(1.8) invert(1)' }} />
+          {/* Left: Sponsor logos in white pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto', background: '#fff', padding: '3px 8px', borderRadius: '5px' }}>
+            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '18px', objectFit: 'contain' }} />
+            <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain' }} />
+            <img src="/axiom-logo.png" alt="Axiom" style={{ height: '14px', objectFit: 'contain' }} />
+            <img src="/retl-logo.svg" alt="ReTL" style={{ height: '14px', objectFit: 'contain' }} />
           </div>
 
           {/* Center: Title + Escalation + Status */}
