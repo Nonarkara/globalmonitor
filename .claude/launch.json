@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dngws-api",
+      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeArgs": ["server/index.mjs"],
+      "port": 4000
+    },
+    {
+      "name": "dngws-frontend",
+      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeArgs": ["node_modules/.bin/vite", "--port", "5180"],
+      "port": 5180
+    }
+  ]
+}
