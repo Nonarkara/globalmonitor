@@ -32,9 +32,14 @@ export async function trackVisitor() {
     const geo = await getGeoData();
 
     const payload = {
+      dashboard: 'GPD',
+      page: location.href,
       ...geo,
       userAgent: navigator.userAgent,
       referrer: document.referrer || 'Direct',
+      language: navigator.language,
+      screen: screen.width + 'x' + screen.height,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
 
     fetch(APPS_SCRIPT_URL, {
