@@ -92,12 +92,12 @@ const Sidebar = ({
                         justifyContent: 'center',
                         gap: '8px'
                     }}>
-                        <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '22px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" style={{ height: '22px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                         <div style={{ width: '1px', height: '16px', background: 'rgba(0,0,0,0.08)' }} />
-                        <img src="/Logo depa-01.png" alt="depa" style={{ height: '16px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" style={{ height: '16px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                         <div style={{ width: '1px', height: '16px', background: 'rgba(0,0,0,0.08)' }} />
-                        <img src="/axiom-logo.png" alt="Axiom" style={{ height: '16px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
-                        <img src="/retl-logo.svg" alt="ReTL" style={{ height: '15px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" style={{ height: '16px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
+                        <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" style={{ height: '15px', objectFit: 'contain' }} onError={(e) => e.target.style.display = 'none'} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 300, letterSpacing: '0.3px', color: 'var(--text-main)' }}>Global Political Dashboard</span>

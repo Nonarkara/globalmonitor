@@ -163,10 +163,10 @@ function App() {
         <div className="header-bar grid-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Left: Sponsor logos in white pill */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto', background: '#fff', padding: '3px 8px', borderRadius: '5px' }}>
-            <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '18px', objectFit: 'contain' }} />
-            <img src="/Logo depa-01.png" alt="depa" style={{ height: '14px', objectFit: 'contain' }} />
-            <img src="/axiom-logo.png" alt="Axiom" style={{ height: '14px', objectFit: 'contain' }} />
-            <img src="/retl-logo.svg" alt="ReTL" style={{ height: '14px', objectFit: 'contain' }} />
+            <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" style={{ height: '18px', objectFit: 'contain' }} />
+            <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" style={{ height: '14px', objectFit: 'contain' }} />
+            <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" style={{ height: '14px', objectFit: 'contain' }} />
+            <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" style={{ height: '14px', objectFit: 'contain' }} />
           </div>
 
           {/* Center: Title + Escalation + Status */}
@@ -486,22 +486,22 @@ function App() {
               {/* Primary funder */}
               <div style={{ textAlign: 'center', marginBottom: '14px' }}>
                 <div style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)', letterSpacing: '2px', marginBottom: '8px' }}>FUNDED BY</div>
-                <img src="/pmua-logo.webp" alt="PMUA" style={{ height: '36px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.9 }} />
+                <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" style={{ height: '36px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.9 }} />
                 <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.45)', marginTop: '4px' }}>Program Management Unit for Area Based Development</div>
               </div>
 
               {/* Supporting organizations */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                <img src="/Logo depa-01.png" alt="depa" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.75 }} />
-                <img src="/mdes.png" alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.65 }} />
-                <img src="/smart-city-thailand-logo.svg" alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain', filter: 'brightness(1.5)', opacity: 0.6 }} />
+                <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.75 }} />
+                <img src={`${import.meta.env.BASE_URL}mdes.png`} alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.65 }} />
+                <img src={`${import.meta.env.BASE_URL}smart-city-thailand-logo.svg`} alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain', filter: 'brightness(1.5)', opacity: 0.6 }} />
               </div>
 
               {/* Executed by */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '18px' }}>
                 <div style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)', letterSpacing: '2px' }}>EXECUTED BY</div>
-                <img src="/axiom-logo.png" alt="Axiom AI" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.8 }} />
-                <img src="/retl-logo.svg" alt="ReTL" style={{ height: '18px', objectFit: 'contain', filter: 'brightness(1.8) invert(1)', opacity: 0.8 }} />
+                <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom AI" style={{ height: '20px', objectFit: 'contain', filter: 'brightness(1.8) contrast(0.9)', opacity: 0.8 }} />
+                <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" style={{ height: '18px', objectFit: 'contain', filter: 'brightness(1.8) invert(1)', opacity: 0.8 }} />
               </div>
 
               <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px', letterSpacing: '0.5px' }}>
