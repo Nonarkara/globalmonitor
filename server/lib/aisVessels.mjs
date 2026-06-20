@@ -36,9 +36,12 @@ const SUBSCRIBE_MSG = () => ({
     // aisstream.io requires the field spelled "APIKey" (capital K). The lowercase
     // "APIkey" silently auth-fails and the socket closes with zero messages.
     APIKey: process.env.AISSTREAM_API_KEY || '',
+    // aisstream.io expects each corner as [latitude, longitude] (lat first). Sending
+    // [lon, lat] silently clamps the "worldwide" box to lon -90..+90, dropping all of
+    // East/Southeast Asia (Indo-Pacific, Thailand, Taiwan, Malacca).
     BoundingBoxes: VESSEL_BOXES.map(([minLon, minLat, maxLon, maxLat]) => [
-        [minLon, minLat],
-        [maxLon, maxLat]
+        [minLat, minLon],
+        [maxLat, maxLon]
     ]),
     FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
 });
