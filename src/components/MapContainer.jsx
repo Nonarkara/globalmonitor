@@ -1362,10 +1362,28 @@ const MapContainer = ({
                             const p = hoverInfo.feature.properties || {};
                             const isFlight = hoverInfo.feature.layer?.id === 'flights-icons' || p.hex;
                             if (isFlight) {
-                                const header = p.callsign ? p.callsign.toUpperCase() : p.hex;
+                                const flagEmoji = (cc) => (cc && cc.length === 2)
+                                    ? String.fromCodePoint(...[...cc.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
+                                    : '';
+                                const header = p.flightIata || (p.callsign ? p.callsign.toUpperCase() : p.hex);
+                                const route = p.route || (p.origin ? `${p.origin}${p.destination ? ` → ${p.destination}` : ''}` : null);
                                 return (
                                     <div className="traffic-tooltip-content">
-                                        <div className="traffic-tooltip-header">{header}</div>
+                                        <div className="traffic-tooltip-header">
+                                            {p.flag ? `${flagEmoji(p.flag)} ` : ''}{header}
+                                        </div>
+                                        {route && (
+                                            <div className="traffic-tooltip-row">
+                                                <span>Route</span>
+                                                <span>{route}</span>
+                                            </div>
+                                        )}
+                                        {p.airline && (
+                                            <div className="traffic-tooltip-row">
+                                                <span>Airline</span>
+                                                <span>{p.airline}</span>
+                                            </div>
+                                        )}
                                         <div className="traffic-tooltip-row">
                                             <span>Altitude</span>
                                             <span>{Math.round(p.altitude)} m</span>
@@ -1379,18 +1397,9 @@ const MapContainer = ({
                                             <span>{Math.round(p.heading)}°</span>
                                         </div>
                                         <div className="traffic-tooltip-row">
-                                            <span>Type</span>
-                                            <span>{p.type || p.desc || '—'}</span>
+                                            <span>Aircraft</span>
+                                            <span>{p.aircraftType || p.type || p.desc || '—'}</span>
                                         </div>
-                                        {p.origin && (
-                                            <div className="traffic-tooltip-row">
-                                                <span>Origin</span>
-                                                <span>
-                                                    {p.origin}
-                                                    {p.destination ? ` → ${p.destination}` : ''}
-                                                </span>
-                                            </div>
-                                        )}
                                     </div>
                                 );
                             }

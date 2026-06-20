@@ -5,6 +5,7 @@ import { fetchAirplanesLivePayload } from './airplanesLive.mjs';
 import { fetchAviationEdgePayload } from './aviationEdge.mjs';
 import { fetchAviationStackPayload, isAviationStackConfigured } from './aviationStack.mjs';
 import { fetchOpenSkyPayload, isOpenSkyConfigured } from './opensky.mjs';
+import { enrichFlights } from './airlabs.mjs';
 
 const normalizeHex = (hex) => (hex || '').toLowerCase().replace(/^0x/, '');
 
@@ -127,7 +128,11 @@ export const fetchFlightsPayload = async (theater = 'global') => {
         }
     }
 
-    if (payload.features?.length > 0) return payload;
+    if (payload.features?.length > 0) {
+        // Airlabs route/airline/flag enrichment (sparse, long-cached — no-op without key)
+        enrichFlights(payload, theater);
+        return payload;
+    }
 
     const apiKey = process.env.AVIATION_EDGE_KEY;
     if (apiKey) {
