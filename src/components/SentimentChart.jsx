@@ -3,7 +3,7 @@ import { Activity } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 const EMPTY_TIMELINE = [];
 const CHART_WIDTH = 200;
 const CHART_HEIGHT = 60;

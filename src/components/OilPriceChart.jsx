@@ -3,7 +3,7 @@ import { TrendingUp, Droplets } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 
 const WAR_EVENTS = [
     { date: '2026-02-28', label: 'War starts', color: '#ef4444' },

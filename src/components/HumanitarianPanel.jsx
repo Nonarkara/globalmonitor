@@ -41,7 +41,7 @@ const Sparkline = ({ data, color, width = 160, height = 32 }) => {
     );
 };
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 
 const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
     const acledFetcher = useCallback(() =>

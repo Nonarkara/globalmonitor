@@ -4,7 +4,7 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 import { WAR_START } from '../data/warConstants';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 
 const KPI = ({ icon, label, value, color, sub }) => (
     <div style={{

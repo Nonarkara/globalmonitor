@@ -3,7 +3,7 @@ import { X, Database, CheckCircle, AlertCircle, Clock, ExternalLink } from 'luci
 import dataSources from '../data/dataSources.json';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 
 const SourceHealthModal = ({ isOpen, onClose }) => {
     const [healthData, setHealthData] = useState(null);
