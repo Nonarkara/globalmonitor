@@ -48,8 +48,11 @@ export const startScheduler = (serverPort) => {
     // Markets — 60s (most time-sensitive, drives MarketRadarPanel)
     schedule('/api/markets', 1 * MIN, 4000);
 
-    // Flights — 2 min (global; MapContainer always fetches global)
-    schedule('/api/flights?theater=global', 2 * MIN, 5000);
+    // Flights — 30s, warming the theaters the UI actually requests (not global).
+    // airplanes.live allows ~1 req/s, so stagger the three theaters 8s apart.
+    ['middleeast', 'indopacific', 'thailand'].forEach((t, i) => {
+        schedule(`/api/flights?theater=${t}`, 30 * 1000, 5000 + i * 8000);
+    });
 
     // Oil prices — 30 min
     schedule('/api/oil-prices', 30 * MIN, 6000);
@@ -81,6 +84,10 @@ export const startScheduler = (serverPort) => {
 
         // Humanitarian data — 60 min
         schedule(`/api/humanitarian?theater=${theater}`, 60 * MIN, 15000 + base);
+
+        // Vessels — 30s, keep the AIS cache warm per theater (no-op until a key
+        // is set, but ready the moment AISSTREAM_API_KEY lands)
+        schedule(`/api/vessels?theater=${theater}`, 30 * 1000, 16000 + base);
     });
 
     // ── Intelligence briefings — staggered 30s apart, 4-min cycle ────────────

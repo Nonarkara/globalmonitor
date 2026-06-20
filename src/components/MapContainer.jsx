@@ -620,7 +620,7 @@ const MapContainer = ({
     const flightsResource = useLiveResource(useCallback(() => fetchFlights(viewMode), [viewMode]), {
         cacheKey: `map:flights:${viewMode}`,
         enabled: activeLayers.includes('flights'),
-        intervalMs: 10 * 60 * 1000,
+        intervalMs: 30 * 1000,
         isUsable: (payload) => payload?.type === 'FeatureCollection',
         maxRetries: 0
     });
@@ -633,7 +633,7 @@ const MapContainer = ({
     const vesselsResource = useLiveResource(useCallback(() => fetchVessels(viewMode), [viewMode]), {
         cacheKey: `map:vessels:${viewMode}`,
         enabled: activeLayers.includes('vessels'),
-        intervalMs: 5 * 60 * 1000,
+        intervalMs: 30 * 1000,
         isUsable: (payload) => payload?.type === 'FeatureCollection',
         maxRetries: 0
     });
@@ -648,8 +648,8 @@ const MapContainer = ({
     const infraData = infraResource.data;
     const flightsData = flightsResource.data;
     const vesselsData = vesselsResource.data;
-    const interpolatedFlights = useInterpolatedTraffic(flightsData, { idKey: 'hex', durationMs: 60_000, frameMs: 1500, enabled: flightsLayerActive });
-    const interpolatedVessels = useInterpolatedTraffic(vesselsData, { idKey: 'mmsi', durationMs: 60_000, frameMs: 2000, enabled: vesselsLayerActive });
+    const interpolatedFlights = useInterpolatedTraffic(flightsData, { idKey: 'hex', durationMs: 30_000, frameMs: 250, enabled: flightsLayerActive });
+    const interpolatedVessels = useInterpolatedTraffic(vesselsData, { idKey: 'mmsi', durationMs: 30_000, frameMs: 300, enabled: vesselsLayerActive });
     const flightPaths = useMemo(() => buildFlightPaths(interpolatedFlights), [interpolatedFlights]);
     const vesselPaths = useMemo(() => buildVesselPaths(interpolatedVessels), [interpolatedVessels]);
     const flightCount = flightsData?.features?.length ?? 0;
@@ -1140,7 +1140,7 @@ const MapContainer = ({
                 )}
 
                 {/* Flights Layer — density heatmap at world zoom + glow dots + plane icons */}
-                {flightsLayerActive && flightCount > 0 && (
+                {flightsLayerActive && interpolatedFlights?.features?.length > 0 && (
                     <Source id="flights-data" type="geojson" data={interpolatedFlights}>
                         <Layer
                             id="flights-density"
@@ -1269,7 +1269,7 @@ const MapContainer = ({
                 )}
 
                 {/* Vessels Layer — density heatmap at world zoom + glow + triangles by category */}
-                {vesselsLayerActive && vesselsData?.features?.length > 0 && (
+                {vesselsLayerActive && interpolatedVessels?.features?.length > 0 && (
                     <Source id="vessels-data" type="geojson" data={interpolatedVessels}>
                         <Layer
                             id="vessels-density"
@@ -1317,8 +1317,16 @@ const MapContainer = ({
                                 type="symbol"
                                 layout={{
                                     'icon-image': VESSEL_ICON_IMAGE,
-                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.0, 3, 1.2, 5, 1.45, 7, 1.45, 10, 1.2],
-                                    'icon-rotate': ['get', 'heading'],
+                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.15, 3, 1.35, 5, 1.55, 7, 1.55, 10, 1.3],
+                                    // Rotate along course (matches the look-ahead path vector); fall
+                                    // back to heading. Moored/drifting vessels (<1kt) point north so
+                                    // a stale gyro heading doesn't spin them randomly.
+                                    'icon-rotate': [
+                                        'case',
+                                        ['<', ['coalesce', ['get', 'speed'], 0], 1], 0,
+                                        ['has', 'course'], ['get', 'course'],
+                                        ['get', 'heading']
+                                    ],
                                     'icon-rotation-alignment': 'map',
                                     'icon-allow-overlap': true,
                                     'icon-ignore-placement': true,

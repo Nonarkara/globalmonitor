@@ -67,6 +67,9 @@ loadEnvFile('.env');
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
 const PORT = Number(process.env.PORT || 4000);
 const cache = new Map();
+// Tracks in-flight refreshes per cache key so concurrent viewers hitting an
+// expired key coalesce onto a single upstream fetch instead of each firing one.
+const pending = new Map();
 const loaderHealth = new Map();
 
 const json = (response, statusCode, payload, meta = {}) => {
@@ -106,49 +109,65 @@ const useCached = async (key, ttlMs, loader, isUsable) => {
         };
     }
 
-    try {
-        const payload = await loader();
+    // Coalesce concurrent refreshes: if a load for this key is already running,
+    // await it rather than firing a second upstream request. This bounds upstream
+    // concurrency to one fetch per key no matter how many viewers race an expiry.
+    const inFlight = pending.get(key);
+    if (inFlight) {
+        return inFlight;
+    }
 
-        if (!isUsable(payload)) {
-            throw new Error('No usable payload returned');
-        }
+    const load = (async () => {
+        try {
+            const payload = await loader();
 
-        const updatedAt = new Date().toISOString();
-        cache.set(key, {
-            payload,
-            updatedAt,
-            expiresAt: now + ttlMs
-        });
-        recordHealth(key, true, null);
-        // Persist snapshot to local SQLite so cache survives server restart
-        saveSnapshot(key, payload, updatedAt);
-        // Fire-and-forget: record to Google Sheets
-        recordToSheets(key, payload, updatedAt).catch(() => {});
-
-        return {
-            payload,
-            meta: {
-                status: 'live',
-                updatedAt,
-                cache: current ? 'refresh' : 'miss'
+            if (!isUsable(payload)) {
+                throw new Error('No usable payload returned');
             }
-        };
-    } catch (error) {
-        recordHealth(key, false, error.message);
 
-        if (current) {
+            const updatedAt = new Date().toISOString();
+            cache.set(key, {
+                payload,
+                updatedAt,
+                expiresAt: now + ttlMs
+            });
+            recordHealth(key, true, null);
+            // Persist snapshot to local SQLite so cache survives server restart
+            saveSnapshot(key, payload, updatedAt);
+            // Fire-and-forget: record to Google Sheets
+            recordToSheets(key, payload, updatedAt).catch(() => {});
+
             return {
-                payload: current.payload,
+                payload,
                 meta: {
-                    status: 'stale',
-                    updatedAt: current.updatedAt,
-                    cache: 'stale'
+                    status: 'live',
+                    updatedAt,
+                    cache: current ? 'refresh' : 'miss'
                 }
             };
-        }
+        } catch (error) {
+            recordHealth(key, false, error.message);
 
-        throw error;
-    }
+            if (current) {
+                // Stale fallback: serve the last good value on loader failure.
+                return {
+                    payload: current.payload,
+                    meta: {
+                        status: 'stale',
+                        updatedAt: current.updatedAt,
+                        cache: 'stale'
+                    }
+                };
+            }
+
+            throw error;
+        } finally {
+            pending.delete(key);
+        }
+    })();
+
+    pending.set(key, load);
+    return load;
 };
 
 const parseSourceIds = (searchParams) => {
@@ -378,7 +397,9 @@ const server = http.createServer(async (request, response) => {
             const theater = url.searchParams.get('theater') || 'global';
             const result = await useCached(
                 `flights:${theater}`,
-                10 * 60 * 1000,
+                35 * 1000,  // 35s — must exceed the scheduler's 30s warm interval so a
+                            // proactive refresh always lands before expiry, keeping
+                            // viewer requests on the warm cache (never cold upstream).
                 () => fetchFlightsPayload(theater),
                 (p) => p?.type === 'FeatureCollection'
             );

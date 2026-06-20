@@ -33,7 +33,9 @@ let ws_instance = null;
 let reconnect_timer = null;
 
 const SUBSCRIBE_MSG = () => ({
-    APIkey: process.env.AISSTREAM_API_KEY || '',
+    // aisstream.io requires the field spelled "APIKey" (capital K). The lowercase
+    // "APIkey" silently auth-fails and the socket closes with zero messages.
+    APIKey: process.env.AISSTREAM_API_KEY || '',
     BoundingBoxes: VESSEL_BOXES.map(([minLon, minLat, maxLon, maxLat]) => [
         [minLon, minLat],
         [maxLon, maxLat]
