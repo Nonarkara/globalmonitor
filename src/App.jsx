@@ -484,6 +484,9 @@ function App() {
           )}
           {viewMode === 'indopacific' && (
             <>
+              <ErrorBoundary inline label="Indo-Pacific Theater">
+                <LazyPanel name="SouthChinaSeaPanel" />
+              </ErrorBoundary>
               <ErrorBoundary inline label="South China Sea Watch">
                 <LazyPanel name="RegionalNewsPanel" regionName="SouthChinaSea" title="South China Sea Watch" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
@@ -512,6 +515,9 @@ function App() {
           )}
           {viewMode === 'thailand' && (
             <>
+              <ErrorBoundary inline label="Thailand Status">
+                <LazyPanel name="ThailandStatusPanel" />
+              </ErrorBoundary>
               <ErrorBoundary inline label="Myanmar Border Crisis">
                 <LazyPanel name="RegionalNewsPanel" regionName="Myanmar" title="Myanmar Border Crisis" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>

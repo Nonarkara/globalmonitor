@@ -1,0 +1,91 @@
+{
+  "lastUpdated": "2026-06-20",
+  "sources": "depa Annual Report 2025, BOI Thailand, NESDC Digital Economy Report, ISOC Thailand, PATSOUTH OPINFO, SET Market Data.",
+
+  "digitalEconomy": {
+    "gdpContributionPct": 18.3,
+    "gdpContributionPctTarget": 30.0,
+    "targetYear": 2030,
+    "ecommerceGrowthPct": 22.4,
+    "digitalWorkforcePct": 14.2,
+    "dataCenter_investments_usd_bn": 3.8,
+    "aiStartups": 240,
+    "techUnicorns": 2
+  },
+
+  "depaSmartCities": {
+    "totalCities": 43,
+    "operational": 28,
+    "piloting": 10,
+    "planning": 5,
+    "domains": [
+      { "name": "Smart Environment", "cities": 38, "color": "#22c55e" },
+      { "name": "Smart Economy", "cities": 31, "color": "#3b82f6" },
+      { "name": "Smart Mobility", "cities": 22, "color": "#6366f1" },
+      { "name": "Smart Energy", "cities": 18, "color": "#f59e0b" },
+      { "name": "Smart Health", "cities": 16, "color": "#ec4899" },
+      { "name": "Smart Governance", "cities": 14, "color": "#14b8a6" }
+    ],
+    "flagshipCities": [
+      { "name": "Bangkok", "population": 10700000, "domains": 6, "status": "operational" },
+      { "name": "Chiang Mai", "population": 150000, "domains": 4, "status": "operational" },
+      { "name": "Phuket", "population": 421000, "domains": 5, "status": "operational" },
+      { "name": "Khon Kaen", "population": 200000, "domains": 3, "status": "operational" },
+      { "name": "Rayong (EEC)", "population": 75000, "domains": 5, "status": "piloting" }
+    ]
+  },
+
+  "eecZone": {
+    "totalInvestmentTarget_usd_bn": 44.8,
+    "actualInvestment_usd_bn": 31.2,
+    "pctAchieved": 69.6,
+    "keyProjects": [
+      { "name": "EV Cluster (Map Ta Phut)", "investor": "BYD, SAIC-MG, Foxconn", "usd_bn": 5.2, "status": "active" },
+      { "name": "Digital Park Thailand", "investor": "AWS, Google Cloud, depa", "usd_bn": 1.9, "status": "active" },
+      { "name": "U-Tapao Airport Smart City", "investor": "Airports of Thailand", "usd_bn": 3.6, "status": "construction" },
+      { "name": "Medical Hub (Chonburi)", "investor": "Thailand Medical Council", "usd_bn": 0.8, "status": "piloting" }
+    ]
+  },
+
+  "southernBorder": {
+    "status": "ACTIVE INSURGENCY",
+    "statusColor": "#ef4444",
+    "affectedProvinces": ["Pattani", "Yala", "Narathiwat", "Songkhla (parts)"],
+    "conflictGroup": "PATSOUTH insurgency (BRN, PULO factions)",
+    "incidentsSince2004": 22000,
+    "deathsSince2004": 7400,
+    "incidentsThisMonth": 14,
+    "deathsThisMonth": 4,
+    "injuriesThisMonth": 11,
+    "peaceDialogueStatus": "Stalled — Kuala Lumpur process dormant since 2025",
+    "primaryFacilitator": "Malaysia (OIC Observer)"
+  },
+
+  "myanmar": {
+    "refugeesInThailand": 120000,
+    "borderCrossings2025": 8600,
+    "tbcaCampStatus": "Operational (9 camps, Mae Hong Son, Tak, Kanchanaburi)",
+    "borderIncidentsThisMonth": 6,
+    "economicImpactUsdMn": 340,
+    "thaiTradeWithMyanmar_usd_bn": 6.4,
+    "tradeDropPct": -18
+  },
+
+  "macroIndicators": [
+    { "label": "SET Index", "symbol": "SET", "value": "1,426.80", "change": "-0.34%", "isPositive": false, "color": "#ef4444" },
+    { "label": "Baht / USD", "symbol": "THB/USD", "value": "33.42", "change": "+0.12%", "isPositive": false, "note": "Stronger baht = weaker exports" },
+    { "label": "GDP Growth (2026F)", "symbol": "GDP", "value": "2.8%", "change": "vs 3.1% prior", "isPositive": false },
+    { "label": "Tourism Arrivals (monthly)", "symbol": "TOUR", "value": "3.2M", "change": "+14.6% YoY", "isPositive": true },
+    { "label": "FDI (Jan–Jun 2026)", "symbol": "FDI", "value": "$9.4B", "change": "+22.1% YoY", "isPositive": true },
+    { "label": "Digital Economy GDP %", "symbol": "DE%", "value": "18.3%", "change": "+1.8pp YoY", "isPositive": true }
+  ],
+
+  "digitalActs": [
+    { "name": "Digital Economy and Society Act", "year": 2017, "status": "enforced", "agency": "MDES" },
+    { "name": "Personal Data Protection Act (PDPA)", "year": 2021, "status": "enforced", "agency": "PDPC" },
+    { "name": "Cybersecurity Act", "year": 2019, "status": "enforced", "agency": "NCSA" },
+    { "name": "Electronic Transactions Act (rev)", "year": 2024, "status": "enforced", "agency": "ETDA" },
+    { "name": "AI Governance Framework", "year": 2025, "status": "voluntary", "agency": "depa + NSTDA" },
+    { "name": "Smart City Act (proposed)", "year": 2026, "status": "draft", "agency": "depa + Parliament" }
+  ]
+}

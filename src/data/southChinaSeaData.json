@@ -1,0 +1,81 @@
+{
+  "lastUpdated": "2026-06-20",
+  "sources": "CSIS Asia Maritime Transparency Initiative, IISS Military Balance, US INDOPACOM, Philippine DFA, AMTI satellite imagery.",
+
+  "scsStatus": {
+    "overallLevel": "ELEVATED",
+    "overallColor": "#f59e0b",
+    "summary": "Persistent PRC gray-zone pressure in Spratly/Paracel chains; US-Philippine alliance bolstered by EDCA expansion. Taiwan Strait crossings remain high.",
+    "daysSinceLastMajorIncident": 12
+  },
+
+  "taiwanStrait": {
+    "weeklyPLAAFCrossings": 14,
+    "monthlyMedianLine": 23,
+    "carrierGroupsNearby": 2,
+    "statusLabel": "TENSE",
+    "statusColor": "#f59e0b",
+    "lastCrossingEvent": "2026-06-18",
+    "note": "J-16 + H-6 formations; Taiwan CAP operational 24/7"
+  },
+
+  "scsIncidents": {
+    "weeklyTotal": 9,
+    "coastGuardRammings": 2,
+    "waterCannonUse": 3,
+    "shadowingEvents": 4,
+    "primaryHotspot": "Second Thomas Shoal (Ayungin)",
+    "secondaryHotspot": "Scarborough Shoal",
+    "chinaCCGVessels": 232
+  },
+
+  "militarization": [
+    { "feature": "Fiery Cross Reef", "operator": "China", "runway": true, "hangarized": true, "radars": true, "status": "operational" },
+    { "feature": "Subi Reef", "operator": "China", "runway": true, "hangarized": true, "radars": true, "status": "operational" },
+    { "feature": "Mischief Reef", "operator": "China", "runway": true, "hangarized": true, "radars": true, "status": "operational" },
+    { "feature": "Thitu Island", "operator": "Philippines", "runway": false, "hangarized": false, "radars": false, "status": "upgrading" },
+    { "feature": "Itu Aba / Taiping", "operator": "Taiwan (ROC)", "runway": true, "hangarized": false, "radars": true, "status": "operational" },
+    { "feature": "Spratly Island", "operator": "Vietnam", "runway": false, "hangarized": false, "radars": false, "status": "reinforcing" }
+  ],
+
+  "claimants": [
+    { "code": "CN", "name": "China", "claim": "Nine-dash line (virtually entire SCS)", "militarized": true, "color": "#ef4444" },
+    { "code": "VN", "name": "Vietnam", "claim": "Paracel + Spratly continental shelf", "militarized": false, "color": "#38bdf8" },
+    { "code": "PH", "name": "Philippines", "claim": "EEZ per UNCLOS (ICJ 2016 ruling)", "militarized": false, "color": "#38bdf8" },
+    { "code": "MY", "name": "Malaysia", "claim": "Southern Spratlys EEZ", "militarized": false, "color": "#38bdf8" },
+    { "code": "BN", "name": "Brunei", "claim": "Louisa Reef EEZ", "militarized": false, "color": "#38bdf8" },
+    { "code": "TW", "name": "Taiwan", "claim": "Overlaps China claim historically", "militarized": false, "color": "#94a3b8" }
+  ],
+
+  "usPresence": [
+    { "platform": "USS Carl Vinson (CVN-70)", "type": "Carrier Strike Group", "location": "South China Sea / WESTPAC", "status": "active" },
+    { "platform": "USS Theodore Roosevelt (CVN-71)", "type": "Carrier Strike Group", "location": "Philippine Sea", "status": "active" },
+    { "platform": "US–Philippines EDCA Sites", "type": "Access Agreements", "location": "9 bases, incl. Cagayan & Palawan", "status": "expanding" }
+  ],
+
+  "defenseSystems": [
+    { "name": "HIMARS (Philippines)", "operator": "AFP", "status": "active", "note": "Deployed Cagayan 2023" },
+    { "name": "Typhon MRC (US)", "operator": "US Army", "status": "active", "note": "Tomahawk / SM-6 capable, Luzon" },
+    { "name": "PAC-3 (Taiwan)", "operator": "ROC Air Force", "status": "active", "note": "Layered island defense" },
+    { "name": "S-400 (Vietnam, negotiating)", "operator": "VPAF", "status": "negotiating", "note": "Awaiting US waiver / CAATSA" },
+    { "name": "Type-055 Destroyers (PLA)", "operator": "PLA Navy", "status": "surge", "note": "10 operational, frequent SCS patrol" }
+  ],
+
+  "armsFlows": [
+    { "from": "United States", "to": "Philippines", "type": "HIMARS, F-16V, Coast Guard vessels", "status": "active", "color": "#3b82f6" },
+    { "from": "United States", "to": "Taiwan", "type": "F-16C/D, M1A2T, ATACMS", "status": "surge", "color": "#3b82f6" },
+    { "from": "Russia", "to": "Myanmar", "type": "Jet fighters, attack helicopters", "status": "active", "color": "#ef4444" },
+    { "from": "China", "to": "Myanmar", "type": "Trainer jets, UAVs, naval patrol", "status": "active", "color": "#ef4444" },
+    { "from": "Germany", "to": "Indonesia", "type": "Type-209 submarines (KRI maintenance)", "status": "active", "color": "#22c55e" },
+    { "from": "France", "to": "Indonesia", "type": "Rafale fighters (42 ordered)", "status": "active", "color": "#22c55e" }
+  ],
+
+  "aseanDefenseBudgets": [
+    { "country": "Indonesia", "budget_usd_bn": 10.0, "gdp_pct": "0.8%", "trend": "up" },
+    { "country": "Singapore", "budget_usd_bn": 13.5, "gdp_pct": "3.0%", "trend": "stable" },
+    { "country": "Vietnam", "budget_usd_bn": 6.3, "gdp_pct": "1.6%", "trend": "up" },
+    { "country": "Philippines", "budget_usd_bn": 5.0, "gdp_pct": "1.2%", "trend": "up" },
+    { "country": "Thailand", "budget_usd_bn": 7.5, "gdp_pct": "1.4%", "trend": "stable" },
+    { "country": "Malaysia", "budget_usd_bn": 4.4, "gdp_pct": "1.0%", "trend": "stable" }
+  ]
+}

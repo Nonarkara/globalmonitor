@@ -3,15 +3,22 @@ import { fetchMarketRadar } from '../services/marketData';
 import { Activity, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
 
-const CATEGORIES = [
-    { label: 'COMMODITIES', match: (s) => s?.includes && (s.includes('Gold') || s.includes('Silver') || s.includes('Oil') || s.includes('Crude')) },
-    { label: 'INDICES', match: (s) => s?.startsWith && (s.startsWith('S&P') || s.startsWith('TASI') || s.startsWith('TA-125')) },
-    { label: 'CRYPTO', match: (s) => s && ['BTC', 'ETH'].includes(s) },
-    { label: 'FX RATES', match: (s) => s?.includes && s.includes('/') },
-];
+const ME_INDEX_SYMBOLS = ['S&P', 'TASI', 'TA-125', 'ADX', 'DFM', 'Tadawul'];
+const ASEAN_INDEX_SYMBOLS = ['SET', 'STI', 'KLCI', 'VN-Index', 'PSE', 'IDX', 'Nikkei', 'KOSPI', 'S&P', 'ASX'];
 
-const categorize = (items) => {
-    const groups = CATEGORIES.map((cat) => ({
+const buildCategories = (viewMode) => {
+    const indexSymbols = viewMode === 'middleeast' ? ME_INDEX_SYMBOLS : ASEAN_INDEX_SYMBOLS;
+    return [
+        { label: 'COMMODITIES', match: (s) => s?.includes && (s.includes('Gold') || s.includes('Silver') || s.includes('Oil') || s.includes('Crude')) },
+        { label: 'INDICES', match: (s) => s && indexSymbols.some((sym) => s.startsWith(sym) || s === sym) },
+        { label: 'CRYPTO', match: (s) => s && ['BTC', 'ETH'].includes(s) },
+        { label: 'FX RATES', match: (s) => s?.includes && s.includes('/') },
+    ];
+};
+
+const categorize = (items, viewMode) => {
+    const categories = buildCategories(viewMode);
+    const groups = categories.map((cat) => ({
         label: cat.label,
         items: items.filter((item) => cat.match(item.symbol))
     }));
@@ -134,7 +141,7 @@ const MarketRadarPanel = ({ viewMode = 'middleeast' }) => {
     });
     const safeMarkets = markets || [];
     const statusLabel = isStale ? 'STALE' : (error && safeMarkets.length === 0 ? 'OFFLINE' : 'LIVE');
-    const groups = categorize(safeMarkets);
+    const groups = categorize(safeMarkets, viewMode);
 
     return (
         <div className="bottom-card flex-column">
