@@ -30,6 +30,7 @@ import { recordToSheets, recordEscalation, getRecordingHealth } from './lib/shee
 import { ingestRegionalNews } from './lib/regionalNewsIngest.mjs';
 import { startAisStream, startVesselFinderRefresh, getVesselsGeoJson, getVesselsGeoJsonForTheater } from './lib/aisVessels.mjs';
 import { getRainviewerRadarTiles } from './lib/rainviewer.mjs';
+import { buildForecast as buildOracleForecast } from './lib/oracle/index.mjs';
 import { startScheduler } from './lib/scheduler.mjs';
 import {
     saveSnapshot, loadAllSnapshots, getDbHealth,
@@ -423,6 +424,35 @@ const server = http.createServer(async (request, response) => {
                 status: payload.meta.connected ? 'live' : (payload.meta.requiresKey ? 'unconfigured' : 'stale'),
                 updatedAt: payload.meta.fetchedAt
             });
+            return;
+        }
+
+        if (url.pathname === '/api/oracle') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const scenario = url.searchParams.get('scenario') || null;
+            const escDeltaRaw = url.searchParams.get('escDelta');
+            const escalationDelta = escDeltaRaw != null ? Number(escDeltaRaw) : undefined;
+            const pRaw = url.searchParams.get('p'); // compact sliders: "iran:0.2,israel:-0.1"
+            let postureDeltas = null;
+            if (pRaw) {
+                postureDeltas = {};
+                for (const pair of pRaw.split(',')) {
+                    const [id, d] = pair.split(':');
+                    if (id && d != null && Number.isFinite(Number(d))) postureDeltas[id] = Number(d);
+                }
+            }
+            const injection = (scenario || escalationDelta != null || postureDeltas)
+                ? { scenario, escalationDelta, postureDeltas }
+                : null;
+            const isSlider = Boolean(postureDeltas);
+            const cacheKey = `oracle:${theater}:${scenario || 'base'}:${escDeltaRaw || 0}:${pRaw || ''}`;
+            const result = await useCached(
+                cacheKey,
+                injection ? 2 * 60 * 1000 : 5 * 60 * 1000,
+                () => buildOracleForecast(cache, theater, injection, { narrate: !isSlider }),
+                (p) => p && Array.isArray(p?.forecast?.outcomes)
+            );
+            json(response, 200, result.payload, result.meta);
             return;
         }
 

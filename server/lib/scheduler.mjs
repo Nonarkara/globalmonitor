@@ -88,6 +88,9 @@ export const startScheduler = (serverPort) => {
         // Vessels — 30s, keep the AIS cache warm per theater (no-op until a key
         // is set, but ready the moment AISSTREAM_API_KEY lands)
         schedule(`/api/vessels?theater=${theater}`, 30 * 1000, 16000 + base);
+
+        // Oracle baseline forecast — 5 min (runs the Monte-Carlo sim on live state)
+        schedule(`/api/oracle?theater=${theater}`, 5 * MIN, 17000 + base);
     });
 
     // ── Intelligence briefings — staggered 30s apart, 4-min cycle ────────────

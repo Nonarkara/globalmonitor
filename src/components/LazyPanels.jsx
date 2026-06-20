@@ -42,6 +42,7 @@ const PANELS = {
     IranWarPanel: React.lazy(() => import('./IranWarPanel')),
     SouthChinaSeaPanel: React.lazy(() => import('./SouthChinaSeaPanel')),
     ThailandStatusPanel: React.lazy(() => import('./ThailandStatusPanel')),
+    OraclePanel: React.lazy(() => import('./OraclePanel')),
     LiveTVPanel: React.lazy(() => import('./LiveTVPanel')),
     MultiFrontBoard: React.lazy(() => import('./MultiFrontBoard')),
     FlightRadarEmbed: React.lazy(() => import('./FlightRadarEmbed')),

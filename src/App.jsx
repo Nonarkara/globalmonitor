@@ -16,6 +16,7 @@ import AlertBanner from './components/AlertBanner';
 import ClassificationBanner from './components/ClassificationBanner';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import ActorNetworkModal from './components/ActorNetworkModal';
+import OracleSandboxModal from './components/OracleSandboxModal';
 import SourceHealthModal from './components/SourceHealthModal';
 import ActivityLogModal from './components/ActivityLogModal';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
@@ -38,6 +39,7 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
+  const [isOracleOpen, setIsOracleOpen] = useState(false);
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -350,6 +352,9 @@ function App() {
               <ErrorBoundary inline label="Iran War Theater">
                 <LazyPanel name="IranWarPanel" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
+              <ErrorBoundary inline label="GPD Oracle">
+                <LazyPanel name="OraclePanel" panelKey={`oracle:${viewMode}`} viewMode={viewMode} onOpenSandbox={() => setIsOracleOpen(true)} />
+              </ErrorBoundary>
               <ErrorBoundary inline label="Humanitarian Impact">
                 <LazyPanel name="HumanitarianPanel" viewMode={viewMode} />
               </ErrorBoundary>
@@ -487,6 +492,9 @@ function App() {
               <ErrorBoundary inline label="Indo-Pacific Theater">
                 <LazyPanel name="SouthChinaSeaPanel" />
               </ErrorBoundary>
+              <ErrorBoundary inline label="GPD Oracle">
+                <LazyPanel name="OraclePanel" panelKey={`oracle:${viewMode}`} viewMode={viewMode} onOpenSandbox={() => setIsOracleOpen(true)} />
+              </ErrorBoundary>
               <ErrorBoundary inline label="South China Sea Watch">
                 <LazyPanel name="RegionalNewsPanel" regionName="SouthChinaSea" title="South China Sea Watch" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
@@ -517,6 +525,9 @@ function App() {
             <>
               <ErrorBoundary inline label="Thailand Status">
                 <LazyPanel name="ThailandStatusPanel" />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="GPD Oracle">
+                <LazyPanel name="OraclePanel" panelKey={`oracle:${viewMode}`} viewMode={viewMode} onOpenSandbox={() => setIsOracleOpen(true)} />
               </ErrorBoundary>
               <ErrorBoundary inline label="Myanmar Border Crisis">
                 <LazyPanel name="RegionalNewsPanel" regionName="Myanmar" title="Myanmar Border Crisis" activeSourceIds={activeSources} viewMode={viewMode} />
@@ -569,6 +580,12 @@ function App() {
         />
 
         {/* Modal: Actor Network */}
+        <OracleSandboxModal
+          isOpen={isOracleOpen}
+          onClose={() => setIsOracleOpen(false)}
+          theater={viewMode}
+        />
+
         <ActorNetworkModal
           isOpen={isNetworkOpen}
           onClose={() => setIsNetworkOpen(false)}
