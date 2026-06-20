@@ -7,6 +7,7 @@
  * in the cache so the user never sees an empty panel.
  */
 import { upsertNewsItems, fetchNewsItems, recordIngestionRun, isSupabaseEnabled } from './supabase.mjs';
+import { upsertNewsItems as dbUpsertNews } from './localDb.mjs';
 
 const DEFAULT_LIMIT = 8;
 
@@ -105,8 +106,13 @@ export const ingestRegionalNews = async (region, code) => {
     const items = deduped.slice(0, DEFAULT_LIMIT);
 
     let upsertResult = { inserted: 0, error: null };
-    if (isSupabaseEnabled() && items.length) {
-        upsertResult = await upsertNewsItems(region, code, items);
+    if (items.length) {
+        // Always persist to local SQLite (primary)
+        dbUpsertNews(items, region, code);
+        // Persist to Supabase if configured (secondary)
+        if (isSupabaseEnabled()) {
+            upsertResult = await upsertNewsItems(region, code, items);
+        }
     }
 
     await recordIngestionRun({

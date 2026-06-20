@@ -30,6 +30,15 @@ import { recordToSheets, recordEscalation, getRecordingHealth } from './lib/shee
 import { ingestRegionalNews } from './lib/regionalNewsIngest.mjs';
 import { startAisStream, startVesselFinderRefresh, getVesselsGeoJson, getVesselsGeoJsonForTheater } from './lib/aisVessels.mjs';
 import { getRainviewerRadarTiles } from './lib/rainviewer.mjs';
+import { startScheduler } from './lib/scheduler.mjs';
+import {
+    saveSnapshot, loadAllSnapshots, getDbHealth,
+    upsertAcledEvents as dbUpsertAcled,
+    upsertFirmsHotspots as dbUpsertFirms,
+    upsertMarketQuotes as dbUpsertMarkets,
+    upsertSentimentReadings as dbUpsertSentiment,
+    upsertNewsItems as dbUpsertNews
+} from './lib/localDb.mjs';
 import {
     isSupabaseEnabled, getSupabaseStatusMessage,
     upsertAcledEvents, upsertFirmsHotspots, upsertMarketQuotes, upsertSentimentReadings
@@ -111,6 +120,8 @@ const useCached = async (key, ttlMs, loader, isUsable) => {
             expiresAt: now + ttlMs
         });
         recordHealth(key, true, null);
+        // Persist snapshot to local SQLite so cache survives server restart
+        saveSnapshot(key, payload, updatedAt);
         // Fire-and-forget: record to Google Sheets
         recordToSheets(key, payload, updatedAt).catch(() => {});
 
@@ -198,6 +209,11 @@ const server = http.createServer(async (request, response) => {
             return;
         }
 
+        if (url.pathname === '/api/db-health') {
+            json(response, 200, getDbHealth(), { status: 'live', updatedAt: new Date().toISOString(), cache: 'miss' });
+            return;
+        }
+
         if (url.pathname === '/api/health') {
             const entries = Array.from(cache.entries()).map(([key, value]) => ({
                 key,
@@ -274,7 +290,10 @@ const server = http.createServer(async (request, response) => {
                 () => fetchFirmsPayload(theater),
                 (payload) => payload?.type === 'FeatureCollection'
             );
-            if (result.meta.cache !== 'hit') upsertFirmsHotspots(result.payload, theater).catch(() => {});
+            if (result.meta.cache !== 'hit') {
+                upsertFirmsHotspots(result.payload, theater).catch(() => {});
+                dbUpsertFirms(result.payload, theater);
+            }
             json(response, 200, result.payload, result.meta);
             return;
         }
@@ -347,7 +366,10 @@ const server = http.createServer(async (request, response) => {
                 () => fetchGdeltSentiment(theater),
                 (p) => Array.isArray(p?.timeline)
             );
-            if (result.meta.cache !== 'hit') upsertSentimentReadings(result.payload).catch(() => {});
+            if (result.meta.cache !== 'hit') {
+                upsertSentimentReadings(result.payload).catch(() => {});
+                dbUpsertSentiment(result.payload);
+            }
             json(response, 200, result.payload, result.meta);
             return;
         }
@@ -404,7 +426,10 @@ const server = http.createServer(async (request, response) => {
                 () => fetchAcledEvents(since ? { since, theater } : { theater }),
                 (p) => p?.type === 'FeatureCollection'
             );
-            if (result.meta.cache !== 'hit') upsertAcledEvents(result.payload).catch(() => {});
+            if (result.meta.cache !== 'hit') {
+                upsertAcledEvents(result.payload).catch(() => {});
+                dbUpsertAcled(result.payload, theater);
+            }
             json(response, 200, result.payload, result.meta);
             return;
         }
@@ -427,7 +452,10 @@ const server = http.createServer(async (request, response) => {
                 () => fetchMarketPayload(),
                 (payload) => Array.isArray(payload) && payload.length > 0
             );
-            if (result.meta.cache !== 'hit') upsertMarketQuotes(result.payload).catch(() => {});
+            if (result.meta.cache !== 'hit') {
+                upsertMarketQuotes(result.payload).catch(() => {});
+                dbUpsertMarkets(result.payload);
+            }
             json(response, 200, result.payload, result.meta);
             return;
         }
@@ -566,6 +594,27 @@ server.listen(PORT, HOST, () => {
     if (fs.existsSync(DIST_DIR)) {
         console.log(`Serving static files from ${DIST_DIR}`);
     }
+
+    // Warm in-memory cache from local SQLite so first request is instant
+    const snapshots = loadAllSnapshots();
+    if (snapshots.length > 0) {
+        const now = Date.now();
+        for (const { cache_key, payload, updated_at } of snapshots) {
+            try {
+                const parsed = JSON.parse(payload);
+                // Mark snapshot entries as expired so they refresh eagerly,
+                // but still serve them as stale while fresh data loads.
+                cache.set(cache_key, {
+                    payload: parsed,
+                    updatedAt: updated_at,
+                    expiresAt: now - 1  // expired → triggers refresh on first hit
+                });
+            } catch (_) { /* skip malformed snapshot */ }
+        }
+        console.log(`[localDb] warmed ${snapshots.length} cache entries from SQLite`);
+    }
+
     startAisStream();
     startVesselFinderRefresh();
+    startScheduler(PORT);
 });

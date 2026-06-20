@@ -6,6 +6,7 @@ import {
     KEYWORD_GROUPS,
     buildGoogleNewsSearchUrl
 } from '../../src/services/liveNews.js';
+import { generateBriefingSummary } from './gemini.mjs';
 
 const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
@@ -240,6 +241,14 @@ export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) =
     const items = await gatherFeeds([...contextualSources, ...querySources], briefing.focusTags, 8);
     const stats = deriveBriefingStats(items);
 
+    const staticSummary = stats.total > 0
+        ? `${stats.highPriority || stats.total} elevated signals across ${stats.dominantTags.length || 1} dominant themes.`
+        : 'No live items were returned on the latest pull. Use the official source links while the feed refreshes.';
+
+    const aiSummary = stats.total > 0
+        ? await generateBriefingSummary(briefing.title, items)
+        : null;
+
     return {
         id: briefing.id,
         title: briefing.title,
@@ -247,8 +256,7 @@ export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) =
         primarySources: briefing.primarySources,
         items,
         stats,
-        summary: stats.total > 0
-            ? `${stats.highPriority || stats.total} elevated signals across ${stats.dominantTags.length || 1} dominant themes.`
-            : 'No live items were returned on the latest pull. Use the official source links while the feed refreshes.'
+        summary: aiSummary || staticSummary,
+        aiPowered: Boolean(aiSummary)
     };
 };
