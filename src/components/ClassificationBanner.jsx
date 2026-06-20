@@ -7,13 +7,15 @@ import React, { memo } from 'react';
  * Levels: UNCLASSIFIED, CUI, FOUO, CONFIDENTIAL, SECRET, TOP SECRET
  */
 
+// Quiet for unclassified tiers (a thin paper meta-strip, Rams-honest); the
+// genuinely sensitive tiers escalate to ink, then red — emphasis where it earns.
 const LEVELS = {
-    UNCLASSIFIED: { bg: '#22c55e', color: '#000', label: 'UNCLASSIFIED' },
-    CUI: { bg: '#6366f1', color: '#fff', label: 'CUI // CONTROLLED UNCLASSIFIED INFORMATION' },
-    FOUO: { bg: '#3b82f6', color: '#fff', label: 'UNCLASSIFIED // FOR OFFICIAL USE ONLY' },
-    CONFIDENTIAL: { bg: '#3b82f6', color: '#fff', label: 'CONFIDENTIAL' },
-    SECRET: { bg: '#ef4444', color: '#fff', label: 'SECRET' },
-    TOPSECRET: { bg: '#f59e0b', color: '#000', label: 'TOP SECRET' }
+    UNCLASSIFIED: { bg: 'var(--paper)', color: 'var(--ink-2)', label: 'UNCLASSIFIED' },
+    CUI: { bg: 'var(--paper)', color: 'var(--ink-2)', label: 'CUI // CONTROLLED UNCLASSIFIED INFORMATION' },
+    FOUO: { bg: 'var(--paper)', color: 'var(--ink-2)', label: 'UNCLASSIFIED // FOR OFFICIAL USE ONLY' },
+    CONFIDENTIAL: { bg: 'var(--ink)', color: 'var(--paper)', label: 'CONFIDENTIAL' },
+    SECRET: { bg: 'var(--ink)', color: 'var(--paper)', label: 'SECRET' },
+    TOPSECRET: { bg: 'var(--red)', color: 'var(--paper)', label: 'TOP SECRET' }
 };
 
 const ClassificationBanner = ({ level = 'UNCLASSIFIED' }) => {
@@ -29,6 +31,8 @@ const ClassificationBanner = ({ level = 'UNCLASSIFIED' }) => {
         justifyContent: 'center',
         background: config.bg,
         color: config.color,
+        borderTop: '1px solid var(--line-2)',
+        borderBottom: '1px solid var(--line-2)',
         fontSize: '0.55rem',
         fontWeight: 700,
         letterSpacing: '2px',

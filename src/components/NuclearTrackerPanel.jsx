@@ -3,10 +3,10 @@ import { Radiation, ChevronDown, ChevronUp, MapPin, AlertTriangle } from 'lucide
 import nuclearData from '../data/nuclearProgram.json';
 
 const STATUS_BADGES = {
-    destroyed: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', color: '#ef4444' },
-    damaged: { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', color: '#f59e0b' },
-    intact: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.25)', color: '#22c55e' },
-    unknown: { bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)', color: '#94a3b8' }
+    destroyed: { bg: 'transparent', border: 'var(--line-2)', color: 'var(--red)' },
+    damaged: { bg: 'transparent', border: 'var(--line-2)', color: 'var(--red)' },
+    intact: { bg: 'transparent', border: 'var(--line-2)', color: 'var(--green)' },
+    unknown: { bg: 'transparent', border: 'var(--line-2)', color: 'var(--ink-2)' }
 };
 
 const NuclearTrackerPanel = ({ onFlyTo }) => {
@@ -21,16 +21,16 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #a855f7', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--ink)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Radiation size={12} style={{ color: '#a855f7' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <Radiation size={12} style={{ color: 'var(--ink-2)' }} />
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Nuclear Program
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {nuclearData.facilities.length} SITES
                 </span>
             </div>
@@ -38,27 +38,27 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
             {/* Breakout estimate */}
             <div style={{
                 display: 'flex', gap: '6px', marginBottom: '8px',
-                padding: '6px 8px', borderRadius: '6px',
-                background: 'rgba(168,85,247,0.06)',
-                border: '1px solid rgba(168,85,247,0.1)'
+                padding: '6px 8px', borderRadius: 0,
+                background: 'transparent',
+                border: '1px solid var(--line)'
             }}>
-                <AlertTriangle size={10} style={{ color: '#a855f7', marginTop: '1px', flexShrink: 0 }} />
+                <AlertTriangle size={10} style={{ color: 'var(--ink-2)', marginTop: '1px', flexShrink: 0 }} />
                 <div>
-                    <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                    <div style={{ fontSize: '0.42rem', color: 'var(--ink-2)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
                         Breakout Estimate
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <div>
-                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#22c55e', fontFamily: 'var(--font-mono)' }}>
+                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
                                 {nuclearData.breakoutEstimate.postWar}
                             </span>
-                            <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.3)', marginLeft: '4px' }}>post-war</span>
+                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>post-war</span>
                         </div>
                         <div>
-                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)', textDecoration: 'line-through', opacity: 0.5 }}>
+                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)', textDecoration: 'line-through', opacity: 0.5 }}>
                                 {nuclearData.breakoutEstimate.preWar}
                             </span>
-                            <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.3)', marginLeft: '4px' }}>pre-war</span>
+                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>pre-war</span>
                         </div>
                     </div>
                 </div>
@@ -67,16 +67,16 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
             {/* KPI strip */}
             <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
                 {[
-                    { label: 'Destroyed', count: destroyed, color: '#ef4444' },
-                    { label: 'Damaged', count: damaged, color: '#f59e0b' },
-                    { label: 'Intact', count: intact, color: '#22c55e' }
+                    { label: 'Destroyed', count: destroyed, color: 'var(--red)' },
+                    { label: 'Damaged', count: damaged, color: 'var(--red)' },
+                    { label: 'Intact', count: intact, color: 'var(--green)' }
                 ].map(k => (
                     <div key={k.label} style={{
                         flex: 1, textAlign: 'center', padding: '4px',
-                        background: 'rgba(255,255,255,0.04)', borderRadius: '4px'
+                        background: '#f2f0ea', borderRadius: 0
                     }}>
                         <div style={{ fontSize: '0.82rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.count}</div>
-                        <div style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{k.label}</div>
+                        <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{k.label}</div>
                     </div>
                 ))}
             </div>
@@ -90,8 +90,8 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                             onClick={() => onFlyTo?.({ longitude: f.lon, latitude: f.lat, zoom: 8, transitionDuration: 1500 })}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '6px',
-                                padding: '4px 6px', borderRadius: '4px',
-                                background: 'rgba(255,255,255,0.02)',
+                                padding: '4px 6px', borderRadius: 0,
+                                background: 'transparent',
                                 cursor: onFlyTo ? 'pointer' : 'default',
                                 transition: 'background 0.2s'
                             }}
@@ -101,10 +101,10 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                                 background: f.statusColor, flexShrink: 0
                             }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: '0.48rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
+                                <div style={{ fontSize: '0.48rem', color: 'var(--ink)', fontWeight: 600 }}>
                                     {f.name}
                                 </div>
-                                <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.3)' }}>
+                                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
                                     {f.type} · IAEA: {f.iaeaAccess}
                                 </div>
                             </div>
@@ -114,7 +114,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                                 padding: '1px 5px',
                                 background: badge.bg,
                                 border: `1px solid ${badge.border}`,
-                                borderRadius: '3px',
+                                borderRadius: 0,
                                 letterSpacing: '0.5px',
                                 textTransform: 'uppercase'
                             }}>
@@ -131,9 +131,9 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                 style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     gap: '4px', width: '100%', marginTop: '6px',
-                    padding: '3px', background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    borderRadius: '4px', color: 'rgba(255,255,255,0.4)',
+                    padding: '3px', background: 'transparent',
+                    border: '1px solid var(--line)',
+                    borderRadius: 0, color: 'var(--ink-3)',
                     fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
                 }}
             >
@@ -146,17 +146,17 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                     {nuclearData.timeline.map((t, i) => (
                         <div key={i} style={{ display: 'flex', gap: '6px', padding: '2px 0' }}>
                             <span style={{
-                                fontSize: '0.36rem', color: 'rgba(255,255,255,0.3)',
+                                fontSize: '0.36rem', color: 'var(--ink-3)',
                                 fontFamily: 'var(--font-mono)', width: '38px', flexShrink: 0
                             }}>
                                 {t.date.slice(5)}
                             </span>
                             <div style={{
                                 width: '4px', height: '4px', borderRadius: '50%', marginTop: '3px',
-                                background: t.severity === 'critical' ? '#ef4444' : t.severity === 'high' ? '#f59e0b' : '#38bdf8',
+                                background: t.severity === 'critical' ? 'var(--red)' : t.severity === 'high' ? 'var(--red)' : 'var(--ink-2)',
                                 flexShrink: 0
                             }} />
-                            <span style={{ fontSize: '0.4rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.3 }}>
+                            <span style={{ fontSize: '0.4rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
                                 {t.event}
                             </span>
                         </div>

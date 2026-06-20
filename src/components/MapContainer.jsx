@@ -455,7 +455,9 @@ const ESRI_SATELLITE_STYLE = {
 // Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
 // onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
 const MAP_STYLES = {
-    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    // Rams: a minimal, low-chroma paper map. Positron is the light instrument basemap.
+    light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    dark: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
     satellite: ESRI_SATELLITE_STYLE,
     voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 };

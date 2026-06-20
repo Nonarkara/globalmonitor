@@ -3,20 +3,20 @@ import { User, ChevronDown, ChevronUp } from 'lucide-react';
 import keyFigures from '../data/keyFigures.json';
 
 const FACTION_COLORS = {
-    iran: '#ef4444',
-    israel: '#3b82f6',
-    usa: '#3b82f6',
-    hezbollah: '#ef4444',
-    houthis: '#ef4444',
-    saudi: '#22c55e',
-    international: '#38bdf8'
+    iran: 'var(--fill-1)',
+    israel: 'var(--fill-3)',
+    usa: 'var(--fill-3)',
+    hezbollah: 'var(--fill-1)',
+    houthis: 'var(--fill-1)',
+    saudi: 'var(--fill-2)',
+    international: 'var(--fill-4)'
 };
 
 const STATUS_STYLES = {
-    active: { color: '#22c55e', label: 'ACTIVE' },
-    unknown: { color: '#f59e0b', label: 'UNKNOWN' },
-    neutralized: { color: '#ef4444', label: 'KIA' },
-    detained: { color: '#f97316', label: 'DETAINED' }
+    active: { color: 'var(--green)', label: 'ACTIVE' },
+    unknown: { color: 'var(--ink-2)', label: 'UNKNOWN' },
+    neutralized: { color: 'var(--red)', label: 'KIA' },
+    detained: { color: 'var(--red)', label: 'DETAINED' }
 };
 
 const KeyFiguresPanel = () => {
@@ -34,16 +34,16 @@ const KeyFiguresPanel = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #06b6d4', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--ink)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <User size={12} style={{ color: '#06b6d4' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <User size={12} style={{ color: 'var(--ink-2)' }} />
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Key Figures
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {keyFigures.length} TRACKED
                 </span>
             </div>
@@ -51,21 +51,21 @@ const KeyFiguresPanel = () => {
             {/* Figure cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {displayed.map(fig => {
-                    const factionColor = FACTION_COLORS[fig.faction] || '#94a3b8';
+                    const factionColor = FACTION_COLORS[fig.faction] || 'var(--ink-2)';
                     const statusStyle = STATUS_STYLES[fig.status] || STATUS_STYLES.unknown;
 
                     return (
                         <div key={fig.id} style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
-                            padding: '4px 6px', borderRadius: '4px',
-                            background: 'rgba(255,255,255,0.02)',
-                            borderLeft: `2px solid ${factionColor}20`
+                            padding: '4px 6px', borderRadius: 0,
+                            background: 'transparent',
+                            borderLeft: `2px solid var(--line)`
                         }}>
                             {/* Avatar circle */}
                             <div style={{
                                 width: '22px', height: '22px', borderRadius: '50%',
-                                background: `${factionColor}15`,
-                                border: `1.5px solid ${factionColor}40`,
+                                background: 'transparent',
+                                border: `1.5px solid var(--line-2)`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontSize: '0.42rem', fontWeight: 700, color: factionColor,
                                 fontFamily: 'var(--font-mono)', flexShrink: 0
@@ -76,13 +76,13 @@ const KeyFiguresPanel = () => {
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
                                     fontSize: '0.48rem', fontWeight: 600,
-                                    color: 'rgba(255,255,255,0.8)',
+                                    color: 'var(--ink)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.name}
                                 </div>
                                 <div style={{
-                                    fontSize: '0.38rem', color: 'rgba(255,255,255,0.35)',
+                                    fontSize: '0.38rem', color: 'var(--ink-3)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.role}
@@ -93,8 +93,9 @@ const KeyFiguresPanel = () => {
                                 fontSize: '0.34rem', fontWeight: 700,
                                 color: statusStyle.color,
                                 padding: '1px 4px',
-                                background: `${statusStyle.color}15`,
-                                borderRadius: '2px',
+                                background: 'transparent',
+                                border: '1px solid var(--line)',
+                                borderRadius: 0,
                                 letterSpacing: '0.5px',
                                 flexShrink: 0
                             }}>
@@ -111,9 +112,9 @@ const KeyFiguresPanel = () => {
                     style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         gap: '4px', width: '100%', marginTop: '4px',
-                        padding: '3px', background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        borderRadius: '4px', color: 'rgba(255,255,255,0.4)',
+                        padding: '3px', background: 'transparent',
+                        border: '1px solid var(--line)',
+                        borderRadius: 0, color: 'var(--ink-3)',
                         fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
                     }}
                 >

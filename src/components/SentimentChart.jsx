@@ -63,11 +63,11 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid var(--accent-cyan)', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--line-2)', paddingLeft: '8px'
             }}>
-                <Activity size={12} style={{ color: 'var(--accent-cyan)' }} />
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Media Sentiment</span>
+                <Activity size={12} style={{ color: 'var(--ink-2)' }} />
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Media Sentiment</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isRefreshing={isRefreshing} isStale={isStale}
@@ -78,67 +78,56 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
     const { tones, zeroY, linePath, posArea, negArea, avg, trend, toX, toY, W, H, PAD } = computed;
     const latest = tones[tones.length - 1];
     const label = trend < -3 ? 'VERY NEGATIVE' : trend < -1 ? 'NEGATIVE' : trend < 1 ? 'NEUTRAL' : 'IMPROVING';
-    const labelColor = trend < -3 ? '#ef4444' : trend < -1 ? '#f59e0b' : trend < 1 ? 'rgba(255,255,255,0.5)' : '#22c55e';
+    const labelColor = trend < -3 ? 'var(--red)' : trend < -1 ? 'var(--red)' : trend < 1 ? 'var(--ink-2)' : 'var(--green)';
 
     return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '5px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #3b82f6', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--line-2)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Activity size={12} style={{ color: '#3b82f6' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <Activity size={12} style={{ color: 'var(--ink-2)' }} />
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Media Sentiment
                     </span>
                 </div>
                 <span style={{
                     fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
                     color: labelColor,
-                    padding: '2px 6px', borderRadius: '3px',
-                    background: `${labelColor}18`, border: `1px solid ${labelColor}30`
+                    padding: '2px 6px', borderRadius: 0,
+                    background: 'var(--panel)', border: '1px solid var(--line)'
                 }}>
                     {label}
                 </span>
             </div>
 
             <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '70px' }}>
-                <defs>
-                    <linearGradient id="posGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="negGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity="0.25" />
-                    </linearGradient>
-                </defs>
-
                 {/* Zero line */}
-                <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+                <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="var(--line)" strokeWidth="0.5" />
 
                 {/* Positive/Negative fills */}
-                <path d={posArea} fill="url(#posGrad)" />
-                <path d={negArea} fill="url(#negGrad)" />
+                <path d={posArea} fill="var(--green)" fillOpacity="0.12" />
+                <path d={negArea} fill="var(--red)" fillOpacity="0.12" />
 
                 {/* Tone line */}
-                <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d={linePath} fill="none" stroke="var(--ink-2)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
 
                 {/* Latest dot */}
-                <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#ef4444' : '#22c55e'} stroke="rgba(255,255,255,0.4)" strokeWidth="0.5">
+                <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? 'var(--red)' : 'var(--green)'} stroke="var(--line-2)" strokeWidth="0.5">
                     <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
                 </circle>
 
                 {/* Labels */}
-                <text x={W - PAD} y={PAD + 5} textAnchor="end" fill="rgba(34,197,94,0.4)" fontSize="4" fontFamily="var(--font-mono)">+positive</text>
-                <text x={W - PAD} y={H - PAD} textAnchor="end" fill="rgba(239,68,68,0.4)" fontSize="4" fontFamily="var(--font-mono)">-negative</text>
+                <text x={W - PAD} y={PAD + 5} textAnchor="end" fill="var(--green)" fillOpacity="0.5" fontSize="4" fontFamily="var(--font-mono)">+positive</text>
+                <text x={W - PAD} y={H - PAD} textAnchor="end" fill="var(--red)" fillOpacity="0.5" fontSize="4" fontFamily="var(--font-mono)">-negative</text>
             </svg>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
             </div>
         </div>
     );

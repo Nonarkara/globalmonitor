@@ -5,11 +5,11 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 
 const getMagColor = (mag) => {
-    if (mag >= 6) return '#dc2626';
-    if (mag >= 5) return '#ef4444';
-    if (mag >= 4) return '#f59e0b';
-    if (mag >= 3) return '#eab308';
-    return '#22c55e';
+    if (mag >= 6) return 'var(--red)';
+    if (mag >= 5) return 'var(--red)';
+    if (mag >= 4) return 'var(--red)';
+    if (mag >= 3) return 'var(--ink-2)';
+    return 'var(--green)';
 };
 
 const timeAgo = (timestamp) => {
@@ -29,15 +29,15 @@ const QuakeItem = ({ quake }) => {
             alignItems: 'center',
             gap: '8px',
             padding: '4px 6px',
-            borderRadius: '4px'
+            borderRadius: 0
         }}>
             {/* Magnitude badge */}
             <div style={{
                 width: '32px',
                 height: '28px',
-                borderRadius: '6px',
-                background: `${color}18`,
-                border: `1px solid ${color}30`,
+                borderRadius: 0,
+                background: 'var(--panel)',
+                border: '1px solid var(--line)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -56,7 +56,7 @@ const QuakeItem = ({ quake }) => {
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                     fontSize: '0.48rem',
-                    color: 'rgba(255,255,255,0.7)',
+                    color: 'var(--ink-2)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -65,7 +65,7 @@ const QuakeItem = ({ quake }) => {
                 </div>
                 <div style={{
                     fontSize: '0.4rem',
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     {timeAgo(quake.time)} · depth {quake.depth.toFixed(0)}km
@@ -102,7 +102,7 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {summary.significant > 0 && (
-                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: '#ef4444' }}>
+                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: 'var(--red)' }}>
                             {summary.significant} M4.5+
                         </span>
                     )}
@@ -126,26 +126,26 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
                 }}>
                     <div style={{
                         display: 'flex', gap: '12px', paddingBottom: '6px',
-                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        borderBottom: '1px solid var(--line)',
                         marginBottom: '4px'
                     }}>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: summary.last24h > 5 ? '#f59e0b' : 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: summary.last24h > 5 ? 'var(--red)' : 'var(--ink-2)' }}>
                                 {summary.last24h || 0}
                             </div>
-                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>24H</div>
+                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--ink-2)' }}>24H</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: getMagColor(summary.maxMagnitude || 0) }}>
                                 {summary.maxMagnitude ? summary.maxMagnitude.toFixed(1) : '--'}
                             </div>
-                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>MAX MAG</div>
+                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--ink-2)' }}>MAX MAG</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: 'var(--ink-2)' }}>
                                 {summary.total || 0}
                             </div>
-                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>TOTAL</div>
+                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--ink-2)' }}>TOTAL</div>
                         </div>
                     </div>
                     {quakes.map((q) => <QuakeItem key={q.id} quake={q} />)}
@@ -153,9 +153,9 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
             </DataStatus>
             <div style={{
                 padding: '4px 8px',
-                borderTop: '1px solid rgba(255,255,255,0.04)',
+                borderTop: '1px solid var(--line)',
                 fontSize: '0.4rem',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--ink-3)',
                 textAlign: 'right'
             }}>
                 Source: US Geological Survey (USGS)

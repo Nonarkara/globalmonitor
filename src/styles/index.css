@@ -1,11 +1,23 @@
 :root {
-  /* ── Surface System ── */
-  --bg-dark: #0c0d0e;
-  --bg-panel: rgba(13, 15, 16, 0.96);
-  --surface-color: rgba(255, 255, 255, 0.045);
-  --surface-translucent: rgba(255, 255, 255, 0.035);
-  --surface-hover: rgba(255, 255, 255, 0.065);
-  --shadow-color: rgba(0, 0, 0, 0.12);
+  /* ── Rams palette — warm-neutral, near-monochrome, one accent (Braun green) ── */
+  --paper: #faf9f7;   /* page background */
+  --panel: #ffffff;   /* cards / cells */
+  --ink: #191712;     /* primary text, bars, active */
+  --ink-2: #6f6c63;   /* secondary text */
+  --ink-3: #a9a59a;   /* tertiary / labels / meta */
+  --line: #e7e5dd;    /* hairlines, grid gaps */
+  --line-2: #d2cfc5;  /* stronger borders */
+  --green: #1f6e43;   /* THE accent */
+  --red: #a23a26;     /* loss / negative only */
+  --fill-1: #191712; --fill-2: #1f6e43; --fill-3: #8f8b80; --fill-4: #bdb9ad; --fill-5: #d8d4ca;
+
+  /* ── Surface System (mapped to Rams) ── */
+  --bg-dark: #faf9f7;
+  --bg-panel: #ffffff;
+  --surface-color: #ffffff;
+  --surface-translucent: #ffffff;
+  --surface-hover: #f2f0ea;
+  --shadow-color: transparent;
   --bg-blur: none;
 
   /* ── Typography Scale (6 stops only) ── */
@@ -15,9 +27,9 @@
   --type-lg: 1rem;       /* 16px — panel headers */
   --type-xl: 1.25rem;    /* 20px — section titles */
   --type-2xl: 1.75rem;   /* 28px — hero numbers (clock, day count) */
-  --text-main: rgba(255, 255, 255, 0.92);
-  --text-muted: rgba(255, 255, 255, 0.55);
-  --text-dim: rgba(255, 255, 255, 0.28);
+  --text-main: #191712;
+  --text-muted: #6f6c63;
+  --text-dim: #a9a59a;
 
   /* ── Spacing Scale (4px base grid + golden section) ── */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;  --sp-4: 16px;
@@ -35,26 +47,28 @@
   --type-title: 1rem;
   --type-hero: 1.618rem;
 
-  /* ── Semantic Color Palette ── */
-  --accent-blue: #7b9bb3;
-  --accent-yellow: #eab308;
-  --accent-green: #22c55e;
-  --accent-red: #ef4444;
-  --accent-amber: #f59e0b;
-  --accent-cyan: #38bdf8;
-  --accent-purple: #a855f7;
-  --accent-pink: #ec4899;
-  --border-color: rgba(255, 255, 255, 0.12);
+  /* ── Semantic Color Palette — demoted to the Rams vocabulary.
+        One signal color (green) + red-for-loss; everything else is grey/ink. ── */
+  --accent-blue: #6f6c63;
+  --accent-yellow: #8f8b80;
+  --accent-green: #1f6e43;
+  --accent-red: #a23a26;
+  --accent-amber: #8f8b80;
+  --accent-cyan: #6f6c63;
+  --accent-purple: #191712;
+  --accent-pink: #8f8b80;
+  --border-color: #e7e5dd;
 
-  /* ── Radii ── */
-  --radius-lg: 2px;
-  --radius-md: 2px;
-  --radius-sm: 2px;
-  --radius-full: 9999px;
+  /* ── Radii — Rams: square. ── */
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
+  --radius-full: 9999px; /* dots/circles only */
 
   /* ── Motion ── */
   --transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, opacity 0.14s ease;
-  --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  /* "mono" numerals → the Braun grotesque with tabular figures (no separate monospace). */
+  --font-mono: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* ── Z-Index Layers ── */
   --z-map: 0;
@@ -84,13 +98,16 @@ html {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
   overflow: hidden;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+::selection { background: var(--green); color: #fff; }
 
 #root {
   width: 100vw;
@@ -3529,6 +3546,125 @@ body {
 
 .traffic-tooltip-row span:last-child {
   font-family: var(--font-mono);
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RAMS OVERHAUL — less, but better. Light warm-neutral instrument panel.
+   Lives last so it wins the cascade. No gradients, shadows, blur, or radius.
+   One accent (green) + red-for-loss; hierarchy from grey + size, not hue.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Kill all glass — no blur or shadow anywhere. */
+.app-container *, .glass-card, .glass-panel, [class*="modal"], [class*="Modal"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.glass-card, .glass-panel, .bottom-card, .grid-panel,
+[class*="modal"], [class*="Modal"], .traffic-tooltip {
+  box-shadow: none !important;
+}
+
+/* Surfaces → white cells on paper, hairline borders, square corners. */
+.glass-card, .glass-panel, .bottom-card, .grid-panel {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+}
+body, #root { background: var(--paper); }
+.map-container, .maplibregl-map, .maplibregl-canvas-container { background: var(--paper) !important; }
+
+/* Panel / section headers → Rams label: ink, 700, letterspaced, over a rule. */
+.panel-header {
+  color: var(--ink) !important;
+  border-bottom: 1px solid var(--ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+}
+
+/* Live pill → square green label (no glow capsule). Muted → grey. */
+.live-pill, .glass-pill, .glass-pill-live {
+  color: var(--green) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  letter-spacing: 0.14em !important;
+  font-weight: 700 !important;
+  animation: none !important;
+}
+.live-pill-muted, .glass-pill-muted { color: var(--ink-3) !important; }
+
+/* Shells: header, bars, sidebars → paper, hairline dividers, square. */
+.header-bar, .bottom-bar, .left-sidebar, .right-sidebar {
+  background: var(--paper) !important;
+  border-radius: 0 !important;
+}
+.header-bar { border-bottom: 1px solid var(--line-2) !important; }
+
+/* Buttons / inputs → square; green accent. */
+button { border-radius: 0 !important; }
+input[type="range"] { accent-color: var(--green) !important; }
+input[type="text"], input[type="search"], select, textarea {
+  background: var(--panel) !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 0 !important;
+  color: var(--ink) !important;
+}
+
+/* Scrollbars → thin, line-colored. */
+* { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--line-2); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Classification banners → restrained ink-on-paper. */
+[class*="classification"], [class*="Classification"] {
+  background: var(--paper) !important;
+  color: var(--ink-2) !important;
+  border-color: var(--line-2) !important;
+  text-shadow: none !important;
+}
+
+/* Tooltips → white card, hairline, ink text. */
+.traffic-tooltip, .traffic-tooltip-content {
+  background: var(--panel) !important;
+  border: 1px solid var(--line-2) !important;
+  color: var(--ink) !important;
+}
+
+/* Remaining hardcoded-dark CSS classes → light surfaces. */
+.map-story-strip, .header-tools-menu, .region-selector, .eo-preview-card,
+.live-media-preview, .live-media-fallback, .map-legend, .map-style-toggle,
+.traffic-tooltip .mapboxgl-popup-content, .maplibregl-popup-content {
+  background: var(--panel) !important;
+  border-color: var(--line) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+}
+.region-selector { background: var(--paper) !important; border: 1px solid var(--line-2) !important; }
+
+/* Modal scrim → light ink wash, no blur. */
+.modal-overlay {
+  background: rgba(25, 23, 18, 0.45) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Header theater tabs → underline-active, not a dark pill. */
+.header-region-tabs { background: transparent !important; border: none !important; }
+.header-region-tab {
+  background: transparent !important;
+  color: var(--ink-2) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+}
+.header-region-tab.is-active {
+  color: var(--ink) !important;
+  background: transparent !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+/* Map data overlays: keep heat warm (honest data) but mute the basemap canvas to paper. */
+.maplibregl-ctrl-attrib, .maplibregl-ctrl { background: rgba(255,255,255,0.7) !important; }

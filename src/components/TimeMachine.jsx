@@ -80,23 +80,22 @@ const TimeMachine = ({ onDateChange }) => {
             alignItems: 'center',
             gap: '8px',
             padding: '6px 14px',
-            borderRadius: '12px',
-            background: 'rgba(22, 28, 40, 0.85)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            backdropFilter: 'blur(16px)',
+            borderRadius: 0,
+            background: 'var(--panel)',
+            border: '1px solid var(--line-2)',
             minWidth: '380px'
         }}>
-            <Clock size={13} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+            <Clock size={13} style={{ color: 'var(--ink-2)', flexShrink: 0 }} />
 
             <button onClick={togglePlay} style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '6px',
+                background: '#f2f0ea',
+                border: '1px solid var(--line)',
+                borderRadius: 0,
                 padding: '3px 6px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                color: 'rgba(255,255,255,0.7)'
+                color: 'var(--ink-2)'
             }}>
                 {playing ? <Pause size={11} /> : <Play size={11} />}
             </button>
@@ -107,7 +106,7 @@ const TimeMachine = ({ onDateChange }) => {
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--ink-3)',
                 padding: '3px'
             }}>
                 <SkipBack size={11} />
@@ -123,7 +122,7 @@ const TimeMachine = ({ onDateChange }) => {
                     flex: 1,
                     height: '3px',
                     cursor: 'pointer',
-                    accentColor: '#3b82f6'
+                    accentColor: 'var(--ink)'
                 }}
             />
 
@@ -137,7 +136,7 @@ const TimeMachine = ({ onDateChange }) => {
                 <span style={{
                     fontSize: '0.6rem',
                     fontFamily: 'var(--font-mono)',
-                    color: isLive ? '#22c55e' : '#f59e0b',
+                    color: isLive ? 'var(--green)' : 'var(--ink-2)',
                     fontWeight: 600,
                     letterSpacing: '0.5px'
                 }}>
@@ -145,7 +144,7 @@ const TimeMachine = ({ onDateChange }) => {
                 </span>
                 <span style={{
                     fontSize: '0.55rem',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--ink-2)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     {formatDate(selectedDate)}

@@ -39,11 +39,11 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
         alignItems: 'center',
         gap: '6px',
         padding: '5px 10px',
-        borderBottom: '1px solid var(--border-color)',
+        borderBottom: '1px solid var(--line)',
         fontSize: '0.6rem',
         fontWeight: 600,
         letterSpacing: '1px',
-        color: 'var(--text-muted)',
+        color: 'var(--ink-2)',
         textTransform: 'uppercase',
       }}>
         <Tv size={10} style={{ opacity: 0.5 }} />
@@ -52,7 +52,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
           <span style={{
             marginLeft: 'auto',
             fontSize: '0.5rem',
-            color: '#ef4444',
+            color: 'var(--green)',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
@@ -62,7 +62,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
               width: '5px',
               height: '5px',
               borderRadius: '50%',
-              background: '#ef4444',
+              background: 'var(--green)',
               animation: 'pulse-dot 1.5s infinite',
             }} />
             ON AIR
@@ -87,14 +87,14 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
               key={ch.id}
               style={{
                 position: 'relative',
-                borderRadius: '4px',
+                borderRadius: 0,
                 overflow: 'hidden',
                 border: isActive
-                  ? `1px solid ${ch.color}`
-                  : '1px solid rgba(255,255,255,0.04)',
+                  ? '1px solid var(--line-2)'
+                  : '1px solid var(--line)',
                 cursor: 'pointer',
                 transition: 'border-color 0.3s',
-                boxShadow: isActive ? `0 0 8px ${ch.color}22` : 'none',
+                boxShadow: 'none',
                 aspectRatio: '16/9',
               }}
               onClick={() => handleChannelClick(ch.id)}
@@ -118,7 +118,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
                 left: 0,
                 right: 0,
                 padding: '1px 4px',
-                background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                background: 'var(--panel)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -127,15 +127,15 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
                 <span style={{
                   fontSize: '0.48rem',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.85)',
+                  color: 'var(--ink)',
                   letterSpacing: '0.2px',
                 }}>
                   {ch.name}
                 </span>
                 {isActive ? (
-                  <Volume2 size={7} style={{ color: ch.color }} />
+                  <Volume2 size={7} style={{ color: 'var(--ink-2)' }} />
                 ) : (
-                  <VolumeX size={7} style={{ color: 'rgba(255,255,255,0.2)' }} />
+                  <VolumeX size={7} style={{ color: 'var(--ink-3)' }} />
                 )}
               </div>
             </div>
@@ -153,8 +153,8 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
               key={i}
               onClick={() => setPageState({ viewMode, page: i })}
               style={{
-                width: '12px', height: '3px', borderRadius: '2px',
-                background: i === page ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.15)',
+                width: '12px', height: '3px', borderRadius: 0,
+                background: i === page ? 'var(--ink-2)' : 'var(--line)',
                 border: 'none', cursor: 'pointer', padding: 0,
                 transition: 'background 0.3s'
               }}

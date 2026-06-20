@@ -94,12 +94,12 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                         onClick={load}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--ink-2)', cursor: 'pointer', display: 'flex', padding: 0 }}
                         title="Refresh"
                     >
                         <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
                     </button>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--bg-dark)', fontWeight: 'bold', background: 'var(--accent-blue)', padding: '2px 6px' }}>LIVE</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--green)', fontWeight: 'bold', background: 'var(--panel)', border: '1px solid var(--line)', padding: '2px 6px' }}>LIVE</span>
                 </div>
             </div>
 
@@ -110,7 +110,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                     gap: 6,
                     overflowX: 'auto',
                     padding: '6px 8px',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    borderBottom: '1px solid var(--line)',
                     scrollbarWidth: 'thin'
                 }}
             >
@@ -126,9 +126,9 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                                 flexShrink: 0,
                                 minHeight: 28,
                                 padding: '4px 10px',
-                                background: isActive ? 'rgba(56,189,248,0.18)' : 'transparent',
-                                border: isActive ? '1px solid rgba(56,189,248,0.55)' : '1px solid rgba(255,255,255,0.08)',
-                                color: isActive ? '#dbeafe' : 'rgba(255,255,255,0.6)',
+                                background: isActive ? '#f2f0ea' : 'transparent',
+                                border: isActive ? '1px solid var(--line-2)' : '1px solid var(--line)',
+                                color: isActive ? 'var(--ink)' : 'var(--ink-2)',
                                 fontSize: '0.65rem',
                                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                                 letterSpacing: '0.5px',
@@ -145,7 +145,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
 
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
                 {news.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.7rem', color: 'var(--ink-3)' }}>
                         {isRefreshing ? 'Connecting to live feeds…' : 'No live items right now.'}
                     </div>
                 )}
@@ -158,14 +158,14 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                         style={{
                             textDecoration: 'none',
                             color: 'inherit',
-                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                            borderBottom: '1px solid var(--line)',
                             paddingBottom: '8px',
                             display: 'block'
                         }}
                     >
-                        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.62rem', color: 'var(--ink-2)', marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {item.tag === 'urgent' ? <Zap size={9} style={{ color: '#ef4444' }} /> : <Cpu size={9} style={{ color: '#38bdf8' }} />}
+                                {item.tag === 'urgent' ? <Zap size={9} style={{ color: 'var(--red)' }} /> : <Cpu size={9} style={{ color: 'var(--ink-2)' }} />}
                                 <span style={{ fontWeight: 'bold' }}>{item.source}</span>
                             </span>
                             <span>{safeTime(item.pubDate)}</span>

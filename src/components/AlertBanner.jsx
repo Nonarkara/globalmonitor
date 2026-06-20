@@ -20,13 +20,11 @@ const AlertBanner = () => {
     if (score < 50) return null;
 
     const isCritical = score >= 70;
-    const bgColor = isCritical
-        ? 'rgba(239, 68, 68, 0.15)'
-        : 'rgba(245, 158, 11, 0.12)';
+    const bgColor = 'var(--panel)';
     const borderColor = isCritical
-        ? 'rgba(239, 68, 68, 0.4)'
-        : 'rgba(245, 158, 11, 0.3)';
-    const textColor = isCritical ? '#ef4444' : '#f59e0b';
+        ? 'var(--red)'
+        : 'var(--line-2)';
+    const textColor = isCritical ? 'var(--red)' : 'var(--ink-2)';
 
     // Find dominant contributing factor
     const factors = [];
@@ -45,7 +43,6 @@ const AlertBanner = () => {
             right: 0,
             zIndex: 9999,
             background: bgColor,
-            backdropFilter: 'blur(20px)',
             borderBottom: `1px solid ${borderColor}`,
             padding: '6px 16px',
             display: 'flex',
@@ -67,7 +64,7 @@ const AlertBanner = () => {
             {factors.length > 0 && (
                 <span style={{
                     fontSize: '0.5rem',
-                    color: 'rgba(255,255,255,0.4)',
+                    color: 'var(--ink-3)',
                     letterSpacing: '0.3px'
                 }}>
                     Driven by {factors.join(', ')}
@@ -78,7 +75,7 @@ const AlertBanner = () => {
                 style={{
                     background: 'transparent',
                     border: 'none',
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'var(--ink-3)',
                     cursor: 'pointer',
                     padding: '2px',
                     display: 'flex',

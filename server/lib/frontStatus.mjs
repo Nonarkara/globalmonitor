@@ -63,10 +63,11 @@ const FRONTS = [
 ];
 
 const getStatus = (score) => {
-    if (score >= 70) return { status: 'CRITICAL', color: '#ef4444' };
-    if (score >= 40) return { status: 'ACTIVE', color: '#f59e0b' };
-    if (score >= 15) return { status: 'ELEVATED', color: '#eab308' };
-    return { status: 'STABLE', color: '#22c55e' };
+    // Rams severity ramp: green (stable) → neutral greys → brick red (critical).
+    if (score >= 70) return { status: 'CRITICAL', color: '#a23a26' };
+    if (score >= 40) return { status: 'ACTIVE', color: '#6f6c63' };
+    if (score >= 15) return { status: 'ELEVATED', color: '#8f8b80' };
+    return { status: 'STABLE', color: '#1f6e43' };
 };
 
 const isInBbox = (lon, lat, bbox) =>

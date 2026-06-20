@@ -4,9 +4,9 @@ import sanctionsData from '../data/sanctions.json';
 import { WAR_START } from '../data/warConstants';
 
 const IMPACT_COLORS = {
-    severe: '#ef4444',
-    high: '#f59e0b',
-    moderate: '#3b82f6'
+    severe: 'var(--red)',
+    high: 'var(--ink-2)',
+    moderate: 'var(--ink-3)'
 };
 
 const TYPE_ICONS = {
@@ -39,16 +39,16 @@ const SanctionsPanel = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #8b5cf6', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--ink)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Shield size={12} style={{ color: '#8b5cf6' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <Shield size={12} style={{ color: 'var(--ink)' }} />
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Sanctions Tracker
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {totalCount} ACTIVE
                 </span>
             </div>
@@ -57,24 +57,24 @@ const SanctionsPanel = () => {
             <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'rgba(255,255,255,0.04)', borderRadius: '4px'
+                    background: '#f2f0ea', borderRadius: 0
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#8b5cf6', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
+                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'rgba(255,255,255,0.04)', borderRadius: '4px'
+                    background: '#f2f0ea', borderRadius: 0
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
+                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'rgba(255,255,255,0.04)', borderRadius: '4px'
+                    background: '#f2f0ea', borderRadius: 0
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>{uniqueTargets}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Targets</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{uniqueTargets}</div>
+                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Targets</div>
                 </div>
             </div>
 
@@ -83,10 +83,10 @@ const SanctionsPanel = () => {
                 {Object.entries(byImposer).sort((a, b) => b[1] - a[1]).map(([who, count]) => (
                     <span key={who} style={{
                         fontSize: '0.4rem', fontWeight: 600,
-                        padding: '2px 6px', borderRadius: '3px',
-                        background: 'rgba(139,92,246,0.1)',
-                        border: '1px solid rgba(139,92,246,0.15)',
-                        color: 'rgba(255,255,255,0.6)',
+                        padding: '2px 6px', borderRadius: 0,
+                        background: '#f2f0ea',
+                        border: '1px solid var(--line)',
+                        color: 'var(--ink-2)',
                         letterSpacing: '0.3px'
                     }}>
                         {who} ({count})
@@ -100,25 +100,25 @@ const SanctionsPanel = () => {
                     <div key={i} style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '3px 0',
-                        borderBottom: '1px solid rgba(255,255,255,0.03)'
+                        borderBottom: '1px solid var(--line)'
                     }}>
                         <span style={{ fontSize: '0.55rem', width: '16px', textAlign: 'center' }}>
                             {TYPE_ICONS[s.type] || '📄'}
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
-                                fontSize: '0.46rem', color: 'rgba(255,255,255,0.7)',
+                                fontSize: '0.46rem', color: 'var(--ink-2)',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }}>
                                 {s.target}
                             </div>
-                            <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.3)' }}>
+                            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
                                 {s.imposedBy} · {s.date}
                             </div>
                         </div>
                         <div style={{
                             width: '6px', height: '6px', borderRadius: '50%',
-                            background: IMPACT_COLORS[s.impact] || '#3b82f6',
+                            background: IMPACT_COLORS[s.impact] || 'var(--ink-3)',
                             flexShrink: 0
                         }} />
                     </div>
@@ -131,9 +131,9 @@ const SanctionsPanel = () => {
                     style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         gap: '4px', width: '100%', marginTop: '4px',
-                        padding: '3px', background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        borderRadius: '4px', color: 'rgba(255,255,255,0.4)',
+                        padding: '3px', background: '#f2f0ea',
+                        border: '1px solid var(--line)',
+                        borderRadius: 0, color: 'var(--ink-2)',
                         fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit',
                         transition: 'all 0.2s'
                     }}

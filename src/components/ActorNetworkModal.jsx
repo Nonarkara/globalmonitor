@@ -5,10 +5,10 @@ import networkData from '../data/actorNetwork.json';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 
 const EDGE_COLORS = {
-    alliance: '#22c55e',
-    rivalry: '#ef4444',
-    proxy: '#f59e0b',
-    arms: '#38bdf8'
+    alliance: '#1f6e43',
+    rivalry: '#a23a26',
+    proxy: '#8f8b80',
+    arms: '#bdb9ad'
 };
 
 const EDGE_DASH = {
@@ -97,7 +97,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
         const link = g.append('g').selectAll('line')
             .data(edges)
             .join('line')
-            .attr('stroke', d => EDGE_COLORS[d.type] || '#666')
+            .attr('stroke', d => EDGE_COLORS[d.type] || '#8f8b80')
             .attr('stroke-width', 1.5)
             .attr('stroke-opacity', 0.4)
             .attr('stroke-dasharray', d => EDGE_DASH[d.type] || 'none')
@@ -108,7 +108,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
             .data(edges)
             .join('text')
             .text(d => d.label)
-            .attr('fill', 'rgba(255,255,255,0.2)')
+            .attr('fill', '#a9a59a')
             .attr('font-size', '7px')
             .attr('text-anchor', 'middle')
             .attr('font-family', 'Inter, system-ui, sans-serif')
@@ -161,7 +161,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
             .text(d => d.label)
             .attr('dy', d => d.size + 12)
             .attr('text-anchor', 'middle')
-            .attr('fill', 'rgba(255,255,255,0.7)')
+            .attr('fill', '#6f6c63')
             .attr('font-size', '9px')
             .attr('font-weight', 600)
             .attr('font-family', 'Inter, system-ui, sans-serif')
@@ -214,34 +214,34 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
             <div style={{
                 position: 'fixed', inset: 0, zIndex: 10000,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(0,0,0,0.85)',
+                background: 'rgba(25,23,18,0.45)',
                 padding: '24px'
             }} onClick={onClose}>
                 <div style={{
-                    background: 'rgba(10, 14, 20, 0.96)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--panel)',
+                    border: '1px solid var(--line-2)',
                     padding: '28px 24px',
                     maxWidth: '320px',
                     textAlign: 'center'
                 }} onClick={e => e.stopPropagation()}>
-                    <Network size={20} style={{ color: '#8b5cf6', marginBottom: '14px' }} />
+                    <Network size={20} style={{ color: 'var(--ink)', marginBottom: '14px' }} />
                     <div style={{
-                        fontSize: '0.95rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)',
+                        fontSize: '0.95rem', fontWeight: 600, color: 'var(--ink)',
                         marginBottom: '8px', letterSpacing: '0.4px'
                     }}>
                         Actor / Faction Network
                     </div>
                     <div style={{
-                        fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)',
+                        fontSize: '0.75rem', color: 'var(--ink-2)',
                         lineHeight: 1.55, marginBottom: '16px'
                     }}>
                         {networkData.nodes.length} actors · {networkData.edges.length} relationships.
                         The interactive graph is available on tablet and desktop — open globalmonitor.fly.dev on a wider screen to explore.
                     </div>
                     <button onClick={onClose} style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: 'rgba(255,255,255,0.75)',
+                        background: '#f2f0ea',
+                        border: '1px solid var(--line)',
+                        color: 'var(--ink)',
                         padding: '10px 18px',
                         fontSize: '0.75rem', fontFamily: 'inherit',
                         letterSpacing: '0.6px', cursor: 'pointer',
@@ -263,17 +263,15 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
         <div style={{
             position: 'fixed', inset: 0, zIndex: 10000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(0,0,0,0.7)',
-            backdropFilter: 'blur(8px)'
+            background: 'rgba(25,23,18,0.45)'
         }} onClick={onClose}>
             <div style={{
                 width: dimensions.width + 40,
                 maxWidth: '95vw',
                 maxHeight: '90vh',
-                background: 'rgba(14, 18, 28, 0.95)',
-                backdropFilter: 'blur(24px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--panel)',
+                borderRadius: 0,
+                border: '1px solid var(--line-2)',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column'
@@ -282,18 +280,18 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                 <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '14px 20px',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)'
+                    borderBottom: '1px solid var(--line)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Network size={16} style={{ color: '#8b5cf6' }} />
+                        <Network size={16} style={{ color: 'var(--ink)' }} />
                         <span style={{
                             fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px',
-                            color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase'
+                            color: 'var(--ink)', textTransform: 'uppercase'
                         }}>
                             Actor / Faction Network
                         </span>
                         <span style={{
-                            fontSize: '0.5rem', color: 'rgba(255,255,255,0.35)',
+                            fontSize: '0.5rem', color: 'var(--ink-3)',
                             fontFamily: 'var(--font-mono)'
                         }}>
                             {networkData.nodes.length} actors · {networkData.edges.length} relationships
@@ -305,11 +303,11 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                             {Object.entries(EDGE_COLORS).map(([type, color]) => (
                                 <span key={type} style={{
                                     display: 'flex', alignItems: 'center', gap: '4px',
-                                    fontSize: '0.42rem', color: 'rgba(255,255,255,0.4)'
+                                    fontSize: '0.42rem', color: 'var(--ink-2)'
                                 }}>
                                     <span style={{
                                         width: '12px', height: '2px', background: color,
-                                        display: 'inline-block', borderRadius: '1px'
+                                        display: 'inline-block', borderRadius: 0
                                     }} />
                                     {type}
                                 </span>
@@ -318,10 +316,10 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                         <button
                             onClick={onClose}
                             style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                borderRadius: '6px', padding: '6px 12px',
-                                color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+                                background: '#f2f0ea',
+                                border: '1px solid var(--line)',
+                                borderRadius: 0, padding: '6px 12px',
+                                color: 'var(--ink-2)', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', gap: '6px',
                                 fontSize: '0.6rem', fontFamily: 'inherit', minHeight: '32px'
                             }}
@@ -345,7 +343,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                         <div style={{
                             width: '240px', flexShrink: 0,
                             padding: '16px',
-                            borderLeft: '1px solid rgba(255,255,255,0.06)',
+                            borderLeft: '1px solid var(--line)',
                             overflowY: 'auto'
                         }}>
                             <div style={{
@@ -363,7 +361,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                                     {selectedNode.label.substring(0, 2).toUpperCase()}
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
+                                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--ink)' }}>
                                         {selectedNode.label}
                                     </div>
                                     <div style={{ fontSize: '0.4rem', color: selectedNode.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -373,7 +371,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                             </div>
 
                             <div style={{
-                                fontSize: '0.45rem', color: 'rgba(255,255,255,0.55)',
+                                fontSize: '0.45rem', color: 'var(--ink-2)',
                                 lineHeight: 1.5, marginBottom: '14px'
                             }}>
                                 {selectedNode.description}
@@ -381,7 +379,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
 
                             <div style={{
                                 fontSize: '0.42rem', fontWeight: 600,
-                                letterSpacing: '1px', color: 'rgba(255,255,255,0.4)',
+                                letterSpacing: '1px', color: 'var(--ink-3)',
                                 textTransform: 'uppercase', marginBottom: '6px'
                             }}>
                                 Relationships ({selectedEdges.length})
@@ -395,17 +393,17 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                                     <div key={i} style={{
                                         display: 'flex', alignItems: 'center', gap: '6px',
                                         padding: '4px 0',
-                                        borderBottom: '1px solid rgba(255,255,255,0.04)'
+                                        borderBottom: '1px solid var(--line)'
                                     }}>
                                         <div style={{
                                             width: '6px', height: '6px', borderRadius: '50%',
-                                            background: EDGE_COLORS[e.type] || '#666'
+                                            background: EDGE_COLORS[e.type] || '#8f8b80'
                                         }} />
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.7)' }}>
+                                            <div style={{ fontSize: '0.45rem', color: 'var(--ink-2)' }}>
                                                 {otherNode?.label || other}
                                             </div>
-                                            <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.3)' }}>
+                                            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
                                                 {e.label} · {e.type}
                                             </div>
                                         </div>

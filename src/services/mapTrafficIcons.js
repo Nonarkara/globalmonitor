@@ -3,8 +3,9 @@
  * Loaded once per style via map.addImage — no DOM markers.
  */
 
-const PLANE_CIVILIAN = '#facc15';
-const PLANE_MILITARY = '#ef4444';
+// Rams: dark ink markers on the light paper map; military escalates to brick red.
+const PLANE_CIVILIAN = '#191712';
+const PLANE_MILITARY = '#a23a26';
 
 /** Nose-up top-down aircraft — narrow fuselage, wide swept wings. */
 const planeSvg = (fill) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
@@ -35,14 +36,15 @@ export const TRAFFIC_ICON_NAMES = {
     vesselOther: 'vessel-other',
 };
 
+// Neutral ink/grey ramp; tankers (hazard) keep the brick red.
 const VESSEL_COLORS = {
-    [TRAFFIC_ICON_NAMES.vesselCargo]: '#22c55e',
-    [TRAFFIC_ICON_NAMES.vesselTanker]: '#ef4444',
-    [TRAFFIC_ICON_NAMES.vesselPassenger]: '#3b82f6',
-    [TRAFFIC_ICON_NAMES.vesselFishing]: '#f59e0b',
-    [TRAFFIC_ICON_NAMES.vesselTug]: '#ea580c',
-    [TRAFFIC_ICON_NAMES.vesselPleasure]: '#a855f7',
-    [TRAFFIC_ICON_NAMES.vesselOther]: '#94a3b8',
+    [TRAFFIC_ICON_NAMES.vesselCargo]: '#1f6e43',
+    [TRAFFIC_ICON_NAMES.vesselTanker]: '#a23a26',
+    [TRAFFIC_ICON_NAMES.vesselPassenger]: '#191712',
+    [TRAFFIC_ICON_NAMES.vesselFishing]: '#6f6c63',
+    [TRAFFIC_ICON_NAMES.vesselTug]: '#8f8b80',
+    [TRAFFIC_ICON_NAMES.vesselPleasure]: '#8f8b80',
+    [TRAFFIC_ICON_NAMES.vesselOther]: '#a9a59a',
 };
 
 const ICON_SPECS = [

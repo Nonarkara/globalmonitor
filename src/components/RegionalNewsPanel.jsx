@@ -140,18 +140,18 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                         onClick={fetchNews}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--ink-2)', cursor: 'pointer', display: 'flex', padding: 0 }}
                         title="Force Refresh Data"
                     >
                         <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
                     </button>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--bg-dark)', fontWeight: 'bold', background: 'var(--accent-blue)', padding: '2px 6px', borderRadius: '4px' }}>LIVE</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--green)', fontWeight: 'bold', background: 'var(--panel)', border: '1px solid var(--line)', padding: '2px 6px', borderRadius: 0 }}>LIVE</span>
                 </div>
             </div>
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {news.map((item, i) => (
-                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', borderBottom: '1px solid var(--line)', paddingBottom: '8px' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--ink-2)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ fontWeight: 'bold' }}>{item.source}</span>
                             <span>{safeDateString(item.pubDate)}</span>
                         </div>
@@ -162,10 +162,10 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                 ))}
                 {news.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--ink-3)', marginBottom: '4px' }}>
                             {isRefreshing ? 'Connecting to live feeds...' : 'No live items are currently available.'}
                         </div>
-                        <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.15)' }}>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>
                             Connecting to live feeds...
                         </div>
                     </div>

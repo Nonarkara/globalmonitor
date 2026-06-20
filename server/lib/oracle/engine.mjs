@@ -31,12 +31,13 @@ const NEUTRAL = 24;     // resting escalation level
 const ESC_SIGMA = 7.0;  // per-period escalation shock — fat tails across outcomes
 const POSTURE_MOMENTUM = 0.06;
 
+// Rams severity ramp: green (good) → neutral greys → brick red (bad).
 const OUTCOMES = [
-    { key: 'deescalation',     label: 'De-escalation / Ceasefire', color: '#22c55e' },
-    { key: 'frozen',           label: 'Frozen Standoff',           color: '#3b82f6' },
-    { key: 'attrition',        label: 'Sustained Attrition',       color: '#f59e0b' },
-    { key: 'major_escalation', label: 'Major Escalation',          color: '#ef4444' },
-    { key: 'wider_war',        label: 'Wider Regional War',        color: '#dc2626' },
+    { key: 'deescalation',     label: 'De-escalation / Ceasefire', color: '#1f6e43' },
+    { key: 'frozen',           label: 'Frozen Standoff',           color: '#8f8b80' },
+    { key: 'attrition',        label: 'Sustained Attrition',       color: '#6f6c63' },
+    { key: 'major_escalation', label: 'Major Escalation',          color: '#a23a26' },
+    { key: 'wider_war',        label: 'Wider Regional War',        color: '#7c2b1c' },
 ];
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);

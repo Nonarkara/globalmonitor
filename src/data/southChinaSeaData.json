@@ -4,7 +4,7 @@
 
   "scsStatus": {
     "overallLevel": "ELEVATED",
-    "overallColor": "#f59e0b",
+    "overallColor": "#6f6c63",
     "summary": "Persistent PRC gray-zone pressure in Spratly/Paracel chains; US-Philippine alliance bolstered by EDCA expansion. Taiwan Strait crossings remain high.",
     "daysSinceLastMajorIncident": 12
   },
@@ -14,7 +14,7 @@
     "monthlyMedianLine": 23,
     "carrierGroupsNearby": 2,
     "statusLabel": "TENSE",
-    "statusColor": "#f59e0b",
+    "statusColor": "#6f6c63",
     "lastCrossingEvent": "2026-06-18",
     "note": "J-16 + H-6 formations; Taiwan CAP operational 24/7"
   },

@@ -29,10 +29,10 @@ const categorize = (items, viewMode) => {
 };
 
 const OIL_THRESHOLDS = [
-    { price: 200, label: '$200', level: 'EXTREME', color: '#dc2626' },
-    { price: 150, label: '$150', level: 'CRITICAL', color: '#ef4444' },
-    { price: 100, label: '$100', level: 'HIGH', color: '#f59e0b' },
-    { price: 80, label: '$80', level: 'ELEVATED', color: '#eab308' },
+    { price: 200, label: '$200', level: 'EXTREME', color: 'var(--red)' },
+    { price: 150, label: '$150', level: 'CRITICAL', color: 'var(--red)' },
+    { price: 100, label: '$100', level: 'HIGH', color: 'var(--ink-2)' },
+    { price: 80, label: '$80', level: 'ELEVATED', color: 'var(--ink-2)' },
 ];
 
 const OilCrisisHeader = ({ items }) => {
@@ -51,24 +51,24 @@ const OilCrisisHeader = ({ items }) => {
 
     return (
         <div style={{
-            background: `${currentThreshold.color}10`,
-            borderRadius: '6px',
+            background: 'var(--panel)',
+            borderRadius: 0,
             padding: '8px 10px',
             marginBottom: '6px',
-            border: `1px solid ${currentThreshold.color}25`
+            border: '1px solid var(--line)'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
                         fontSize: '0.42rem', fontWeight: 700, letterSpacing: '1px',
                         color: currentThreshold.color, textTransform: 'uppercase',
-                        padding: '1px 5px', background: `${currentThreshold.color}20`, borderRadius: '3px'
+                        padding: '1px 5px', background: '#f2f0ea', borderRadius: 0
                     }}>
                         OIL CRISIS — {currentThreshold.level}
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.44rem', color: 'rgba(255,255,255,0.4)',
+                    fontSize: '0.44rem', color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     ~{disruption}% supply disrupted
@@ -76,12 +76,12 @@ const OilCrisisHeader = ({ items }) => {
             </div>
 
             {/* Price threshold bar */}
-            <div style={{ position: 'relative', height: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '12px', background: '#f2f0ea', borderRadius: 0, overflow: 'hidden' }}>
                 <div style={{
                     position: 'absolute', left: 0, top: 0, bottom: 0,
                     width: `${pctPosition}%`,
-                    background: `linear-gradient(90deg, #22c55e 0%, #eab308 36%, #f59e0b 45%, #ef4444 68%, #dc2626 90%)`,
-                    borderRadius: '6px',
+                    background: 'var(--red)',
+                    borderRadius: 0,
                     transition: 'width 1s ease'
                 }} />
                 {/* Threshold markers */}
@@ -91,11 +91,11 @@ const OilCrisisHeader = ({ items }) => {
                         left: `${(t.price / maxPrice) * 100}%`,
                         top: 0, bottom: 0,
                         width: '1px',
-                        background: 'rgba(255,255,255,0.2)'
+                        background: 'var(--line-2)'
                     }}>
                         <span style={{
                             position: 'absolute', top: '-11px', transform: 'translateX(-50%)',
-                            fontSize: '0.36rem', color: 'rgba(255,255,255,0.3)',
+                            fontSize: '0.36rem', color: 'var(--ink-3)',
                             fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap'
                         }}>
                             {t.label}
@@ -108,14 +108,13 @@ const OilCrisisHeader = ({ items }) => {
                     left: `${pctPosition}%`,
                     top: '-2px', bottom: '-2px',
                     width: '3px',
-                    background: 'white',
-                    borderRadius: '2px',
-                    boxShadow: '0 0 6px rgba(255,255,255,0.5)',
+                    background: 'var(--ink)',
+                    borderRadius: 0,
                     transform: 'translateX(-50%)'
                 }} />
             </div>
             <div style={{
-                fontSize: '0.44rem', color: 'rgba(255,255,255,0.35)',
+                fontSize: '0.44rem', color: 'var(--ink-3)',
                 marginTop: '4px', fontFamily: 'var(--font-mono)', textAlign: 'right'
             }}>
                 {oilItem.symbol}: ${price.toFixed(2)} ({oilItem.changePerc})

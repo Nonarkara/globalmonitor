@@ -4,10 +4,10 @@ import { getActivityLog, subscribeActivityLog, clearActivityLog, LOG_TYPES } fro
 import { useEscapeKey } from '../hooks/useEscapeKey';
 
 const TYPE_COLORS = {
-    [LOG_TYPES.DATA_FETCH]: '#3b82f6',
-    [LOG_TYPES.ERROR]: '#ef4444',
-    [LOG_TYPES.USER_ACTION]: '#22c55e',
-    [LOG_TYPES.SYSTEM]: '#94a3b8'
+    [LOG_TYPES.DATA_FETCH]: '#6f6c63',
+    [LOG_TYPES.ERROR]: '#a23a26',
+    [LOG_TYPES.USER_ACTION]: '#1f6e43',
+    [LOG_TYPES.SYSTEM]: '#a9a59a'
 };
 
 const TYPE_LABELS = {
@@ -51,50 +51,49 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
         <div style={{
             position: 'fixed', inset: 0, zIndex: 10000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)'
+            background: 'rgba(25,23,18,0.45)'
         }} onClick={onClose}>
             <div style={{
                 width: '640px', maxWidth: '95vw', maxHeight: '80vh',
-                background: 'rgba(14, 18, 28, 0.95)',
-                backdropFilter: 'blur(24px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--panel)',
+                borderRadius: 0,
+                border: '1px solid var(--line-2)',
                 overflow: 'hidden', display: 'flex', flexDirection: 'column'
             }} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)'
+                    padding: '14px 20px', borderBottom: '1px solid var(--line)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <FileText size={16} style={{ color: '#f59e0b' }} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' }}>
+                        <FileText size={16} style={{ color: 'var(--ink)' }} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
                             Session Activity Log
                         </span>
-                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                             {entries.length} entries
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <button onClick={exportLog} style={{
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '6px', padding: '4px 8px', color: 'rgba(255,255,255,0.5)',
+                            background: '#f2f0ea', border: '1px solid var(--line)',
+                            borderRadius: 0, padding: '4px 8px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
                             fontSize: '0.45rem', fontFamily: 'inherit'
                         }}>
                             <Download size={10} /> Export
                         </button>
                         <button onClick={clearActivityLog} style={{
-                            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
-                            borderRadius: '6px', padding: '4px 8px', color: 'rgba(239,68,68,0.6)',
+                            background: '#f2f0ea', border: '1px solid var(--line-2)',
+                            borderRadius: 0, padding: '4px 8px', color: 'var(--red)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
                             fontSize: '0.45rem', fontFamily: 'inherit'
                         }}>
                             <Trash2 size={10} /> Clear
                         </button>
                         <button onClick={onClose} style={{
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '6px', padding: '6px 12px', color: 'rgba(255,255,255,0.6)',
+                            background: '#f2f0ea', border: '1px solid var(--line)',
+                            borderRadius: 0, padding: '6px 12px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
                             fontSize: '0.6rem', fontFamily: 'inherit', minHeight: '32px'
                         }}>
@@ -106,16 +105,16 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 {/* Filter tabs */}
                 <div style={{
                     display: 'flex', gap: '4px', padding: '8px 20px',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)'
+                    borderBottom: '1px solid var(--line)'
                 }}>
                     {['all', LOG_TYPES.DATA_FETCH, LOG_TYPES.ERROR, LOG_TYPES.USER_ACTION, LOG_TYPES.SYSTEM].map(f => (
                         <button key={f} onClick={() => setFilter(f)} style={{
-                            padding: '3px 8px', borderRadius: '4px', fontSize: '0.4rem',
+                            padding: '3px 8px', borderRadius: 0, fontSize: '0.4rem',
                             fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase',
                             cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
-                            background: filter === f ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
-                            border: filter === f ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.05)',
-                            color: filter === f ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)'
+                            background: filter === f ? '#f2f0ea' : 'transparent',
+                            border: filter === f ? '1px solid var(--line-2)' : '1px solid var(--line)',
+                            color: filter === f ? 'var(--ink)' : 'var(--ink-3)'
                         }}>
                             {f === 'all' ? `All (${entries.length})` : `${TYPE_LABELS[f] || f} (${entries.filter(e => e.type === f).length})`}
                         </button>
@@ -125,7 +124,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 {/* Log entries */}
                 <div style={{ overflowY: 'auto', flex: 1, padding: '8px 20px' }}>
                     {filtered.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.2)', fontSize: '0.5rem' }}>
+                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--ink-3)', fontSize: '0.5rem' }}>
                             No activity logged yet
                         </div>
                     ) : (
@@ -134,10 +133,10 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                                 <div key={entry.id} style={{
                                     display: 'flex', alignItems: 'flex-start', gap: '8px',
                                     padding: '4px 0',
-                                    borderBottom: '1px solid rgba(255,255,255,0.02)'
+                                    borderBottom: '1px solid var(--line)'
                                 }}>
                                     <span style={{
-                                        fontSize: '0.38rem', color: 'rgba(255,255,255,0.25)',
+                                        fontSize: '0.38rem', color: 'var(--ink-3)',
                                         fontFamily: 'var(--font-mono)', width: '55px', flexShrink: 0,
                                         marginTop: '1px'
                                     }}>
@@ -145,14 +144,14 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                                     </span>
                                     <span style={{
                                         fontSize: '0.34rem', fontWeight: 700,
-                                        color: TYPE_COLORS[entry.type] || '#94a3b8',
-                                        padding: '1px 4px', borderRadius: '2px',
-                                        background: `${TYPE_COLORS[entry.type] || '#94a3b8'}15`,
+                                        color: TYPE_COLORS[entry.type] || '#a9a59a',
+                                        padding: '1px 4px', borderRadius: 0,
+                                        background: '#f2f0ea',
                                         letterSpacing: '0.5px', flexShrink: 0, marginTop: '1px'
                                     }}>
                                         {TYPE_LABELS[entry.type] || entry.type}
                                     </span>
-                                    <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.3 }}>
+                                    <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
                                         {entry.message}
                                     </span>
                                 </div>

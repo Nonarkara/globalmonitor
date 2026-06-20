@@ -96,18 +96,32 @@ Every dashboard has an `ℹ` or `i` button that opens a modal with:
 
 ## Design Philosophy
 
-### What Dr Non Wants
-- **Bauhaus meets data** — form follows function, every element earns its place
-- **Dark theme** for data dashboards (reduces eye strain, makes data pop)
-- **Glass morphism** — `backdrop-filter: blur(20px)`, frosted glass panels, subtle borders
-- **No rounded corners** — sharp corners or 1-2px max radius. Exceptions: logo pills, tags, buttons (functional radius)
-- **No template aesthetics** — no Bootstrap/Tailwind default look, no "AI blue" (#3B82F6), no icon grids
-- **Visual hierarchy through typography** — weight contrast (ultralight to bold), not just size
-- **Real data only** — every number sourced, no placeholder content, no hallucinated data
-- **Inter** for body, **JetBrains Mono** for data/mono
+> **DESIGN SYSTEM (current): Dieter Rams "Operating System".** As of 2026-06-21 the
+> suite was overhauled from the old dark tactical-glass look to a light, warm-neutral,
+> near-monochrome Rams instrument-panel system. The full spec lives in
+> `RAMS-STYLE.md` (Downloads). This supersedes the dark-theme / glass guidance below.
+> If you are tempted to add a dark panel, a gradient, a shadow, or a second accent
+> colour — don't. Less, but better.
+
+### What Dr Non Wants (Rams system)
+- **Less, but better** — every element earns its place; the hairline grid does the work
+- **Light, warm-neutral, near-monochrome** — paper `#faf9f7`, white cells, ink `#191712`
+  text, hairlines `#e7e5dd`. Tokens are in `src/styles/index.css` `:root`
+  (`--paper --panel --ink --ink-2 --ink-3 --line --line-2 --green --red`)
+- **One signal colour** — Braun green `#1f6e43` (live / positive / primary action).
+  Red `#a23a26` for loss / severity ONLY. Everything else is grey/ink. No other hue.
+- **No glass** — no `backdrop-filter`, no shadows, no gradients, no blur
+- **Square corners** — 0px (the `--radius-*` tokens are 0; `50%` only for dots)
+- **Hairline cell grids** — the signature: line-coloured background, 1px gaps, white cells
+- **Helvetica Neue** grotesque everywhere, **tabular-nums** so figures align in columns
+- **Labels** = small + UPPERCASE + letterspaced (700 / 0.16em); big numbers ≤ weight 600
+- **Real data only** — every number sourced, no placeholder/hallucinated content
+- The map is the light **positron** ("Paper") basemap; traffic icons are ink/green
 
 ### Anti-Patterns (Hard Rejects)
-- White logo box that clashes with dark theme → use transparent or very subtle container
+- Reverting to the dark theme / glass morphism / blur / shadows / gradients
+- A second accent colour, or decorative colour where grey + weight would do
+- Rounded corners (except dots), pills with glow, AI-blue (#3B82F6)
 - Duplicate UI elements (two logo strips, redundant panels)
 - Logos with CSS filter hacks that make them invisible
 - Empty panels / blank space (fill everything or remove the panel)

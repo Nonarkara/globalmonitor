@@ -30,7 +30,7 @@ function App() {
   // ponytail: aerosol drowns the live traffic at 0.55 opacity — keep it a toggle, not a default. Re-add 'eo-aerosol' to restore aerosol-on-load.
   const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
   const [activeRegion, setActiveRegion] = useState('middleeast');
-  const [mapStyle, setMapStyle] = useState('dark');
+  const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
   const [viewMode, setViewMode] = useState('middleeast');

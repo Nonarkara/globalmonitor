@@ -24,8 +24,8 @@ const OracleTrajectory = ({ trajectory = [], height = 56, color = '#f59e0b', sho
 
     return (
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" style={{ display: 'block' }}>
-            {showAxis && guide(70, '#ef4444')}
-            {showAxis && guide(50, '#f59e0b')}
+            {showAxis && guide(70, 'var(--red)')}
+            {showAxis && guide(50, 'var(--ink-3)')}
             <path d={bandPath} fill={color} opacity="0.14" />
             <polyline points={meanPts} fill="none" stroke={color} strokeWidth="1.1" strokeLinejoin="round" strokeLinecap="round" />
             {trajectory.map((p, i) => (

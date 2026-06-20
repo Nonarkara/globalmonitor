@@ -24,20 +24,20 @@ const MiddleEastOilDependency = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px', flexShrink: 0,
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #f59e0b', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--ink-2)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Globe2 size={12} style={{ color: '#f59e0b' }} />
+                    <Globe2 size={12} style={{ color: 'var(--ink-2)' }} />
                     <span style={{
                         fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px',
-                        textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)'
+                        textTransform: 'uppercase', color: 'var(--ink)'
                     }}>
                         ME Oil Dependence
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)',
+                    fontSize: '0.42rem', color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     IEA {MIDDLE_EAST_OIL_DEPENDENCY.year} · MOST RELIANT
@@ -59,7 +59,7 @@ const MiddleEastOilDependency = () => {
                     return (
                         <div key={country.code} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{
-                                fontSize: '0.42rem', color: 'rgba(255,255,255,0.55)',
+                                fontSize: '0.42rem', color: 'var(--ink-2)',
                                 width: '72px', textAlign: 'right', flexShrink: 0,
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }}>
@@ -67,7 +67,7 @@ const MiddleEastOilDependency = () => {
                             </span>
                             <div style={{
                                 flex: 1, height: '7px',
-                                background: 'rgba(255,255,255,0.04)',
+                                background: '#f2f0ea',
                                 borderRadius: '0',
                                 overflow: 'hidden'
                             }}>
@@ -79,7 +79,7 @@ const MiddleEastOilDependency = () => {
                                 }} />
                             </div>
                             <span style={{
-                                fontSize: '0.42rem', color,
+                                fontSize: '0.42rem', color: 'var(--ink-2)',
                                 fontFamily: 'var(--font-mono)', width: '28px', flexShrink: 0
                             }}>
                                 {country.pct}%
@@ -91,8 +91,8 @@ const MiddleEastOilDependency = () => {
 
             <div style={{
                 marginTop: '6px', paddingTop: '5px', flexShrink: 0,
-                borderTop: '1px solid rgba(255,255,255,0.04)',
-                fontSize: '0.34rem', color: 'rgba(255,255,255,0.28)', lineHeight: 1.35,
+                borderTop: '1px solid var(--line)',
+                fontSize: '0.34rem', color: 'var(--ink-3)', lineHeight: 1.35,
                 padding: '5px 10px 7px'
             }}>
                 {MIDDLE_EAST_OIL_DEPENDENCY.metric}. Data:{' '}
@@ -100,7 +100,7 @@ const MiddleEastOilDependency = () => {
                     href={MIDDLE_EAST_OIL_DEPENDENCY.ieaUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: 'rgba(245,158,11,0.55)', textDecoration: 'none' }}
+                    style={{ color: 'var(--ink-2)', textDecoration: 'none' }}
                 >
                     {MIDDLE_EAST_OIL_DEPENDENCY.source}
                 </a>
@@ -109,7 +109,7 @@ const MiddleEastOilDependency = () => {
                     href={MIDDLE_EAST_OIL_DEPENDENCY.articleUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: 'rgba(245,158,11,0.55)', textDecoration: 'none' }}
+                    style={{ color: 'var(--ink-2)', textDecoration: 'none' }}
                 >
                     {MIDDLE_EAST_OIL_DEPENDENCY.visualizedBy}
                     <ExternalLink size={8} style={{ display: 'inline', marginLeft: '2px', verticalAlign: 'middle' }} />

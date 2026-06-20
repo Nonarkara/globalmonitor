@@ -6,10 +6,10 @@ import DataStatus from './DataStatus';
 const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 
 const WAR_EVENTS = [
-    { date: '2026-02-28', label: 'War starts', color: '#ef4444' },
-    { date: '2026-03-04', label: 'Hormuz closed', color: '#f59e0b' },
-    { date: '2026-03-08', label: '$100 crossed', color: '#f97316' },
-    { date: '2026-03-18', label: 'Peak $126', color: '#dc2626' }
+    { date: '2026-02-28', label: 'War starts', color: 'var(--red)' },
+    { date: '2026-03-04', label: 'Hormuz closed', color: 'var(--ink-2)' },
+    { date: '2026-03-08', label: '$100 crossed', color: 'var(--ink-2)' },
+    { date: '2026-03-18', label: 'Peak $126', color: 'var(--red)' }
 ];
 
 const OilPriceChart = () => {
@@ -27,11 +27,11 @@ const OilPriceChart = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid var(--accent-amber)', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--ink-2)', paddingLeft: '8px'
             }}>
-                <Droplets size={12} style={{ color: 'var(--accent-amber)' }} />
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Oil Price</span>
+                <Droplets size={12} style={{ color: 'var(--ink-2)' }} />
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Oil Price</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isEmpty={!isLoading && !data?.brent?.length} emptyMessage="Awaiting EIA data" />
@@ -62,24 +62,24 @@ const OilPriceChart = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '6px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #ef4444', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--red)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Droplets size={12} style={{ color: '#ef4444' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <Droplets size={12} style={{ color: 'var(--red)' }} />
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Brent Crude
                     </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: latest.price > 100 ? '#ef4444' : '#f59e0b' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: latest.price > 100 ? 'var(--red)' : 'var(--ink-2)' }}>
                         ${latest.price.toFixed(1)}
                     </span>
                     <span style={{
                         fontSize: '0.5rem', fontWeight: 700,
-                        color: change > 0 ? '#ef4444' : '#22c55e',
-                        padding: '1px 5px', borderRadius: '3px',
-                        background: change > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'
+                        color: change > 0 ? 'var(--green)' : 'var(--red)',
+                        padding: '1px 5px', borderRadius: 0,
+                        background: '#f2f0ea'
                     }}>
                         <TrendingUp size={8} style={{ display: 'inline', marginRight: '2px' }} />
                         +{change}%
@@ -90,16 +90,16 @@ const OilPriceChart = () => {
             <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '120px' }}>
                 <defs>
                     <linearGradient id="oilGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity="0.02" />
+                        <stop offset="0%" stopColor="var(--ink)" stopOpacity="0.18" />
+                        <stop offset="100%" stopColor="var(--ink)" stopOpacity="0.02" />
                     </linearGradient>
                 </defs>
 
                 {/* $100 threshold */}
                 {y100 > PAD && y100 < H - PAD && (
                     <>
-                        <line x1={PAD} y1={y100} x2={W - PAD} y2={y100} stroke="rgba(239,68,68,0.2)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        <text x={W - PAD - 1} y={y100 - 2} textAnchor="end" fill="rgba(239,68,68,0.4)" fontSize="5" fontFamily="var(--font-mono)">$100</text>
+                        <line x1={PAD} y1={y100} x2={W - PAD} y2={y100} stroke="var(--red)" strokeWidth="0.5" strokeDasharray="3,3" opacity="0.4" />
+                        <text x={W - PAD - 1} y={y100 - 2} textAnchor="end" fill="var(--red)" fontSize="5" fontFamily="var(--font-mono)">$100</text>
                     </>
                 )}
 
@@ -107,7 +107,7 @@ const OilPriceChart = () => {
                 <path d={areaPath} fill="url(#oilGrad)" />
 
                 {/* Price line */}
-                <path d={linePath} fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d={linePath} fill="none" stroke="var(--ink)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 
                 {/* Event markers */}
                 {WAR_EVENTS.map((evt, ei) => {
@@ -117,7 +117,7 @@ const OilPriceChart = () => {
                     return (
                         <g key={ei}>
                             <line x1={x} y1={y} x2={x} y2={H} stroke={evt.color} strokeWidth="0.4" strokeDasharray="2,2" opacity="0.5" />
-                            <circle cx={x} cy={y} r="2.5" fill={evt.color} stroke="rgba(0,0,0,0.5)" strokeWidth="0.5" />
+                            <circle cx={x} cy={y} r="2.5" fill={evt.color} stroke="var(--paper)" strokeWidth="0.5" />
                             <text x={x} y={H - 2} textAnchor="middle" fill={evt.color} fontSize="3.5" fontFamily="var(--font-mono)" opacity="0.8">
                                 {evt.label}
                             </text>
@@ -126,15 +126,15 @@ const OilPriceChart = () => {
                 })}
 
                 {/* Latest price dot */}
-                <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="#ef4444" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8">
+                <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="var(--ink)" stroke="var(--paper)" strokeWidth="0.8">
                     <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />
                 </circle>
             </svg>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>Feb 27</span>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>War premium: $14-18/bbl</span>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>Mar 29</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Feb 27</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>War premium: $14-18/bbl</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Mar 29</span>
             </div>
         </div>
     );

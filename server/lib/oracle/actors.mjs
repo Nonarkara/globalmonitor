@@ -59,10 +59,20 @@ export const alignment = (a, b) => {
     return -1;
 };
 
+// Rams: actors are distinguished by label, not hue. Color encodes ROLE on a
+// neutral ink→grey ramp (belligerents darkest), so driver chips read as quiet greys.
+const ROLE_COLOR = {
+    belligerent: '#191712',
+    patron: '#6f6c63',
+    proxy: '#8f8b80',
+    swing: '#6f6c63',
+    mediator: '#bdb9ad',
+};
+
 /** Deep-ish copy so a simulation run never mutates the baseline roster. */
 export const getActors = (theater) => {
     const roster = ROSTERS[theater] || ROSTERS.middleeast;
-    return roster.map((a) => ({ ...a }));
+    return roster.map((a) => ({ ...a, color: ROLE_COLOR[a.role] || '#6f6c63' }));
 };
 
 export const THEATERS = Object.keys(ROSTERS);

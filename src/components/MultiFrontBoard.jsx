@@ -42,8 +42,8 @@ const FrontCard = ({ front }) => {
                     color: front.color,
                     textTransform: 'uppercase',
                     padding: '1px 5px',
-                    background: `${front.color}15`,
-                    borderRadius: '3px',
+                    background: '#f2f0ea',
+                    borderRadius: 0,
                     minWidth: '5.5ch',
                     textAlign: 'center',
                     fontVariantNumeric: 'tabular-nums'
@@ -55,7 +55,7 @@ const FrontCard = ({ front }) => {
             <div style={{
                 fontSize: '0.52rem',
                 fontWeight: 600,
-                color: 'rgba(255,255,255,0.85)',
+                color: 'var(--ink)',
                 letterSpacing: '0.3px',
                 lineHeight: 1.2
             }}>
@@ -104,18 +104,17 @@ const MultiFrontBoard = () => {
 
     return (
         <div className="multi-front-board" style={{
-            background: 'rgba(10, 12, 18, 0.75)',
-            backdropFilter: 'blur(16px)',
-            borderRadius: '10px',
+            background: 'var(--panel)',
+            borderRadius: 0,
             padding: '8px',
-            border: '1px solid rgba(255,255,255,0.06)'
+            border: '1px solid var(--line)'
         }}>
             <div className="multi-front-board__header">
                 <span style={{
                     fontSize: '0.5rem',
                     fontWeight: 600,
                     letterSpacing: '1.5px',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--ink-2)',
                     textTransform: 'uppercase'
                 }}>
                     MULTI-FRONT STATUS
@@ -124,7 +123,7 @@ const MultiFrontBoard = () => {
                     <span style={{
                         fontSize: '0.42rem',
                         fontWeight: 700,
-                        color: '#ef4444',
+                        color: 'var(--red)',
                         letterSpacing: '0.5px',
                         visibility: criticalCount > 0 ? 'visible' : 'hidden',
                         fontVariantNumeric: 'tabular-nums'
@@ -134,7 +133,7 @@ const MultiFrontBoard = () => {
                     <span style={{
                         fontSize: '0.42rem',
                         fontWeight: 700,
-                        color: '#f59e0b',
+                        color: 'var(--ink-2)',
                         letterSpacing: '0.5px',
                         visibility: activeCount > 0 ? 'visible' : 'hidden',
                         fontVariantNumeric: 'tabular-nums'

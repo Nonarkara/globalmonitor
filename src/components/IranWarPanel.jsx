@@ -17,12 +17,11 @@ const SubFront = ({ front }) => (
             width: '6px',
             height: '6px',
             borderRadius: '50%',
-            background: front.color,
-            boxShadow: front.status === 'CRITICAL' ? `0 0 6px ${front.color}` : 'none'
+            background: front.color
         }} />
         <span style={{
             fontSize: '0.48rem',
-            color: 'rgba(255,255,255,0.7)',
+            color: 'var(--ink-2)',
             flex: 1
         }}>
             {front.name}
@@ -73,7 +72,7 @@ const IranWarPanel = () => {
                         fontWeight: 200,
                         fontFamily: 'var(--font-mono)',
                         fontVariantNumeric: 'tabular-nums',
-                        color: '#ef4444',
+                        color: 'var(--red)',
                         letterSpacing: '0.5px',
                         minWidth: '6ch',
                         textAlign: 'right'
@@ -98,14 +97,14 @@ const IranWarPanel = () => {
                     gap: '16px',
                     marginBottom: '10px',
                     paddingBottom: '8px',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)'
+                    borderBottom: '1px solid var(--line)'
                 }}>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{
                             fontSize: '1.1rem',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
-                            color: weekTotal.missiles > 0 ? '#ef4444' : 'var(--text-muted)',
+                            color: weekTotal.missiles > 0 ? 'var(--red)' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
                             {weekTotal.missiles || 0}
@@ -119,7 +118,7 @@ const IranWarPanel = () => {
                             fontSize: '1.1rem',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
-                            color: weekTotal.drones > 0 ? '#f59e0b' : 'var(--text-muted)',
+                            color: weekTotal.drones > 0 ? 'var(--red)' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
                             {weekTotal.drones || 0}
@@ -133,7 +132,7 @@ const IranWarPanel = () => {
                             fontSize: '1.1rem',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
-                            color: weekTotal.interceptions > 0 ? '#3b82f6' : 'var(--text-muted)',
+                            color: weekTotal.interceptions > 0 ? 'var(--ink-2)' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
                             {weekTotal.interceptions || 0}
@@ -147,7 +146,7 @@ const IranWarPanel = () => {
                             fontSize: '1.1rem',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
-                            color: weekTotal.casualties > 0 ? '#ef4444' : 'var(--text-muted)',
+                            color: weekTotal.casualties > 0 ? 'var(--red)' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
                             {weekTotal.casualties || 0}

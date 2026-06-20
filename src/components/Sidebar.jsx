@@ -36,7 +36,7 @@ const Sidebar = ({
     }, [viewMode]);
 
     const basemapConfigs = [
-        { id: 'dark', title: 'Dark', desc: 'Low-glare operations map', icon: <Moon size={16} /> },
+        { id: 'light', title: 'Paper', desc: 'Minimal light operations map', icon: <MapIcon size={16} /> },
         { id: 'satellite', title: 'Satellite', desc: 'Esri imagery + labels', icon: <Satellite size={16} /> },
         { id: 'voyager', title: 'Political', desc: 'Borders and place context', icon: <MapIcon size={16} /> },
     ];
@@ -112,9 +112,9 @@ const Sidebar = ({
                     minWidth: '46px',
                     padding: '4px 6px',
                     textAlign: 'center',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.7)',
-                    borderRadius: '2px'
+                    border: '1px solid var(--line)',
+                    color: 'var(--ink-2)',
+                    borderRadius: 0
                 }}>
                     {SAT_MONO_LABEL[layer.id] || layer.id.replace('eo-', '').slice(0, 5).toUpperCase()}
                 </span>
@@ -131,7 +131,7 @@ const Sidebar = ({
             <div className="sidebar-header">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 300, letterSpacing: '0.3px', color: 'var(--text-main)' }}>Global Political Dashboard</span>
-                    <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500, letterSpacing: '1.2px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.58rem', color: 'var(--ink-3)', fontWeight: 500, letterSpacing: '1.2px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                         {viewMode === 'thailand' ? 'Thailand' : viewMode === 'indopacific' ? 'Southeast Asia' : 'Middle East'} · GlobeWatch {dashboardVersion}
                     </span>
                 </div>

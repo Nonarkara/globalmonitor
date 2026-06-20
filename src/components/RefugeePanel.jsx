@@ -28,11 +28,11 @@ const REGION_FALLBACK = {
         internallyDisplaced: 980_000,
         crossBorderRefugees: 470_000,
         countries: [
-            { name: 'Myanmar', count: 1_200_000, color: '#ef4444' },
-            { name: 'Afghanistan', count: 180_000, color: '#f97316' },
-            { name: 'Sri Lanka', count: 40_000, color: '#f59e0b' },
-            { name: 'Bangladesh', count: 20_000, color: '#3b82f6' },
-            { name: 'Thailand', count: 10_000, color: '#22c55e' }
+            { name: 'Myanmar', count: 1_200_000, color: 'var(--fill-1)' },
+            { name: 'Afghanistan', count: 180_000, color: 'var(--fill-2)' },
+            { name: 'Sri Lanka', count: 40_000, color: 'var(--fill-3)' },
+            { name: 'Bangladesh', count: 20_000, color: 'var(--fill-4)' },
+            { name: 'Thailand', count: 10_000, color: 'var(--fill-5)' }
         ],
         timeline: [
             { cumulative: 1_300_000 }, { cumulative: 1_340_000 },
@@ -45,11 +45,11 @@ const REGION_FALLBACK = {
         internallyDisplaced: 45_000,
         crossBorderRefugees: 75_000,
         countries: [
-            { name: 'Myanmar', count: 95_000, color: '#ef4444' },
-            { name: 'Thailand (IDP)', count: 20_000, color: '#f97316' },
-            { name: 'Cambodia', count: 3_000, color: '#f59e0b' },
-            { name: 'Laos', count: 1_500, color: '#3b82f6' },
-            { name: 'Others', count: 500, color: '#22c55e' }
+            { name: 'Myanmar', count: 95_000, color: 'var(--fill-1)' },
+            { name: 'Thailand (IDP)', count: 20_000, color: 'var(--fill-2)' },
+            { name: 'Cambodia', count: 3_000, color: 'var(--fill-3)' },
+            { name: 'Laos', count: 1_500, color: 'var(--fill-4)' },
+            { name: 'Others', count: 500, color: 'var(--fill-5)' }
         ],
         timeline: [
             { cumulative: 95_000 }, { cumulative: 102_000 },
@@ -68,16 +68,16 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '2px solid #f472b6', paddingLeft: '8px'
+                borderBottom: '1px solid var(--line)',
+                borderLeft: '2px solid var(--ink)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={12} style={{ color: '#f472b6' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <Users size={12} style={{ color: 'var(--ink-2)' }} />
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Displacement Tracker
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     UNHCR + IOM · {viewMode === 'middleeast' ? 'MIDDLE EAST' : viewMode === 'thailand' ? 'THAILAND' : 'INDO-PACIFIC'}
                 </span>
             </div>
@@ -85,29 +85,29 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             {/* Headline number */}
             <div style={{
                 textAlign: 'center', padding: '6px 0', marginBottom: '6px',
-                background: 'rgba(244,114,182,0.06)', borderRadius: '6px',
-                border: '1px solid rgba(244,114,182,0.1)'
+                background: 'transparent', borderRadius: 0,
+                border: '1px solid var(--line)'
             }}>
                 <div style={{
                     fontSize: '1.2rem', fontWeight: 200, fontFamily: 'var(--font-mono)',
-                    color: '#f472b6', lineHeight: 1
+                    color: 'var(--ink)', lineHeight: 1
                 }}>
                     {formatNum(data.totalDisplaced)}
                 </div>
-                <div style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.35)', marginTop: '2px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', marginTop: '2px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                     Total Displaced Persons
                 </div>
             </div>
 
             {/* KPI row */}
             <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
-                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px' }}>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>{formatNum(data.internallyDisplaced)}</div>
-                    <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Internal</div>
+                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: '#f2f0ea', borderRadius: 0 }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{formatNum(data.internallyDisplaced)}</div>
+                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Internal</div>
                 </div>
-                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px' }}>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#f97316', fontFamily: 'var(--font-mono)' }}>{formatNum(data.crossBorderRefugees)}</div>
-                    <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Cross-border</div>
+                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: '#f2f0ea', borderRadius: 0 }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{formatNum(data.crossBorderRefugees)}</div>
+                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Cross-border</div>
                 </div>
             </div>
 
@@ -115,12 +115,12 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             <div style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '4px 6px', marginBottom: '6px',
-                background: 'rgba(255,255,255,0.03)', borderRadius: '4px'
+                background: '#f2f0ea', borderRadius: 0
             }}>
-                <Sparkline data={data.timeline} color="#f472b6" />
+                <Sparkline data={data.timeline} color="var(--ink)" />
                 <div style={{ textAlign: 'right' }}>
-                    <TrendingUp size={8} style={{ color: '#f472b6', marginBottom: '1px' }} />
-                    <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.3)' }}>5-week trend</div>
+                    <TrendingUp size={8} style={{ color: 'var(--ink-2)', marginBottom: '1px' }} />
+                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>5-week trend</div>
                 </div>
             </div>
 
@@ -128,14 +128,14 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {data.countries.slice(0, 5).map((c, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.4)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{c.name}</span>
-                        <div style={{ flex: 1, height: '5px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{c.name}</span>
+                        <div style={{ flex: 1, height: '5px', background: '#f2f0ea', borderRadius: 0, overflow: 'hidden' }}>
                             <div style={{
                                 width: `${Math.max((c.count / maxCount) * 100, 3)}%`,
-                                height: '100%', borderRadius: '3px', background: c.color
+                                height: '100%', borderRadius: 0, background: c.color
                             }} />
                         </div>
-                        <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)', width: '28px' }}>{formatNum(c.count)}</span>
+                        <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '28px' }}>{formatNum(c.count)}</span>
                     </div>
                 ))}
             </div>
@@ -143,11 +143,11 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             {/* Aid status */}
             <div style={{
                 display: 'flex', gap: '6px', marginTop: '6px', padding: '3px 0',
-                borderTop: '1px solid rgba(255,255,255,0.04)',
-                fontSize: '0.36rem', color: 'rgba(255,255,255,0.3)'
+                borderTop: '1px solid var(--line)',
+                fontSize: '0.36rem', color: 'var(--ink-3)'
             }}>
-                <span>Funding gap: <strong style={{ color: '#ef4444' }}>{data.aidResponse.unhcrFundingGap}</strong></span>
-                <span>Corridors: <strong style={{ color: '#22c55e' }}>{data.aidResponse.corridorsOpen}</strong>/<strong style={{ color: '#ef4444' }}>{data.aidResponse.corridorsBlocked}</strong></span>
+                <span>Funding gap: <strong style={{ color: 'var(--red)' }}>{data.aidResponse.unhcrFundingGap}</strong></span>
+                <span>Corridors: <strong style={{ color: 'var(--green)' }}>{data.aidResponse.corridorsOpen}</strong>/<strong style={{ color: 'var(--red)' }}>{data.aidResponse.corridorsBlocked}</strong></span>
             </div>
         </div>
     );
