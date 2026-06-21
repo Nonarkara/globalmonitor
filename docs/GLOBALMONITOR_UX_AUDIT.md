@@ -30,12 +30,12 @@
 
 ### Ships not showing
 1. **API:** Pages has no long-running AIS WebSocket; production had no `AISSTREAM_API_KEY` or `VESSELFINDER_FLEET_KEY` bound.
-2. **Fix:** One-shot AIS WebSocket snapshot in `functions/_lib/aisSnapshot.mjs` (Pages-safe, 6 s collect window).
-3. **Remaining:** Bind `AISSTREAM_API_KEY` in Cloudflare Pages project secrets for live vessel overlay on production.
+2. **Fix:** One-shot AIS WebSocket snapshot in `functions/_lib/aisSnapshot.mjs` (Pages-safe, 15 s collect window).
+3. **2026-06-21 follow-up:** Key bound; global snapshot cache (8 min) with theater bbox filter; aisstream bbox lat/lon order corrected; Workers native WebSocket fix.
 
 ### Header cut off / imbalance
-1. **Layout:** Fixed classification banners (18 px) overlapped grid row 1; header used rigid 60 px + `overflow: hidden`.
-2. **Fix:** `#root` padding for classification bands; header grid uses `minmax(0, …)` columns and `overflow: visible`.
+1. **Layout:** Fixed classification banners (18 px) overlapped grid row 1; header used rigid 60 px + `overflow: hidden`; double band offset on `app-container`.
+2. **Fix:** `#root` padding for classification bands; `app-container top:0`; header grid fixed 56 px height; clock row fixed 40 px.
 
 ---
 
@@ -44,11 +44,19 @@
 ```bash
 curl -sf "https://globalmonitor.pages.dev/api/flights?theater=middleeast" \
   | jq '{n: (.features|length), source: .meta.source}'
-# → n: 204, source: airplanes.live
+# → n: 180, source: airplanes.live
 
 curl -sf "https://globalmonitor.pages.dev/api/vessels?theater=middleeast" \
-  | jq '{n: (.features|length), requiresKey: .meta.requiresKey}'
-# → n: 0, requiresKey: true (awaiting Cloudflare secret bind)
+  | jq '{n: (.features|length), requiresKey: .meta.requiresKey, global: .meta.aisGlobalCount}'
+# → n: 25, requiresKey: false, global: 1301
+
+curl -sf "https://globalmonitor.pages.dev/api/vessels?theater=indopacific" \
+  | jq '{n: (.features|length)}'
+# → n: 26
+
+curl -sf "https://globalmonitor.pages.dev/api/vessels?theater=thailand" \
+  | jq '{n: (.features|length)}'
+# → n: 9
 ```
 
 ---
@@ -62,10 +70,10 @@ curl -sf "https://globalmonitor.pages.dev/api/vessels?theater=middleeast" \
 | Skip link (Tab) | Focus moves to `#main-content` below banner | **Pass** |
 | Region tabs (ME / Indo-Pacific / Thailand) | Camera + panels swap | **Pass** |
 | Sidebar → Flights layer card | Toggles ADS-B layer; legend + map dots sync | **Pass** |
-| Sidebar → Ships layer card | Toggles AIS layer; legend shows key hint when unconfigured | **Pass** (data pending secret) |
+| Sidebar → Ships layer card | Toggles AIS layer; legend shows count when connected | **Pass** (25+ ME, 26 Indo, 9 TH) |
 | Sidebar → Flights / Ships mini-buttons | Same state as layer cards | **Pass** |
 | FlightRadarEmbed toggle | Syncs with flights layer + sidebar | **Pass** |
-| Live Airspace count | Matches API aircraft count when layer on | **Pass** (204 aircraft) |
+| Live Airspace count | Matches API aircraft count when layer on | **Pass** (180 aircraft) |
 | Map traffic legend | Shows aircraft count when flights on | **Pass** |
 | Flight transient-failure fallback | Holds last valid aircraft snapshot instead of clearing layer | **Pass** |
 | Tools → About modal | Opens credits + legal | **Pass** |
@@ -74,6 +82,6 @@ curl -sf "https://globalmonitor.pages.dev/api/vessels?theater=middleeast" \
 
 ---
 
-## Next Ship Blocker
+## Full walkthrough log
 
-Bind `AISSTREAM_API_KEY` on Cloudflare Pages (`wrangler pages secret put AISSTREAM_API_KEY --project-name globalmonitor`) to enable vessel snapshot on production. Local dev already works via `npm run dev:stack`.
+See [GLOBALMONITOR_WALKTHROUGH.md](./GLOBALMONITOR_WALKTHROUGH.md) for deploy-session control table and AIS architecture notes.

@@ -17,11 +17,14 @@ const WebSocket = require('ws');
 
 // Global bbox + regional supplements for dense chokepoints [minLon, minLat, maxLon, maxLat]
 const VESSEL_BOXES = [
-    [-180, -90, 180, 90],       // worldwide
-    [55.0, 25.5, 57.5, 27.5],   // Strait of Hormuz
-    [42.5, 11.5, 44.0, 13.5],   // Bab-el-Mandeb
-    [100.0, 0.5, 104.5, 6.5],   // Strait of Malacca
-    [118.5, 21.5, 122.5, 26.5], // Taiwan Strait
+    [-180, -90, 180, 90],
+    [55.0, 25.5, 57.5, 27.5],
+    [42.5, 11.5, 44.0, 13.5],
+    [100.0, 0.5, 104.5, 6.5],
+    [118.5, 21.5, 122.5, 26.5],
+    [97.0, 5.0, 106.0, 21.0],
+    [105.0, -8.0, 125.0, 8.0],
+    [108.0, 8.0, 120.0, 22.0],
 ];
 
 // vessel_positions: Map<mmsi, { lon, lat, heading, course, speed, name, shipType, updatedAt }>
@@ -35,8 +38,8 @@ let reconnect_timer = null;
 const SUBSCRIBE_MSG = () => ({
     APIkey: process.env.AISSTREAM_API_KEY || '',
     BoundingBoxes: VESSEL_BOXES.map(([minLon, minLat, maxLon, maxLat]) => [
-        [minLon, minLat],
-        [maxLon, maxLat]
+        [minLat, minLon],
+        [maxLat, maxLon],
     ]),
     FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
 });
@@ -55,9 +58,10 @@ function prune() {
 
 // Regional bounding boxes for theater-scoped vessel feeds [minLon, minLat, maxLon, maxLat]
 const THEATER_BBOXES = {
-    thailand: [97, 5, 106, 21],
+    thailand: [95, 0.5, 108, 22],
     indopacific: [90, -10, 135, 25],
     middleeast: [24, 10, 65, 42],
+    global: null,
 };
 
 export function getVesselsGeoJsonForTheater(theater) {

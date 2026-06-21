@@ -254,10 +254,10 @@ body {
 
 .app-container {
   position: absolute;
-  top: var(--classification-band);
+  top: 0;
   left: 0;
   right: 0;
-  bottom: var(--classification-band);
+  bottom: 0;
   display: grid;
   grid-template-columns: 280px 1fr 304px;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
@@ -371,9 +371,10 @@ body {
   color: var(--text-main);
   z-index: 20;
   pointer-events: auto;
+  height: 40px;
   min-height: 40px;
-  height: auto;
-  overflow: visible;
+  max-height: 40px;
+  overflow: hidden;
   contain: layout style;
 }
 
@@ -459,8 +460,9 @@ body {
   flex-wrap: nowrap;
   padding: 6px 14px;
   border-radius: var(--radius-sm);
+  height: 56px;
   min-height: 56px;
-  height: auto;
+  max-height: 56px;
   overflow: visible;
   contain: layout style;
   position: relative;
@@ -499,7 +501,10 @@ body {
   gap: 12px;
   justify-self: center;
   min-width: 0;
+  height: 48px;
   min-height: 48px;
+  max-height: 48px;
+  overflow: hidden;
   contain: layout;
 }
 

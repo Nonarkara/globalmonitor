@@ -21,7 +21,7 @@ const ClassificationBanner = ({ level = 'UNCLASSIFIED' }) => {
         position: 'fixed',
         left: 0,
         right: 0,
-        height: '18px',
+        height: 'var(--classification-band)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

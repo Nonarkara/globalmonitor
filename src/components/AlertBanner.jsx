@@ -40,7 +40,7 @@ const AlertBanner = () => {
     return (
         <div style={{
             position: 'fixed',
-            top: 18,
+            top: 'var(--classification-band)',
             left: 0,
             right: 0,
             zIndex: 9999,
