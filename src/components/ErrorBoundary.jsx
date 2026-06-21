@@ -11,7 +11,8 @@ class ErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        console.error("ErrorBoundary caught an error", error, errorInfo);
+        const label = this.props.label || 'App';
+        console.error(`ErrorBoundary [${label}] caught:`, error?.message || error, error, errorInfo);
         this.setState({ errorInfo });
     }
 
@@ -41,7 +42,7 @@ class ErrorBoundary extends React.Component {
                         <button
                             onClick={this.handleRetry}
                             style={{
-                                background: 'rgba(255,255,255,0.08)',
+                                background: 'var(--line-2)',
                                 border: '1px solid rgba(255,255,255,0.15)',
                                 color: '#f8fafc',
                                 padding: '4px 12px',
@@ -64,8 +65,8 @@ class ErrorBoundary extends React.Component {
                     <button
                         onClick={this.handleRetry}
                         style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.2)',
+                            background: 'var(--line-2)',
+                            border: '1px solid var(--ink-3)',
                             color: '#f8fafc',
                             padding: '8px 24px',
                             borderRadius: '8px',

@@ -51,11 +51,17 @@ const ICON_SPECS = [
     ...Object.entries(VESSEL_COLORS).map(([name, color]) => [name, shipSvg(color), 32, 32]),
 ];
 
+let iconLoadGeneration = 0;
+
 export const loadTrafficIcons = (map, onReady) => {
+    if (!map?.addImage) return;
+
+    const generation = ++iconLoadGeneration;
     let pending = ICON_SPECS.length;
     let loaded = 0;
 
     const markDone = () => {
+        if (generation !== iconLoadGeneration) return;
         loaded += 1;
         if (loaded >= pending) {
             onReady?.(true);
@@ -64,10 +70,16 @@ export const loadTrafficIcons = (map, onReady) => {
     };
 
     for (const [name, svg, w, h] of ICON_SPECS) {
-        try { if (map.hasImage(name)) map.removeImage(name); } catch { /* ignore */ }
+        try {
+            if (map.hasImage(name)) map.removeImage(name);
+        } catch { /* style may be mid-reload */ }
+
         const img = new Image(w, h);
         img.onload = () => {
-            try { map.addImage(name, img); } catch { /* already added */ }
+            if (generation !== iconLoadGeneration) return;
+            try {
+                if (!map.hasImage(name)) map.addImage(name, img);
+            } catch { /* duplicate addImage during style churn */ }
             markDone();
         };
         img.onerror = markDone;

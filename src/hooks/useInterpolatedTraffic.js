@@ -14,23 +14,64 @@ const getFeatureId = (feature, idKey) => {
     return props[idKey] || props.hex || props.mmsi || props.callsign || null;
 };
 
+const isValidCoord = (lon, lat) => (
+    Number.isFinite(lon) && Number.isFinite(lat)
+    && lon >= -180 && lon <= 180
+    && lat >= -90 && lat <= 90
+);
+
+const readCoords = (feature) => {
+    const coords = feature?.geometry?.coordinates;
+    if (!Array.isArray(coords) || coords.length < 2) return null;
+    const lon = Number(coords[0]);
+    const lat = Number(coords[1]);
+    return isValidCoord(lon, lat) ? [lon, lat] : null;
+};
+
+const cloneFeature = (feature) => {
+    const coords = readCoords(feature);
+    if (!coords) return null;
+
+    return {
+        type: 'Feature',
+        geometry: {
+            type: feature.geometry?.type || 'Point',
+            coordinates: [...coords],
+        },
+        properties: { ...(feature.properties || {}) },
+    };
+};
+
+const cloneCollection = (geojson) => {
+    if (!geojson?.features?.length) return null;
+
+    const features = geojson.features
+        .map(cloneFeature)
+        .filter(Boolean);
+
+    if (!features.length) return null;
+
+    return {
+        type: 'FeatureCollection',
+        features,
+        meta: geojson.meta,
+    };
+};
+
 const seedPositions = (geojson, idKey) => {
     const map = new Map();
     for (const feature of geojson?.features || []) {
         const id = getFeatureId(feature, idKey);
-        if (!id) continue;
-        const [lon, lat] = feature.geometry.coordinates;
-        map.set(id, { lon, lat, heading: feature.properties?.heading ?? 0 });
+        const coords = readCoords(feature);
+        if (!id || !coords) continue;
+        map.set(id, { lon: coords[0], lat: coords[1], heading: feature.properties?.heading ?? 0 });
     }
     return map;
 };
 
 /**
- * Smoothly lerps marker positions between polls without pushing a full GeoJSON
- * collection through React/MapLibre on every animation frame.
- *
- * Mutates coordinates and heading in place on a stable FeatureCollection wrapper
- * and only clones once when the incoming target changes shape.
+ * Smoothly lerps marker positions between polls without mutating upstream
+ * React state or MapLibre source payloads.
  */
 export const useInterpolatedTraffic = (geojson, {
     idKey = 'hex',
@@ -42,8 +83,8 @@ export const useInterpolatedTraffic = (geojson, {
     const frameRef = useRef(null);
     const targetRef = useRef(geojson);
     const lastFrameAtRef = useRef(0);
-    const [display, setDisplay] = useState(geojson);
-    const displayRef = useRef(geojson);
+    const [display, setDisplay] = useState(() => cloneCollection(geojson));
+    const displayRef = useRef(display);
 
     useEffect(() => {
         displayRef.current = display;
@@ -55,18 +96,20 @@ export const useInterpolatedTraffic = (geojson, {
         if (frameRef.current) cancelAnimationFrame(frameRef.current);
 
         if (!enabled) {
-            displayRef.current = geojson;
-            const raf = requestAnimationFrame(() => setDisplay(geojson));
+            const cloned = cloneCollection(geojson);
+            displayRef.current = cloned;
+            const raf = requestAnimationFrame(() => setDisplay(cloned));
             return () => cancelAnimationFrame(raf);
         }
 
         if (!geojson?.features?.length) {
-            if (frameRef.current) cancelAnimationFrame(frameRef.current);
             // Hold last frame — empty polls must not blank traffic on the map.
             return () => {
                 if (frameRef.current) cancelAnimationFrame(frameRef.current);
             };
-        } else if (displayRef.current?.features?.length) {
+        }
+
+        if (displayRef.current?.features?.length) {
             // Resume from what the map is already showing so early refreshes do
             // not snap traffic back to an older poll before lerping forward.
             prevRef.current = seedPositions(displayRef.current, idKey);
@@ -86,7 +129,9 @@ export const useInterpolatedTraffic = (geojson, {
 
             if (prevRef.current.size === 0) {
                 prevRef.current = seedPositions(target, idKey);
-                setDisplay(target);
+                const cloned = cloneCollection(target);
+                displayRef.current = cloned;
+                setDisplay(cloned);
                 return;
             }
 
@@ -101,53 +146,41 @@ export const useInterpolatedTraffic = (geojson, {
 
             lastFrameAtRef.current = now;
 
-            // Ensure we own a mutable features array before editing coordinates
-            // in place. Clone once per target change, then mutate thereafter.
-            if (
-                !displayRef.current
-                || displayRef.current === target
-                || displayRef.current.features.length !== target.features.length
-            ) {
-                displayRef.current = {
-                    type: 'FeatureCollection',
-                    features: target.features.map((feature) => ({
-                        ...feature,
-                        properties: { ...feature.properties },
-                    })),
-                    meta: target.meta,
-                };
+            // Rebuild display from target each frame — never mutate upstream geojson.
+            const nextDisplay = cloneCollection(target);
+            if (!nextDisplay) {
+                return;
             }
 
-            const features = displayRef.current.features;
-            for (let i = 0; i < features.length; i++) {
-                const feature = features[i];
-                const targetFeature = target.features[i];
-                const id = getFeatureId(targetFeature, idKey);
-                const [newLon, newLat] = targetFeature.geometry.coordinates;
+            for (const feature of nextDisplay.features) {
+                const id = getFeatureId(feature, idKey);
+                const targetCoords = readCoords(feature);
+                if (!targetCoords) continue;
+
+                const [newLon, newLat] = targetCoords;
                 const old = id ? prev.get(id) : null;
 
                 if (!old) {
                     feature.geometry.coordinates = [newLon, newLat];
-                    if (feature.properties) {
-                        feature.properties.heading = targetFeature.properties?.heading ?? 0;
-                    }
                     continue;
                 }
 
-                feature.geometry.coordinates = [
-                    lerp(old.lon, newLon, t),
-                    lerp(old.lat, newLat, t),
-                ];
+                const nextLon = lerp(old.lon, newLon, t);
+                const nextLat = lerp(old.lat, newLat, t);
+                feature.geometry.coordinates = isValidCoord(nextLon, nextLat)
+                    ? [nextLon, nextLat]
+                    : [old.lon, old.lat];
                 if (feature.properties) {
                     feature.properties.heading = lerpAngle(
                         old.heading,
-                        targetFeature.properties?.heading,
+                        feature.properties?.heading,
                         t
                     );
                 }
             }
 
-            setDisplay(displayRef.current);
+            displayRef.current = nextDisplay;
+            setDisplay(nextDisplay);
 
             if (t < 1) {
                 frameRef.current = requestAnimationFrame(tick);

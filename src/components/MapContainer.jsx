@@ -22,6 +22,7 @@ import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
 import { useInterpolatedTraffic } from '../hooks/useInterpolatedTraffic.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
+import { isValidLngLat, sanitizeLineCollection, sanitizePointCollection } from '../utils/geojsonValidate.js';
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
 // only), so a "flight path" is a short heading projection — not a route spiderweb.
@@ -49,7 +50,11 @@ const buildFlightPaths = (flights) => {
     const features = flights.features
         .filter((f) => {
             const p = f.properties || {};
-            return !p.onGround
+            const coords = f.geometry?.coordinates;
+            const lon = coords?.[0];
+            const lat = coords?.[1];
+            return isValidLngLat(lon, lat)
+                && !p.onGround
                 && (p.velocity || 0) >= MIN_PATH_VELOCITY_MS
                 && (p.altitude || 0) >= MIN_PATH_ALTITUDE_M
                 && Number.isFinite(p.heading);
@@ -58,13 +63,15 @@ const buildFlightPaths = (flights) => {
             const [lon, lat] = f.geometry.coordinates;
             const distanceM = Math.min(f.properties.velocity * PATH_LOOKAHEAD_S, MAX_PATH_DISTANCE_M);
             const end = projectForward(lon, lat, f.properties.heading, distanceM);
+            if (!isValidLngLat(end[0], end[1])) return null;
             return {
                 type: 'Feature',
                 geometry: { type: 'LineString', coordinates: [[lon, lat], end] },
                 properties: { military: Boolean(f.properties?.military) }
             };
-        });
-    return { type: 'FeatureCollection', features };
+        })
+        .filter(Boolean);
+    return features.length ? { type: 'FeatureCollection', features } : null;
 };
 
 // Vessel heading vectors: short look-ahead, low speed threshold, course-first direction.
@@ -88,9 +95,14 @@ const buildVesselPaths = (vessels) => {
     const features = vessels.features
         .filter((f) => {
             const p = f.properties || {};
+            const coords = f.geometry?.coordinates;
+            const lon = coords?.[0];
+            const lat = coords?.[1];
             const speedKnots = p.speed || 0;
             const direction = p.course ?? p.heading;
-            return speedKnots >= MIN_VESSEL_SPEED_KNOTS && Number.isFinite(direction);
+            return isValidLngLat(lon, lat)
+                && speedKnots >= MIN_VESSEL_SPEED_KNOTS
+                && Number.isFinite(direction);
         })
         .map((f) => {
             const [lon, lat] = f.geometry.coordinates;
@@ -99,13 +111,15 @@ const buildVesselPaths = (vessels) => {
             const distanceM = Math.min(speedMs * VESSEL_LOOKAHEAD_S, MAX_VESSEL_PATH_M);
             const direction = p.course ?? p.heading;
             const end = projectForward(lon, lat, direction, distanceM);
+            if (!isValidLngLat(end[0], end[1])) return null;
             return {
                 type: 'Feature',
                 geometry: { type: 'LineString', coordinates: [[lon, lat], end] },
                 properties: { category: p.category || 'other' }
             };
-        });
-    return { type: 'FeatureCollection', features };
+        })
+        .filter(Boolean);
+    return features.length ? { type: 'FeatureCollection', features } : null;
 };
 
 const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
@@ -529,11 +543,19 @@ const MapContainer = ({
 
     useEffect(() => {
         setActiveMapStyle(MAP_STYLES[mapStyle] || MAP_STYLES.dark);
+        setMapIconsReady(false);
     }, [mapStyle]);
 
-    const handleStyleError = useCallback(() => {
+    const handleMapError = useCallback((event) => {
+        // Tile/source/raster failures are expected — do not swap basemap (that wipes addImage sprites).
+        if (event?.sourceId || event?.tile || event?.source) return;
+
+        const message = event?.error?.message || event?.message || '';
+        if (message && !/style|stylesheet|glyph/i.test(message)) return;
+
         const fallback = MAP_STYLE_FALLBACKS[mapStyle];
         if (!fallback) return;
+        setMapIconsReady(false);
         setActiveMapStyle((current) => (current === fallback ? current : fallback));
     }, [mapStyle]);
 
@@ -588,7 +610,11 @@ const MapContainer = ({
         );
         if (feature) {
             const [longitude, latitude] = feature.geometry?.coordinates || [];
-            setHoverInfo({ longitude, latitude, feature });
+            if (isValidLngLat(longitude, latitude)) {
+                setHoverInfo({ longitude, latitude, feature });
+            } else {
+                setHoverInfo(null);
+            }
         } else {
             setHoverInfo(null);
         }
@@ -679,10 +705,22 @@ const MapContainer = ({
     const vesselsData = vesselsResource.data;
     const interpolatedFlights = useInterpolatedTraffic(flightsData, { idKey: 'hex', durationMs: 60_000, frameMs: 1500, enabled: flightsLayerActive });
     const interpolatedVessels = useInterpolatedTraffic(vesselsData, { idKey: 'mmsi', durationMs: 60_000, frameMs: 2000, enabled: vesselsLayerActive });
-    const flightPaths = useMemo(() => buildFlightPaths(interpolatedFlights), [interpolatedFlights]);
-    const vesselPaths = useMemo(() => buildVesselPaths(interpolatedVessels), [interpolatedVessels]);
-    const flightsGeoJson = interpolatedFlights?.features?.length ? interpolatedFlights : flightsData;
-    const vesselsGeoJson = interpolatedVessels?.features?.length ? interpolatedVessels : vesselsData;
+    const flightPaths = useMemo(
+        () => sanitizeLineCollection(buildFlightPaths(interpolatedFlights)),
+        [interpolatedFlights]
+    );
+    const vesselPaths = useMemo(
+        () => sanitizeLineCollection(buildVesselPaths(interpolatedVessels)),
+        [interpolatedVessels]
+    );
+    const flightsGeoJson = useMemo(() => {
+        const raw = interpolatedFlights?.features?.length ? interpolatedFlights : flightsData;
+        return sanitizePointCollection(raw);
+    }, [interpolatedFlights, flightsData]);
+    const vesselsGeoJson = useMemo(() => {
+        const raw = interpolatedVessels?.features?.length ? interpolatedVessels : vesselsData;
+        return sanitizePointCollection(raw);
+    }, [interpolatedVessels, vesselsData]);
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
     const flightCount = flightsData?.features?.length ?? visibleFlightCount;
@@ -722,7 +760,8 @@ const MapContainer = ({
         if (!data?.features) return null;
 
         return data.features.map((feature, index) => {
-            const [lng, lat] = feature.geometry.coordinates;
+            const [lng, lat] = feature.geometry?.coordinates || [];
+            if (!isValidLngLat(lng, lat)) return null;
             const key = feature.properties.id || `${catClass}-${index}`;
             const markerColor = feature.properties.color || '';
 
@@ -763,7 +802,7 @@ const MapContainer = ({
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onLoad={handleMapLoad}
-                onError={handleStyleError}
+                onError={handleMapError}
                 interactiveLayerIds={HOVER_LAYERS}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle={activeMapStyle}
@@ -1053,7 +1092,7 @@ const MapContainer = ({
                             id="sdg-line"
                             type="line"
                             paint={{
-                                'line-color': 'rgba(255, 255, 255, 0.2)',
+                                'line-color': 'var(--ink-3)',
                                 'line-width': 1
                             }}
                         />
@@ -1098,7 +1137,7 @@ const MapContainer = ({
                                 'circle-opacity': 0.8,
                                 'circle-blur': 0.3,
                                 'circle-stroke-width': 0.5,
-                                'circle-stroke-color': 'rgba(255,255,255,0.2)'
+                                'circle-stroke-color': 'var(--ink-3)'
                             }}
                         />
                     </Source>
@@ -1149,7 +1188,7 @@ const MapContainer = ({
                                 'text-anchor': 'top'
                             }}
                             paint={{
-                                'text-color': 'rgba(255,255,255,0.7)',
+                                'text-color': 'var(--ink-2)',
                                 'text-halo-color': 'rgba(0,0,0,0.8)',
                                 'text-halo-width': 1
                             }}
@@ -1279,7 +1318,7 @@ const MapContainer = ({
                                 ],
                                 'circle-opacity': 0.75,
                                 'circle-stroke-width': 1,
-                                'circle-stroke-color': 'rgba(255,255,255,0.3)'
+                                'circle-stroke-color': 'var(--ink-3)'
                             }}
                         />
                     </Source>
@@ -1539,7 +1578,7 @@ const MapContainer = ({
                                     width: 14,
                                     height: 14,
                                     background: f.properties.color || '#38bdf8',
-                                    border: '1.5px solid rgba(255,255,255,0.85)',
+                                    border: '1.5px solid var(--ink)',
                                     boxShadow: `0 0 12px ${f.properties.color || '#38bdf8'}cc`,
                                     cursor: 'pointer',
                                     transition: 'transform 0.15s'
