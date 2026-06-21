@@ -1,12 +1,12 @@
 :root {
-  /* ── RAMS Design Tokens (Dark Theme & Glass Morphism) ── */
-  --paper: #0a0e14;
-  --panel: rgba(14, 18, 28, 0.75); /* Translucent dark panel */
-  --ink: #ffffff;
-  --ink-2: rgba(255, 255, 255, 0.7);
-  --ink-3: rgba(255, 255, 255, 0.45);
-  --line: rgba(255, 255, 255, 0.1);
-  --line-2: rgba(255, 255, 255, 0.15);
+  /* ── RAMS Design Tokens — light instrument shell over dark map canvas ── */
+  --paper: #faf9f7;
+  --panel: #f4f3f0;
+  --ink: #1a1a1a;
+  --ink-2: rgba(26, 26, 26, 0.72);
+  --ink-3: rgba(26, 26, 26, 0.5);
+  --line: rgba(0, 0, 0, 0.12);
+  --line-2: rgba(0, 0, 0, 0.18);
   --amber: #f59e0b;
   --green: #22c55e;
   --red: #ef4444;
@@ -16,9 +16,9 @@
   --bg-panel: var(--panel);
   --surface-color: var(--panel);
   --surface-translucent: var(--panel);
-  --surface-hover: rgba(255, 255, 255, 0.05);
-  --shadow-color: rgba(0, 0, 0, 0.5);
-  --bg-blur: blur(20px);
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --shadow-color: rgba(0, 0, 0, 0.12);
+  --bg-blur: none;
   --text-main: var(--ink);
   --text-muted: var(--ink-2);
   --text-dim: var(--ink-3);
@@ -128,6 +128,25 @@ body {
   z-index: 0;
   overflow: hidden;
   pointer-events: auto;
+}
+
+.map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0e14;
+  color: rgba(255, 255, 255, 0.72);
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.map-loading::after {
+  content: 'Loading map…';
 }
 
 .map-vignette {
@@ -269,7 +288,8 @@ body {
   z-index: 10;
   pointer-events: none;
   gap: 1px;
-  background: var(--line);
+  background: transparent;
+  isolation: isolate;
 }
 
 /* V4: Responsive breakpoints for tablets and small laptops */
@@ -347,6 +367,7 @@ body {
   flex-direction: column;
   animation: none;
   position: relative;
+  z-index: 2;
   box-shadow: none;
 }
 
@@ -367,7 +388,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 2px 14px;
-  background: transparent;
+  background: var(--paper);
   color: var(--text-main);
   z-index: 20;
   pointer-events: auto;
@@ -375,7 +396,7 @@ body {
   min-height: 40px;
   max-height: 40px;
   overflow: hidden;
-  contain: layout style;
+  position: relative;
 }
 
 .multi-front-row {
@@ -770,6 +791,8 @@ body {
   flex-shrink: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 
@@ -787,6 +810,8 @@ body {
   flex-shrink: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 .right-sidebar>.bottom-card {

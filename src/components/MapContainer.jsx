@@ -499,6 +499,7 @@ const MapContainer = ({
 
     const [mapIconsReady, setMapIconsReady] = useState(false);
     const [mapReady, setMapReady] = useState(false);
+    const [activeMapStyle, setActiveMapStyle] = useState(() => MAP_STYLES[mapStyle] || MAP_STYLES.dark);
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
@@ -525,6 +526,16 @@ const MapContainer = ({
             .catch(() => { /* radar overlay optional */ });
         return () => { cancelled = true; };
     }, [weatherLayerActive]);
+
+    useEffect(() => {
+        setActiveMapStyle(MAP_STYLES[mapStyle] || MAP_STYLES.dark);
+    }, [mapStyle]);
+
+    const handleStyleError = useCallback(() => {
+        const fallback = MAP_STYLE_FALLBACKS[mapStyle];
+        if (!fallback) return;
+        setActiveMapStyle((current) => (current === fallback ? current : fallback));
+    }, [mapStyle]);
 
     // Wire MapLibre's runtime error events. react-map-gl's <Map onError> only
     // surfaces some errors; the underlying map.on('error') is the canonical hook
@@ -752,9 +763,10 @@ const MapContainer = ({
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onLoad={handleMapLoad}
+                onError={handleStyleError}
                 interactiveLayerIds={HOVER_LAYERS}
                 style={{ width: '100%', height: '100%' }}
-                mapStyle={MAP_STYLES[mapStyle] || MAP_STYLES.dark}
+                mapStyle={activeMapStyle}
             >
                 {showStrategicContext && (
                     <>

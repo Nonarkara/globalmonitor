@@ -656,7 +656,7 @@
   border-radius: 5px;
 }
 
-/* ── Kill gradients & blur site-wide on dashboard chrome ── */
+/* ── Kill gradients site-wide on dashboard chrome; no backdrop-filter over WebGL map ── */
 .grid-panel,
 .bottom-card,
 .glass-card,
@@ -668,8 +668,8 @@
 .header-tools-menu,
 .multi-front-board,
 .top-bar-clock {
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
 }
 

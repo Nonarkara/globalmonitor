@@ -134,7 +134,7 @@ function App() {
 
       <div className="app-container" id="main-content" role="main">
         {/* Full-screen map underneath */}
-        <ErrorBoundary label="Map">
+        <ErrorBoundary inline label="Map">
           <Suspense fallback={<div className="map-loading" /> }>
             <LazyMapContainer
               viewTarget={viewTarget}
