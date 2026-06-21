@@ -41,20 +41,20 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
             >
 
                 {/* Header */}
-                <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333' }}>
-                    <h2 id="settings-modal-title" style={{ margin: 0, fontSize: '1.2rem', letterSpacing: '2px', fontWeight: 600 }}>NEWS SOURCES</h2>
-                    <button onClick={onClose} aria-label="Close settings modal" style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>
+                <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)' }}>
+                    <h2 id="settings-modal-title" style={{ margin: 0, fontSize: '1.2rem', letterSpacing: '2px', fontWeight: 600, color: 'var(--ink)' }}>NEWS SOURCES</h2>
+                    <button onClick={onClose} aria-label="Close settings modal" style={{ background: 'none', border: 'none', color: 'var(--ink-3)', cursor: 'pointer' }}>
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Filter hint */}
-                <div style={{ padding: '12px 24px 0', color: '#888', fontSize: '0.8rem' }}>
+                <div style={{ padding: '12px 24px 0', color: 'var(--ink-2)', fontSize: '0.8rem' }}>
                     Choose which news sources feed the live ticker and briefing panels.
                 </div>
 
                 {/* Sub-Filters & Search */}
-                <div style={{ padding: '16px 24px', borderBottom: '1px solid #222' }}>
+                <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--line)' }}>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                         {TABS.map(tab => (
                             <button
@@ -63,8 +63,8 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                 style={{
                                     padding: '6px 16px',
                                     borderRadius: '2px',
-                                    border: `1px solid ${activeTab === tab.id ? '#10b981' : '#333'}`,
-                                    color: activeTab === tab.id ? '#10b981' : '#888',
+                                    border: `1px solid ${activeTab === tab.id ? 'var(--green)' : 'var(--line-2)'}`,
+                                    color: activeTab === tab.id ? 'var(--green)' : 'var(--ink-2)',
                                     background: 'transparent',
                                     fontSize: '0.75rem',
                                     cursor: 'pointer',
@@ -87,8 +87,8 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                 width: '100%',
                                 padding: '10px 12px',
                                 background: 'transparent',
-                                border: '1px solid #333',
-                                color: '#fff',
+                                border: '1px solid var(--line-2)',
+                                color: 'var(--ink)',
                                 borderRadius: '2px',
                                 fontFamily: 'inherit',
                                 fontSize: '0.85rem'
@@ -110,7 +110,7 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                     alignItems: 'center',
                                     gap: '12px',
                                     padding: '12px 16px',
-                                    border: `1px solid ${isActive ? '#10b981' : '#333'}`,
+                                    border: `1px solid ${isActive ? 'var(--green)' : 'var(--line-2)'}`,
                                     borderRadius: '2px',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s'
@@ -118,15 +118,15 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                             >
                                 <div style={{
                                     width: '16px', height: '16px',
-                                    backgroundColor: isActive ? '#10b981' : 'transparent',
-                                    border: `1px solid ${isActive ? '#10b981' : '#555'}`,
+                                    backgroundColor: isActive ? 'var(--green)' : 'transparent',
+                                    border: `1px solid ${isActive ? 'var(--green)' : 'var(--line-2)'}`,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     borderRadius: '1px'
                                 }}>
                                     {isActive && <Check size={12} color="#000" strokeWidth={3} />}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <span style={{ fontSize: '0.85rem', color: isActive ? '#fff' : '#888', fontWeight: isActive ? 500 : 400 }}>
+                                    <span style={{ fontSize: '0.85rem', color: isActive ? 'var(--ink)' : 'var(--ink-2)', fontWeight: isActive ? 500 : 400 }}>
                                         {source.name}
                                     </span>
                                 </div>
@@ -136,17 +136,17 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                 </div>
 
                 {/* Footer Controls */}
-                <div style={{ padding: '16px 24px', borderTop: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#888' }}>{activeSources.length}/{INTELLIGENCE_SOURCES.length} enabled</span>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--ink-2)' }}>{activeSources.length}/{INTELLIGENCE_SOURCES.length} enabled</span>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button
                             onClick={() => setAllSources(true)}
-                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '2px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
+                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--line-2)', color: 'var(--ink)', borderRadius: '2px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
                             SELECT ALL
                         </button>
                         <button
                             onClick={() => setAllSources(false)}
-                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '2px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
+                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--line-2)', color: 'var(--ink)', borderRadius: '2px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
                             SELECT NONE
                         </button>
                     </div>

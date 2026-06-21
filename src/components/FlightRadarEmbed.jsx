@@ -10,17 +10,17 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
         <div style={{
             display: 'flex', alignItems: 'center', gap: '5px',
             marginBottom: '4px', paddingBottom: '3px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)'
+            borderBottom: '1px solid var(--line)'
         }}>
             <Plane size={10} style={{ color: 'var(--accent-cyan)' }} aria-hidden="true" />
-            <span style={{ fontSize: 'var(--type-xs)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
+            <span style={{ fontSize: 'var(--type-xs)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--ink-2)' }}>
                 Live Airspace
             </span>
             <span style={{
                 fontSize: '0.4rem', fontWeight: 700, letterSpacing: '0.5px',
-                color: flightsActive ? 'var(--accent-green)' : 'rgba(255,255,255,0.35)',
+                color: flightsActive ? 'var(--accent-green)' : 'var(--ink-3)',
                 padding: '1px 5px', borderRadius: '3px',
-                background: flightsActive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',
+                background: flightsActive ? 'rgba(34,197,94,0.1)' : 'var(--line)',
                 marginLeft: 'auto'
             }}>
                 {flightsActive ? 'MAP ON' : 'MAP OFF'}
@@ -36,8 +36,8 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: '6px', width: '100%', height: '80px',
                 borderRadius: '6px',
-                background: flightsActive ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${flightsActive ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.04)'}`,
+                background: flightsActive ? 'rgba(56,189,248,0.08)' : 'var(--line)',
+                border: `1px solid ${flightsActive ? 'rgba(56,189,248,0.22)' : 'var(--line)'}`,
                 transition: 'background 0.2s, border-color 0.2s',
                 cursor: 'pointer',
                 color: 'inherit',
@@ -46,10 +46,10 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
             }}
         >
             <Plane size={18} style={{ color: 'var(--accent-cyan)', opacity: flightsActive ? 0.95 : 0.4 }} />
-            <span style={{ fontSize: 'var(--type-xs)', color: flightsActive ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: 'var(--type-xs)', color: flightsActive ? 'var(--ink)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>
                 ADS-B Exchange · airplanes.live
             </span>
-            <span style={{ fontSize: '0.5rem', color: flightsActive ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.2)' }}>
+            <span style={{ fontSize: '0.5rem', color: flightsActive ? 'var(--ink-2)' : 'var(--ink-3)' }}>
                 {flightsActive && flightCount > 0
                     ? `${flightCount.toLocaleString()} aircraft on map · heading vectors`
                     : 'Tap to show live aircraft on map'}
@@ -63,7 +63,7 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
             aria-label="Open ADS-B Exchange globe in new tab"
             style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                marginTop: '6px', fontSize: '0.48rem', color: 'rgba(255,255,255,0.35)',
+                marginTop: '6px', fontSize: '0.48rem', color: 'var(--ink-3)',
                 fontFamily: 'var(--font-mono)', letterSpacing: '0.4px', textDecoration: 'none'
             }}
         >

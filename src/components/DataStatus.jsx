@@ -14,15 +14,15 @@ const S = {
     },
     retryBtn: {
         marginTop: 'var(--sp-1)', padding: '3px 10px',
-        fontSize: 'var(--type-xs)', background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px',
+        fontSize: 'var(--type-xs)', background: 'var(--line)',
+        border: '1px solid var(--line-2)', borderRadius: '4px',
         color: 'var(--text-muted)', cursor: 'pointer',
         letterSpacing: '0.5px', textTransform: 'uppercase',
         fontFamily: 'var(--font-mono)', transition: 'var(--transition)'
     },
     staleBadge: {
         display: 'inline-flex', alignItems: 'center', gap: '4px',
-        fontSize: 'var(--type-xs)', color: 'var(--accent-amber)',
+        color: 'var(--amber)',
         padding: '2px 6px', borderRadius: '3px',
         background: 'rgba(245,158,11,0.1)', letterSpacing: '0.3px',
         fontFamily: 'var(--font-mono)'

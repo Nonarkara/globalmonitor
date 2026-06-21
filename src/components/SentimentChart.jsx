@@ -63,11 +63,11 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid var(--accent-cyan)', paddingLeft: '8px'
             }}>
                 <Activity size={12} style={{ color: 'var(--accent-cyan)' }} />
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Media Sentiment</span>
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Media Sentiment</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isRefreshing={isRefreshing} isStale={isStale}
@@ -78,19 +78,19 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
     const { tones, zeroY, linePath, posArea, negArea, avg, trend, toX, toY, W, H, PAD } = computed;
     const latest = tones[tones.length - 1];
     const label = trend < -3 ? 'VERY NEGATIVE' : trend < -1 ? 'NEGATIVE' : trend < 1 ? 'NEUTRAL' : 'IMPROVING';
-    const labelColor = trend < -3 ? '#ef4444' : trend < -1 ? '#f59e0b' : trend < 1 ? 'rgba(255,255,255,0.5)' : '#22c55e';
+    const labelColor = trend < -3 ? '#ef4444' : trend < -1 ? '#f59e0b' : trend < 1 ? 'var(--ink-2)' : '#22c55e';
 
     return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '5px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid #3b82f6', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Activity size={12} style={{ color: '#3b82f6' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Media Sentiment
                     </span>
                 </div>
@@ -117,7 +117,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                 </defs>
 
                 {/* Zero line */}
-                <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+                <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="var(--line-2)" strokeWidth="0.5" />
 
                 {/* Positive/Negative fills */}
                 <path d={posArea} fill="url(#posGrad)" />
@@ -127,7 +127,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                 <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
 
                 {/* Latest dot */}
-                <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#ef4444' : '#22c55e'} stroke="rgba(255,255,255,0.4)" strokeWidth="0.5">
+                <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#ef4444' : '#22c55e'} stroke="var(--ink-3)" strokeWidth="0.5">
                     <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
                 </circle>
 
@@ -137,8 +137,8 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
             </svg>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
             </div>
         </div>
     );

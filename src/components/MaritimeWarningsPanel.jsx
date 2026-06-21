@@ -19,7 +19,7 @@ const WarningItem = ({ warning, expanded, onToggle }) => {
             style={{
                 padding: '6px 8px',
                 borderLeft: `3px solid ${color}`,
-                background: expanded ? 'rgba(255,255,255,0.04)' : 'transparent',
+                background: expanded ? 'var(--line)' : 'transparent',
                 cursor: 'pointer',
                 transition: 'background 0.2s',
                 borderRadius: '0 4px 4px 0',
@@ -36,17 +36,17 @@ const WarningItem = ({ warning, expanded, onToggle }) => {
                         {warning.threat}
                     </span>
                     <span style={{
-                        fontSize: '0.48rem', color: 'rgba(255,255,255,0.7)',
+                        fontSize: '0.48rem', color: 'var(--ink-2)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                     }}>
                         NAVAREA {warning.navArea}/{warning.subregion}
                     </span>
                 </div>
-                {expanded ? <ChevronUp size={10} style={{ color: 'rgba(255,255,255,0.3)' }} /> : <ChevronDown size={10} style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                {expanded ? <ChevronUp size={10} style={{ color: 'var(--ink-3)' }} /> : <ChevronDown size={10} style={{ color: 'var(--ink-3)' }} />}
             </div>
             {expanded && (
                 <div style={{
-                    fontSize: '0.46rem', color: 'rgba(255,255,255,0.5)',
+                    fontSize: '0.46rem', color: 'var(--ink-2)',
                     marginTop: '4px', lineHeight: 1.4,
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                     maxHeight: '80px', overflow: 'auto'
@@ -117,9 +117,9 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
             </DataStatus>
             <div style={{
                 padding: '4px 8px',
-                borderTop: '1px solid rgba(255,255,255,0.04)',
+                borderTop: '1px solid var(--line)',
                 fontSize: '0.4rem',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--ink-3)',
                 textAlign: 'right'
             }}>
                 Source: US National Geospatial-Intelligence Agency (NGA)

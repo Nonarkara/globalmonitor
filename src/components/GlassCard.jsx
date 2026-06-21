@@ -41,7 +41,7 @@ const GlassCard = ({
                             style={{
                                 background: 'transparent',
                                 border: 'none',
-                                color: 'rgba(255,255,255,0.45)',
+                                color: 'var(--ink-3)',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 padding: '2px'

@@ -22,7 +22,7 @@ const SubFront = ({ front }) => (
         }} />
         <span style={{
             fontSize: '0.48rem',
-            color: 'rgba(255,255,255,0.7)',
+            color: 'var(--ink-2)',
             flex: 1
         }}>
             {front.name}
@@ -98,7 +98,7 @@ const IranWarPanel = () => {
                     gap: '16px',
                     marginBottom: '10px',
                     paddingBottom: '8px',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)'
+                    borderBottom: '1px solid var(--line)'
                 }}>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{

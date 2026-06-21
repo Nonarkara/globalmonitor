@@ -27,11 +27,11 @@ const OilPriceChart = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid var(--accent-amber)', paddingLeft: '8px'
             }}>
                 <Droplets size={12} style={{ color: 'var(--accent-amber)' }} />
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>Oil Price</span>
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Oil Price</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isEmpty={!isLoading && !data?.brent?.length} emptyMessage="Awaiting EIA data" />
@@ -62,12 +62,12 @@ const OilPriceChart = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '6px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid #ef4444', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Droplets size={12} style={{ color: '#ef4444' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Brent Crude
                     </span>
                 </div>
@@ -126,15 +126,15 @@ const OilPriceChart = () => {
                 })}
 
                 {/* Latest price dot */}
-                <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="#ef4444" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8">
+                <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="#ef4444" stroke="var(--ink-2)" strokeWidth="0.8">
                     <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />
                 </circle>
             </svg>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>Feb 27</span>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>War premium: $14-18/bbl</span>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>Mar 29</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Feb 27</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>War premium: $14-18/bbl</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Mar 29</span>
             </div>
         </div>
     );

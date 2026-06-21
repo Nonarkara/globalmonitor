@@ -56,7 +56,7 @@ const QuakeItem = ({ quake }) => {
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                     fontSize: '0.48rem',
-                    color: 'rgba(255,255,255,0.7)',
+                    color: 'var(--ink-2)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -65,7 +65,7 @@ const QuakeItem = ({ quake }) => {
                 </div>
                 <div style={{
                     fontSize: '0.4rem',
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     {timeAgo(quake.time)} · depth {quake.depth.toFixed(0)}km
@@ -126,7 +126,7 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
                 }}>
                     <div style={{
                         display: 'flex', gap: '12px', paddingBottom: '6px',
-                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        borderBottom: '1px solid var(--line)',
                         marginBottom: '4px'
                     }}>
                         <div style={{ textAlign: 'center' }}>
@@ -153,9 +153,9 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
             </DataStatus>
             <div style={{
                 padding: '4px 8px',
-                borderTop: '1px solid rgba(255,255,255,0.04)',
+                borderTop: '1px solid var(--line)',
                 fontSize: '0.4rem',
-                color: 'rgba(255,255,255,0.25)',
+                color: 'var(--ink-3)',
                 textAlign: 'right'
             }}>
                 Source: US Geological Survey (USGS)

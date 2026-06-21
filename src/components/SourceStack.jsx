@@ -14,7 +14,7 @@ const AGENCIES = [
 const statusColor = (s) => {
     if (s === 'live') return 'rgba(34, 197, 94, 0.8)';
     if (s === 'catalog') return 'rgba(59, 130, 246, 0.6)';
-    return 'rgba(255, 255, 255, 0.2)';
+    return 'var(--ink-3)';
 };
 
 const SourceStack = () => (

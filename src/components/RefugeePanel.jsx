@@ -68,16 +68,16 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid #f472b6', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Users size={12} style={{ color: '#f472b6' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Displacement Tracker
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     UNHCR + IOM · {viewMode === 'middleeast' ? 'MIDDLE EAST' : viewMode === 'thailand' ? 'THAILAND' : 'INDO-PACIFIC'}
                 </span>
             </div>
@@ -94,20 +94,20 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
                 }}>
                     {formatNum(data.totalDisplaced)}
                 </div>
-                <div style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.35)', marginTop: '2px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', marginTop: '2px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                     Total Displaced Persons
                 </div>
             </div>
 
             {/* KPI row */}
             <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
-                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px' }}>
+                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'var(--line)', borderRadius: '4px' }}>
                     <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>{formatNum(data.internallyDisplaced)}</div>
-                    <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Internal</div>
+                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Internal</div>
                 </div>
-                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px' }}>
+                <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'var(--line)', borderRadius: '4px' }}>
                     <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#f97316', fontFamily: 'var(--font-mono)' }}>{formatNum(data.crossBorderRefugees)}</div>
-                    <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Cross-border</div>
+                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Cross-border</div>
                 </div>
             </div>
 
@@ -115,12 +115,12 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             <div style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '4px 6px', marginBottom: '6px',
-                background: 'rgba(255,255,255,0.03)', borderRadius: '4px'
+                background: 'var(--line)', borderRadius: '4px'
             }}>
                 <Sparkline data={data.timeline} color="#f472b6" />
                 <div style={{ textAlign: 'right' }}>
                     <TrendingUp size={8} style={{ color: '#f472b6', marginBottom: '1px' }} />
-                    <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.3)' }}>5-week trend</div>
+                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>5-week trend</div>
                 </div>
             </div>
 
@@ -128,14 +128,14 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {data.countries.slice(0, 5).map((c, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.4)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{c.name}</span>
-                        <div style={{ flex: 1, height: '5px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{c.name}</span>
+                        <div style={{ flex: 1, height: '5px', background: 'var(--line)', borderRadius: '3px', overflow: 'hidden' }}>
                             <div style={{
                                 width: `${Math.max((c.count / maxCount) * 100, 3)}%`,
                                 height: '100%', borderRadius: '3px', background: c.color
                             }} />
                         </div>
-                        <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)', width: '28px' }}>{formatNum(c.count)}</span>
+                        <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '28px' }}>{formatNum(c.count)}</span>
                     </div>
                 ))}
             </div>
@@ -143,8 +143,8 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             {/* Aid status */}
             <div style={{
                 display: 'flex', gap: '6px', marginTop: '6px', padding: '3px 0',
-                borderTop: '1px solid rgba(255,255,255,0.04)',
-                fontSize: '0.36rem', color: 'rgba(255,255,255,0.3)'
+                borderTop: '1px solid var(--line)',
+                fontSize: '0.36rem', color: 'var(--ink-3)'
             }}>
                 <span>Funding gap: <strong style={{ color: '#ef4444' }}>{data.aidResponse.unhcrFundingGap}</strong></span>
                 <span>Corridors: <strong style={{ color: '#22c55e' }}>{data.aidResponse.corridorsOpen}</strong>/<strong style={{ color: '#ef4444' }}>{data.aidResponse.corridorsBlocked}</strong></span>

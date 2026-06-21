@@ -35,7 +35,7 @@ const StatCard = ({ label, current, week, daily, color }) => {
                         style={{
                             flex: 1,
                             height: `${Math.max(2, (val / maxDay) * 16)}px`,
-                            background: val > 0 ? color : 'rgba(255,255,255,0.06)',
+                            background: val > 0 ? color : 'var(--line)',
                             borderRadius: '1px',
                             opacity: val > 0 ? 0.6 : 0.3,
                             transition: 'height 0.5s ease'

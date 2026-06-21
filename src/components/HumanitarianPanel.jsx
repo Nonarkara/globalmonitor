@@ -7,14 +7,14 @@ import { getDayCount } from '../data/warConstants';
 const KPI = ({ icon, label, value, color, sub }) => (
     <div style={{
         padding: '6px 8px', borderRadius: '6px',
-        background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--line)',
+        border: '1px solid var(--line)',
         textAlign: 'center', flex: 1
     }}>
         {React.createElement(icon, { size: 10, style: { color, marginBottom: '2px' } })}
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{value}</div>
-        <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
-        {sub && <div style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.25)', marginTop: '1px' }}>{sub}</div>}
+        <div style={{ fontSize: '0.42rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
+        {sub && <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
     </div>
 );
 
@@ -116,16 +116,16 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid #ec4899', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Heart size={12} style={{ color: '#ec4899' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Humanitarian Impact
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     ACLED + UNHCR · {viewMode.toUpperCase()}
                 </span>
             </div>
@@ -150,11 +150,11 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                 {/* Cumulative fatalities sparkline */}
                 {cumulativeData.length > 1 && (
                     <div style={{ marginBottom: '6px' }}>
-                        <div style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                        <div style={{ fontSize: '0.42rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
                             Cumulative Fatalities
                         </div>
                         <div style={{
-                            background: 'rgba(255,255,255,0.03)',
+                            background: 'var(--line)',
                             borderRadius: '6px',
                             padding: '6px 8px',
                             display: 'flex',
@@ -166,7 +166,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>
                                     {totalFatalities.toLocaleString()}
                                 </div>
-                                <div style={{ fontSize: '0.36rem', color: 'rgba(255,255,255,0.3)' }}>total</div>
+                                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)' }}>total</div>
                             </div>
                         </div>
                     </div>
@@ -181,7 +181,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                     border: '1px solid rgba(239,68,68,0.1)'
                 }}>
                     <TrendingUp size={10} style={{ color: '#ef4444' }} />
-                    <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.5)' }}>
+                    <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)' }}>
                         {fatalitiesPerDay != null
                             ? `~${fatalitiesPerDay} fatalities/day avg`
                             : 'Monitoring conflict casualties'}

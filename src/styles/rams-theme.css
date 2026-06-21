@@ -674,6 +674,54 @@
 }
 
 /* ── Mobile: solid panels, no dark gradients ── */
+/* ── Force ink-on-paper text on all dashboard chrome ── */
+.grid-panel,
+.bottom-card,
+.glass-card,
+.left-sidebar,
+.right-sidebar,
+.multi-front-board,
+.panel-content,
+.data-status-shell {
+  color: var(--ink);
+}
+
+/* DataStatus badges on light panels */
+.data-status-badges .stale-badge,
+.data-status-shell button {
+  color: var(--ink-2);
+  background: var(--surface-hover);
+  border-color: var(--line-2);
+}
+
+/* Header tools menu on light panel */
+.header-tools-menu {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.header-tools-menu button {
+  color: var(--ink);
+}
+
+/* Bottom bar widgets inherit ink */
+.bottom-bar,
+.bottom-bar .panel-header,
+.bottom-bar .panel-content {
+  color: var(--ink);
+}
+
+/* Right rail panels */
+.right-sidebar .panel-header,
+.right-sidebar .panel-content,
+.right-sidebar .panel-lead {
+  color: var(--ink);
+}
+
+.right-sidebar .panel-lead {
+  color: var(--ink-2);
+}
+
 @media (max-width: 1024px) {
   .top-bar-clock {
     background: var(--panel);

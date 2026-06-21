@@ -24,7 +24,7 @@ const LiveIntelligenceFeed = ({ activeSourceIds }) => {
     if (!isLoading && news.length === 0 && !isStale && !error) {
         return (
             <div className="news-ticker-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>
                     Status: Live headline feeds are temporarily unavailable. Last-good data will reappear when the sources respond.
                 </span>
             </div>

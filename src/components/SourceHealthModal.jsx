@@ -52,27 +52,27 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                 background: 'rgba(14, 18, 28, 0.95)',
                 backdropFilter: 'none',
                 borderRadius: '2px',
-                border: '1px solid rgba(255,255,255,0.14)',
+                border: '1px solid var(--line-2)',
                 overflow: 'hidden', display: 'flex', flexDirection: 'column'
             }} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)'
+                    padding: '14px 20px', borderBottom: '1px solid var(--line)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Database size={16} style={{ color: '#3b82f6' }} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
                             Data Provenance & Source Health
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                             {dataSources.length} sources · Backend: {healthData ? 'CONNECTED' : 'UNREACHABLE'}
                         </span>
                         <button onClick={onClose} aria-label="Close source health modal" style={{
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '2px', padding: '6px 12px', color: 'rgba(255,255,255,0.6)',
+                            background: 'var(--line)', border: '1px solid var(--line-2)',
+                            borderRadius: '2px', padding: '6px 12px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
                             fontSize: '0.6rem', fontFamily: 'inherit', minHeight: '32px'
                         }}>
@@ -85,11 +85,11 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                 <div style={{ overflowY: 'auto', padding: '12px 20px' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.48rem' }}>
                         <thead>
-                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                            <tr style={{ borderBottom: '1px solid var(--line-2)' }}>
                                 {['Source', 'Type', 'Reliability', 'Update Freq', 'Cache TTL', 'Status', 'Methodology'].map(h => (
                                     <th key={h} style={{
                                         padding: '6px 8px', textAlign: 'left',
-                                        color: 'rgba(255,255,255,0.4)', fontWeight: 600,
+                                        color: 'var(--ink-3)', fontWeight: 600,
                                         letterSpacing: '0.8px', textTransform: 'uppercase',
                                         fontSize: '0.38rem'
                                     }}>{h}</th>
@@ -100,22 +100,22 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                             {dataSources.map(src => {
                                 const health = getStatus(src.id);
                                 return (
-                                    <tr key={src.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                    <tr key={src.id} style={{ borderBottom: '1px solid var(--line)' }}>
                                         <td style={{ padding: '8px 8px' }}>
-                                            <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontSize: '0.5rem' }}>
+                                            <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '0.5rem' }}>
                                                 {src.name}
                                             </div>
-                                            <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.38rem' }}>
+                                            <div style={{ color: 'var(--ink-3)', fontSize: '0.38rem' }}>
                                                 {src.fullName}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '8px 8px', color: 'rgba(255,255,255,0.5)' }}>
+                                        <td style={{ padding: '8px 8px', color: 'var(--ink-2)' }}>
                                             {src.type}
                                         </td>
                                         <td style={{ padding: '8px 8px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <div style={{
-                                                    width: '24px', height: '4px', background: 'rgba(255,255,255,0.06)',
+                                                    width: '24px', height: '4px', background: 'var(--line)',
                                                     borderRadius: '2px', overflow: 'hidden'
                                                 }}>
                                                     <div style={{
@@ -131,10 +131,10 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td style={{ padding: '8px 8px', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)' }}>
+                                        <td style={{ padding: '8px 8px', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
                                             {src.updateFrequency}
                                         </td>
-                                        <td style={{ padding: '8px 8px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+                                        <td style={{ padding: '8px 8px', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                                             {src.cacheTTL}
                                         </td>
                                         <td style={{ padding: '8px 8px' }}>
@@ -155,7 +155,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                             </div>
                                         </td>
                                         <td style={{
-                                            padding: '8px 8px', color: 'rgba(255,255,255,0.35)',
+                                            padding: '8px 8px', color: 'var(--ink-3)',
                                             maxWidth: '200px', lineHeight: 1.3
                                         }}>
                                             {src.methodology}
@@ -169,8 +169,8 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                     {/* Legend */}
                     <div style={{
                         display: 'flex', gap: '16px', marginTop: '14px', padding: '8px 0',
-                        borderTop: '1px solid rgba(255,255,255,0.06)',
-                        fontSize: '0.4rem', color: 'rgba(255,255,255,0.3)'
+                        borderTop: '1px solid var(--line)',
+                        fontSize: '0.4rem', color: 'var(--ink-3)'
                     }}>
                         <span>Reliability: <strong style={{ color: '#22c55e' }}>9-10</strong> Government/Scientific · <strong style={{ color: '#f59e0b' }}>7-8</strong> Vetted OSINT · <strong style={{ color: '#ef4444' }}>&lt;7</strong> Variable</span>
                         <span>All data is cached server-side with stale fallback. Client caches via localStorage.</span>

@@ -34,16 +34,16 @@ const KeyFiguresPanel = () => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid #06b6d4', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <User size={12} style={{ color: '#06b6d4' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Key Figures
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {keyFigures.length} TRACKED
                 </span>
             </div>
@@ -58,7 +58,7 @@ const KeyFiguresPanel = () => {
                         <div key={fig.id} style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
                             padding: '4px 6px', borderRadius: '4px',
-                            background: 'rgba(255,255,255,0.02)',
+                            background: 'var(--surface-hover)',
                             borderLeft: `2px solid ${factionColor}20`
                         }}>
                             {/* Avatar circle */}
@@ -76,13 +76,13 @@ const KeyFiguresPanel = () => {
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
                                     fontSize: '0.48rem', fontWeight: 600,
-                                    color: 'rgba(255,255,255,0.8)',
+                                    color: 'var(--ink)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.name}
                                 </div>
                                 <div style={{
-                                    fontSize: '0.38rem', color: 'rgba(255,255,255,0.35)',
+                                    fontSize: '0.38rem', color: 'var(--ink-3)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.role}
@@ -111,9 +111,9 @@ const KeyFiguresPanel = () => {
                     style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         gap: '4px', width: '100%', marginTop: '4px',
-                        padding: '3px', background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        borderRadius: '4px', color: 'rgba(255,255,255,0.4)',
+                        padding: '3px', background: 'var(--line)',
+                        border: '1px solid var(--line)',
+                        borderRadius: '4px', color: 'var(--ink-3)',
                         fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
                     }}
                 >

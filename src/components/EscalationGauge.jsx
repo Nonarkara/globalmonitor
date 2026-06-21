@@ -34,7 +34,7 @@ const EscalationGauge = () => {
                         <path
                             d="M 4 24 A 18 18 0 0 1 40 24"
                             fill="none"
-                            stroke="rgba(255,255,255,0.06)"
+                            stroke="var(--line)"
                             strokeWidth="2.5"
                             strokeLinecap="round"
                         />
@@ -47,7 +47,7 @@ const EscalationGauge = () => {
                         fontSize: '0.95rem',
                         fontWeight: 200,
                         fontFamily: 'var(--font-mono)',
-                        color: 'rgba(255,255,255,0.2)',
+                        color: 'var(--ink-3)',
                         lineHeight: 1,
                         fontVariantNumeric: 'tabular-nums'
                     }}>
@@ -59,16 +59,16 @@ const EscalationGauge = () => {
                         fontSize: '0.48rem',
                         fontWeight: 600,
                         letterSpacing: '1.5px',
-                        color: 'rgba(255,255,255,0.25)',
+                        color: 'var(--ink-3)',
                         textTransform: 'uppercase'
                     }}>
                         ESCALATION
                     </span>
                     <div style={{ width: 48, height: 14, marginTop: 2 }} aria-hidden="true" />
                     <div style={{ display: 'flex', gap: 3, marginTop: 2, minHeight: 4 }} aria-hidden="true">
-                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--line-2)' }} />
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--line-2)' }} />
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--line-2)' }} />
                     </div>
                 </div>
             </div>
@@ -115,7 +115,7 @@ const EscalationGauge = () => {
                     <path
                         d="M 4 24 A 18 18 0 0 1 40 24"
                         fill="none"
-                        stroke="rgba(255,255,255,0.06)"
+                        stroke="var(--line)"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                     />
@@ -169,7 +169,7 @@ const EscalationGauge = () => {
                 <div style={{ display: 'flex', gap: '3px', marginTop: '2px', minHeight: 4 }}>
                     {healthKeys.map((key) => {
                         const status = sourceHealth?.[key];
-                        const dotColor = status === 'live' ? '#22c55e' : status === 'sample' ? '#f59e0b' : status === 'error' ? '#ef4444' : 'rgba(255,255,255,0.08)';
+                        const dotColor = status === 'live' ? '#22c55e' : status === 'sample' ? '#f59e0b' : status === 'error' ? '#ef4444' : 'var(--line-2)';
                         return (
                             <div
                                 key={key}

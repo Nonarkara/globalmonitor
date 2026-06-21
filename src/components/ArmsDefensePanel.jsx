@@ -21,16 +21,16 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid var(--line)',
                 borderLeft: '2px solid #6366f1', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Shield size={12} style={{ color: '#6366f1' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Arms & Defense
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     SIPRI + OSINT · {isMiddleEast ? 'MIDDLE EAST' : 'THEATER SNAPSHOT'}
                 </span>
             </div>
@@ -38,9 +38,9 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
             {!isMiddleEast && (
                 <div style={{
                     padding: '8px', marginBottom: '6px',
-                    background: 'rgba(255,255,255,0.03)', borderRadius: '4px',
-                    border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.42rem',
-                    color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 1.5
+                    background: 'var(--line)', borderRadius: '4px',
+                    border: '1px solid var(--line)', fontSize: '0.42rem',
+                    color: 'var(--ink-3)', textAlign: 'center', lineHeight: 1.5
                 }}>
                     Detailed arsenal tracking is focused on the Middle East theater.<br />
                     Switch to <strong style={{ color: '#6366f1' }}>Middle East</strong> view for live SIPRI + OSINT data.
@@ -56,10 +56,10 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                 ].map(k => (
                     <div key={k.label} style={{
                         textAlign: 'center', padding: '4px',
-                        background: 'rgba(255,255,255,0.04)', borderRadius: '4px'
+                        background: 'var(--line)', borderRadius: '4px'
                     }}>
                         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.value}</div>
-                        <div style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
+                        <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
                     </div>
                 ))}
             </div>
@@ -71,14 +71,14 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                 border: '1px solid rgba(99,102,241,0.1)'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                         Overall Interception Rate
                     </span>
                     <span style={{ fontSize: '0.55rem', fontWeight: 700, color: '#6366f1', fontFamily: 'var(--font-mono)' }}>
                         {arsenalUsage.interceptionRate}
                     </span>
                 </div>
-                <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                <div style={{ height: '4px', background: 'var(--line)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
                         width: arsenalUsage.interceptionRate,
                         height: '100%', borderRadius: '2px',
@@ -95,10 +95,10 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                             width: '5px', height: '5px', borderRadius: '50%',
                             background: STATUS_COLORS[sys.status] || '#94a3b8', flexShrink: 0
                         }} />
-                        <span style={{ fontSize: '0.42rem', color: 'rgba(255,255,255,0.65)', flex: 1 }}>
+                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>
                             {sys.name}
                         </span>
-                        <span style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.3)' }}>
+                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>
                             {sys.operator}
                         </span>
                         <span style={{
@@ -117,9 +117,9 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                 style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     gap: '4px', width: '100%', marginTop: '2px',
-                    padding: '3px', background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    borderRadius: '4px', color: 'rgba(255,255,255,0.4)',
+                    padding: '3px', background: 'var(--line)',
+                    border: '1px solid var(--line)',
+                    borderRadius: '4px', color: 'var(--ink-3)',
                     fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit'
                 }}
             >
@@ -131,10 +131,10 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                 <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     {armsData.armsFlows.map((flow, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
-                            <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.5)', width: '32px', flexShrink: 0 }}>{flow.from}</span>
-                            <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.2)' }}>&rarr;</span>
-                            <span style={{ fontSize: '0.38rem', color: 'rgba(255,255,255,0.5)', width: '40px', flexShrink: 0 }}>{flow.to}</span>
-                            <span style={{ fontSize: '0.34rem', color: 'rgba(255,255,255,0.3)', flex: 1 }}>{flow.type}</span>
+                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '32px', flexShrink: 0 }}>{flow.from}</span>
+                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>&rarr;</span>
+                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '40px', flexShrink: 0 }}>{flow.to}</span>
+                            <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
                             <span style={{
                                 fontSize: '0.3rem', fontWeight: 700,
                                 color: STATUS_COLORS[flow.status] || '#94a3b8',

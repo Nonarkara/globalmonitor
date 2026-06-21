@@ -31,7 +31,7 @@ const EventDetailsPanel = ({ event, onClose }) => {
 
     return (
         <div className="grid-panel" style={{ padding: '24px', position: 'relative' }}>
-            <button className="details-close-btn" onClick={onClose} aria-label="Close details" style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'var(--text-muted)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>
+            <button className="details-close-btn" onClick={onClose} aria-label="Close details" style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--line-2)', border: 'none', color: 'var(--text-muted)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>
                 <X size={18} />
             </button>
 

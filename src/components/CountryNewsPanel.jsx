@@ -110,7 +110,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                     gap: 6,
                     overflowX: 'auto',
                     padding: '6px 8px',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    borderBottom: '1px solid var(--line)',
                     scrollbarWidth: 'thin'
                 }}
             >
@@ -127,8 +127,8 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                                 minHeight: 28,
                                 padding: '4px 10px',
                                 background: isActive ? 'rgba(56,189,248,0.18)' : 'transparent',
-                                border: isActive ? '1px solid rgba(56,189,248,0.55)' : '1px solid rgba(255,255,255,0.08)',
-                                color: isActive ? '#dbeafe' : 'rgba(255,255,255,0.6)',
+                                border: isActive ? '1px solid rgba(56,189,248,0.55)' : '1px solid var(--line-2)',
+                                color: isActive ? 'var(--green)' : 'var(--ink-2)',
                                 fontSize: '0.65rem',
                                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                                 letterSpacing: '0.5px',
@@ -145,7 +145,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
 
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
                 {news.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.7rem', color: 'var(--ink-3)' }}>
                         {isRefreshing ? 'Connecting to live feeds…' : 'No live items right now.'}
                     </div>
                 )}
@@ -158,7 +158,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                         style={{
                             textDecoration: 'none',
                             color: 'inherit',
-                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                            borderBottom: '1px solid var(--line)',
                             paddingBottom: '8px',
                             display: 'block'
                         }}

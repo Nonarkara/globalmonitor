@@ -67,7 +67,7 @@ const AlertBanner = () => {
             {factors.length > 0 && (
                 <span style={{
                     fontSize: '0.5rem',
-                    color: 'rgba(255,255,255,0.4)',
+                    color: 'var(--ink-3)',
                     letterSpacing: '0.3px'
                 }}>
                     Driven by {factors.join(', ')}
@@ -78,7 +78,7 @@ const AlertBanner = () => {
                 style={{
                     background: 'transparent',
                     border: 'none',
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'var(--ink-3)',
                     cursor: 'pointer',
                     padding: '2px',
                     display: 'flex',

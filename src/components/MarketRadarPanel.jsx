@@ -61,7 +61,7 @@ const OilCrisisHeader = ({ items }) => {
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.44rem', color: 'rgba(255,255,255,0.4)',
+                    fontSize: '0.44rem', color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     ~{disruption}% supply disrupted
@@ -69,7 +69,7 @@ const OilCrisisHeader = ({ items }) => {
             </div>
 
             {/* Price threshold bar */}
-            <div style={{ position: 'relative', height: '12px', background: 'rgba(255,255,255,0.04)', borderRadius: '6px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '12px', background: 'var(--line)', borderRadius: '6px', overflow: 'hidden' }}>
                 <div style={{
                     position: 'absolute', left: 0, top: 0, bottom: 0,
                     width: `${pctPosition}%`,
@@ -84,11 +84,11 @@ const OilCrisisHeader = ({ items }) => {
                         left: `${(t.price / maxPrice) * 100}%`,
                         top: 0, bottom: 0,
                         width: '1px',
-                        background: 'rgba(255,255,255,0.2)'
+                        background: 'var(--ink-3)'
                     }}>
                         <span style={{
                             position: 'absolute', top: '-11px', transform: 'translateX(-50%)',
-                            fontSize: '0.36rem', color: 'rgba(255,255,255,0.3)',
+                            fontSize: '0.36rem', color: 'var(--ink-3)',
                             fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap'
                         }}>
                             {t.label}
@@ -103,12 +103,12 @@ const OilCrisisHeader = ({ items }) => {
                     width: '3px',
                     background: 'white',
                     borderRadius: '2px',
-                    boxShadow: '0 0 6px rgba(255,255,255,0.5)',
+                    boxShadow: '0 0 6px var(--ink-2)',
                     transform: 'translateX(-50%)'
                 }} />
             </div>
             <div style={{
-                fontSize: '0.44rem', color: 'rgba(255,255,255,0.35)',
+                fontSize: '0.44rem', color: 'var(--ink-3)',
                 marginTop: '4px', fontFamily: 'var(--font-mono)', textAlign: 'right'
             }}>
                 {oilItem.symbol}: ${price.toFixed(2)} ({oilItem.changePerc})

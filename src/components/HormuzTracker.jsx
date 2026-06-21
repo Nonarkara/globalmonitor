@@ -33,16 +33,16 @@ const Stat = ({ icon, label, value, color }) => (
     <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         padding: '5px 8px',
-        background: 'rgba(255,255,255,0.04)',
+        background: 'var(--line)',
         borderRadius: '6px',
-        border: '1px solid rgba(255,255,255,0.06)'
+        border: '1px solid var(--line)'
     }}>
-        {React.createElement(icon, { size: 12, style: { color: color || 'rgba(255,255,255,0.4)', flexShrink: 0 } })}
+        {React.createElement(icon, { size: 12, style: { color: color || 'var(--ink-3)', flexShrink: 0 } })}
         <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '0.55rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                 {label}
             </div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: color || 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: color || 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
                 {value}
             </div>
         </div>
@@ -54,15 +54,15 @@ const HormuzTracker = () => (
         <div className="panel-header" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             paddingBottom: '6px', marginBottom: '8px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid var(--line)',
             borderLeft: '2px solid #ef4444',
             paddingLeft: '8px'
         }}>
             <div>
-                <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)' }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                     Strait of Hormuz
                 </div>
-                <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.4)', marginTop: '1px' }}>
+                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '1px' }}>
                     Day {warDay} of conflict
                 </div>
             </div>
@@ -92,7 +92,7 @@ const HormuzTracker = () => (
                 border: '1px solid rgba(239,68,68,0.15)',
                 textAlign: 'center'
             }}>
-                <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px' }}>BRENT CRUDE</div>
+                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>BRENT CRUDE</div>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>
                     {HORMUZ_STATUS.brentPrice}
                 </div>
@@ -103,7 +103,7 @@ const HormuzTracker = () => (
                 border: '1px solid rgba(245,158,11,0.15)',
                 textAlign: 'center'
             }}>
-                <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px' }}>WAR PREMIUM</div>
+                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>WAR PREMIUM</div>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>
                     {HORMUZ_STATUS.oilPremium}
                 </div>
@@ -111,7 +111,7 @@ const HormuzTracker = () => (
         </div>
 
         {/* Live Vessel Map */}
-        <div style={{ borderRadius: '6px', overflow: 'hidden', height: '100px', marginBottom: '6px', background: '#080c14', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ borderRadius: '6px', overflow: 'hidden', height: '100px', marginBottom: '6px', background: '#080c14', border: '1px solid var(--line)' }}>
             <iframe
                 src="https://www.vesselfinder.com/aismap?lat=26.5&lon=56.3&zoom=8&width=300&height=100&names=true&mmsi=0&track=false&fleet=false&fleet_name=false&fleet_hide_old_positions=false&default_overground_speed_kts=3&default_sea_speed_kts=12"
                 style={{ width: '100%', height: '100%', border: 'none', opacity: 0.8 }}
@@ -125,10 +125,10 @@ const HormuzTracker = () => (
             {HORMUZ_STATUS.notes.slice(0, 3).map((note, i) => (
                 <div key={i} style={{
                     fontSize: '0.52rem',
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--ink-2)',
                     lineHeight: 1.4,
                     padding: '2px 0',
-                    borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none'
+                    borderBottom: i < 2 ? '1px solid var(--line)' : 'none'
                 }}>
                     {note}
                 </div>
