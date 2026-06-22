@@ -41,7 +41,6 @@ const SUBSCRIBE_MSG = () => ({
         [minLon, minLat],
         [maxLon, maxLat],
     ]),
-    FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
 });
 
 function prune() {

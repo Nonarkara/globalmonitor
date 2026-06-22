@@ -9,7 +9,7 @@ const MAX_VESSELS = 8000;
 const RETRY_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 1500;
 
-/** aisstream.io BoundingBoxes: [[minLon, minLat], [maxLon, maxLat]] per official example */
+/** aisstream.io JS example: [[minLon, minLat], [maxLon, maxLat]] per corner */
 const box = (minLon, minLat, maxLon, maxLat) => [[minLon, minLat], [maxLon, maxLat]];
 
 const VESSEL_BOXES = [
@@ -85,6 +85,7 @@ const toFeature = (mmsi, v) => {
 
 const parseMessagePayload = (raw) => {
     if (typeof raw === 'string') return raw;
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(raw)) return raw.toString('utf8');
     if (raw instanceof ArrayBuffer) return new TextDecoder().decode(raw);
     if (ArrayBuffer.isView(raw)) return new TextDecoder().decode(raw);
     if (typeof Blob !== 'undefined' && raw instanceof Blob) return null;
@@ -127,6 +128,7 @@ export async function fetchAisSnapshot(apiKey, {
         let ws;
         let streamError = null;
         let rawSeen = 0;
+        let closeCode = null;
         const startedAt = Date.now();
 
         const finish = () => {
@@ -143,7 +145,13 @@ export async function fetchAisSnapshot(apiKey, {
             } else if (!streamError && features.length === 0 && rawSeen > 0) {
                 streamError = 'no_position_reports';
             }
-            resolve({ features, error: streamError, rawSeen, vesselCount: features.length });
+            resolve({
+                features,
+                error: streamError,
+                rawSeen,
+                closeCode,
+                vesselCount: features.length,
+            });
         };
 
         const maybeEarlyFinish = () => {
@@ -209,34 +217,48 @@ export async function fetchAisSnapshot(apiKey, {
         const bindSocket = (socket) => {
             ws = socket;
             const onOpen = () => {
+                // Match official JS example: APIkey + BoundingBoxes only (no FilterMessageTypes).
                 ws.send(JSON.stringify({
-                    APIKey: apiKey,
+                    APIkey: apiKey,
                     BoundingBoxes: boundingBoxes,
-                    FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
                 }));
             };
-            const onClose = () => {
-                if (positions.size > 0) finish();
+            const onClose = (code) => {
+                if (code != null) closeCode = code;
+                finish();
             };
             const onError = (err) => {
                 if (!streamError) streamError = err?.message || 'websocket_error';
+            };
+            const onUnexpectedResponse = (_req, res) => {
+                const chunks = [];
+                res.on('data', (chunk) => chunks.push(chunk));
+                res.on('end', () => {
+                    const body = Buffer.concat(chunks).toString('utf8').slice(0, 200);
+                    streamError = `http_${res.statusCode}${body ? `:${body}` : ''}`;
+                    finish();
+                });
             };
 
             if (useNodeEvents) {
                 ws.on('open', onOpen);
                 ws.on('message', handleMessage);
                 ws.on('error', onError);
-                ws.on('close', onClose);
+                ws.on('close', (code) => onClose(code));
+                if (typeof ws.on === 'function') {
+                    ws.on('unexpected-response', onUnexpectedResponse);
+                }
             } else {
                 ws.addEventListener('open', onOpen);
                 ws.addEventListener('message', (event) => handleMessage(event.data));
                 ws.addEventListener('error', onError);
-                ws.addEventListener('close', onClose);
+                ws.addEventListener('close', (event) => onClose(event?.code));
             }
         };
 
         try {
-            bindSocket(new WebSocketImpl(AIS_STREAM_URL));
+            const wsOptions = useNodeEvents ? { perMessageDeflate: false } : undefined;
+            bindSocket(new WebSocketImpl(AIS_STREAM_URL, wsOptions));
         } catch (err) {
             streamError = err?.message || 'websocket_init_failed';
             finish();

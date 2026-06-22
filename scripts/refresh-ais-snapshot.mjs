@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { AIS_BOXES_BY_THEATER, fetchAisSnapshot } from '../functions/_lib/aisSnapshot.mjs';
+import { fetchAisSnapshotWithRetry } from '../functions/_lib/aisSnapshot.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -42,17 +42,18 @@ if (!apiKey || apiKey.length < 8) {
 
 console.log(`[refresh-ais-snapshot] Collecting for ${COLLECT_MS / 1000}s…`);
 
-const result = await fetchAisSnapshot(apiKey, {
-    boundingBoxes: AIS_BOXES_BY_THEATER.global,
+const result = await fetchAisSnapshotWithRetry(apiKey, {
+    boundingBoxes: [[[-180, -90], [180, 90]]],
     timeoutMs: COLLECT_MS,
     maxVessels: 8000,
+    maxAttempts: 1,
 });
 
 const collectedAt = new Date().toISOString();
 const features = result.features || [];
 
 if (features.length === 0) {
-    console.error('[refresh-ais-snapshot] No vessels collected:', result.error || 'unknown', `(rawSeen=${result.rawSeen ?? 0})`);
+    console.error('[refresh-ais-snapshot] No vessels collected:', result.error || 'unknown', `(rawSeen=${result.rawSeen ?? 0}, closeCode=${result.closeCode ?? 'n/a'})`);
     process.exit(1);
 }
 
