@@ -51,7 +51,7 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
             </span>
             <span style={{ fontSize: '0.5rem', color: flightsActive ? 'var(--ink-2)' : 'var(--ink-3)' }}>
                 {flightsActive && flightCount > 0
-                    ? `${flightCount.toLocaleString()} aircraft on map · heading vectors`
+                    ? `${flightCount.toLocaleString()} aircraft on map · 15 min snapshot`
                     : 'Tap to show live aircraft on map'}
             </span>
         </button>

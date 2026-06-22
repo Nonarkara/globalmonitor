@@ -13,6 +13,7 @@ import { fetchHumanitarianPayload } from '../../server/lib/humanitarian.mjs';
 import { computeInfrastructureStatus } from '../../server/lib/infrastructure.mjs';
 import { fetchGdeltSentiment } from '../../server/lib/gdelt.mjs';
 import { fetchFlightsPayload } from '../../server/lib/flights.mjs';
+import { FLIGHTS_CACHE_TTL_MS } from '../../server/lib/airplanesLive.mjs';
 import { computeFrontStatus } from '../../server/lib/frontStatus.mjs';
 import { fetchNgaWarnings } from '../../server/lib/ngaWarnings.mjs';
 import { fetchUsgsQuakes } from '../../server/lib/usgsQuakes.mjs';
@@ -201,7 +202,7 @@ export async function handleApiRequest(request, env) {
             const minCount = theater === 'global' ? 50 : 3;
             const result = await useCached(
                 `flights:v2:${theater}`,
-                10 * 60 * 1000,
+                FLIGHTS_CACHE_TTL_MS,
                 () => fetchFlightsPayload(theater),
                 (p) => p?.type === 'FeatureCollection' && (p.features?.length ?? 0) >= minCount
             );
@@ -211,7 +212,7 @@ export async function handleApiRequest(request, env) {
         if (url.pathname === '/api/vessels') {
             const theater = url.searchParams.get('theater') || 'global';
             const cacheKey = `vessels:v7:${theater}`;
-            const ttlMs = 8 * 60 * 1000;
+            const ttlMs = FLIGHTS_CACHE_TTL_MS;
             const now = Date.now();
             const cached = getSharedCache().get(cacheKey);
             if (cached && cached.expiresAt > now) {

@@ -4,6 +4,9 @@
  * Middle East theater uses multiple query points for coverage.
  */
 
+/** One coordinated upstream fetch per theater — shared with Pages Functions cache. */
+export const FLIGHTS_CACHE_TTL_MS = 15 * 60 * 1000;
+
 const MAX_RADIUS_NM = 250;
 const REQUEST_STAGGER_MS = 350;
 

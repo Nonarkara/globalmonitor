@@ -17,6 +17,7 @@ import { fetchHumanitarianPayload } from './lib/humanitarian.mjs';
 import { computeInfrastructureStatus } from './lib/infrastructure.mjs';
 import { fetchGdeltSentiment } from './lib/gdelt.mjs';
 import { fetchFlightsPayload } from './lib/flights.mjs';
+import { FLIGHTS_CACHE_TTL_MS } from './lib/airplanesLive.mjs';
 import { computeFrontStatus } from './lib/frontStatus.mjs';
 import { fetchNgaWarnings } from './lib/ngaWarnings.mjs';
 import { fetchUsgsQuakes } from './lib/usgsQuakes.mjs';
@@ -356,7 +357,7 @@ const server = http.createServer(async (request, response) => {
             const theater = url.searchParams.get('theater') || 'global';
             const result = await useCached(
                 `flights:${theater}`,
-                10 * 60 * 1000,
+                FLIGHTS_CACHE_TTL_MS,
                 () => fetchFlightsPayload(theater),
                 (p) => p?.type === 'FeatureCollection'
             );
@@ -368,7 +369,7 @@ const server = http.createServer(async (request, response) => {
             const theater = url.searchParams.get('theater') || 'global';
             const result = await useCached(
                 `vessels:${theater}`,
-                15000,  // 15s — vessels are live, but cache smooths polling spikes
+                FLIGHTS_CACHE_TTL_MS,
                 () => typeof getVesselsGeoJsonForTheater === 'function'
                     ? getVesselsGeoJsonForTheater(theater)
                     : getVesselsGeoJson(),

@@ -3,7 +3,7 @@ import { AIS_BOXES_BY_THEATER, fetchAisSnapshot } from './aisSnapshot.mjs';
 import { getSharedCache } from './cache.mjs';
 
 const AIS_CACHE_KEY = 'vessels:ais:global:v2';
-const AIS_CACHE_TTL_MS = 8 * 60 * 1000;
+const AIS_CACHE_TTL_MS = 15 * 60 * 1000;
 
 const THEATER_BBOXES = {
     thailand: [95, 0.5, 108, 22],

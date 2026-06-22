@@ -20,9 +20,11 @@ import { fetchSdgLayer } from '../services/undpSdg';
 import { getRegion } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
-import { useInterpolatedTraffic } from '../hooks/useInterpolatedTraffic.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
 import { isValidLngLat, sanitizeLineCollection, sanitizePointCollection } from '../utils/geojsonValidate.js';
+
+/** Static traffic snapshot — one fetch on load, then every 15 min (matches server cache). */
+const TRAFFIC_POLL_MS = 15 * 60 * 1000;
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
 // only), so a "flight path" is a short heading projection — not a route spiderweb.
@@ -483,8 +485,25 @@ const MAP_STYLES = {
 
 const MAP_STYLE_FALLBACKS = {
     dark: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-    voyager: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+    voyager: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    satellite: 'https://demotiles.maplibre.org/style.json',
 };
+
+/** Key-free last resort — MapLibre demo tiles, no token required. */
+const MAP_STYLE_ULTIMATE = 'https://demotiles.maplibre.org/style.json';
+
+const resolveMapStyle = (mapStyleKey, fallbackLevel = 0) => {
+    const primary = MAP_STYLES[mapStyleKey] || MAP_STYLES.dark;
+    if (fallbackLevel <= 0) return primary;
+    if (fallbackLevel === 1) return MAP_STYLE_FALLBACKS[mapStyleKey] || MAP_STYLE_ULTIMATE;
+    return MAP_STYLE_ULTIMATE;
+};
+
+const styleCacheKey = (mapStyleKey, fallbackLevel, style) => (
+    typeof style === 'string'
+        ? `${mapStyleKey}:${fallbackLevel}:${style}`
+        : `${mapStyleKey}:${fallbackLevel}:inline`
+);
 
 const MapContainer = ({
     viewTarget,
@@ -511,9 +530,9 @@ const MapContainer = ({
     // user sees what is missing instead of a silently-empty map.
     const [failedSources, setFailedSources] = useState(() => new Set());
 
-    const [mapIconsReady, setMapIconsReady] = useState(false);
     const [mapReady, setMapReady] = useState(false);
-    const [activeMapStyle, setActiveMapStyle] = useState(() => MAP_STYLES[mapStyle] || MAP_STYLES.dark);
+    const [loadedIconStyleKey, setLoadedIconStyleKey] = useState(null);
+    const [styleFallbackLevel, setStyleFallbackLevel] = useState(0);
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
@@ -525,6 +544,14 @@ const MapContainer = ({
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
     const weatherLayerActive = activeLayers.includes('weather');
+    const activeMapStyle = resolveMapStyle(mapStyle, styleFallbackLevel);
+    const activeMapStyleKey = styleCacheKey(mapStyle, styleFallbackLevel, activeMapStyle);
+    const mapIconsReady = loadedIconStyleKey === activeMapStyleKey;
+
+    useEffect(() => {
+        setStyleFallbackLevel(0);
+        setLoadedIconStyleKey(null);
+    }, [mapStyle]);
 
     useEffect(() => {
         dispatchViewState({ type: 'target', viewTarget });
@@ -541,10 +568,10 @@ const MapContainer = ({
         return () => { cancelled = true; };
     }, [weatherLayerActive]);
 
-    useEffect(() => {
-        setActiveMapStyle(MAP_STYLES[mapStyle] || MAP_STYLES.dark);
-        setMapIconsReady(false);
-    }, [mapStyle]);
+    const advanceStyleFallback = useCallback(() => {
+        setStyleFallbackLevel((level) => (level >= 2 ? level : level + 1));
+        setLoadedIconStyleKey(null);
+    }, []);
 
     const handleMapError = useCallback((event) => {
         // Tile/source/raster failures are expected — do not swap basemap (that wipes addImage sprites).
@@ -553,11 +580,8 @@ const MapContainer = ({
         const message = event?.error?.message || event?.message || '';
         if (message && !/style|stylesheet|glyph/i.test(message)) return;
 
-        const fallback = MAP_STYLE_FALLBACKS[mapStyle];
-        if (!fallback) return;
-        setMapIconsReady(false);
-        setActiveMapStyle((current) => (current === fallback ? current : fallback));
-    }, [mapStyle]);
+        advanceStyleFallback();
+    }, [advanceStyleFallback]);
 
     // Wire MapLibre's runtime error events. react-map-gl's <Map onError> only
     // surfaces some errors; the underlying map.on('error') is the canonical hook
@@ -574,19 +598,26 @@ const MapContainer = ({
                     next.add(sourceId);
                     return next;
                 });
+                return;
+            }
+
+            const message = e?.error?.message || e?.message || '';
+            if (message && /style|stylesheet|glyph/i.test(message)) {
+                advanceStyleFallback();
             }
         };
         map.on('error', handler);
         return () => { map.off('error', handler); };
-    }, [mapStyle]);
+    }, [mapStyle, advanceStyleFallback]);
 
     // Load custom SVG icons into the MapLibre sprite; re-run on style change
     // because setStyle() wipes all user-added images.
     const loadMapIcons = useCallback(() => {
         const map = mapRef.current?.getMap?.();
         if (!map) return;
-        loadTrafficIcons(map, () => setMapIconsReady(true));
-    }, []);
+        setLoadedIconStyleKey(null);
+        loadTrafficIcons(map, () => setLoadedIconStyleKey(activeMapStyleKey));
+    }, [activeMapStyleKey]);
 
     const handleMapLoad = useCallback(() => {
         setMapReady(true);
@@ -598,7 +629,6 @@ const MapContainer = ({
         const map = mapRef.current?.getMap?.();
         if (!map) return undefined;
 
-        loadMapIcons();
         map.on('style.load', loadMapIcons);
         return () => { map.off('style.load', loadMapIcons); };
     }, [mapReady, mapStyle, loadMapIcons]);
@@ -675,9 +705,10 @@ const MapContainer = ({
     const flightsResource = useLiveResource(useCallback(() => fetchFlights(viewMode), [viewMode]), {
         cacheKey: `map:flights:${viewMode}`,
         enabled: activeLayers.includes('flights'),
-        intervalMs: 10 * 60 * 1000,
+        intervalMs: TRAFFIC_POLL_MS,
         isUsable: hasFeatureData,
-        maxRetries: 2
+        maxRetries: 2,
+        maxStaleMs: 20 * 60 * 1000
     });
     const acledResource = useLiveResource(useCallback(() => fetchAcledEvents(viewMode), [viewMode]), {
         cacheKey: `map:acled:${viewMode}`,
@@ -688,9 +719,10 @@ const MapContainer = ({
     const vesselsResource = useLiveResource(useCallback(() => fetchVessels(viewMode), [viewMode]), {
         cacheKey: `map:vessels:${viewMode}`,
         enabled: activeLayers.includes('vessels'),
-        intervalMs: 5 * 60 * 1000,
+        intervalMs: TRAFFIC_POLL_MS,
         isUsable: (payload) => hasFeatureData(payload) || payload?.meta?.requiresKey,
-        maxRetries: 2
+        maxRetries: 2,
+        maxStaleMs: 20 * 60 * 1000
     });
 
     const disastersData = disasterResource.data;
@@ -703,24 +735,16 @@ const MapContainer = ({
     const infraData = infraResource.data;
     const flightsData = flightsResource.data;
     const vesselsData = vesselsResource.data;
-    const interpolatedFlights = useInterpolatedTraffic(flightsData, { idKey: 'hex', durationMs: 60_000, frameMs: 1500, enabled: flightsLayerActive });
-    const interpolatedVessels = useInterpolatedTraffic(vesselsData, { idKey: 'mmsi', durationMs: 60_000, frameMs: 2000, enabled: vesselsLayerActive });
     const flightPaths = useMemo(
-        () => sanitizeLineCollection(buildFlightPaths(interpolatedFlights)),
-        [interpolatedFlights]
+        () => sanitizeLineCollection(buildFlightPaths(flightsData)),
+        [flightsData]
     );
     const vesselPaths = useMemo(
-        () => sanitizeLineCollection(buildVesselPaths(interpolatedVessels)),
-        [interpolatedVessels]
+        () => sanitizeLineCollection(buildVesselPaths(vesselsData)),
+        [vesselsData]
     );
-    const flightsGeoJson = useMemo(() => {
-        const raw = interpolatedFlights?.features?.length ? interpolatedFlights : flightsData;
-        return sanitizePointCollection(raw);
-    }, [interpolatedFlights, flightsData]);
-    const vesselsGeoJson = useMemo(() => {
-        const raw = interpolatedVessels?.features?.length ? interpolatedVessels : vesselsData;
-        return sanitizePointCollection(raw);
-    }, [interpolatedVessels, vesselsData]);
+    const flightsGeoJson = useMemo(() => sanitizePointCollection(flightsData), [flightsData]);
+    const vesselsGeoJson = useMemo(() => sanitizePointCollection(vesselsData), [vesselsData]);
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
     const flightCount = flightsData?.features?.length ?? visibleFlightCount;
@@ -731,15 +755,21 @@ const MapContainer = ({
     const vesselsNeedKey = vesselsData?.meta?.requiresKey;
     const vesselSourceLabel = vesselsData?.meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 
+    const prevFlightCountRef = useRef(null);
     useEffect(() => {
+        if (prevFlightCountRef.current === flightCount) return;
+        prevFlightCountRef.current = flightCount;
         setFlightCount(flightCount);
     }, [flightCount]);
 
+    const prevVesselCountRef = useRef(null);
     useEffect(() => {
+        if (prevVesselCountRef.current === vesselCount) return;
+        prevVesselCountRef.current = vesselCount;
         setVesselCount(vesselCount);
     }, [vesselCount]);
 
-    const acledData = acledResource.data;
+    const acledData = useMemo(() => sanitizePointCollection(acledResource.data), [acledResource.data]);
     const publicSentinelLayerId = getPublicSentinelLayerId(copernicusMode);
     const publicSentinelLayer = getEoLayerById(publicSentinelLayerId);
     const publicOverlayVisible = Boolean(
@@ -1197,7 +1227,7 @@ const MapContainer = ({
                 )}
 
                 {/* Flight path vectors — heading look-ahead, drawn under the position dots */}
-                {flightsLayerActive && flightPaths?.features?.length > 0 && (
+                {mapReady && flightsLayerActive && flightPaths?.features?.length > 0 && (
                     <Source id="flight-paths" type="geojson" data={flightPaths}>
                         <Layer
                             id="flight-paths-lines"
@@ -1217,7 +1247,7 @@ const MapContainer = ({
                 )}
 
                 {/* Flights Layer — density heatmap at world zoom + glow dots + plane icons */}
-                {flightsLayerActive && visibleFlightCount > 0 && (
+                {mapReady && flightsLayerActive && visibleFlightCount > 0 && (
                     <Source id="flights-data" type="geojson" data={flightsGeoJson}>
                         <Layer
                             id="flights-density"
@@ -1325,7 +1355,7 @@ const MapContainer = ({
                 )}
 
                 {/* Vessel path vectors — heading look-ahead, drawn under the position dots */}
-                {vesselsLayerActive && vesselPaths?.features?.length > 0 && (
+                {mapReady && vesselsLayerActive && vesselPaths?.features?.length > 0 && (
                     <Source id="vessel-paths" type="geojson" data={vesselPaths}>
                         <Layer
                             id="vessel-paths-lines"
@@ -1346,7 +1376,7 @@ const MapContainer = ({
                 )}
 
                 {/* Vessels Layer — density heatmap at world zoom + glow + triangles by category */}
-                {vesselsLayerActive && visibleVesselCount > 0 && (
+                {mapReady && vesselsLayerActive && visibleVesselCount > 0 && (
                     <Source id="vessels-data" type="geojson" data={vesselsGeoJson}>
                         <Layer
                             id="vessels-density"
