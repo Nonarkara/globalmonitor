@@ -34,7 +34,20 @@ const THEATER_QUERY_POINTS = {
         { lat: 10.0, lon: -75.0 },     // Caribbean / northern South America
         { lat: -25.0, lon: 135.0 },    // Australia
         { lat: -15.0, lon: -50.0 },    // Brazil
-        { lat: -35.0, lon: 25.0 }      // South Africa
+        { lat: -35.0, lon: 25.0 },     // South Africa
+        // Indo-Pacific supplements — denser ASEAN coverage in worldwide pool
+        { lat: 14.0, lon: 100.0 },
+        { lat: 5.0, lon: 110.0 },
+        { lat: 1.35, lon: 103.82 },
+        { lat: -6.2, lon: 106.85 },
+        { lat: 14.6, lon: 121.0 },
+        { lat: -2.0, lon: 118.0 },
+        { lat: 10.8, lon: 106.7 },
+        { lat: 22.3, lon: 114.2 },
+        // Thailand supplements
+        { lat: 14.5, lon: 100.9925 },
+        { lat: 18.79, lon: 98.98 },
+        { lat: 7.88, lon: 98.39 },
     ],
     worldwide: null, // alias → global
     middleeast: [

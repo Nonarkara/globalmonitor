@@ -201,7 +201,7 @@ export async function handleApiRequest(request, env) {
             const theater = url.searchParams.get('theater') || 'global';
             const minCount = theater === 'global' ? 50 : 3;
             const result = await useCached(
-                `flights:v2:${theater}`,
+                `flights:v3:${theater}`,
                 FLIGHTS_CACHE_TTL_MS,
                 () => fetchFlightsPayload(theater),
                 (p) => p?.type === 'FeatureCollection' && (p.features?.length ?? 0) >= minCount
