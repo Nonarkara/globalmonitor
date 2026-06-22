@@ -38,8 +38,8 @@ let reconnect_timer = null;
 const SUBSCRIBE_MSG = () => ({
     APIkey: process.env.AISSTREAM_API_KEY || '',
     BoundingBoxes: VESSEL_BOXES.map(([minLon, minLat, maxLon, maxLat]) => [
-        [minLat, minLon],
-        [maxLat, maxLon],
+        [minLon, minLat],
+        [maxLon, maxLat],
     ]),
     FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
 });

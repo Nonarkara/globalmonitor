@@ -9,8 +9,8 @@ const MAX_VESSELS = 8000;
 const RETRY_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 1500;
 
-/** aisstream.io BoundingBoxes: [[minLat, minLon], [maxLat, maxLon]] */
-const box = (minLon, minLat, maxLon, maxLat) => [[minLat, minLon], [maxLat, maxLon]];
+/** aisstream.io BoundingBoxes: [[minLon, minLat], [maxLon, maxLat]] per official example */
+const box = (minLon, minLat, maxLon, maxLat) => [[minLon, minLat], [maxLon, maxLat]];
 
 const VESSEL_BOXES = [
     box(-180, -90, 180, 90),
@@ -92,17 +92,20 @@ const parseMessagePayload = (raw) => {
 };
 
 async function loadWebSocketImpl() {
-    // Cloudflare Workers: native WebSocket only — node `ws` never receives AIS frames.
-    if (typeof globalThis.WebSocket !== 'undefined') {
-        return globalThis.WebSocket;
-    }
+    // Node.js: native WebSocket does not receive aisstream frames — use `ws`.
     try {
         const { createRequire } = await import('node:module');
         const require = createRequire(new URL('../../package.json', import.meta.url));
-        return require('ws');
-    } catch {
-        return null;
+        const Ws = require('ws');
+        if (Ws?.prototype?.on && typeof process !== 'undefined' && process.versions?.node) {
+            return Ws;
+        }
+    } catch { /* Worker or no ws */ }
+    // Cloudflare Workers: native WebSocket only.
+    if (typeof globalThis.WebSocket !== 'undefined') {
+        return globalThis.WebSocket;
     }
+    return null;
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -207,7 +210,7 @@ export async function fetchAisSnapshot(apiKey, {
             ws = socket;
             const onOpen = () => {
                 ws.send(JSON.stringify({
-                    APIkey: apiKey,
+                    APIKey: apiKey,
                     BoundingBoxes: boundingBoxes,
                     FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
                 }));

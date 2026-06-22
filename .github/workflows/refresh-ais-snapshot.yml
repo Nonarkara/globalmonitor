@@ -1,8 +1,10 @@
-name: Deploy to Cloudflare Pages
+# Refresh static AIS snapshot and redeploy — Cloudflare Workers cannot collect AIS via WebSocket.
+# Requires repository secret: AISSTREAM_API_KEY
+name: Refresh AIS snapshot
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -10,17 +12,17 @@ permissions:
   deployments: write
 
 jobs:
-  deploy:
+  refresh-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
       - run: npm ci || npm install
-      - name: Refresh AIS snapshot (optional — needs AISSTREAM_API_KEY secret)
+      - name: Collect AIS snapshot (30s)
         run: npm run refresh:ais
-        continue-on-error: true
         env:
           AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
       - run: npx vite build

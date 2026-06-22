@@ -9,7 +9,9 @@
     "dev:stack": "node scripts/dev-stack.mjs",
     "build": "vite build",
     "build:pages": "vite build",
+    "refresh:ais": "node scripts/refresh-ais-snapshot.mjs",
     "deploy:pages": "npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true",
+    "deploy:pages:ais": "npm run refresh:ais && npm run deploy:pages",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server/index.mjs"
