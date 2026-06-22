@@ -1,8 +1,12 @@
 import { mapShipTypeCategory } from '../../server/lib/shipTypes.mjs';
 
 const AIS_STREAM_URL = 'wss://stream.aisstream.io/v0/stream';
-const SNAPSHOT_MS = 15000;
+const SNAPSHOT_MS = 45000;
+const MIN_COLLECT_MS = 8000;
+const EARLY_EXIT_MIN_VESSELS = 80;
 const MAX_VESSELS = 8000;
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 2500;
 
 /** aisstream.io BoundingBoxes: [[minLat, minLon], [maxLat, maxLon]] */
 const box = (minLon, minLat, maxLon, maxLat) => [[minLat, minLon], [maxLat, maxLon]];
@@ -82,6 +86,7 @@ const parseMessagePayload = (raw) => {
     if (typeof raw === 'string') return raw;
     if (raw instanceof ArrayBuffer) return new TextDecoder().decode(raw);
     if (ArrayBuffer.isView(raw)) return new TextDecoder().decode(raw);
+    if (typeof Blob !== 'undefined' && raw instanceof Blob) return null;
     return String(raw);
 };
 
@@ -99,12 +104,14 @@ async function loadWebSocketImpl() {
     }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function fetchAisSnapshot(apiKey, {
     timeoutMs = SNAPSHOT_MS,
     maxVessels = MAX_VESSELS,
     boundingBoxes = VESSEL_BOXES,
 } = {}) {
-    if (!apiKey) return { features: [], error: 'missing_api_key' };
+    if (!apiKey || apiKey.length < 8) return { features: [], error: 'missing_api_key' };
 
     const WebSocketImpl = await loadWebSocketImpl();
     if (!WebSocketImpl) return { features: [], error: 'websocket_unavailable' };
@@ -116,31 +123,46 @@ export async function fetchAisSnapshot(apiKey, {
         let ws;
         let streamError = null;
         let rawSeen = 0;
+        const startedAt = Date.now();
 
         const finish = () => {
             if (settled) return;
             settled = true;
             clearTimeout(timer);
+            clearInterval(earlyExitTimer);
             try { ws?.close(); } catch { /* ignore */ }
             const features = [...positions.entries()]
                 .map(([mmsi, v]) => toFeature(mmsi, v))
                 .filter(Boolean);
             if (!streamError && features.length === 0 && rawSeen === 0) {
                 streamError = 'empty_ais_snapshot';
+            } else if (!streamError && features.length === 0 && rawSeen > 0) {
+                streamError = 'no_position_reports';
             }
-            resolve({ features, error: streamError });
+            resolve({ features, error: streamError, rawSeen, vesselCount: features.length });
+        };
+
+        const maybeEarlyFinish = () => {
+            const elapsed = Date.now() - startedAt;
+            if (elapsed >= MIN_COLLECT_MS && positions.size >= EARLY_EXIT_MIN_VESSELS) {
+                finish();
+            }
         };
 
         const timer = setTimeout(finish, timeoutMs);
+        const earlyExitTimer = setInterval(maybeEarlyFinish, 2000);
 
         const handleMessage = (raw) => {
             rawSeen += 1;
             try {
-                const msg = JSON.parse(parseMessagePayload(raw));
+                const payload = parseMessagePayload(raw);
+                if (payload == null) return;
+                const msg = JSON.parse(payload);
                 const messageType = msg.MessageType || msg.messageType;
 
                 if (messageType === 'Error' || msg.error) {
                     streamError = String(msg.error || msg.Message?.error || msg.Message?.Error || 'aisstream_error');
+                    finish();
                     return;
                 }
 
@@ -177,6 +199,7 @@ export async function fetchAisSnapshot(apiKey, {
             } catch { /* malformed */ }
 
             if (positions.size >= maxVessels) finish();
+            else maybeEarlyFinish();
         };
 
         const bindSocket = (socket) => {
@@ -215,4 +238,22 @@ export async function fetchAisSnapshot(apiKey, {
             finish();
         }
     });
+}
+
+/** Retry empty snapshots — CF Workers cold starts often miss the first burst. */
+export async function fetchAisSnapshotWithRetry(apiKey, options = {}) {
+    const attempts = options.maxAttempts ?? RETRY_ATTEMPTS;
+    let lastResult = { features: [], error: 'empty_ais_snapshot' };
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+        if (attempt > 0) await sleep(RETRY_DELAY_MS);
+        const result = await fetchAisSnapshot(apiKey, options);
+        if (result.features?.length > 0) {
+            return { ...result, attempt: attempt + 1 };
+        }
+        lastResult = result;
+        if (result.error === 'missing_api_key' || result.error === 'websocket_unavailable') break;
+    }
+
+    return { ...lastResult, attempt: attempts };
 }

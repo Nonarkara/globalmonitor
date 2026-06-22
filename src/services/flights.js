@@ -54,7 +54,7 @@ const writeLastGoodFlights = (theater, payload) => {
     }
 };
 
-export const fetchFlights = async (theater = 'middleeast') => {
+export const fetchFlights = async (theater = 'global') => {
     try {
         const payload = await fetchBackendJson('/api/flights', { theater });
 

@@ -25,6 +25,45 @@ import { isValidLngLat, sanitizeLineCollection, sanitizePointCollection } from '
 
 /** Static traffic snapshot — one fetch on load, then every 15 min (matches server cache). */
 const TRAFFIC_POLL_MS = 15 * 60 * 1000;
+/** Worldwide pool — decoupled from dashboard region tab (ME / ASEAN / Thailand). */
+const TRAFFIC_THEATER = 'global';
+/** Below this zoom, render the full global pool (world heatmap). Above it, viewport-filter. */
+const TRAFFIC_WORLD_ZOOM = 4;
+
+const pointInBounds = (lon, lat, bounds) => {
+    if (!Number.isFinite(lon) || !Number.isFinite(lat) || !bounds) return false;
+    if (lat < bounds.south || lat > bounds.north) return false;
+    if (bounds.west <= bounds.east) {
+        return lon >= bounds.west && lon <= bounds.east;
+    }
+    return lon >= bounds.west || lon <= bounds.east;
+};
+
+const expandBounds = (bounds, paddingRatio = 0.1) => {
+    if (!bounds) return null;
+    const latSpan = bounds.north - bounds.south;
+    const lonSpan = bounds.west <= bounds.east
+        ? bounds.east - bounds.west
+        : (180 - bounds.west) + (bounds.east + 180);
+    const latPad = latSpan * paddingRatio;
+    const lonPad = lonSpan * paddingRatio;
+    return {
+        south: Math.max(-90, bounds.south - latPad),
+        north: Math.min(90, bounds.north + latPad),
+        west: bounds.west - lonPad,
+        east: bounds.east + lonPad,
+    };
+};
+
+const filterFeatureCollectionByBounds = (collection, bounds) => {
+    if (!collection?.features?.length || !bounds) return collection;
+    const features = collection.features.filter((feature) => {
+        const coords = feature.geometry?.coordinates;
+        return pointInBounds(coords?.[0], coords?.[1], bounds);
+    });
+    if (features.length === collection.features.length) return collection;
+    return { ...collection, features };
+};
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
 // only), so a "flight path" is a short heading projection — not a route spiderweb.
@@ -531,15 +570,29 @@ const MapContainer = ({
     const [failedSources, setFailedSources] = useState(() => new Set());
 
     const [mapReady, setMapReady] = useState(false);
+    const [trafficBounds, setTrafficBounds] = useState(null);
     const [loadedIconStyleKey, setLoadedIconStyleKey] = useState(null);
     const [styleFallbackLevel, setStyleFallbackLevel] = useState(0);
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
 
+    const updateTrafficBounds = useCallback(() => {
+        const map = mapRef.current?.getMap?.();
+        if (!map) return;
+        const b = map.getBounds();
+        setTrafficBounds({
+            west: b.getWest(),
+            south: b.getSouth(),
+            east: b.getEast(),
+            north: b.getNorth(),
+        });
+    }, []);
+
     const handleMove = useCallback((event) => {
         dispatchViewState({ type: 'move', viewState: event.viewState });
-    }, []);
+        updateTrafficBounds();
+    }, [updateTrafficBounds]);
 
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
@@ -556,6 +609,13 @@ const MapContainer = ({
     useEffect(() => {
         dispatchViewState({ type: 'target', viewTarget });
     }, [viewTarget]);
+
+    useEffect(() => {
+        if (!mapReady) return undefined;
+        const delayMs = viewTarget.transitionDuration ?? 1500;
+        const timer = setTimeout(updateTrafficBounds, delayMs + 50);
+        return () => clearTimeout(timer);
+    }, [viewTarget, mapReady, updateTrafficBounds]);
 
     useEffect(() => {
         if (!weatherLayerActive) return undefined;
@@ -622,7 +682,8 @@ const MapContainer = ({
     const handleMapLoad = useCallback(() => {
         setMapReady(true);
         loadMapIcons();
-    }, [loadMapIcons]);
+        updateTrafficBounds();
+    }, [loadMapIcons, updateTrafficBounds]);
 
     useEffect(() => {
         if (!mapReady) return undefined;
@@ -702,8 +763,8 @@ const MapContainer = ({
         intervalMs: 10 * 60 * 1000,
         isUsable: hasFeatureData
     });
-    const flightsResource = useLiveResource(useCallback(() => fetchFlights(viewMode), [viewMode]), {
-        cacheKey: `map:flights:${viewMode}`,
+    const flightsResource = useLiveResource(useCallback(() => fetchFlights(TRAFFIC_THEATER), []), {
+        cacheKey: `map:flights:${TRAFFIC_THEATER}`,
         enabled: activeLayers.includes('flights'),
         intervalMs: TRAFFIC_POLL_MS,
         isUsable: hasFeatureData,
@@ -716,8 +777,8 @@ const MapContainer = ({
         intervalMs: 60 * 60 * 1000,
         isUsable: hasFeatureData
     });
-    const vesselsResource = useLiveResource(useCallback(() => fetchVessels(viewMode), [viewMode]), {
-        cacheKey: `map:vessels:${viewMode}`,
+    const vesselsResource = useLiveResource(useCallback(() => fetchVessels(TRAFFIC_THEATER), []), {
+        cacheKey: `map:vessels:${TRAFFIC_THEATER}`,
         enabled: activeLayers.includes('vessels'),
         intervalMs: TRAFFIC_POLL_MS,
         isUsable: (payload) => hasFeatureData(payload) || payload?.meta?.requiresKey,
@@ -733,41 +794,57 @@ const MapContainer = ({
     const sdgData = sdgResource.data;
     const firmsData = firmsResource.data;
     const infraData = infraResource.data;
-    const flightsData = flightsResource.data;
-    const vesselsData = vesselsResource.data;
+    const globalFlightsData = flightsResource.data;
+    const globalVesselsData = vesselsResource.data;
+
+    const viewportBounds = useMemo(() => {
+        if (viewState.zoom < TRAFFIC_WORLD_ZOOM || !trafficBounds) return null;
+        return expandBounds(trafficBounds);
+    }, [viewState.zoom, trafficBounds]);
+
+    const flightsGeoJson = useMemo(() => {
+        const sanitized = sanitizePointCollection(globalFlightsData);
+        if (!sanitized || !viewportBounds) return sanitized;
+        return filterFeatureCollectionByBounds(sanitized, viewportBounds);
+    }, [globalFlightsData, viewportBounds]);
+    const vesselsGeoJson = useMemo(() => {
+        const sanitized = sanitizePointCollection(globalVesselsData);
+        if (!sanitized || !viewportBounds) return sanitized;
+        return filterFeatureCollectionByBounds(sanitized, viewportBounds);
+    }, [globalVesselsData, viewportBounds]);
     const flightPaths = useMemo(
-        () => sanitizeLineCollection(buildFlightPaths(flightsData)),
-        [flightsData]
+        () => sanitizeLineCollection(buildFlightPaths(flightsGeoJson)),
+        [flightsGeoJson]
     );
     const vesselPaths = useMemo(
-        () => sanitizeLineCollection(buildVesselPaths(vesselsData)),
-        [vesselsData]
+        () => sanitizeLineCollection(buildVesselPaths(vesselsGeoJson)),
+        [vesselsGeoJson]
     );
-    const flightsGeoJson = useMemo(() => sanitizePointCollection(flightsData), [flightsData]);
-    const vesselsGeoJson = useMemo(() => sanitizePointCollection(vesselsData), [vesselsData]);
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
-    const flightCount = flightsData?.features?.length ?? visibleFlightCount;
-    const vesselCount = vesselsData?.features?.length ?? visibleVesselCount;
-    const flightSourceLabel = flightsResource.isStale || flightsData?.__meta?.status === 'stale'
+    const globalFlightCount = globalFlightsData?.features?.length ?? 0;
+    const globalVesselCount = globalVesselsData?.features?.length ?? 0;
+    const flightCount = viewportBounds ? visibleFlightCount : globalFlightCount;
+    const vesselCount = viewportBounds ? visibleVesselCount : globalVesselCount;
+    const flightSourceLabel = flightsResource.isStale || globalFlightsData?.__meta?.status === 'stale'
         ? 'ADS-B stale'
         : 'ADS-B';
-    const vesselsNeedKey = vesselsData?.meta?.requiresKey;
-    const vesselSourceLabel = vesselsData?.meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
+    const vesselsNeedKey = globalVesselsData?.meta?.requiresKey;
+    const vesselSourceLabel = globalVesselsData?.meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 
     const prevFlightCountRef = useRef(null);
     useEffect(() => {
-        if (prevFlightCountRef.current === flightCount) return;
-        prevFlightCountRef.current = flightCount;
-        setFlightCount(flightCount);
-    }, [flightCount]);
+        if (prevFlightCountRef.current === globalFlightCount) return;
+        prevFlightCountRef.current = globalFlightCount;
+        setFlightCount(globalFlightCount);
+    }, [globalFlightCount]);
 
     const prevVesselCountRef = useRef(null);
     useEffect(() => {
-        if (prevVesselCountRef.current === vesselCount) return;
-        prevVesselCountRef.current = vesselCount;
-        setVesselCount(vesselCount);
-    }, [vesselCount]);
+        if (prevVesselCountRef.current === globalVesselCount) return;
+        prevVesselCountRef.current = globalVesselCount;
+        setVesselCount(globalVesselCount);
+    }, [globalVesselCount]);
 
     const acledData = useMemo(() => sanitizePointCollection(acledResource.data), [acledResource.data]);
     const publicSentinelLayerId = getPublicSentinelLayerId(copernicusMode);
@@ -1664,7 +1741,11 @@ const MapContainer = ({
                 >
                     <span className="map-legend-line" style={{ background: '#facc15' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
-                        {flightCount > 0 ? `${flightCount.toLocaleString()} aircraft · ${flightSourceLabel}` : '… aircraft · ADS-B'}
+                        {visibleFlightCount > 0
+                            ? `${visibleFlightCount.toLocaleString()} in view · ${flightSourceLabel}`
+                            : flightCount > 0
+                                ? `0 in view · ${flightCount.toLocaleString()} global`
+                                : '… aircraft · ADS-B'}
                     </span>
                 </div>
                 <div
@@ -1676,9 +1757,11 @@ const MapContainer = ({
                         style={{ background: vesselCount > 0 ? '#22c55e' : 'rgba(245,158,11,0.35)' }}
                     />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
-                        {vesselCount > 0
-                            ? `${vesselCount.toLocaleString()} vessels · ${vesselSourceLabel}`
-                            : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
+                        {visibleVesselCount > 0
+                            ? `${visibleVesselCount.toLocaleString()} in view · ${vesselSourceLabel}`
+                            : vesselCount > 0
+                                ? `0 in view · ${vesselCount.toLocaleString()} global`
+                                : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
                     </span>
                 </div>
                 <div

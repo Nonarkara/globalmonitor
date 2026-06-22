@@ -1,9 +1,10 @@
 import { fetchFleetVessels, getVesselFinderConfig } from '../../server/lib/vesselFinder.mjs';
-import { AIS_BOXES_BY_THEATER, fetchAisSnapshot } from './aisSnapshot.mjs';
+import { AIS_BOXES_BY_THEATER, fetchAisSnapshotWithRetry } from './aisSnapshot.mjs';
 import { getSharedCache } from './cache.mjs';
 
-const AIS_CACHE_KEY = 'vessels:ais:global:v2';
+const AIS_CACHE_KEY = 'vessels:ais:global:v3';
 const AIS_CACHE_TTL_MS = 15 * 60 * 1000;
+const AIS_STALE_HOLD_MS = 30 * 60 * 1000;
 
 const THEATER_BBOXES = {
     thailand: [95, 0.5, 108, 22],
@@ -47,23 +48,36 @@ async function getGlobalAisFeatures(apiKey) {
         return { features: hit.features || [], error: hit.error || null, cache: 'hit' };
     }
 
-    const aisResult = await fetchAisSnapshot(apiKey, {
+    const aisResult = await fetchAisSnapshotWithRetry(apiKey, {
         boundingBoxes: AIS_BOXES_BY_THEATER.global,
-        timeoutMs: 15000,
+        timeoutMs: 45000,
         maxVessels: 8000,
+        maxAttempts: 3,
     });
     const features = aisResult.features || [];
-    const error = aisResult.error && features.length === 0 ? aisResult.error : null;
+    const error = features.length === 0 ? (aisResult.error || null) : null;
 
     if (features.length > 0) {
         cache.set(AIS_CACHE_KEY, {
             features,
             error: null,
             expiresAt: now + AIS_CACHE_TTL_MS,
+            staleHoldUntil: now + AIS_STALE_HOLD_MS,
+            collectedAt: now,
         });
+        return { features, error: null, cache: 'miss', aisAttempt: aisResult.attempt };
     }
 
-    return { features, error, cache: features.length > 0 ? 'miss' : 'bypass' };
+    if (hit?.features?.length > 0 && (hit.staleHoldUntil ?? hit.expiresAt) > now) {
+        return {
+            features: hit.features,
+            error,
+            cache: 'stale-hold',
+            aisAttempt: aisResult.attempt,
+        };
+    }
+
+    return { features: [], error, cache: 'bypass', aisAttempt: aisResult.attempt };
 }
 
 /** Worker-safe vessel feed — AIS one-shot snapshot + VesselFinder fleet REST. */
@@ -78,12 +92,14 @@ export async function fetchVesselsPayload(theater = 'global') {
     let aisFeatures = [];
     let aisError = null;
     let aisCache = null;
+    let aisAttempt = null;
     if (hasAisKey) {
         try {
             const aisResult = await getGlobalAisFeatures(aisKey);
             aisFeatures = aisResult.features;
             aisError = aisResult.error;
             aisCache = aisResult.cache;
+            aisAttempt = aisResult.aisAttempt ?? null;
         } catch (err) {
             aisError = err.message;
         }
@@ -114,9 +130,11 @@ export async function fetchVesselsPayload(theater = 'global') {
             aisGlobalCount: aisFeatures.length,
             aisCache,
             aisNote: hasAisKey
-                ? 'Global AIS snapshot (8 min cache) filtered by theater bbox'
+                ? 'Global AIS snapshot (15 min cache, 45s collect + retry) filtered by theater bbox'
                 : null,
             aisError,
+            aisKeyPresent: hasAisKey,
+            aisAttempt,
             vesselfinder: {
                 fleetKey: vfConfig.fleetKey,
                 apiKey: vfConfig.apiKey,
