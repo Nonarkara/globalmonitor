@@ -236,6 +236,13 @@ export async function handleApiRequest(request, env) {
                     expiresAt: now + ttlMs,
                 });
                 recordHealth(cacheKey, true, null);
+            } else if (cached?.payload?.features?.length > 0) {
+                recordHealth(cacheKey, true, payload.meta?.aisError || 'stale hold');
+                return jsonResponse(cached.payload, 200, {
+                    status: 'stale',
+                    cache: 'stale-hold',
+                    updatedAt: cached.updatedAt,
+                });
             } else {
                 recordHealth(cacheKey, false, payload.meta?.aisError || 'empty vessel snapshot');
             }

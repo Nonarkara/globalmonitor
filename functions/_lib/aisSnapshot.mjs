@@ -1,12 +1,13 @@
 import { mapShipTypeCategory } from '../../server/lib/shipTypes.mjs';
 
 const AIS_STREAM_URL = 'wss://stream.aisstream.io/v0/stream';
-const SNAPSHOT_MS = 45000;
-const MIN_COLLECT_MS = 8000;
+const SNAPSHOT_MS = 22000;
+const RETRY_SNAPSHOT_MS = 8000;
+const MIN_COLLECT_MS = 6000;
 const EARLY_EXIT_MIN_VESSELS = 80;
 const MAX_VESSELS = 8000;
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY_MS = 2500;
+const RETRY_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 1500;
 
 /** aisstream.io BoundingBoxes: [[minLat, minLon], [maxLat, maxLon]] */
 const box = (minLon, minLat, maxLon, maxLat) => [[minLat, minLon], [maxLat, maxLon]];
@@ -240,19 +241,22 @@ export async function fetchAisSnapshot(apiKey, {
     });
 }
 
-/** Retry empty snapshots — CF Workers cold starts often miss the first burst. */
+/** Retry empty snapshots — second pass uses shorter window to stay under CF 30s wall-clock. */
 export async function fetchAisSnapshotWithRetry(apiKey, options = {}) {
     const attempts = options.maxAttempts ?? RETRY_ATTEMPTS;
+    const primaryTimeout = options.timeoutMs ?? SNAPSHOT_MS;
     let lastResult = { features: [], error: 'empty_ais_snapshot' };
 
     for (let attempt = 0; attempt < attempts; attempt += 1) {
         if (attempt > 0) await sleep(RETRY_DELAY_MS);
-        const result = await fetchAisSnapshot(apiKey, options);
+        const attemptTimeout = attempt === 0 ? primaryTimeout : RETRY_SNAPSHOT_MS;
+        const result = await fetchAisSnapshot(apiKey, { ...options, timeoutMs: attemptTimeout });
         if (result.features?.length > 0) {
             return { ...result, attempt: attempt + 1 };
         }
         lastResult = result;
         if (result.error === 'missing_api_key' || result.error === 'websocket_unavailable') break;
+        if (attempt === 0 && result.rawSeen > 0) break;
     }
 
     return { ...lastResult, attempt: attempts };

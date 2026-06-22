@@ -50,9 +50,9 @@ async function getGlobalAisFeatures(apiKey) {
 
     const aisResult = await fetchAisSnapshotWithRetry(apiKey, {
         boundingBoxes: AIS_BOXES_BY_THEATER.global,
-        timeoutMs: 45000,
+        timeoutMs: 22000,
         maxVessels: 8000,
-        maxAttempts: 3,
+        maxAttempts: 2,
     });
     const features = aisResult.features || [];
     const error = features.length === 0 ? (aisResult.error || null) : null;
@@ -130,7 +130,7 @@ export async function fetchVesselsPayload(theater = 'global') {
             aisGlobalCount: aisFeatures.length,
             aisCache,
             aisNote: hasAisKey
-                ? 'Global AIS snapshot (15 min cache, 45s collect + retry) filtered by theater bbox'
+                ? 'Global AIS snapshot (15 min cache, 22s+8s collect + stale hold) filtered by theater bbox'
                 : null,
             aisError,
             aisKeyPresent: hasAisKey,
