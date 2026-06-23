@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useRef, Suspense, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import WorldClock from './components/WorldClock';
 import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
@@ -75,6 +75,20 @@ function App() {
   });
 
   const [timeMachineDate, setTimeMachineDate] = useState(null);
+  const [mapRecoverKey, setMapRecoverKey] = useState(0);
+  const [mapTrafficSuppressed, setMapTrafficSuppressed] = useState(false);
+
+  const mapActiveLayers = useMemo(() => {
+    if (!mapTrafficSuppressed) return activeLayers;
+    return activeLayers.filter((id) => id !== 'flights' && id !== 'vessels');
+  }, [activeLayers, mapTrafficSuppressed]);
+
+  const handleMapRecover = useCallback(() => {
+    if (mapTrafficSuppressed) return;
+    console.warn('Map crashed — auto-recovering without traffic layers');
+    setMapTrafficSuppressed(true);
+    setMapRecoverKey((key) => key + 1);
+  }, [mapTrafficSuppressed]);
 
   const toggleLayer = useCallback((layerId) => {
     setActiveLayers((prev) => {
@@ -134,11 +148,12 @@ function App() {
 
       <div className="app-container" id="main-content" role="main">
         {/* Full-screen map underneath */}
-        <ErrorBoundary inline label="Map">
+        <ErrorBoundary inline label="Map" recoverKey={mapRecoverKey} onRecover={handleMapRecover}>
           <Suspense fallback={<div className="map-loading" /> }>
             <LazyMapContainer
+              key={mapRecoverKey}
               viewTarget={viewTarget}
-              activeLayers={activeLayers}
+              activeLayers={mapActiveLayers}
               onMarkerClick={setSelectedEvent}
               copernicusPreview={copernicusResource.data}
               copernicusMode={copernicusMode}

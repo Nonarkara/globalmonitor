@@ -21,13 +21,15 @@ import { getRegion } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
-import { isValidLngLat, sanitizeLineCollection, sanitizePointCollection } from '../utils/geojsonValidate.js';
+import { isValidLngLat, sanitizePointCollection } from '../utils/geojsonValidate.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
-const TRAFFIC_SESSION_MAX_FLIGHTS = 4000;
-const TRAFFIC_SESSION_MAX_VESSELS = 4000;
+const TRAFFIC_SESSION_MAX_FLIGHTS = 1500;
+const TRAFFIC_SESSION_MAX_VESSELS = 1500;
+/** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
+const TRAFFIC_DEFER_MS = 3000;
 
 const capFeatureCollection = (collection, maxFeatures) => {
     if (!collection?.features?.length || collection.features.length <= maxFeatures) {
@@ -46,104 +48,6 @@ const formatVesselSourceLabel = (meta) => {
     }
     if (meta?.aisSource === 'static-snapshot') return 'AIS snapshot';
     return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
-};
-
-// ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
-// only), so a "flight path" is a short heading projection — not a route spiderweb.
-const EARTH_RADIUS_M = 6371000;
-const PATH_LOOKAHEAD_S = 180; // 3 min look-ahead
-const MAX_PATH_DISTANCE_M = 25000; // cap at 25 km regardless of speed
-const MIN_PATH_VELOCITY_MS = 40; // skip slow / taxiing traffic
-const MIN_PATH_ALTITUDE_M = 500;
-
-const projectForward = (lon, lat, headingDeg, distanceM) => {
-    const delta = distanceM / EARTH_RADIUS_M;
-    const theta = (headingDeg * Math.PI) / 180;
-    const phi1 = (lat * Math.PI) / 180;
-    const lambda1 = (lon * Math.PI) / 180;
-    const phi2 = Math.asin(Math.sin(phi1) * Math.cos(delta) + Math.cos(phi1) * Math.sin(delta) * Math.cos(theta));
-    const lambda2 = lambda1 + Math.atan2(
-        Math.sin(theta) * Math.sin(delta) * Math.cos(phi1),
-        Math.cos(delta) - Math.sin(phi1) * Math.sin(phi2)
-    );
-    return [(lambda2 * 180) / Math.PI, (phi2 * 180) / Math.PI];
-};
-
-const buildFlightPaths = (flights) => {
-    if (!flights?.features?.length) return null;
-    const features = flights.features
-        .filter((f) => {
-            const p = f.properties || {};
-            const coords = f.geometry?.coordinates;
-            const lon = coords?.[0];
-            const lat = coords?.[1];
-            return isValidLngLat(lon, lat)
-                && !p.onGround
-                && (p.velocity || 0) >= MIN_PATH_VELOCITY_MS
-                && (p.altitude || 0) >= MIN_PATH_ALTITUDE_M
-                && Number.isFinite(p.heading);
-        })
-        .map((f) => {
-            const [lon, lat] = f.geometry.coordinates;
-            const distanceM = Math.min(f.properties.velocity * PATH_LOOKAHEAD_S, MAX_PATH_DISTANCE_M);
-            const end = projectForward(lon, lat, f.properties.heading, distanceM);
-            if (!isValidLngLat(end[0], end[1])) return null;
-            return {
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: [[lon, lat], end] },
-                properties: { military: Boolean(f.properties?.military) }
-            };
-        })
-        .filter(Boolean);
-    return features.length ? { type: 'FeatureCollection', features } : null;
-};
-
-// Vessel heading vectors: short look-ahead, low speed threshold, course-first direction.
-const VESSEL_LOOKAHEAD_S = 120; // 2 min look-ahead
-const MAX_VESSEL_PATH_M = 3000; // cap at 3 km
-const MIN_VESSEL_SPEED_KNOTS = 1;
-const KNOT_TO_MS = 0.514444;
-
-const VESSEL_CATEGORY_COLOR = {
-    cargo: '#f59e0b',
-    tanker: '#ef4444',
-    passenger: '#3b82f6',
-    fishing: '#22c55e',
-    pleasure: '#ec4899',
-    tug: '#a78bfa',
-    other: '#38bdf8'
-};
-
-const buildVesselPaths = (vessels) => {
-    if (!vessels?.features?.length) return null;
-    const features = vessels.features
-        .filter((f) => {
-            const p = f.properties || {};
-            const coords = f.geometry?.coordinates;
-            const lon = coords?.[0];
-            const lat = coords?.[1];
-            const speedKnots = p.speed || 0;
-            const direction = p.course ?? p.heading;
-            return isValidLngLat(lon, lat)
-                && speedKnots >= MIN_VESSEL_SPEED_KNOTS
-                && Number.isFinite(direction);
-        })
-        .map((f) => {
-            const [lon, lat] = f.geometry.coordinates;
-            const p = f.properties || {};
-            const speedMs = (p.speed || 0) * KNOT_TO_MS;
-            const distanceM = Math.min(speedMs * VESSEL_LOOKAHEAD_S, MAX_VESSEL_PATH_M);
-            const direction = p.course ?? p.heading;
-            const end = projectForward(lon, lat, direction, distanceM);
-            if (!isValidLngLat(end[0], end[1])) return null;
-            return {
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: [[lon, lat], end] },
-                properties: { category: p.category || 'other' }
-            };
-        })
-        .filter(Boolean);
-    return features.length ? { type: 'FeatureCollection', features } : null;
 };
 
 const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
@@ -553,6 +457,7 @@ const MapContainer = ({
     const [failedSources, setFailedSources] = useState(() => new Set());
 
     const [mapReady, setMapReady] = useState(false);
+    const [trafficDeferredReady, setTrafficDeferredReady] = useState(false);
     const [loadedIconStyleKey, setLoadedIconStyleKey] = useState(null);
     const [styleFallbackState, setStyleFallbackState] = useState(() => ({ mapStyleKey: mapStyle, level: 0 }));
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
@@ -647,6 +552,15 @@ const MapContainer = ({
         setMapReady(true);
         loadMapIcons();
     }, [loadMapIcons]);
+
+    useEffect(() => {
+        if (!mapReady) {
+            setTrafficDeferredReady(false);
+            return undefined;
+        }
+        const timer = window.setTimeout(() => setTrafficDeferredReady(true), TRAFFIC_DEFER_MS);
+        return () => window.clearTimeout(timer);
+    }, [mapReady]);
 
     useEffect(() => {
         if (!mapReady) return undefined;
@@ -785,14 +699,7 @@ const MapContainer = ({
         return collection;
     }, [globalVesselsData]);
 
-    const flightPaths = useMemo(
-        () => sanitizeLineCollection(buildFlightPaths(flightsGeoJson)),
-        [flightsGeoJson]
-    );
-    const vesselPaths = useMemo(
-        () => sanitizeLineCollection(buildVesselPaths(vesselsGeoJson)),
-        [vesselsGeoJson]
-    );
+    const trafficLayersReady = mapReady && trafficDeferredReady;
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
     const flightsGlobalTotal = sessionFlightsMetaRef.current.total || (globalFlightsData?.features?.length ?? 0);
@@ -1288,64 +1195,9 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Flight path vectors — heading look-ahead, drawn under the position dots */}
-                {mapReady && flightsLayerActive && flightPaths?.features?.length > 0 && (
-                    <Source id="flight-paths" type="geojson" data={flightPaths}>
-                        <Layer
-                            id="flight-paths-lines"
-                            type="line"
-                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                            paint={{
-                                'line-color': [
-                                    'case',
-                                    ['==', ['get', 'military'], true], '#ef4444',
-                                    '#facc15'
-                                ],
-                                'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.65, 6, 1.1, 10, 1.8],
-                                'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.34, 6, 0.52, 10, 0.72]
-                            }}
-                        />
-                    </Source>
-                )}
-
-                {/* Flights Layer — density heatmap at world zoom + glow dots + plane icons */}
-                {mapReady && flightsLayerActive && visibleFlightCount > 0 && (
+                {/* Flights Layer — icons only (no heatmap/path vectors; WebGL budget) */}
+                {trafficLayersReady && flightsLayerActive && visibleFlightCount > 0 && (
                     <Source id="flights-data" type="geojson" data={flightsGeoJson}>
-                        <Layer
-                            id="flights-density"
-                            type="heatmap"
-                            maxzoom={5}
-                            paint={{
-                                'heatmap-weight': 1,
-                                'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.6, 4, 1.0, 5, 1.2],
-                                'heatmap-color': [
-                                    'interpolate', ['linear'], ['heatmap-density'],
-                                    0, 'rgba(0,0,0,0)',
-                                    0.1, 'rgba(88,166,255,0.15)',
-                                    0.3, 'rgba(88,166,255,0.35)',
-                                    0.55, 'rgba(56,189,248,0.55)',
-                                    0.8, 'rgba(245,158,11,0.45)',
-                                    1, 'rgba(245,158,11,0.65)'
-                                ],
-                                'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 10, 4, 18, 5, 22],
-                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.55, 5, 0]
-                            }}
-                        />
-                        <Layer
-                            id="flights-glow"
-                            type="circle"
-                            maxzoom={8}
-                            paint={{
-                                'circle-color': [
-                                    'case',
-                                    ['==', ['get', 'military'], true], '#ef4444',
-                                    '#facc15'
-                                ],
-                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 7, 4, 10, 7, 9],
-                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.45, 5, 0.4, 7, 0.22],
-                                'circle-blur': 0.7,
-                            }}
-                        />
                         {mapIconsReady && (
                             <Layer
                                 id="flights-icons"
@@ -1416,70 +1268,9 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Vessel path vectors — heading look-ahead, drawn under the position dots */}
-                {mapReady && vesselsLayerActive && vesselPaths?.features?.length > 0 && (
-                    <Source id="vessel-paths" type="geojson" data={vesselPaths}>
-                        <Layer
-                            id="vessel-paths-lines"
-                            type="line"
-                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                            paint={{
-                                'line-color': [
-                                    'match',
-                                    ['get', 'category'],
-                                    ...Object.entries(VESSEL_CATEGORY_COLOR).flatMap(([k, v]) => [k, v]),
-                                    '#38bdf8'
-                                ],
-                                'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 6, 0.9, 10, 1.5],
-                                'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.32, 6, 0.48, 10, 0.68]
-                            }}
-                        />
-                    </Source>
-                )}
-
-                {/* Vessels Layer — density heatmap at world zoom + glow + triangles by category */}
-                {mapReady && vesselsLayerActive && visibleVesselCount > 0 && (
+                {/* Vessels Layer — icons only (no heatmap/path vectors; WebGL budget) */}
+                {trafficLayersReady && vesselsLayerActive && visibleVesselCount > 0 && (
                     <Source id="vessels-data" type="geojson" data={vesselsGeoJson}>
-                        <Layer
-                            id="vessels-density"
-                            type="heatmap"
-                            maxzoom={5}
-                            paint={{
-                                'heatmap-weight': 1,
-                                'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 2, 0.5, 4, 0.9, 5, 1.1],
-                                'heatmap-color': [
-                                    'interpolate', ['linear'], ['heatmap-density'],
-                                    0, 'rgba(0,0,0,0)',
-                                    0.15, 'rgba(34,197,94,0.18)',
-                                    0.35, 'rgba(34,197,94,0.38)',
-                                    0.55, 'rgba(239,68,68,0.35)',
-                                    0.8, 'rgba(245,158,11,0.42)',
-                                    1, 'rgba(245,158,11,0.58)'
-                                ],
-                                'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 8, 4, 14, 5, 18],
-                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 5, 0]
-                            }}
-                        />
-                        <Layer
-                            id="vessels-glow"
-                            type="circle"
-                            maxzoom={8}
-                            paint={{
-                                'circle-color': [
-                                    'match', ['get', 'category'],
-                                    'cargo', '#22c55e',
-                                    'tanker', '#ef4444',
-                                    'passenger', '#3b82f6',
-                                    'fishing', '#f59e0b',
-                                    'tug', '#ea580c',
-                                    'pleasure', '#a855f7',
-                                    '#94a3b8'
-                                ],
-                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 6, 4, 8, 7, 8],
-                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.42, 5, 0.38, 7, 0.2],
-                                'circle-blur': 0.7,
-                            }}
-                        />
                         {mapIconsReady && (
                             <Layer
                                 id="vessels-icons"
@@ -1748,13 +1539,6 @@ const MapContainer = ({
                                 ? `${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
                                 : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
                     </span>
-                </div>
-                <div
-                    className="map-legend-item"
-                    style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
-                >
-                    <span className="map-legend-line" style={{ background: '#facc15' }} />
-                    <span>Aircraft vectors = 3 min look-ahead · Ship vectors = 2 min</span>
                 </div>
                 {axiomOverwatchActive && vesselsLayerActive && (
                     <div className="map-legend-item map-legend-item--attribution">
