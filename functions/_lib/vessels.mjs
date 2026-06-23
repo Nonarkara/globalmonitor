@@ -43,6 +43,14 @@ const mergeFeatures = (primary, supplement) => {
     return [...byMmsi.values()];
 };
 
+const resolveSnapshotAisSource = (staticMeta, features) => {
+    const metaSource = staticMeta?.source || '';
+    if (metaSource.includes('axiom-overwatch')) return 'axiom-overwatch';
+    const featureSource = features?.[0]?.properties?.source || '';
+    if (featureSource.includes('axiom-overwatch')) return 'axiom-overwatch';
+    return 'static-snapshot';
+};
+
 /** Static snapshot baked into dist/ — fallback when Worker WebSocket collect is empty. */
 async function loadStaticAisSnapshot(origin) {
     if (!origin) return { features: [], meta: null, error: 'no_origin' };
@@ -109,7 +117,7 @@ async function getGlobalAisFeatures(apiKey, origin) {
     staticMeta = staticResult.meta;
     if (staticResult.features.length > 0) {
         features = staticResult.features;
-        aisSource = 'static-snapshot';
+        aisSource = resolveSnapshotAisSource(staticMeta, features);
     } else if (staticResult.error) {
         error = staticResult.error;
     }
@@ -216,8 +224,8 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
         const staticResult = await loadStaticAisSnapshot(origin);
         if (staticResult.features.length > 0) {
             aisFeatures = staticResult.features;
-            aisSource = 'static-snapshot';
             staticMeta = staticResult.meta;
+            aisSource = resolveSnapshotAisSource(staticMeta, aisFeatures);
             aisCache = staticResult.cache;
         } else {
             const axiomResult = await fetchAxiomGlobalSnapshot();
