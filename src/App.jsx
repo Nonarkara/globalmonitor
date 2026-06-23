@@ -8,7 +8,7 @@ import { getDefaultSourceIdsForRegion } from './services/liveNews';
 import { REGIONS, getRegion } from './data/regions';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
-import { Settings, RefreshCw, Network, Database, FileText, Printer, Info, Menu, ChevronDown } from 'lucide-react';
+import { Settings, RefreshCw, Network, Database, FileText, Printer, Info, Menu, ChevronDown, Layers, BarChart3 } from 'lucide-react';
 
 import EscalationGauge from './components/EscalationGauge';
 import AlertBanner from './components/AlertBanner';
@@ -41,6 +41,8 @@ function App() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   useEscapeKey(isAboutOpen, () => setIsAboutOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileDrawer, setMobileDrawer] = useState('none');
   const toolsRef = useRef(null);
   useEffect(() => {
     const onDocClick = (e) => {
@@ -146,7 +148,14 @@ function App() {
         </ErrorBoundary>
       )}
 
-      <div className="app-container" id="main-content" role="main">
+      <div
+        className="app-container"
+        id="main-content"
+        role="main"
+        data-layout="map-first"
+        data-sidebar-open={sidebarOpen ? 'true' : 'false'}
+        data-mobile-drawer={mobileDrawer}
+      >
         {/* Full-screen map underneath */}
         <ErrorBoundary inline label="Map" recoverKey={mapRecoverKey} onRecover={handleMapRecover}>
           <Suspense fallback={<div className="map-loading" /> }>
@@ -211,6 +220,20 @@ function App() {
           </div>
           {/* Right: Controls */}
           <div className="header-controls">
+            <button
+              type="button"
+              onClick={() => {
+                const opening = mobileDrawer !== 'layers' || !sidebarOpen;
+                setSidebarOpen(opening);
+                setMobileDrawer(opening ? 'layers' : 'none');
+              }}
+              aria-pressed={sidebarOpen || mobileDrawer === 'layers'}
+              aria-label="Toggle map layers panel"
+              className="header-icon-button map-first-header-layers"
+            >
+              <Layers size={13} aria-hidden="true" />
+              <span className="header-icon-label">Layers</span>
+            </button>
             <button
               onClick={() => setIsManualOpen(true)}
               aria-label="Open System Manual"
@@ -296,7 +319,27 @@ function App() {
           </div>
         )}
 
-        {/* Row 3-5: Left sidebar — spans down to bottom bar */}
+        {/* Row 3-5: Left sidebar — layer controls drawer */}
+        <button
+          type="button"
+          className="map-first-backdrop"
+          aria-label="Close layers panel"
+          onClick={() => {
+            setSidebarOpen(false);
+            setMobileDrawer('none');
+          }}
+        />
+        <div className="map-first-layers-rail" aria-label="Map controls">
+          <button
+            type="button"
+            className="map-first-rail-btn"
+            aria-pressed={sidebarOpen}
+            aria-label="Toggle layers panel"
+            onClick={() => setSidebarOpen((v) => !v)}
+          >
+            <Layers size={18} aria-hidden="true" />
+          </button>
+        </div>
         <div className="left-sidebar">
           <ErrorBoundary inline label="Sidebar">
             <Sidebar
@@ -333,7 +376,9 @@ function App() {
           </ErrorBoundary>
         </div>
 
-        {/* Row 3: Right sidebar */}
+        {/* Intelligence panels — right rail + bottom strip (mobile drawer) */}
+        <div className="intel-zone">
+        <div className="intel-drawer-host">
         <div className="right-sidebar">
           {selectedEvent && (
             <LazyPanel
@@ -566,6 +611,50 @@ function App() {
             </>
           )}
         </div>
+        </div>
+        </div>
+
+        <nav className="map-first-mobile-tabs" aria-label="Panel navigation">
+          <button
+            type="button"
+            className="map-first-mobile-tab"
+            role="tab"
+            aria-selected={mobileDrawer === 'layers'}
+            onClick={() => {
+              const next = mobileDrawer === 'layers' ? 'none' : 'layers';
+              setMobileDrawer(next);
+              setSidebarOpen(next === 'layers');
+            }}
+          >
+            Layers
+          </button>
+          <button
+            type="button"
+            className="map-first-mobile-tab"
+            role="tab"
+            aria-selected={mobileDrawer === 'intel'}
+            onClick={() => {
+              setMobileDrawer((d) => (d === 'intel' ? 'none' : 'intel'));
+              setSidebarOpen(false);
+            }}
+          >
+            Intel
+          </button>
+          <button
+            type="button"
+            className="map-first-mobile-tab"
+            role="tab"
+            aria-selected={mobileDrawer === 'markets'}
+            onClick={() => {
+              setMobileDrawer((d) => (d === 'markets' ? 'none' : 'markets'));
+              setSidebarOpen(false);
+            }}
+          >
+            <BarChart3 size={12} aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Markets
+          </button>
+        </nav>
+
         <ErrorBoundary inline label="Live Feed">
           <LiveIntelligenceFeed key={`ticker:${viewMode}:${sourceSetKey}`} activeSourceIds={activeSources} viewMode={viewMode} />
         </ErrorBoundary>
