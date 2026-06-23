@@ -102,7 +102,13 @@ async function getGlobalAisFeatures(apiKey, origin) {
     const now = Date.now();
     const hit = cache.get(AIS_CACHE_KEY);
     if (hit && hit.expiresAt > now) {
-        return { features: hit.features || [], error: hit.error || null, cache: 'hit' };
+        return {
+            features: hit.features || [],
+            error: hit.error || null,
+            cache: 'hit',
+            aisSource: hit.aisSource || null,
+            staticMeta: hit.staticMeta || null,
+        };
     }
 
     let features = [];
