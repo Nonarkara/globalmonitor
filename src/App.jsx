@@ -235,6 +235,32 @@ function App() {
               <span className="header-icon-label">Layers</span>
             </button>
             <button
+              type="button"
+              onClick={() => {
+                setMobileDrawer((d) => (d === 'intel' ? 'none' : 'intel'));
+                setSidebarOpen(false);
+              }}
+              aria-pressed={mobileDrawer === 'intel'}
+              aria-label="Toggle intelligence panels"
+              className="header-icon-button map-first-header-intel"
+            >
+              <Network size={13} aria-hidden="true" />
+              <span className="header-icon-label">Intel</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileDrawer((d) => (d === 'markets' ? 'none' : 'markets'));
+                setSidebarOpen(false);
+              }}
+              aria-pressed={mobileDrawer === 'markets'}
+              aria-label="Toggle markets panel strip"
+              className="header-icon-button map-first-header-markets"
+            >
+              <BarChart3 size={13} aria-hidden="true" />
+              <span className="header-icon-label">Markets</span>
+            </button>
+            <button
               onClick={() => setIsManualOpen(true)}
               aria-label="Open System Manual"
               className="header-button header-button-manual"
