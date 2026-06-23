@@ -54,3 +54,55 @@ export const sanitizeLineCollection = (geojson) => {
 export const finiteHeading = (value, fallback = 0) => (
     Number.isFinite(value) ? value : fallback
 );
+
+/**
+ * Cap point features with geographic spread — avoids feed-order bias (e.g. US-only first N).
+ * Returns { collection, capped, totalInView }.
+ */
+export const spreadSamplePointCollection = (collection, maxFeatures, gridCols = 24, gridRows = 12) => {
+    const features = collection?.features;
+    if (!features?.length || features.length <= maxFeatures) {
+        return { collection, capped: false, totalInView: features?.length ?? 0 };
+    }
+
+    const buckets = new Map();
+    for (const feature of features) {
+        const coords = getPointCoordinates(feature);
+        if (!coords) continue;
+        const [lon, lat] = coords;
+        const col = Math.min(gridCols - 1, Math.floor(((lon + 180) / 360) * gridCols));
+        const row = Math.min(gridRows - 1, Math.floor(((lat + 90) / 180) * gridRows));
+        const key = `${col}:${row}`;
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(feature);
+    }
+
+    const bucketList = [...buckets.values()];
+    const perBucket = Math.max(1, Math.ceil(maxFeatures / Math.max(bucketList.length, 1)));
+    const sampled = [];
+
+    for (const bucket of bucketList) {
+        for (let i = 0; i < Math.min(perBucket, bucket.length); i += 1) {
+            sampled.push(bucket[i]);
+            if (sampled.length >= maxFeatures) break;
+        }
+        if (sampled.length >= maxFeatures) break;
+    }
+
+    if (sampled.length < maxFeatures) {
+        const picked = new Set(sampled);
+        for (const feature of features) {
+            if (sampled.length >= maxFeatures) break;
+            if (!picked.has(feature)) {
+                sampled.push(feature);
+                picked.add(feature);
+            }
+        }
+    }
+
+    return {
+        collection: { ...collection, features: sampled.slice(0, maxFeatures) },
+        capped: true,
+        totalInView: features.length,
+    };
+};

@@ -21,26 +21,15 @@ import { getRegion } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
-import { isValidLngLat, sanitizePointCollection } from '../utils/geojsonValidate.js';
+import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
-const TRAFFIC_SESSION_MAX_FLIGHTS = 1500;
-const TRAFFIC_SESSION_MAX_VESSELS = 1500;
+const TRAFFIC_SESSION_MAX_FLIGHTS = 800;
+const TRAFFIC_SESSION_MAX_VESSELS = 800;
 /** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
 const TRAFFIC_DEFER_MS = 3000;
-
-const capFeatureCollection = (collection, maxFeatures) => {
-    if (!collection?.features?.length || collection.features.length <= maxFeatures) {
-        return { collection, capped: false, totalInView: collection?.features?.length ?? 0 };
-    }
-    return {
-        collection: { ...collection, features: collection.features.slice(0, maxFeatures) },
-        capped: true,
-        totalInView: collection.features.length,
-    };
-};
 
 const formatVesselSourceLabel = (meta) => {
     if (meta?.aisSource === 'axiom-overwatch' || meta?.source?.includes('axiom-overwatch')) {
@@ -50,7 +39,7 @@ const formatVesselSourceLabel = (meta) => {
     return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 };
 
-const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
+const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'vessels-labels', 'acled-circles', 'firms-circles'];
 
 const formatCoord = (value, axis) => {
     const abs = Math.abs(value);
@@ -458,7 +447,6 @@ const MapContainer = ({
 
     const [mapReady, setMapReady] = useState(false);
     const [trafficDeferredReady, setTrafficDeferredReady] = useState(false);
-    const [loadedIconStyleKey, setLoadedIconStyleKey] = useState(null);
     const [styleFallbackState, setStyleFallbackState] = useState(() => ({ mapStyleKey: mapStyle, level: 0 }));
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
@@ -474,7 +462,6 @@ const MapContainer = ({
     const styleFallbackLevel = styleFallbackState.mapStyleKey === mapStyle ? styleFallbackState.level : 0;
     const activeMapStyle = resolveMapStyle(mapStyle, styleFallbackLevel);
     const activeMapStyleKey = styleCacheKey(mapStyle, styleFallbackLevel, activeMapStyle);
-    const mapIconsReady = loadedIconStyleKey === activeMapStyleKey;
 
     useEffect(() => {
         dispatchViewState({ type: 'target', viewTarget });
@@ -499,7 +486,6 @@ const MapContainer = ({
                 level: level >= 2 ? level : level + 1,
             };
         });
-        setLoadedIconStyleKey(null);
     }, [mapStyle]);
 
     const handleMapError = useCallback((event) => {
@@ -544,13 +530,16 @@ const MapContainer = ({
     const loadMapIcons = useCallback(() => {
         const map = mapRef.current?.getMap?.();
         if (!map) return;
-        setLoadedIconStyleKey(null);
-        loadTrafficIcons(map, () => setLoadedIconStyleKey(activeMapStyleKey));
-    }, [activeMapStyleKey]);
+        loadTrafficIcons(map);
+    }, []);
 
     const handleMapLoad = useCallback(() => {
         setMapReady(true);
         loadMapIcons();
+        const map = mapRef.current?.getMap?.();
+        if (map && typeof window !== 'undefined') {
+            window.__GM_MAP__ = map;
+        }
     }, [loadMapIcons]);
 
     useEffect(() => {
@@ -564,12 +553,13 @@ const MapContainer = ({
 
     useEffect(() => {
         if (!mapReady) return undefined;
+        loadMapIcons();
         const map = mapRef.current?.getMap?.();
         if (!map) return undefined;
 
         map.on('style.load', loadMapIcons);
         return () => { map.off('style.load', loadMapIcons); };
-    }, [mapReady, mapStyle, loadMapIcons]);
+    }, [mapReady, activeMapStyleKey, loadMapIcons]);
 
     const handleMouseMove = useCallback((event) => {
         setCursorCoords({ lng: event.lngLat.lng, lat: event.lngLat.lat });
@@ -681,7 +671,7 @@ const MapContainer = ({
         if (sessionFlightsRef.current) return sessionFlightsRef.current;
         const sanitized = sanitizePointCollection(globalFlightsData);
         if (!sanitized?.features?.length) return null;
-        const { collection, capped, totalInView } = capFeatureCollection(sanitized, TRAFFIC_SESSION_MAX_FLIGHTS);
+        const { collection, capped, totalInView } = spreadSamplePointCollection(sanitized, TRAFFIC_SESSION_MAX_FLIGHTS);
         sessionFlightsRef.current = collection;
         sessionFlightsMetaRef.current = { capped, total: totalInView };
         return collection;
@@ -693,7 +683,7 @@ const MapContainer = ({
         if (sessionVesselsRef.current) return sessionVesselsRef.current;
         const sanitized = sanitizePointCollection(globalVesselsData);
         if (!sanitized?.features?.length) return null;
-        const { collection, capped, totalInView } = capFeatureCollection(sanitized, TRAFFIC_SESSION_MAX_VESSELS);
+        const { collection, capped, totalInView } = spreadSamplePointCollection(sanitized, TRAFFIC_SESSION_MAX_VESSELS);
         sessionVesselsRef.current = collection;
         sessionVesselsMetaRef.current = { capped, total: totalInView };
         return collection;
@@ -1198,24 +1188,41 @@ const MapContainer = ({
                 {/* Flights Layer — icons only (no heatmap/path vectors; WebGL budget) */}
                 {trafficLayersReady && flightsLayerActive && visibleFlightCount > 0 && (
                     <Source id="flights-data" type="geojson" data={flightsGeoJson}>
-                        {mapIconsReady && (
-                            <Layer
-                                id="flights-icons"
-                                type="symbol"
-                                layout={{
-                                    'icon-image': FLIGHT_ICON_IMAGE,
-                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.1, 3, 1.4, 5, 1.7, 7, 1.7, 10, 1.6],
-                                    'icon-rotate': ['get', 'heading'],
-                                    'icon-rotation-alignment': 'map',
-                                    'icon-allow-overlap': true,
-                                    'icon-ignore-placement': true,
-                                    'icon-pitch-alignment': 'map',
-                                }}
-                                paint={{
-                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.88, 6, 0.95, 10, 1]
-                                }}
-                            />
-                        )}
+                        <Layer
+                            id="flights-icons"
+                            type="symbol"
+                            layout={{
+                                'icon-image': FLIGHT_ICON_IMAGE,
+                                'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.2, 3, 1.5, 5, 1.8, 7, 1.7, 10, 1.5],
+                                'icon-rotate': ['get', 'heading'],
+                                'icon-rotation-alignment': 'map',
+                                'icon-allow-overlap': true,
+                                'icon-ignore-placement': true,
+                                'icon-pitch-alignment': 'map',
+                            }}
+                            paint={{
+                                'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.9, 6, 0.96, 10, 1]
+                            }}
+                        />
+                        <Layer
+                            id="flights-labels"
+                            type="symbol"
+                            minzoom={7}
+                            layout={{
+                                'text-field': ['coalesce', ['get', 'callsign'], ['get', 'hex'], ''],
+                                'text-size': 9,
+                                'text-font': ['Open Sans Regular'],
+                                'text-offset': [0, 1.3],
+                                'text-anchor': 'top',
+                                'text-allow-overlap': false,
+                                'text-optional': true,
+                            }}
+                            paint={{
+                                'text-color': '#fde68a',
+                                'text-halo-color': 'rgba(0,0,0,0.8)',
+                                'text-halo-width': 1,
+                            }}
+                        />
                     </Source>
                 )}
 
@@ -1271,36 +1278,56 @@ const MapContainer = ({
                 {/* Vessels Layer — icons only (no heatmap/path vectors; WebGL budget) */}
                 {trafficLayersReady && vesselsLayerActive && visibleVesselCount > 0 && (
                     <Source id="vessels-data" type="geojson" data={vesselsGeoJson}>
-                        {mapIconsReady && (
-                            <Layer
-                                id="vessels-icons"
-                                type="symbol"
-                                layout={{
-                                    'icon-image': VESSEL_ICON_IMAGE,
-                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.0, 3, 1.2, 5, 1.45, 7, 1.45, 10, 1.2],
-                                    'icon-rotate': ['get', 'heading'],
-                                    'icon-rotation-alignment': 'map',
-                                    'icon-allow-overlap': true,
-                                    'icon-ignore-placement': true,
-                                    'icon-pitch-alignment': 'map',
-                                    'text-field': ['step', ['zoom'], '', 8, ['get', 'name']],
-                                    'text-size': 9,
-                                    'text-offset': [0, 1.4],
-                                    'text-anchor': 'top',
-                                    'text-allow-overlap': false,
-                                }}
-                                paint={{
-                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.86, 6, 0.93, 10, 0.98],
-                                    'text-color': '#e2e8f0',
-                                    'text-halo-color': 'rgba(0,0,0,0.75)',
-                                    'text-halo-width': 1,
-                                }}
-                            />
-                        )}
+                        <Layer
+                            id="vessels-icons"
+                            type="symbol"
+                            layout={{
+                                'icon-image': VESSEL_ICON_IMAGE,
+                                'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.0, 3, 1.25, 5, 1.5, 7, 1.4, 10, 1.2],
+                                'icon-rotate': ['get', 'heading'],
+                                'icon-rotation-alignment': 'map',
+                                'icon-allow-overlap': true,
+                                'icon-ignore-placement': true,
+                                'icon-pitch-alignment': 'map',
+                            }}
+                            paint={{
+                                'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.88, 6, 0.94, 10, 0.98],
+                            }}
+                        />
+                        <Layer
+                            id="vessels-labels"
+                            type="symbol"
+                            minzoom={6}
+                            layout={{
+                                'text-field': ['coalesce', ['get', 'name'], ''],
+                                'text-size': 10,
+                                'text-font': ['Open Sans Regular'],
+                                'text-offset': [0, 1.2],
+                                'text-anchor': 'top',
+                                'text-allow-overlap': false,
+                                'text-optional': true,
+                            }}
+                            paint={{
+                                'text-color': '#e2e8f0',
+                                'text-halo-color': 'rgba(0,0,0,0.75)',
+                                'text-halo-width': 1,
+                            }}
+                        />
                     </Source>
                 )}
 
-                {hoverInfo && (
+                {hoverInfo && (() => {
+                    const hoverLayerId = hoverInfo.feature.layer?.id;
+                    const tooltipClass = [
+                        'traffic-tooltip',
+                        hoverLayerId === 'vessels-icons' || hoverLayerId === 'vessels-labels' ? 'traffic-tooltip--vessel'
+                            : hoverLayerId === 'flights-icons' || hoverLayerId === 'flights-labels' ? 'traffic-tooltip--flight'
+                                : hoverLayerId === 'acled-circles' ? 'traffic-tooltip--conflict'
+                                    : hoverLayerId === 'firms-circles' ? 'traffic-tooltip--heat'
+                                        : null,
+                    ].filter(Boolean).join(' ');
+
+                    return (
                     <Popup
                         longitude={hoverInfo.longitude}
                         latitude={hoverInfo.latitude}
@@ -1308,12 +1335,7 @@ const MapContainer = ({
                         closeButton={false}
                         closeOnClick={false}
                         offset={[0, -8]}
-                        className={`traffic-tooltip ${
-                            hoverInfo.feature.layer?.id === 'vessels-icons' ? 'traffic-tooltip--vessel'
-                            : hoverInfo.feature.layer?.id === 'acled-circles' ? 'traffic-tooltip--conflict'
-                            : hoverInfo.feature.layer?.id === 'firms-circles' ? 'traffic-tooltip--heat'
-                            : ''
-                        }`}
+                        className={tooltipClass}
                     >
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
@@ -1370,7 +1392,7 @@ const MapContainer = ({
                                     </div>
                                 );
                             }
-                            const isFlight = layerId === 'flights-icons' || p.hex;
+                            const isFlight = layerId === 'flights-icons' || layerId === 'flights-labels' || p.hex;
                             if (isFlight) {
                                 const header = p.callsign ? p.callsign.toUpperCase() : p.hex;
                                 return (
@@ -1427,7 +1449,8 @@ const MapContainer = ({
                             );
                         })()}
                     </Popup>
-                )}
+                    );
+                })()}
 
                 {activeLayers.includes('conflicts') && renderSpatialAura(crisesData, 'conflicts', '#ef4444', 16)}
                 {activeLayers.includes('disasters') && renderSpatialAura(disastersData, 'disasters', '#f59e0b', 14)}
