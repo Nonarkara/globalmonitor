@@ -571,39 +571,21 @@ const MapContainer = ({
         basemapFailCountRef.current = 0;
     }, [mapStyle, styleFallbackLevel]);
 
-    // Blank-canvas guard: transparent WebGL over white paper reads as a broken map.
+    // Map-first layout sizes the wrapper after lazy mount — repaint after load settles.
     useEffect(() => {
         if (!mapReady) return undefined;
-        const map = mapRef.current?.getMap?.();
-        if (!map) return undefined;
-
         repaintMap();
         const raf = requestAnimationFrame(repaintMap);
         const t1 = window.setTimeout(repaintMap, 120);
         const t2 = window.setTimeout(repaintMap, 500);
-
-        const canvasHasOpaquePixels = () => {
-            const canvas = map.getCanvas?.();
-            const gl = canvas?.getContext('webgl') || canvas?.getContext('webgl2');
-            if (!gl || !canvas?.width || !canvas?.height) return true;
-            const buf = new Uint8Array(4);
-            const x = Math.floor(canvas.width / 2);
-            const y = Math.floor(canvas.height / 2);
-            gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-            return buf[3] > 20;
-        };
-
-        const t3 = window.setTimeout(() => {
-            if (!canvasHasOpaquePixels()) advanceStyleFallback();
-        }, 2800);
-
+        const t3 = window.setTimeout(repaintMap, 1500);
         return () => {
             cancelAnimationFrame(raf);
             window.clearTimeout(t1);
             window.clearTimeout(t2);
             window.clearTimeout(t3);
         };
-    }, [mapReady, activeMapStyleKey, repaintMap, advanceStyleFallback]);
+    }, [mapReady, activeMapStyleKey, repaintMap]);
 
     // Load custom SVG icons into the MapLibre sprite; re-run on style change
     // because setStyle() wipes all user-added images.
