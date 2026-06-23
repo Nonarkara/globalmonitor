@@ -156,6 +156,19 @@
     "apiEndpoint": "/api/markets"
   },
   {
+    "id": "axiom-overwatch",
+    "name": "Axiom Overwatch",
+    "fullName": "Axiom Overwatch Global AIS REST",
+    "type": "Vessel Tracking (CF Pages fallback)",
+    "url": "https://axiomoverwatch.io",
+    "reliability": 7,
+    "updateFrequency": "REST snapshot (~15 min cache)",
+    "cacheTTL": "15 minutes",
+    "methodology": "Free global AIS position snapshot via REST. Used on Cloudflare Pages when aisstream WebSocket collect is empty and no AISSTREAM_API_KEY is set. CC-BY 4.0 attribution required.",
+    "coverage": "Global — ~20K vessels; theater bbox filter applied server-side",
+    "apiEndpoint": "/api/vessels"
+  },
+  {
     "id": "aisstream",
     "name": "AISStream",
     "fullName": "aisstream.io Global AIS WebSocket",

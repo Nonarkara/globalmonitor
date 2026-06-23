@@ -29,6 +29,8 @@ const TRAFFIC_POLL_MS = 15 * 60 * 1000;
 const TRAFFIC_THEATER = 'global';
 /** Below this zoom, render the full global pool (world heatmap). Above it, viewport-filter. */
 const TRAFFIC_WORLD_ZOOM = 4;
+/** Cap rendered traffic in viewport mode — avoids WebGL stress at regional zoom. */
+const TRAFFIC_VIEWPORT_MAX = 6000;
 
 const pointInBounds = (lon, lat, bounds) => {
     if (!Number.isFinite(lon) || !Number.isFinite(lat) || !bounds) return false;
@@ -63,6 +65,25 @@ const filterFeatureCollectionByBounds = (collection, bounds) => {
     });
     if (features.length === collection.features.length) return collection;
     return { ...collection, features };
+};
+
+const capFeatureCollection = (collection, maxFeatures) => {
+    if (!collection?.features?.length || collection.features.length <= maxFeatures) {
+        return { collection, capped: false, totalInView: collection?.features?.length ?? 0 };
+    }
+    return {
+        collection: { ...collection, features: collection.features.slice(0, maxFeatures) },
+        capped: true,
+        totalInView: collection.features.length,
+    };
+};
+
+const formatVesselSourceLabel = (meta) => {
+    if (meta?.aisSource === 'axiom-overwatch' || meta?.source?.includes('axiom-overwatch')) {
+        return 'Axiom Overwatch';
+    }
+    if (meta?.aisSource === 'static-snapshot') return 'AIS snapshot';
+    return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 };
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
@@ -572,7 +593,7 @@ const MapContainer = ({
     const [mapReady, setMapReady] = useState(false);
     const [trafficBounds, setTrafficBounds] = useState(null);
     const [loadedIconStyleKey, setLoadedIconStyleKey] = useState(null);
-    const [styleFallbackLevel, setStyleFallbackLevel] = useState(0);
+    const [styleFallbackState, setStyleFallbackState] = useState(() => ({ mapStyleKey: mapStyle, level: 0 }));
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
@@ -597,14 +618,10 @@ const MapContainer = ({
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
     const weatherLayerActive = activeLayers.includes('weather');
+    const styleFallbackLevel = styleFallbackState.mapStyleKey === mapStyle ? styleFallbackState.level : 0;
     const activeMapStyle = resolveMapStyle(mapStyle, styleFallbackLevel);
     const activeMapStyleKey = styleCacheKey(mapStyle, styleFallbackLevel, activeMapStyle);
     const mapIconsReady = loadedIconStyleKey === activeMapStyleKey;
-
-    useEffect(() => {
-        setStyleFallbackLevel(0);
-        setLoadedIconStyleKey(null);
-    }, [mapStyle]);
 
     useEffect(() => {
         dispatchViewState({ type: 'target', viewTarget });
@@ -629,9 +646,15 @@ const MapContainer = ({
     }, [weatherLayerActive]);
 
     const advanceStyleFallback = useCallback(() => {
-        setStyleFallbackLevel((level) => (level >= 2 ? level : level + 1));
+        setStyleFallbackState((state) => {
+            const level = state.mapStyleKey === mapStyle ? state.level : 0;
+            return {
+                mapStyleKey: mapStyle,
+                level: level >= 2 ? level : level + 1,
+            };
+        });
         setLoadedIconStyleKey(null);
-    }, []);
+    }, [mapStyle]);
 
     const handleMapError = useCallback((event) => {
         // Tile/source/raster failures are expected — do not swap basemap (that wipes addImage sprites).
@@ -802,16 +825,24 @@ const MapContainer = ({
         return expandBounds(trafficBounds);
     }, [viewState.zoom, trafficBounds]);
 
-    const flightsGeoJson = useMemo(() => {
+    const flightsViewport = useMemo(() => {
         const sanitized = sanitizePointCollection(globalFlightsData);
-        if (!sanitized || !viewportBounds) return sanitized;
-        return filterFeatureCollectionByBounds(sanitized, viewportBounds);
+        if (!sanitized || !viewportBounds) {
+            return { collection: sanitized, capped: false, totalInView: sanitized?.features?.length ?? 0 };
+        }
+        const filtered = filterFeatureCollectionByBounds(sanitized, viewportBounds);
+        return capFeatureCollection(filtered, TRAFFIC_VIEWPORT_MAX);
     }, [globalFlightsData, viewportBounds]);
-    const vesselsGeoJson = useMemo(() => {
+    const vesselsViewport = useMemo(() => {
         const sanitized = sanitizePointCollection(globalVesselsData);
-        if (!sanitized || !viewportBounds) return sanitized;
-        return filterFeatureCollectionByBounds(sanitized, viewportBounds);
+        if (!sanitized || !viewportBounds) {
+            return { collection: sanitized, capped: false, totalInView: sanitized?.features?.length ?? 0 };
+        }
+        const filtered = filterFeatureCollectionByBounds(sanitized, viewportBounds);
+        return capFeatureCollection(filtered, TRAFFIC_VIEWPORT_MAX);
     }, [globalVesselsData, viewportBounds]);
+    const flightsGeoJson = flightsViewport.collection;
+    const vesselsGeoJson = vesselsViewport.collection;
     const flightPaths = useMemo(
         () => sanitizeLineCollection(buildFlightPaths(flightsGeoJson)),
         [flightsGeoJson]
@@ -822,15 +853,25 @@ const MapContainer = ({
     );
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
+    const flightsInViewTotal = flightsViewport.totalInView;
+    const vesselsInViewTotal = vesselsViewport.totalInView;
     const globalFlightCount = globalFlightsData?.features?.length ?? 0;
     const globalVesselCount = globalVesselsData?.features?.length ?? 0;
-    const flightCount = viewportBounds ? visibleFlightCount : globalFlightCount;
-    const vesselCount = viewportBounds ? visibleVesselCount : globalVesselCount;
     const flightSourceLabel = flightsResource.isStale || globalFlightsData?.__meta?.status === 'stale'
         ? 'ADS-B stale'
         : 'ADS-B';
     const vesselsNeedKey = globalVesselsData?.meta?.requiresKey;
-    const vesselSourceLabel = globalVesselsData?.meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
+    const vesselMeta = globalVesselsData?.meta;
+    const vesselSourceLabel = formatVesselSourceLabel(vesselMeta);
+    const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
+        || vesselMeta?.source?.includes('axiom-overwatch');
+    const formatInViewCount = (rendered, total, capped) => {
+        if (rendered <= 0) return null;
+        if (capped && total > rendered) {
+            return `showing ${rendered.toLocaleString()} of ${total.toLocaleString()} in view`;
+        }
+        return `${rendered.toLocaleString()} in view`;
+    };
 
     const prevFlightCountRef = useRef(null);
     useEffect(() => {
@@ -1742,9 +1783,9 @@ const MapContainer = ({
                     <span className="map-legend-line" style={{ background: '#facc15' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleFlightCount > 0
-                            ? `${visibleFlightCount.toLocaleString()} in view · ${flightSourceLabel}`
-                            : flightCount > 0
-                                ? `0 in view · ${flightCount.toLocaleString()} global`
+                            ? `${formatInViewCount(visibleFlightCount, flightsInViewTotal, flightsViewport.capped) || visibleFlightCount.toLocaleString()} · ${flightSourceLabel}`
+                            : globalFlightCount > 0
+                                ? `0 in view · ${globalFlightCount.toLocaleString()} global · ${flightSourceLabel}`
                                 : '… aircraft · ADS-B'}
                     </span>
                 </div>
@@ -1754,13 +1795,13 @@ const MapContainer = ({
                 >
                     <span
                         className="map-legend-line"
-                        style={{ background: vesselCount > 0 ? '#22c55e' : 'rgba(245,158,11,0.35)' }}
+                        style={{ background: globalVesselCount > 0 ? '#22c55e' : 'rgba(245,158,11,0.35)' }}
                     />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleVesselCount > 0
-                            ? `${visibleVesselCount.toLocaleString()} in view · ${vesselSourceLabel}`
-                            : vesselCount > 0
-                                ? `0 in view · ${vesselCount.toLocaleString()} global`
+                            ? `${formatInViewCount(visibleVesselCount, vesselsInViewTotal, vesselsViewport.capped) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
+                            : globalVesselCount > 0
+                                ? `0 in view · ${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
                                 : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
                     </span>
                 </div>
@@ -1771,6 +1812,11 @@ const MapContainer = ({
                     <span className="map-legend-line" style={{ background: '#facc15' }} />
                     <span>Aircraft vectors = 3 min look-ahead · Ship vectors = 2 min</span>
                 </div>
+                {axiomOverwatchActive && vesselsLayerActive && (
+                    <div className="map-legend-item map-legend-item--attribution">
+                        <span>Ships via Axiom Overwatch · CC-BY 4.0</span>
+                    </div>
+                )}
             </div>
 
             <div

@@ -2589,6 +2589,16 @@ body {
   font-family: var(--font-mono);
 }
 
+.map-legend-item--attribution {
+  margin-top: 2px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.52rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  opacity: 0.82;
+}
+
 .map-legend-item {
   display: flex;
   align-items: center;
