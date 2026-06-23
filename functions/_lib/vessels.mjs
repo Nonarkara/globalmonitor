@@ -1,3 +1,4 @@
+import { fetchAxiomGlobalSnapshot } from './axiomOverwatch.mjs';
 import { fetchFleetVessels, getVesselFinderConfig } from '../../server/lib/vesselFinder.mjs';
 import { AIS_BOXES_BY_THEATER, fetchAisSnapshotWithRetry } from './aisSnapshot.mjs';
 import { getSharedCache } from './cache.mjs';
@@ -6,6 +7,8 @@ const AIS_CACHE_KEY = 'vessels:ais:global:v3';
 const STATIC_SNAPSHOT_PATH = '/data/ais/ais-snapshot.json';
 const AIS_CACHE_TTL_MS = 15 * 60 * 1000;
 const AIS_STALE_HOLD_MS = 30 * 60 * 1000;
+/** CF Pages Workers open AIS WebSocket but receive zero frames — static snapshot only. */
+const IS_CF_WORKER = typeof navigator === 'undefined' && typeof globalThis.WebSocket !== 'undefined';
 
 const THEATER_BBOXES = {
     thailand: [95, 0.5, 108, 22],
@@ -85,7 +88,7 @@ const cacheAisResult = (cache, now, features, aisSource, staticMeta, error, aisA
     });
 };
 
-/** One global AIS collect per cache TTL — filter by theater downstream. */
+/** One global AIS collect per cache TTL — static snapshot first on CF (WS never delivers frames). */
 async function getGlobalAisFeatures(apiKey, origin) {
     const cache = getSharedCache();
     const now = Date.now();
@@ -101,7 +104,17 @@ async function getGlobalAisFeatures(apiKey, origin) {
     let staticCache = null;
     let aisAttempt = null;
 
-    if (apiKey) {
+    const staticResult = await loadStaticAisSnapshot(origin);
+    staticCache = staticResult.cache;
+    staticMeta = staticResult.meta;
+    if (staticResult.features.length > 0) {
+        features = staticResult.features;
+        aisSource = 'static-snapshot';
+    } else if (staticResult.error) {
+        error = staticResult.error;
+    }
+
+    if (features.length === 0 && !IS_CF_WORKER && apiKey) {
         const aisResult = await fetchAisSnapshotWithRetry(apiKey, {
             boundingBoxes: AIS_BOXES_BY_THEATER.global,
             timeoutMs: 22000,
@@ -112,21 +125,28 @@ async function getGlobalAisFeatures(apiKey, origin) {
         if (aisResult.features?.length > 0) {
             features = aisResult.features;
             aisSource = 'live-ws';
-        } else {
+            error = null;
+        } else if (!error) {
             error = aisResult.error || 'empty_ais_snapshot';
         }
+    } else if (features.length === 0 && IS_CF_WORKER && !error) {
+        error = 'empty_ais_snapshot';
     }
 
     if (features.length === 0) {
-        const staticResult = await loadStaticAisSnapshot(origin);
-        staticCache = staticResult.cache;
-        staticMeta = staticResult.meta;
-        if (staticResult.features.length > 0) {
-            features = staticResult.features;
-            aisSource = 'static-snapshot';
+        const axiomResult = await fetchAxiomGlobalSnapshot();
+        if (axiomResult.features?.length > 0) {
+            features = axiomResult.features;
+            aisSource = 'axiom-overwatch';
+            staticMeta = {
+                collectedAt: axiomResult.meta?.updated_at ?? new Date().toISOString(),
+                vesselCount: axiomResult.features.length,
+                source: 'axiom-overwatch.io',
+                truncated: axiomResult.truncated ?? false,
+            };
             error = null;
         } else if (!error) {
-            error = staticResult.error || 'empty_ais_snapshot';
+            error = axiomResult.error || 'empty_ais_snapshot';
         }
     }
 
@@ -199,6 +219,20 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
             aisSource = 'static-snapshot';
             staticMeta = staticResult.meta;
             aisCache = staticResult.cache;
+        } else {
+            const axiomResult = await fetchAxiomGlobalSnapshot();
+            if (axiomResult.features?.length > 0) {
+                aisFeatures = axiomResult.features;
+                aisSource = 'axiom-overwatch';
+                staticMeta = {
+                    collectedAt: axiomResult.meta?.updated_at ?? new Date().toISOString(),
+                    vesselCount: axiomResult.features.length,
+                    source: 'axiom-overwatch.io',
+                    truncated: axiomResult.truncated ?? false,
+                };
+            } else {
+                aisError = axiomResult.error || staticResult.error || 'empty_ais_snapshot';
+            }
         }
     }
 
@@ -206,7 +240,8 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
     const filtered = filterByTheater(merged, theater);
     const theaterAisCount = filterByTheater(aisFeatures, theater).length;
     const sources = [];
-    if ((hasAisKey || aisSource === 'static-snapshot') && theaterAisCount > 0) sources.push('aisstream.io');
+    if (aisSource === 'axiom-overwatch' && theaterAisCount > 0) sources.push('axiom-overwatch.io');
+    else if ((hasAisKey || aisSource === 'static-snapshot') && theaterAisCount > 0) sources.push('aisstream.io');
     if (vfConfig.fleetKey) sources.push('vesselfinder-fleet');
     const fleetEmpty = vfConfig.fleetKey && fleet.length === 0;
 
@@ -218,8 +253,8 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
             fetchedAt: new Date().toISOString(),
             source: sources.length ? sources.join('+') : 'none',
             sources,
-            connected: ((hasAisKey || aisSource === 'static-snapshot') && theaterAisCount > 0) || (vfConfig.fleetKey && !fleetResult.error),
-            coverage: (hasAisKey || aisSource === 'static-snapshot')
+            connected: ((hasAisKey || aisSource === 'static-snapshot' || aisSource === 'axiom-overwatch') && theaterAisCount > 0) || (vfConfig.fleetKey && !fleetResult.error),
+            coverage: (hasAisKey || aisSource === 'static-snapshot' || aisSource === 'axiom-overwatch')
                 ? (vfConfig.fleetKey ? 'ais-snapshot+fleet' : 'ais-snapshot')
                 : (vfConfig.fleetKey ? 'fleet-only' : 'none'),
             requiresKey: !hasAisKey && !vfConfig.fleetKey,
@@ -228,11 +263,13 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
             aisCache,
             aisSource,
             staticSnapshotAt: staticMeta?.collectedAt ?? null,
-            aisNote: hasAisKey
-                ? (aisSource === 'static-snapshot'
-                    ? 'Static AIS snapshot fallback (Worker WS empty) — refresh via scripts/refresh-ais-snapshot.mjs'
-                    : 'Global AIS snapshot (15 min cache, 22s+8s collect + stale hold) filtered by theater bbox')
-                : null,
+            aisNote: aisSource === 'axiom-overwatch'
+                ? 'Axiom Overwatch REST fallback (CC-BY 4.0, axiomoverwatch.io) — 15 min cache, no API key'
+                : hasAisKey
+                    ? (aisSource === 'static-snapshot'
+                        ? 'Static AIS snapshot fallback (Worker WS empty) — refresh via scripts/refresh-ais-snapshot.mjs'
+                        : 'Global AIS snapshot (15 min cache, 22s+8s collect + stale hold) filtered by theater bbox')
+                    : null,
             aisError,
             aisKeyPresent: hasAisKey,
             aisAttempt,

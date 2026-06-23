@@ -1,0 +1,11 @@
+[
+  {
+    "id": "ais-snapshot",
+    "file": "ais-snapshot.json",
+    "label": "AIS vessel positions",
+    "aoi": "global",
+    "collectedAt": "2026-06-23T01:09:58.837Z",
+    "vesselCount": 20000,
+    "refreshHint": "node scripts/refresh-ais-snapshot.mjs (cron every 15 min recommended)"
+  }
+]

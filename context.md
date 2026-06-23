@@ -166,6 +166,8 @@ Pattern: extend [server/lib/supabase.mjs](server/lib/supabase.mjs) with an `upse
 - GitHub Actions may be disabled on the account; if so, deploy Cloudflare manually with Wrangler.
 
 ## Ship tracking (AIS)
+- **Pages production fallback (2026-06-23)**: When aisstream WebSocket is silent (`rawSeen=0`, see aisstream/issues#178) and no static snapshot is deployed, `/api/vessels` falls back to **Axiom Overwatch REST** (`axiomoverwatch.io/api/v1/positions/latest`) — no API key, CC-BY 4.0, ~20K global vessels, 15 min cache.
+- **Axiom Overwatch**: Free REST global AIS snapshot. Signup: **none required**. Docs: https://docs.axiomancer.io/overwatch/api/vessels — rate limit 60/min, 1,000/day per IP.
 - **Pages production (2026-06-22)**: `/api/vessels?theater=global` returns **0** when live Worker WebSocket collect is empty **and** no static snapshot is deployed. Fallback code loads `/data/ais/ais-snapshot.json` from the static bundle when WS fails.
 - **Refresh static snapshot (before deploy)**: `npm run refresh:ais` → writes `public/data/ais/ais-snapshot.json`. One-shot deploy with snapshot: `npm run deploy:pages:ais`. Debug probe: `node scripts/ais-probe.mjs` (20s, logs rawSeen — no key). Subscription must use `APIkey` (official JS example), not `APIKey`; omit `FilterMessageTypes` unless filtering. Only one WebSocket per key — stop `dev:stack` before refresh or probe (429 otherwise).
 - Layer wired: toggle **Ship Tracking** in sidebar → `/api/vessels` → merged feed

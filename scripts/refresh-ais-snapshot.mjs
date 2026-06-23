@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * Collect AIS vessels via aisstream.io (Node WebSocket) and write static snapshot
- * for Cloudflare Pages — Workers cannot receive AIS frames on native WebSocket.
+ * Collect AIS vessels and write static snapshot for Cloudflare Pages.
+ * Primary: aisstream.io WebSocket (Node). Fallback: Axiom Overwatch REST (no key).
  *
  * Usage: node scripts/refresh-ais-snapshot.mjs
- * Requires: AISSTREAM_API_KEY in .env.local
+ * Requires: AISSTREAM_API_KEY in .env.local (optional if Axiom fallback succeeds)
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fetchAisSnapshotWithRetry } from '../functions/_lib/aisSnapshot.mjs';
+import { AIS_BOXES_BY_THEATER, fetchAisSnapshotWithRetry } from '../functions/_lib/aisSnapshot.mjs';
+import { fetchAxiomGlobalSnapshot } from '../server/lib/axiomOverwatch.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public', 'data', 'ais');
 const SNAPSHOT_FILE = 'ais-snapshot.json';
-const COLLECT_MS = 30_000;
 
 const loadEnvFile = (filename) => {
     const filePath = path.join(ROOT, filename);
@@ -35,27 +35,43 @@ loadEnvFile('.env.local');
 loadEnvFile('.env');
 
 const apiKey = process.env.AISSTREAM_API_KEY || '';
-if (!apiKey || apiKey.length < 8) {
-    console.error('[refresh-ais-snapshot] Missing AISSTREAM_API_KEY in .env.local');
-    process.exit(1);
+let features = [];
+let source = 'aisstream.io';
+let rawSeen = null;
+let collectMs = 30_000;
+
+if (apiKey.length >= 8) {
+    console.log(`[refresh-ais-snapshot] Trying aisstream WebSocket (${collectMs / 1000}s)…`);
+    const result = await fetchAisSnapshotWithRetry(apiKey, {
+        boundingBoxes: AIS_BOXES_BY_THEATER.global,
+        timeoutMs: collectMs,
+        maxVessels: 8000,
+        maxAttempts: 1,
+    });
+    features = result.features || [];
+    rawSeen = result.rawSeen ?? null;
+    if (features.length === 0) {
+        console.warn('[refresh-ais-snapshot] aisstream empty:', result.error || 'unknown', `(rawSeen=${rawSeen ?? 0})`);
+    }
+} else {
+    console.warn('[refresh-ais-snapshot] No AISSTREAM_API_KEY — skipping WebSocket');
 }
-
-console.log(`[refresh-ais-snapshot] Collecting for ${COLLECT_MS / 1000}s…`);
-
-const result = await fetchAisSnapshotWithRetry(apiKey, {
-    boundingBoxes: [[[-180, -90], [180, 90]]],
-    timeoutMs: COLLECT_MS,
-    maxVessels: 8000,
-    maxAttempts: 1,
-});
-
-const collectedAt = new Date().toISOString();
-const features = result.features || [];
 
 if (features.length === 0) {
-    console.error('[refresh-ais-snapshot] No vessels collected:', result.error || 'unknown', `(rawSeen=${result.rawSeen ?? 0}, closeCode=${result.closeCode ?? 'n/a'})`);
-    process.exit(1);
+    console.log('[refresh-ais-snapshot] Trying Axiom Overwatch REST fallback…');
+    const axiom = await fetchAxiomGlobalSnapshot();
+    features = axiom.features || [];
+    if (features.length > 0) {
+        source = 'axiom-overwatch.io';
+        collectMs = null;
+        console.log(`[refresh-ais-snapshot] Axiom returned ${features.length} vessels (truncated=${axiom.truncated})`);
+    } else {
+        console.error('[refresh-ais-snapshot] No vessels collected:', axiom.error || 'unknown');
+        process.exit(1);
+    }
 }
+
+const collectedAt = new Date().toISOString();
 
 const snapshot = {
     type: 'FeatureCollection',
@@ -63,9 +79,9 @@ const snapshot = {
     meta: {
         collectedAt,
         vesselCount: features.length,
-        source: 'aisstream.io',
-        rawSeen: result.rawSeen ?? null,
-        collectMs: COLLECT_MS,
+        source,
+        rawSeen,
+        collectMs,
     },
 };
 
