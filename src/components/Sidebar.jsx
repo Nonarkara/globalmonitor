@@ -6,8 +6,9 @@ import {
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
-import { useFlightCount } from '../hooks/useFlightCount';
-import { useVesselCount } from '../hooks/useVesselCount';
+import { useFlightStats } from '../hooks/useFlightCount';
+import { useVesselStats } from '../hooks/useVesselCount';
+import { formatTrafficCount } from '../utils/formatTrafficCount.js';
 
 const BASEMAP_CONFIGS = [
     { id: 'dark', title: 'Dark', desc: 'Low-glare operations map', icon: <Moon size={16} /> },
@@ -125,8 +126,8 @@ const Sidebar = ({
     dashboardVersion = 'v8.3',
     onResetCoreLayers,
 }) => {
-    const flightCount = useFlightCount();
-    const vesselCount = useVesselCount();
+    const flightStats = useFlightStats();
+    const vesselStats = useVesselStats();
     const contentRef = useRef(null);
     const [sourceAgenciesOpen, setSourceAgenciesOpen] = useState(false);
     const [satelliteLayersOpen, setSatelliteLayersOpen] = useState(false);
@@ -163,10 +164,12 @@ const Sidebar = ({
 
     const renderLayerDesc = (layer) => {
         if (layer.id === 'flights' && activeLayers.includes('flights')) {
-            return `${flightCount > 0 ? flightCount.toLocaleString() : '…'} aircraft tracked · ADS-B`;
+            const label = formatTrafficCount(flightStats, 'aircraft');
+            return label ? `${label} · ADS-B` : '… aircraft · ADS-B';
         }
         if (layer.id === 'vessels' && activeLayers.includes('vessels')) {
-            return `${vesselCount > 0 ? vesselCount.toLocaleString() : '…'} vessels tracked · AIS`;
+            const label = formatTrafficCount(vesselStats, 'vessels');
+            return label ? `${label} · AIS` : '… vessels · AIS';
         }
         return layer.desc;
     };

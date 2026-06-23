@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from 'react';
-import { getVesselCount, subscribeVesselCount } from '../services/vesselCountBus';
+import { getVesselStats, subscribeVesselStats } from '../services/vesselCountBus';
+import { EMPTY_TRAFFIC_STATS } from '../utils/formatTrafficCount.js';
 
-export const useVesselCount = () =>
-    useSyncExternalStore(subscribeVesselCount, getVesselCount, () => 0);
+export const useVesselStats = () =>
+    useSyncExternalStore(subscribeVesselStats, getVesselStats, () => EMPTY_TRAFFIC_STATS);
+
+export const useVesselCount = () => useVesselStats().apiTotal;

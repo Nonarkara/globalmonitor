@@ -18,16 +18,17 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
 import { fetchSdgLayer } from '../services/undpSdg';
 import { getRegion } from '../data/regions.js';
-import { setFlightCount } from '../services/flightCountBus.js';
-import { setVesselCount } from '../services/vesselCountBus.js';
+import { setFlightStats } from '../services/flightCountBus.js';
+import { setVesselStats } from '../services/vesselCountBus.js';
+import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
-const TRAFFIC_SESSION_MAX_FLIGHTS = 800;
-const TRAFFIC_SESSION_MAX_VESSELS = 800;
+const TRAFFIC_SESSION_MAX_FLIGHTS = 1200;
+const TRAFFIC_SESSION_MAX_VESSELS = 1200;
 /** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
 const TRAFFIC_DEFER_MS = 3000;
 
@@ -706,27 +707,45 @@ const MapContainer = ({
     const vesselSourceLabel = formatVesselSourceLabel(vesselMeta);
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
-    const formatGlobalCount = (rendered, total, capped) => {
-        if (rendered <= 0) return null;
-        if (capped && total > rendered) {
-            return `${rendered.toLocaleString()} of ${total.toLocaleString()} global`;
-        }
-        return `${rendered.toLocaleString()} global`;
-    };
-
-    const prevFlightCountRef = useRef(null);
+    const prevFlightStatsRef = useRef(null);
     useEffect(() => {
-        if (prevFlightCountRef.current === globalFlightCount) return;
-        prevFlightCountRef.current = globalFlightCount;
-        setFlightCount(globalFlightCount);
-    }, [globalFlightCount]);
+        const next = {
+            apiTotal: globalFlightCount,
+            rendered: visibleFlightCount,
+            total: flightsGlobalTotal,
+            capped: flightsCapped,
+        };
+        const prev = prevFlightStatsRef.current;
+        if (
+            prev
+            && prev.apiTotal === next.apiTotal
+            && prev.rendered === next.rendered
+            && prev.total === next.total
+            && prev.capped === next.capped
+        ) return;
+        prevFlightStatsRef.current = next;
+        setFlightStats(next);
+    }, [globalFlightCount, visibleFlightCount, flightsGlobalTotal, flightsCapped]);
 
-    const prevVesselCountRef = useRef(null);
+    const prevVesselStatsRef = useRef(null);
     useEffect(() => {
-        if (prevVesselCountRef.current === globalVesselCount) return;
-        prevVesselCountRef.current = globalVesselCount;
-        setVesselCount(globalVesselCount);
-    }, [globalVesselCount]);
+        const next = {
+            apiTotal: globalVesselCount,
+            rendered: visibleVesselCount,
+            total: vesselsGlobalTotal,
+            capped: vesselsCapped,
+        };
+        const prev = prevVesselStatsRef.current;
+        if (
+            prev
+            && prev.apiTotal === next.apiTotal
+            && prev.rendered === next.rendered
+            && prev.total === next.total
+            && prev.capped === next.capped
+        ) return;
+        prevVesselStatsRef.current = next;
+        setVesselStats(next);
+    }, [globalVesselCount, visibleVesselCount, vesselsGlobalTotal, vesselsCapped]);
 
     const acledData = useMemo(() => sanitizePointCollection(acledResource.data), [acledResource.data]);
     const publicSentinelLayerId = getPublicSentinelLayerId(copernicusMode);
@@ -1541,7 +1560,7 @@ const MapContainer = ({
                     <span className="map-legend-line" style={{ background: '#facc15' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleFlightCount > 0
-                            ? `${formatGlobalCount(visibleFlightCount, flightsGlobalTotal, flightsCapped) || visibleFlightCount.toLocaleString()} · ${flightSourceLabel}`
+                            ? `${formatTrafficLegend({ rendered: visibleFlightCount, total: flightsGlobalTotal, capped: flightsCapped }) || visibleFlightCount.toLocaleString()} · ${flightSourceLabel}`
                             : globalFlightCount > 0
                                 ? `${globalFlightCount.toLocaleString()} global · ${flightSourceLabel}`
                                 : '… aircraft · ADS-B'}
@@ -1557,7 +1576,7 @@ const MapContainer = ({
                     />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleVesselCount > 0
-                            ? `${formatGlobalCount(visibleVesselCount, vesselsGlobalTotal, vesselsCapped) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
+                            ? `${formatTrafficLegend({ rendered: visibleVesselCount, total: vesselsGlobalTotal, capped: vesselsCapped }) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
                             : globalVesselCount > 0
                                 ? `${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
                                 : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}

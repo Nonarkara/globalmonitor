@@ -1,17 +1,32 @@
 /** Lightweight flight-count pub/sub — avoids lifting count into App state. */
-let count = 0;
+import { EMPTY_TRAFFIC_STATS } from '../utils/formatTrafficCount.js';
+
+let stats = { ...EMPTY_TRAFFIC_STATS };
 const listeners = new Set();
 
-export const setFlightCount = (next) => {
-    if (next === count) return;
-    count = next;
-    listeners.forEach((fn) => fn(count));
+export const setFlightStats = (next) => {
+    const merged = { ...EMPTY_TRAFFIC_STATS, ...next };
+    if (
+        merged.apiTotal === stats.apiTotal
+        && merged.rendered === stats.rendered
+        && merged.total === stats.total
+        && merged.capped === stats.capped
+    ) return;
+    stats = merged;
+    listeners.forEach((fn) => fn(stats));
 };
 
-export const getFlightCount = () => count;
+/** @deprecated use setFlightStats — kept for grep compatibility */
+export const setFlightCount = (apiTotal) => setFlightStats({ apiTotal, total: apiTotal });
 
-export const subscribeFlightCount = (fn) => {
+export const getFlightStats = () => stats;
+
+export const getFlightCount = () => stats.apiTotal;
+
+export const subscribeFlightStats = (fn) => {
     listeners.add(fn);
-    fn(count);
+    fn(stats);
     return () => listeners.delete(fn);
 };
+
+export const subscribeFlightCount = subscribeFlightStats;

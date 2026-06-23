@@ -1,9 +1,10 @@
 import React from 'react';
 import { Plane, ExternalLink } from 'lucide-react';
-import { useFlightCount } from '../hooks/useFlightCount';
+import { useFlightStats } from '../hooks/useFlightCount';
+import { formatTrafficCount } from '../utils/formatTrafficCount.js';
 
 const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
-    const flightCount = useFlightCount();
+    const flightStats = useFlightStats();
 
     return (
     <div className="bottom-card" style={{ padding: '6px 8px', flexShrink: 0 }}>
@@ -50,8 +51,8 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
                 ADS-B Exchange · airplanes.live
             </span>
             <span style={{ fontSize: '0.5rem', color: flightsActive ? 'var(--ink-2)' : 'var(--ink-3)' }}>
-                {flightsActive && flightCount > 0
-                    ? `${flightCount.toLocaleString()} aircraft on map · 15 min snapshot`
+                {flightsActive && (flightStats.rendered > 0 || flightStats.total > 0)
+                    ? `${formatTrafficCount(flightStats, 'aircraft') || '…'} · 15 min snapshot`
                     : 'Tap to show live aircraft on map'}
             </span>
         </button>

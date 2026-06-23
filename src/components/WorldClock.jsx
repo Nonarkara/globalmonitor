@@ -1,4 +1,10 @@
 import React, { useEffect, useRef, memo } from 'react';
+import { formatDayCount } from '../data/warConstants.js';
+
+const formatWarDate = (date) => date
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    .toUpperCase()
+    .replace(/,/g, '');
 
 const ME_CITIES = [
     { name: 'Jerusalem', tz: 'Asia/Jerusalem', label: 'Jerusalem (IL)', primary: true },
@@ -61,8 +67,9 @@ const SecondaryClock = memo(({ city, timeRef }) => (
 SecondaryClock.displayName = 'SecondaryClock';
 
 /** Primary clock ticks via ref — no parent React re-render every second. */
-const PrimaryClock = memo(({ city, timeRef }) => (
+const PrimaryClock = memo(({ city, timeRef, dateRef }) => (
     <div className="primary-clock-content">
+        <div className="clock-war-date" ref={dateRef} aria-live="off">—</div>
         <div className="clock-city">{city.label || city.name}</div>
         <div className="clock-time-large" ref={timeRef} aria-live="off">--:--:--</div>
     </div>
@@ -79,6 +86,7 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
             : ME_CITIES;
 
     const primaryTimeRef = useRef(null);
+    const primaryDateRef = useRef(null);
     const secondaryTimeRefs = useRef([]);
 
     const primaryCity = cities.find((city) => city.primary) || cities[0];
@@ -88,11 +96,18 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
         secondaryTimeRefs.current = secondaryTimeRefs.current.slice(0, secondaryCities.length);
 
         let lastMinute = -1;
+        let lastDateKey = '';
 
         const tick = () => {
             const now = new Date();
             if (primaryTimeRef.current) {
                 primaryTimeRef.current.textContent = formatTime(now, primaryCity.tz, true);
+            }
+
+            const dateKey = now.toDateString();
+            if (dateKey !== lastDateKey && primaryDateRef.current) {
+                lastDateKey = dateKey;
+                primaryDateRef.current.textContent = `${formatWarDate(now)} · ${formatDayCount()}`;
             }
 
             const minute = now.getMinutes();
@@ -125,7 +140,7 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
             </div>
 
             <div className="primary-clock-center">
-                <PrimaryClock city={primaryCity} timeRef={primaryTimeRef} />
+                <PrimaryClock city={primaryCity} timeRef={primaryTimeRef} dateRef={primaryDateRef} />
             </div>
 
             <div className="secondary-clocks-side right-side">

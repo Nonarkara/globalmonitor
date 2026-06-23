@@ -66,8 +66,8 @@ await Promise.all([
 ]);
 await page.waitForFunction(() => {
   const t = document.querySelector('.map-legend--traffic')?.innerText || '';
-  const flightsReady = /\d[\d,]*\s+of\s+[\d,]+\s+global\s+·\s+ADS-B/.test(t) || /\d[\d,]*\s+global\s+·\s+ADS-B/.test(t);
-  const vesselsReady = /\d[\d,]*\s+of\s+[\d,]+\s+global/.test(t) && !t.includes('Awaiting AIS');
+  const flightsReady = /\d[\d,]*\s+of\s+[\d,]+\s+shown/.test(t) || /\d[\d,]*\s+global\s+·\s+ADS-B/.test(t);
+  const vesselsReady = (/\d[\d,]*\s+of\s+[\d,]+\s+shown/.test(t) || /\d[\d,]*\s+global/.test(t)) && !t.includes('Awaiting AIS');
   return flightsReady && vesselsReady;
 }, { timeout: 120000 }).catch(() => {});
 await page.waitForFunction(() => {
