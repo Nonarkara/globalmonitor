@@ -64,9 +64,14 @@ export const useLiveResource = (fetcher, {
     intervalMs = 300000,
     isUsable = defaultIsUsable,
     maxRetries = 3,
-    maxStaleMs = 10 * 60 * 1000  // 10 minutes — after this, data is considered stale
+    maxStaleMs = 10 * 60 * 1000,  // 10 minutes — after this, data is considered stale
+    /** After first successful load, stop all automatic + manual refresh until tab close. */
+    freezeAfterLoad = false
 } = {}) => {
     const [cached] = useState(() => readCachedState(cacheKey));
+    const [sessionFrozen, setSessionFrozen] = useState(
+        () => freezeAfterLoad && Boolean(cached.data)
+    );
     const dataRef = useRef(cached.data);
     const cachedDataRef = useRef(cached.data);
 
@@ -89,6 +94,7 @@ export const useLiveResource = (fetcher, {
 
     const load = useCallback(async ({ manual = false } = {}) => {
         if (!enabled) return;
+        if (freezeAfterLoad && sessionFrozen) return;
 
         // Background polls must not toggle isRefreshing — DataStatus badge insertion
         // was shifting Multi-Front / Iran theater bar height every interval tick.
@@ -123,6 +129,10 @@ export const useLiveResource = (fetcher, {
                 setRetryCount(0);
                 writeCachedState(cacheKey, result, responseMeta?.updatedAt || stampedAt);
 
+                if (freezeAfterLoad) {
+                    setSessionFrozen(true);
+                }
+
                 // Success — break out of retry loop
                 setIsLoading(false);
                 setIsRefreshing(false);
@@ -148,16 +158,20 @@ export const useLiveResource = (fetcher, {
 
         setIsLoading(false);
         setIsRefreshing(false);
-    }, [cacheKey, enabled, fetcher, maxRetries, maxStaleMs]);
+    }, [cacheKey, enabled, fetcher, freezeAfterLoad, maxRetries, maxStaleMs, sessionFrozen]);
 
     useEffect(() => {
         if (!enabled) return undefined;
 
-        const effectiveInterval = getEffectiveInterval(intervalMs);
-
         const kickoff = window.setTimeout(() => {
             load();
         }, 0);
+
+        if (freezeAfterLoad && sessionFrozen) {
+            return () => window.clearTimeout(kickoff);
+        }
+
+        const effectiveInterval = getEffectiveInterval(intervalMs);
 
         const interval = window.setInterval(() => {
             // Skip polling when the tab is hidden — saves bandwidth/battery on
@@ -194,7 +208,7 @@ export const useLiveResource = (fetcher, {
             document.removeEventListener('visibilitychange', handleVisibility);
             window.removeEventListener('gm:refresh-all', handleGlobalRefresh);
         };
-    }, [enabled, intervalMs, load]);
+    }, [enabled, freezeAfterLoad, intervalMs, load, sessionFrozen]);
 
     return {
         data,

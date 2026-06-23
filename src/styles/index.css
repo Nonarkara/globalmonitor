@@ -315,6 +315,17 @@ body {
     max-height: 260px;
   }
 }
+@media (max-width: 1200px) {
+  .secondary-clocks-side {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .secondary-clocks-side.left-side .secondary-clock-h:nth-child(n+4),
+  .secondary-clocks-side.right-side .secondary-clock-h:nth-child(n+3) {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
   .app-container {
     grid-template-columns: 1fr;
@@ -384,19 +395,21 @@ body {
 .top-bar-clock {
   grid-column: 1 / -1;
   grid-row: 1;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
+  column-gap: 12px;
   padding: 2px 14px;
   background: var(--paper);
   color: var(--text-main);
   z-index: 20;
   pointer-events: auto;
-  height: 40px;
-  min-height: 40px;
-  max-height: 40px;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
   overflow: hidden;
   position: relative;
+  isolation: isolate;
 }
 
 .multi-front-row {
@@ -2032,18 +2045,19 @@ body {
    ═══════════════════════════════════════════ */
 
 .secondary-clocks-side {
-  display: flex;
-  gap: 12px;
-  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .secondary-clocks-side.left-side {
-  justify-content: flex-start;
+  justify-items: start;
 }
 
 .secondary-clocks-side.right-side {
-  justify-content: flex-end;
+  justify-items: end;
 }
 
 .secondary-clock-h {
@@ -2051,8 +2065,9 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 0 0 52px;
-  min-width: 52px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .clock-city-small {
@@ -2061,6 +2076,9 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .clock-time-small {
@@ -2069,15 +2087,20 @@ body {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   min-width: 5ch;
+  max-width: 100%;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .primary-clock-center {
-  flex: 0 0 164px;
-  width: 164px;
+  flex-shrink: 0;
+  width: auto;
+  min-width: 9.5rem;
+  max-width: 12rem;
   display: flex;
   justify-content: center;
-  margin: 0 20px;
+  z-index: 2;
 }
 
 .primary-clock-content {
@@ -2085,6 +2108,7 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  overflow: hidden;
 }
 
 .primary-clock-content .clock-city {
@@ -2095,6 +2119,9 @@ body {
   font-weight: 500;
   margin-bottom: 1px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .primary-clock-content .clock-time-large {
@@ -2107,6 +2134,8 @@ body {
   min-width: 9ch;
   text-align: center;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .primary-clock-content .seconds {
@@ -2857,17 +2886,30 @@ body {
   }
 
   /* Clock adjustments */
+  .top-bar-clock {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    row-gap: 6px;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
   .secondary-clocks-side {
-    justify-content: space-between !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-items: center !important;
     gap: 4px;
   }
 
   .secondary-clock-h {
-    flex: 1;
+    min-width: 0;
   }
 
   .primary-clock-center {
     margin: 0;
+    min-width: 0;
+    max-width: none;
   }
 
   .primary-clock-content .clock-time-large {

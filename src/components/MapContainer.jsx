@@ -23,49 +23,11 @@ import { setVesselCount } from '../services/vesselCountBus.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
 import { isValidLngLat, sanitizeLineCollection, sanitizePointCollection } from '../utils/geojsonValidate.js';
 
-/** Static traffic snapshot — one fetch on load, then every 15 min (matches server cache). */
-const TRAFFIC_POLL_MS = 15 * 60 * 1000;
-/** Worldwide pool — decoupled from dashboard region tab (ME / ASEAN / Thailand). */
+/** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
-/** Below this zoom, render the full global pool (world heatmap). Above it, viewport-filter. */
-const TRAFFIC_WORLD_ZOOM = 4;
-/** Cap rendered traffic in viewport mode — avoids WebGL stress at regional zoom. */
-const TRAFFIC_VIEWPORT_MAX = 6000;
-
-const pointInBounds = (lon, lat, bounds) => {
-    if (!Number.isFinite(lon) || !Number.isFinite(lat) || !bounds) return false;
-    if (lat < bounds.south || lat > bounds.north) return false;
-    if (bounds.west <= bounds.east) {
-        return lon >= bounds.west && lon <= bounds.east;
-    }
-    return lon >= bounds.west || lon <= bounds.east;
-};
-
-const expandBounds = (bounds, paddingRatio = 0.1) => {
-    if (!bounds) return null;
-    const latSpan = bounds.north - bounds.south;
-    const lonSpan = bounds.west <= bounds.east
-        ? bounds.east - bounds.west
-        : (180 - bounds.west) + (bounds.east + 180);
-    const latPad = latSpan * paddingRatio;
-    const lonPad = lonSpan * paddingRatio;
-    return {
-        south: Math.max(-90, bounds.south - latPad),
-        north: Math.min(90, bounds.north + latPad),
-        west: bounds.west - lonPad,
-        east: bounds.east + lonPad,
-    };
-};
-
-const filterFeatureCollectionByBounds = (collection, bounds) => {
-    if (!collection?.features?.length || !bounds) return collection;
-    const features = collection.features.filter((feature) => {
-        const coords = feature.geometry?.coordinates;
-        return pointInBounds(coords?.[0], coords?.[1], bounds);
-    });
-    if (features.length === collection.features.length) return collection;
-    return { ...collection, features };
-};
+/** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
+const TRAFFIC_SESSION_MAX_FLIGHTS = 4000;
+const TRAFFIC_SESSION_MAX_VESSELS = 4000;
 
 const capFeatureCollection = (collection, maxFeatures) => {
     if (!collection?.features?.length || collection.features.length <= maxFeatures) {
@@ -591,29 +553,15 @@ const MapContainer = ({
     const [failedSources, setFailedSources] = useState(() => new Set());
 
     const [mapReady, setMapReady] = useState(false);
-    const [trafficBounds, setTrafficBounds] = useState(null);
     const [loadedIconStyleKey, setLoadedIconStyleKey] = useState(null);
     const [styleFallbackState, setStyleFallbackState] = useState(() => ({ mapStyleKey: mapStyle, level: 0 }));
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
 
-    const updateTrafficBounds = useCallback(() => {
-        const map = mapRef.current?.getMap?.();
-        if (!map) return;
-        const b = map.getBounds();
-        setTrafficBounds({
-            west: b.getWest(),
-            south: b.getSouth(),
-            east: b.getEast(),
-            north: b.getNorth(),
-        });
-    }, []);
-
     const handleMove = useCallback((event) => {
         dispatchViewState({ type: 'move', viewState: event.viewState });
-        updateTrafficBounds();
-    }, [updateTrafficBounds]);
+    }, []);
 
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
@@ -626,13 +574,6 @@ const MapContainer = ({
     useEffect(() => {
         dispatchViewState({ type: 'target', viewTarget });
     }, [viewTarget]);
-
-    useEffect(() => {
-        if (!mapReady) return undefined;
-        const delayMs = viewTarget.transitionDuration ?? 1500;
-        const timer = setTimeout(updateTrafficBounds, delayMs + 50);
-        return () => clearTimeout(timer);
-    }, [viewTarget, mapReady, updateTrafficBounds]);
 
     useEffect(() => {
         if (!weatherLayerActive) return undefined;
@@ -705,8 +646,7 @@ const MapContainer = ({
     const handleMapLoad = useCallback(() => {
         setMapReady(true);
         loadMapIcons();
-        updateTrafficBounds();
-    }, [loadMapIcons, updateTrafficBounds]);
+    }, [loadMapIcons]);
 
     useEffect(() => {
         if (!mapReady) return undefined;
@@ -789,7 +729,7 @@ const MapContainer = ({
     const flightsResource = useLiveResource(useCallback(() => fetchFlights(TRAFFIC_THEATER), []), {
         cacheKey: `map:flights:${TRAFFIC_THEATER}`,
         enabled: activeLayers.includes('flights'),
-        intervalMs: TRAFFIC_POLL_MS,
+        freezeAfterLoad: true,
         isUsable: hasFeatureData,
         maxRetries: 2,
         maxStaleMs: 20 * 60 * 1000
@@ -803,7 +743,7 @@ const MapContainer = ({
     const vesselsResource = useLiveResource(useCallback(() => fetchVessels(TRAFFIC_THEATER), []), {
         cacheKey: `map:vessels:${TRAFFIC_THEATER}`,
         enabled: activeLayers.includes('vessels'),
-        intervalMs: TRAFFIC_POLL_MS,
+        freezeAfterLoad: true,
         isUsable: (payload) => hasFeatureData(payload) || payload?.meta?.requiresKey,
         maxRetries: 2,
         maxStaleMs: 20 * 60 * 1000
@@ -820,29 +760,31 @@ const MapContainer = ({
     const globalFlightsData = flightsResource.data;
     const globalVesselsData = vesselsResource.data;
 
-    const viewportBounds = useMemo(() => {
-        if (viewState.zoom < TRAFFIC_WORLD_ZOOM || !trafficBounds) return null;
-        return expandBounds(trafficBounds);
-    }, [viewState.zoom, trafficBounds]);
-
-    const flightsViewport = useMemo(() => {
+    /** Session-frozen GeoJSON — computed once on first fetch, never rebuilt on pan/zoom. */
+    const sessionFlightsRef = useRef(null);
+    const sessionFlightsMetaRef = useRef({ capped: false, total: 0 });
+    const flightsGeoJson = useMemo(() => {
+        if (sessionFlightsRef.current) return sessionFlightsRef.current;
         const sanitized = sanitizePointCollection(globalFlightsData);
-        if (!sanitized || !viewportBounds) {
-            return { collection: sanitized, capped: false, totalInView: sanitized?.features?.length ?? 0 };
-        }
-        const filtered = filterFeatureCollectionByBounds(sanitized, viewportBounds);
-        return capFeatureCollection(filtered, TRAFFIC_VIEWPORT_MAX);
-    }, [globalFlightsData, viewportBounds]);
-    const vesselsViewport = useMemo(() => {
+        if (!sanitized?.features?.length) return null;
+        const { collection, capped, totalInView } = capFeatureCollection(sanitized, TRAFFIC_SESSION_MAX_FLIGHTS);
+        sessionFlightsRef.current = collection;
+        sessionFlightsMetaRef.current = { capped, total: totalInView };
+        return collection;
+    }, [globalFlightsData]);
+
+    const sessionVesselsRef = useRef(null);
+    const sessionVesselsMetaRef = useRef({ capped: false, total: 0 });
+    const vesselsGeoJson = useMemo(() => {
+        if (sessionVesselsRef.current) return sessionVesselsRef.current;
         const sanitized = sanitizePointCollection(globalVesselsData);
-        if (!sanitized || !viewportBounds) {
-            return { collection: sanitized, capped: false, totalInView: sanitized?.features?.length ?? 0 };
-        }
-        const filtered = filterFeatureCollectionByBounds(sanitized, viewportBounds);
-        return capFeatureCollection(filtered, TRAFFIC_VIEWPORT_MAX);
-    }, [globalVesselsData, viewportBounds]);
-    const flightsGeoJson = flightsViewport.collection;
-    const vesselsGeoJson = vesselsViewport.collection;
+        if (!sanitized?.features?.length) return null;
+        const { collection, capped, totalInView } = capFeatureCollection(sanitized, TRAFFIC_SESSION_MAX_VESSELS);
+        sessionVesselsRef.current = collection;
+        sessionVesselsMetaRef.current = { capped, total: totalInView };
+        return collection;
+    }, [globalVesselsData]);
+
     const flightPaths = useMemo(
         () => sanitizeLineCollection(buildFlightPaths(flightsGeoJson)),
         [flightsGeoJson]
@@ -853,8 +795,10 @@ const MapContainer = ({
     );
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
-    const flightsInViewTotal = flightsViewport.totalInView;
-    const vesselsInViewTotal = vesselsViewport.totalInView;
+    const flightsGlobalTotal = sessionFlightsMetaRef.current.total || (globalFlightsData?.features?.length ?? 0);
+    const vesselsGlobalTotal = sessionVesselsMetaRef.current.total || (globalVesselsData?.features?.length ?? 0);
+    const flightsCapped = sessionFlightsMetaRef.current.capped;
+    const vesselsCapped = sessionVesselsMetaRef.current.capped;
     const globalFlightCount = globalFlightsData?.features?.length ?? 0;
     const globalVesselCount = globalVesselsData?.features?.length ?? 0;
     const flightSourceLabel = flightsResource.isStale || globalFlightsData?.__meta?.status === 'stale'
@@ -865,12 +809,12 @@ const MapContainer = ({
     const vesselSourceLabel = formatVesselSourceLabel(vesselMeta);
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
-    const formatInViewCount = (rendered, total, capped) => {
+    const formatGlobalCount = (rendered, total, capped) => {
         if (rendered <= 0) return null;
         if (capped && total > rendered) {
-            return `showing ${rendered.toLocaleString()} of ${total.toLocaleString()} in view`;
+            return `${rendered.toLocaleString()} of ${total.toLocaleString()} global`;
         }
-        return `${rendered.toLocaleString()} in view`;
+        return `${rendered.toLocaleString()} global`;
     };
 
     const prevFlightCountRef = useRef(null);
@@ -1783,9 +1727,9 @@ const MapContainer = ({
                     <span className="map-legend-line" style={{ background: '#facc15' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleFlightCount > 0
-                            ? `${formatInViewCount(visibleFlightCount, flightsInViewTotal, flightsViewport.capped) || visibleFlightCount.toLocaleString()} · ${flightSourceLabel}`
+                            ? `${formatGlobalCount(visibleFlightCount, flightsGlobalTotal, flightsCapped) || visibleFlightCount.toLocaleString()} · ${flightSourceLabel}`
                             : globalFlightCount > 0
-                                ? `0 in view · ${globalFlightCount.toLocaleString()} global · ${flightSourceLabel}`
+                                ? `${globalFlightCount.toLocaleString()} global · ${flightSourceLabel}`
                                 : '… aircraft · ADS-B'}
                     </span>
                 </div>
@@ -1799,9 +1743,9 @@ const MapContainer = ({
                     />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleVesselCount > 0
-                            ? `${formatInViewCount(visibleVesselCount, vesselsInViewTotal, vesselsViewport.capped) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
+                            ? `${formatGlobalCount(visibleVesselCount, vesselsGlobalTotal, vesselsCapped) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
                             : globalVesselCount > 0
-                                ? `0 in view · ${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
+                                ? `${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
                                 : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
                     </span>
                 </div>

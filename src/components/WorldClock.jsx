@@ -69,6 +69,8 @@ const PrimaryClock = memo(({ city, timeRef }) => (
 ));
 PrimaryClock.displayName = 'PrimaryClock';
 
+const cityKey = (city) => `${city.name}-${city.tz}`;
+
 const WorldClock = ({ viewMode = 'middleeast' }) => {
     const cities = viewMode === 'thailand'
         ? THAILAND_CITIES
@@ -115,7 +117,7 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
             <div className="secondary-clocks-side left-side">
                 {secondaryCities.slice(0, 4).map((city, index) => (
                     <SecondaryClock
-                        key={city.name}
+                        key={cityKey(city)}
                         city={city}
                         timeRef={(el) => { secondaryTimeRefs.current[index] = el; }}
                     />
@@ -129,7 +131,7 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
             <div className="secondary-clocks-side right-side">
                 {secondaryCities.slice(4).map((city, index) => (
                     <SecondaryClock
-                        key={city.name}
+                        key={cityKey(city)}
                         city={city}
                         timeRef={(el) => { secondaryTimeRefs.current[index + 4] = el; }}
                     />
