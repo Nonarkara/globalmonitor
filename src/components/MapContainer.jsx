@@ -390,23 +390,29 @@ const ESRI_SATELLITE_STYLE = {
     glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
 };
 
+/** Key-free last resort — MapLibre demo tiles, no token required. */
+const MAP_STYLE_ULTIMATE = 'https://demotiles.maplibre.org/style.json';
+const OPENFREEMAP_LIBERTY = 'https://tiles.openfreemap.org/styles/liberty';
+
 // Each entry can be a URL string or an inline style object — MapLibre accepts both.
 // Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
 // onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
+// Default dark = demotiles (no API key) — Carto vector styles can paint a transparent
+// canvas on Cloudflare Pages when the map container resizes after lazy mount.
 const MAP_STYLES = {
-    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    dark: MAP_STYLE_ULTIMATE,
     satellite: ESRI_SATELLITE_STYLE,
-    voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+    voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
 };
 
 const MAP_STYLE_FALLBACKS = {
-    dark: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    dark: OPENFREEMAP_LIBERTY,
     voyager: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-    satellite: 'https://demotiles.maplibre.org/style.json',
+    satellite: MAP_STYLE_ULTIMATE,
 };
 
-/** Key-free last resort — MapLibre demo tiles, no token required. */
-const MAP_STYLE_ULTIMATE = 'https://demotiles.maplibre.org/style.json';
+/** Basemap source ids — tile failures here trigger style fallback (not overlay layers). */
+const BASEMAP_SOURCE_PATTERN = /^(carto|esri|openmaptiles|composite|basemap|demotiles|protomaps)/i;
 
 const resolveMapStyle = (mapStyleKey, fallbackLevel = 0) => {
     const primary = MAP_STYLES[mapStyleKey] || MAP_STYLES.dark;
@@ -442,6 +448,8 @@ const MapContainer = ({
         (initialViewTarget) => buildTargetViewState(initialViewTarget)
     );
     const mapRef = useRef(null);
+    const wrapperRef = useRef(null);
+    const basemapFailCountRef = useRef(0);
     // Track which raster sources have failed (auth / 404 / CORS / 5xx) so the
     // user sees what is missing instead of a silently-empty map.
     const [failedSources, setFailedSources] = useState(() => new Set());
@@ -489,15 +497,29 @@ const MapContainer = ({
         });
     }, [mapStyle]);
 
+    const isBasemapSourceId = useCallback((sourceId) => (
+        Boolean(sourceId && BASEMAP_SOURCE_PATTERN.test(String(sourceId)))
+    ), []);
+
+    const noteBasemapFailure = useCallback(() => {
+        basemapFailCountRef.current += 1;
+        if (basemapFailCountRef.current >= 4) {
+            advanceStyleFallback();
+        }
+    }, [advanceStyleFallback]);
+
     const handleMapError = useCallback((event) => {
-        // Tile/source/raster failures are expected — do not swap basemap (that wipes addImage sprites).
-        if (event?.sourceId || event?.tile || event?.source) return;
+        const sourceId = event?.sourceId || event?.source?.id || event?.error?.sourceId;
+        if (sourceId) {
+            if (isBasemapSourceId(sourceId)) noteBasemapFailure();
+            return;
+        }
 
         const message = event?.error?.message || event?.message || '';
         if (message && !/style|stylesheet|glyph/i.test(message)) return;
 
         advanceStyleFallback();
-    }, [advanceStyleFallback]);
+    }, [advanceStyleFallback, isBasemapSourceId, noteBasemapFailure]);
 
     // Wire MapLibre's runtime error events. react-map-gl's <Map onError> only
     // surfaces some errors; the underlying map.on('error') is the canonical hook
@@ -508,6 +530,7 @@ const MapContainer = ({
         const handler = (e) => {
             const sourceId = e?.sourceId || e?.source?.id || e?.error?.sourceId;
             if (sourceId) {
+                if (isBasemapSourceId(sourceId)) noteBasemapFailure();
                 setFailedSources((prev) => {
                     if (prev.has(sourceId)) return prev;
                     const next = new Set(prev);
@@ -524,7 +547,63 @@ const MapContainer = ({
         };
         map.on('error', handler);
         return () => { map.off('error', handler); };
-    }, [mapStyle, advanceStyleFallback]);
+    }, [mapStyle, advanceStyleFallback, isBasemapSourceId, noteBasemapFailure]);
+
+    const repaintMap = useCallback(() => {
+        const map = mapRef.current?.getMap?.();
+        if (!map) return;
+        map.resize();
+        map.triggerRepaint();
+    }, []);
+
+    // Map-first layout sizes the wrapper after lazy mount — resize when the box changes.
+    useEffect(() => {
+        const el = wrapperRef.current;
+        if (!el || typeof ResizeObserver === 'undefined') return undefined;
+        const observer = new ResizeObserver(() => {
+            repaintMap();
+        });
+        observer.observe(el);
+        return () => { observer.disconnect(); };
+    }, [repaintMap]);
+
+    useEffect(() => {
+        basemapFailCountRef.current = 0;
+    }, [mapStyle, styleFallbackLevel]);
+
+    // Blank-canvas guard: transparent WebGL over white paper reads as a broken map.
+    useEffect(() => {
+        if (!mapReady) return undefined;
+        const map = mapRef.current?.getMap?.();
+        if (!map) return undefined;
+
+        repaintMap();
+        const raf = requestAnimationFrame(repaintMap);
+        const t1 = window.setTimeout(repaintMap, 120);
+        const t2 = window.setTimeout(repaintMap, 500);
+
+        const canvasHasOpaquePixels = () => {
+            const canvas = map.getCanvas?.();
+            const gl = canvas?.getContext('webgl') || canvas?.getContext('webgl2');
+            if (!gl || !canvas?.width || !canvas?.height) return true;
+            const buf = new Uint8Array(4);
+            const x = Math.floor(canvas.width / 2);
+            const y = Math.floor(canvas.height / 2);
+            gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+            return buf[3] > 20;
+        };
+
+        const t3 = window.setTimeout(() => {
+            if (!canvasHasOpaquePixels()) advanceStyleFallback();
+        }, 2800);
+
+        return () => {
+            cancelAnimationFrame(raf);
+            window.clearTimeout(t1);
+            window.clearTimeout(t2);
+            window.clearTimeout(t3);
+        };
+    }, [mapReady, activeMapStyleKey, repaintMap, advanceStyleFallback]);
 
     // Load custom SVG icons into the MapLibre sprite; re-run on style change
     // because setStyle() wipes all user-added images.
@@ -540,6 +619,8 @@ const MapContainer = ({
         const map = mapRef.current?.getMap?.();
         if (map && typeof window !== 'undefined') {
             window.__GM_MAP__ = map;
+            map.resize();
+            map.triggerRepaint();
         }
     }, [loadMapIcons]);
 
@@ -794,7 +875,7 @@ const MapContainer = ({
     };
 
     return (
-        <div className="map-wrapper">
+        <div className="map-wrapper" ref={wrapperRef}>
             <Map
                 ref={mapRef}
                 mapLib={maplibregl}
@@ -805,6 +886,8 @@ const MapContainer = ({
                 pitchWithRotate
                 dragRotate
                 touchZoomRotate
+                antialias
+                trackResize
                 {...viewState}
                 onMove={handleMove}
                 onMouseMove={handleMouseMove}

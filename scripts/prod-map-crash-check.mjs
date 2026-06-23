@@ -14,6 +14,7 @@ const outDir = path.join(process.cwd(), 'scripts', '.prod-map-check');
 
 const pageErrors = [];
 const consoleErrors = [];
+let basemapTileOk = false;
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
@@ -29,6 +30,14 @@ page.on('pageerror', (err) => {
 page.on('console', (msg) => {
   if (msg.type() === 'error') {
     consoleErrors.push(msg.text());
+  }
+});
+
+page.on('response', (response) => {
+  const url = response.url();
+  if (response.status() !== 200) return;
+  if (/demotiles\.maplibre\.org|openfreemap\.org|tiles\.basemaps\.cartocdn|server\.arcgisonline\.com.*tile/.test(url)) {
+    basemapTileOk = true;
   }
 });
 
@@ -84,10 +93,39 @@ const mapStateAfterLoad = await page.evaluate(() => {
   const mapErr = document.body.innerText.includes('Map failed to render');
   const legend = document.querySelector('.map-legend--traffic');
   const legendText = legend?.innerText || '';
+  const rs = document.querySelector('.right-sidebar');
+  const bb = document.querySelector('.bottom-bar');
+  let opaqueCenter = false;
+  let tileSource = null;
+  const map = window.__GM_MAP__;
+  if (map?.getStyle) {
+    tileSource = Object.keys(map.getStyle().sources || {})[0] || null;
+  }
+  if (canvas) {
+    const gl = canvas.getContext('webgl') || canvas.getContext('webgl2');
+    if (gl) {
+      const buf = new Uint8Array(4);
+      gl.readPixels(
+        Math.floor(canvas.width / 2),
+        Math.floor(canvas.height / 2),
+        1,
+        1,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        buf,
+      );
+      opaqueCenter = buf[3] > 20;
+    }
+  }
   return {
     canvasPresent: Boolean(canvas),
+    canvasHeight: canvas?.offsetHeight || 0,
     mapFailedText: mapErr,
     trafficLegendText: legendText.slice(0, 300),
+    rightSidebarDisplay: rs ? getComputedStyle(rs).display : null,
+    bottomBarDisplay: bb ? getComputedStyle(bb).display : null,
+    opaqueCenter,
+    tileSource,
   };
 });
 
@@ -188,7 +226,11 @@ const pass = noCrash
   && layerProbe.hasVesselLabels
   && flightIconsVisible
   && vesselIconsVisible
-  && shipNamesOnMap;
+  && shipNamesOnMap
+  && basemapTileOk
+  && mapStateAfterLoad.canvasHeight > 600
+  && mapStateAfterLoad.rightSidebarDisplay === 'none'
+  && mapStateAfterLoad.bottomBarDisplay === 'none';
 
 const report = {
   url,
@@ -204,6 +246,7 @@ const report = {
   mapCanvasVisible: canvasVisible,
   canvasCount,
   mapStateAfterLoad,
+  basemapTileOk,
   layerProbe,
   flightIconLayer: layerProbe.hasFlightLayer ? 'yes' : 'no',
   flightIconsVisible: flightIconsVisible ? 'yes' : 'no',
