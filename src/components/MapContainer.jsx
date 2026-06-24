@@ -392,33 +392,74 @@ const ESRI_SATELLITE_STYLE = {
 
 /** Key-free last resort — MapLibre demo tiles, no token required. */
 const MAP_STYLE_ULTIMATE = 'https://demotiles.maplibre.org/style.json';
-const OPENFREEMAP_LIBERTY = 'https://tiles.openfreemap.org/styles/liberty';
+
+/** Inline OSM raster — always paints opaque pixels; survives Opera / lazy-mount resize. */
+const OSM_RASTER_STYLE = {
+    version: 8,
+    sources: {
+        osm: {
+            type: 'raster',
+            tiles: [
+                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            ],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution: '© OpenStreetMap contributors',
+        },
+    },
+    layers: [
+        { id: 'background', type: 'background', paint: { 'background-color': '#1a1a2e' } },
+        { id: 'osm-raster', type: 'raster', source: 'osm', paint: { 'raster-opacity': 1 } },
+    ],
+};
+
+/** ESRI World Street — inline raster, same pattern as satellite; reliable on Cloudflare Pages. */
+const ESRI_STREET_STYLE = {
+    version: 8,
+    sources: {
+        'esri-street': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            ],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution: 'Esri, HERE, Garmin, OpenStreetMap',
+        },
+    },
+    layers: [
+        { id: 'background', type: 'background', paint: { 'background-color': '#1a1a2e' } },
+        { id: 'esri-street-layer', type: 'raster', source: 'esri-street', paint: { 'raster-opacity': 1 } },
+    ],
+};
 
 // Each entry can be a URL string or an inline style object — MapLibre accepts both.
 // Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
 // onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
-// Default dark = demotiles (no API key) — Carto vector styles can paint a transparent
-// canvas on Cloudflare Pages when the map container resizes after lazy mount.
+// Default dark = ESRI street raster; OSM raster + demotiles are fallbacks.
 const MAP_STYLES = {
-    dark: MAP_STYLE_ULTIMATE,
+    dark: ESRI_STREET_STYLE,
     satellite: ESRI_SATELLITE_STYLE,
     voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
 };
 
 const MAP_STYLE_FALLBACKS = {
-    dark: OPENFREEMAP_LIBERTY,
+    dark: OSM_RASTER_STYLE,
     voyager: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
     satellite: MAP_STYLE_ULTIMATE,
 };
 
 /** Basemap source ids — tile failures here trigger style fallback (not overlay layers). */
-const BASEMAP_SOURCE_PATTERN = /^(carto|esri|openmaptiles|composite|basemap|demotiles|protomaps)/i;
+const BASEMAP_SOURCE_PATTERN = /^(carto|esri|openmaptiles|composite|basemap|demotiles|protomaps|osm)/i;
 
 const resolveMapStyle = (mapStyleKey, fallbackLevel = 0) => {
     const primary = MAP_STYLES[mapStyleKey] || MAP_STYLES.dark;
     if (fallbackLevel <= 0) return primary;
-    if (fallbackLevel === 1) return MAP_STYLE_FALLBACKS[mapStyleKey] || MAP_STYLE_ULTIMATE;
-    return MAP_STYLE_ULTIMATE;
+    if (fallbackLevel === 1) return MAP_STYLE_FALLBACKS[mapStyleKey] || OSM_RASTER_STYLE;
+    if (fallbackLevel === 2) return MAP_STYLE_ULTIMATE;
+    return OSM_RASTER_STYLE;
 };
 
 const styleCacheKey = (mapStyleKey, fallbackLevel, style) => (
@@ -601,8 +642,14 @@ const MapContainer = ({
         const map = mapRef.current?.getMap?.();
         if (map && typeof window !== 'undefined') {
             window.__GM_MAP__ = map;
-            map.resize();
-            map.triggerRepaint();
+            const repaint = () => {
+                map.resize();
+                map.triggerRepaint();
+            };
+            repaint();
+            map.once('idle', repaint);
+            window.setTimeout(repaint, 250);
+            window.setTimeout(repaint, 1000);
         }
     }, [loadMapIcons]);
 

@@ -53,7 +53,7 @@ function App() {
   }, [toolsOpen]);
   const [activeSources, setActiveSources] = useState(getDefaultSourceIdsForRegion('middleeast'));
   const [copernicusMode, setCopernicusMode] = useState('true-color');
-  const [showCopernicusOverlay, setShowCopernicusOverlay] = useState(true);
+  const [showCopernicusOverlay, setShowCopernicusOverlay] = useState(false);
   const [showStrategicContext, setShowStrategicContext] = useState(false);
 
   const { backendUp } = useOnlineStatus();
@@ -154,6 +154,7 @@ function App() {
         role="main"
         data-layout="map-first"
         data-sidebar-open={sidebarOpen ? 'true' : 'false'}
+        data-layers-open={sidebarOpen || mobileDrawer === 'layers' ? 'true' : 'false'}
         data-mobile-drawer={mobileDrawer}
       >
         {/* Full-screen map underneath */}
@@ -361,7 +362,11 @@ function App() {
             className="map-first-rail-btn"
             aria-pressed={sidebarOpen}
             aria-label="Toggle layers panel"
-            onClick={() => setSidebarOpen((v) => !v)}
+            onClick={() => {
+              const next = !sidebarOpen;
+              setSidebarOpen(next);
+              setMobileDrawer(next ? 'layers' : 'none');
+            }}
           >
             <Layers size={18} aria-hidden="true" />
           </button>

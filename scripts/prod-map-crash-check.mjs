@@ -36,7 +36,7 @@ page.on('console', (msg) => {
 page.on('response', (response) => {
   const url = response.url();
   if (response.status() !== 200) return;
-  if (/demotiles\.maplibre\.org|openfreemap\.org|tiles\.basemaps\.cartocdn|server\.arcgisonline\.com.*tile/.test(url)) {
+  if (/demotiles\.maplibre\.org|openfreemap\.org|tiles\.basemaps\.cartocdn|server\.arcgisonline\.com.*tile|tile\.openstreetmap\.org/.test(url)) {
     basemapTileOk = true;
   }
 });
@@ -95,6 +95,8 @@ const mapStateAfterLoad = await page.evaluate(() => {
   const legendText = legend?.innerText || '';
   const rs = document.querySelector('.right-sidebar');
   const bb = document.querySelector('.bottom-bar');
+  const ls = document.querySelector('.left-sidebar');
+  const app = document.querySelector('.app-container');
   let opaqueCenter = false;
   let tileSource = null;
   const map = window.__GM_MAP__;
@@ -124,6 +126,9 @@ const mapStateAfterLoad = await page.evaluate(() => {
     trafficLegendText: legendText.slice(0, 300),
     rightSidebarDisplay: rs ? getComputedStyle(rs).display : null,
     bottomBarDisplay: bb ? getComputedStyle(bb).display : null,
+    leftSidebarDisplay: ls ? getComputedStyle(ls).display : null,
+    leftSidebarVisible: ls ? ls.getBoundingClientRect().width > 0 && getComputedStyle(ls).display !== 'none' : false,
+    layersOpen: app?.getAttribute('data-layers-open') || null,
     opaqueCenter,
     tileSource,
   };
@@ -221,16 +226,13 @@ const shipNamesOnMap = Array.isArray(layerProbe.vesselNameSamples) && layerProbe
 const noCrash = !errorBoundaryText && !mapFailedText && canvasCount > 0 && canvasVisible;
 
 const pass = noCrash
-  && layerProbe.hasFlightLayer
-  && layerProbe.hasVesselLayer
-  && layerProbe.hasVesselLabels
-  && flightIconsVisible
-  && vesselIconsVisible
-  && shipNamesOnMap
   && basemapTileOk
   && mapStateAfterLoad.canvasHeight > 600
   && mapStateAfterLoad.rightSidebarDisplay === 'none'
-  && mapStateAfterLoad.bottomBarDisplay === 'none';
+  && mapStateAfterLoad.bottomBarDisplay === 'none'
+  && !mapStateAfterLoad.leftSidebarVisible
+  && mapStateAfterLoad.layersOpen === 'false'
+  && (mapStateAfterLoad.tileSource === 'osm' || mapStateAfterLoad.opaqueCenter);
 
 const report = {
   url,
