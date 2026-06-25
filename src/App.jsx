@@ -686,6 +686,26 @@ function App() {
         )}
       </div>
 
+      {/* Mobile-only theater nav — fixed bottom bar, within thumb reach */}
+      <nav className="mobile-theater-nav" aria-label="Theater selector">
+        {Object.values(REGIONS).map((r) => (
+          <button
+            key={r.id}
+            className={`mobile-theater-btn ${viewMode === r.id ? 'is-active' : ''}`}
+            aria-pressed={viewMode === r.id}
+            onClick={() => {
+              setViewMode(r.id);
+              setActiveRegion(r.id === 'middleeast' ? 'middleeast' : r.id === 'indopacific' ? 'asean' : 'thailand');
+              setViewTarget({ ...r.viewState, transitionDuration: 1200 });
+              setActiveSources(getDefaultSourceIdsForRegion(r.id));
+              setSelectedCountryCode(null);
+            }}
+          >
+            {r.label}
+          </button>
+        ))}
+      </nav>
+
       {/* Classification Banner — always visible, top and bottom of viewport */}
       <ClassificationBanner level="FOUO" />
     </>
