@@ -1,7 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { fetchEscalation } from '../services/escalation';
 import { useLiveResource } from '../hooks/useLiveResource';
+
+const ALERT_BAND_HEIGHT = '34px';
 
 const AlertBanner = () => {
     const [dismissed, setDismissed] = useState(false);
@@ -12,12 +14,21 @@ const AlertBanner = () => {
         isUsable: (d) => typeof d?.score === 'number'
     });
 
-    if (dismissed) return null;
-    if (!data && !error) return null;
-    if (!data && error) return null;
+    const visible = !dismissed && Boolean(data) && !error && data.score >= 50;
+
+    useEffect(() => {
+        document.documentElement.style.setProperty(
+            '--mf-alert-h',
+            visible ? ALERT_BAND_HEIGHT : '0px'
+        );
+        return () => {
+            document.documentElement.style.setProperty('--mf-alert-h', '0px');
+        };
+    }, [visible]);
+
+    if (!visible) return null;
 
     const { score, components } = data;
-    if (score < 50) return null;
 
     const isCritical = score >= 70;
     const bgColor = isCritical

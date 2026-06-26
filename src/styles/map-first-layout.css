@@ -4,13 +4,14 @@
  */
 
 :root {
-  --mf-clock-h: 44px;
+  --mf-alert-h: 0px;
+  --mf-clock-h: 52px;
   --mf-header-h: 56px;
   --mf-ticker-h: 32px;
   --mf-mobile-tabs-h: 44px;
   --mf-rail-w: 44px;
   --mf-right-w: min(300px, 26vw);
-  --mf-chrome-top: calc(var(--mf-clock-h) + var(--mf-header-h));
+  --mf-chrome-top: calc(var(--mf-alert-h) + var(--mf-clock-h) + var(--mf-header-h));
 }
 
 /* ── Base: single canvas, map fills center ── */
@@ -98,7 +99,7 @@
 
 .app-container[data-layout="map-first"] .top-bar-clock {
   position: absolute;
-  top: 0;
+  top: var(--mf-alert-h);
   left: 0;
   right: 0;
   grid-column: unset;
@@ -107,11 +108,23 @@
   height: var(--mf-clock-h);
   min-height: var(--mf-clock-h);
   max-height: var(--mf-clock-h);
+  overflow: visible;
+  align-items: center;
+}
+
+.app-container[data-layout="map-first"] .primary-clock-content .clock-time-large {
+  font-size: 1.35rem;
+  line-height: 1.05;
+}
+
+.app-container[data-layout="map-first"] .primary-clock-content .clock-war-date,
+.app-container[data-layout="map-first"] .primary-clock-content .clock-city {
+  line-height: 1.1;
 }
 
 .app-container[data-layout="map-first"] .header-bar {
   position: absolute;
-  top: var(--mf-clock-h);
+  top: calc(var(--mf-alert-h) + var(--mf-clock-h));
   left: 0;
   right: 0;
   grid-column: unset;
@@ -393,6 +406,20 @@
     left: 0;
     right: 0;
   }
+
+  /* Desktop: intel rail + markets strip visible by default (map-first overlay, not hidden) */
+  .app-container[data-layout="map-first"] .right-sidebar {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .app-container[data-layout="map-first"] .bottom-bar {
+    display: flex !important;
+  }
+
+  .app-container[data-layout="map-first"] .multi-front-row {
+    display: block !important;
+  }
 }
 
 /* ── Tablet / mobile ── */
@@ -421,14 +448,14 @@
   }
 
   .app-container[data-layout="map-first"] .map-wrapper {
-    top: calc(var(--mf-clock-h) + 52px);
+    top: calc(var(--mf-alert-h) + var(--mf-clock-h) + 52px);
     bottom: calc(var(--mf-ticker-h) + var(--mf-mobile-tabs-h));
     min-height: 55vh;
     min-height: 55dvh;
   }
 
   .app-container[data-layout="map-first"] .left-sidebar {
-    top: calc(var(--mf-clock-h) + 52px);
+    top: calc(var(--mf-alert-h) + var(--mf-clock-h) + 52px);
     bottom: calc(var(--mf-ticker-h) + var(--mf-mobile-tabs-h));
     width: min(320px, 92vw);
     z-index: 40;
@@ -531,28 +558,36 @@
 }
 
 @media (max-width: 480px) {
+  :root {
+    --mf-clock-h: 48px;
+  }
+
   .app-container[data-layout="map-first"] .map-wrapper {
     min-height: 58vh;
     min-height: 58dvh;
   }
 
   .app-container[data-layout="map-first"] .top-bar-clock {
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
+    height: var(--mf-clock-h);
+    min-height: var(--mf-clock-h);
+    max-height: var(--mf-clock-h);
     padding: 2px 6px;
   }
 
+  .app-container[data-layout="map-first"] .primary-clock-content .clock-time-large {
+    font-size: 1.15rem;
+  }
+
   .app-container[data-layout="map-first"] .header-bar {
-    top: 36px;
+    top: calc(var(--mf-alert-h) + var(--mf-clock-h));
   }
 
   .app-container[data-layout="map-first"] .map-wrapper {
-    top: calc(36px + 48px);
+    top: calc(var(--mf-alert-h) + var(--mf-clock-h) + 48px);
   }
 
   .app-container[data-layout="map-first"] .left-sidebar {
-    top: calc(36px + 48px);
+    top: calc(var(--mf-alert-h) + var(--mf-clock-h) + 48px);
   }
 }
 

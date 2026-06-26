@@ -50,7 +50,11 @@ function App() {
   useEscapeKey(isLegalOpen, () => setIsLegalOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileDrawer, setMobileDrawer] = useState('none');
+  const [mobileDrawer, setMobileDrawer] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+      ? 'intel'
+      : 'none'
+  ));
   const toolsRef = useRef(null);
   useEffect(() => {
     const onDocClick = (e) => {
