@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8.4-20260624-timesfm-alphaearth';
+const CACHE_NAME = 'gpd-v8.4-20260626-mapfirst-hotfix';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -71,7 +71,17 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Static assets: cache-first with network fallback
+    // Hashed build assets (/assets/*): network-first so deploys never trap users on stale JS/CSS.
+    if (url.pathname.startsWith('/assets/')) {
+        event.respondWith(
+            fetch(request)
+                .then(response => cacheResponse(request, response))
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
+
+    // Other static assets: cache-first with network fallback
     event.respondWith(
         caches.match(request)
             .then(cached => cached || fetch(request).then(response => cacheResponse(request, response)))

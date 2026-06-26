@@ -110,6 +110,7 @@
   max-height: var(--mf-clock-h);
   overflow: visible;
   align-items: center;
+  pointer-events: auto;
 }
 
 .app-container[data-layout="map-first"] .primary-clock-content .clock-time-large {
@@ -133,6 +134,7 @@
   height: var(--mf-header-h);
   min-height: var(--mf-header-h);
   max-height: var(--mf-header-h);
+  pointer-events: auto;
 }
 
 .app-container[data-layout="map-first"] .news-ticker-wrapper {
@@ -144,6 +146,7 @@
   grid-row: unset;
   z-index: 25;
   height: var(--mf-ticker-h);
+  pointer-events: auto;
 }
 
 /* ── Left sidebar: overlay drawer — hidden until LAYERS toggled ── */
@@ -375,6 +378,7 @@
 /* ── Mobile tab bar ── */
 .map-first-mobile-tabs {
   display: none;
+  pointer-events: auto;
 }
 
 .map-first-mobile-tab {
@@ -614,10 +618,14 @@
   }
 
   .app-container[data-layout="map-first"] .header-bar,
-  .app-container[data-layout="map-first"] .top-bar-clock {
+  .app-container[data-layout="map-first"] .top-bar-clock,
+  .app-container[data-layout="map-first"] .news-ticker-wrapper,
+  .app-container[data-layout="map-first"] .map-first-mobile-tabs,
+  .app-container[data-layout="map-first"] .map-first-layers-rail {
     position: absolute !important;
     width: auto !important;
     height: auto;
+    pointer-events: auto !important;
   }
 
   .app-container[data-layout="map-first"] .left-sidebar {
