@@ -32,6 +32,19 @@ const TRAFFIC_SESSION_MAX_VESSELS = 1200;
 /** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
 const TRAFFIC_DEFER_MS = 3000;
 
+const EMPTY_TRAFFIC_FC = Object.freeze({ type: 'FeatureCollection', features: [] });
+/**
+ * Survives MapContainer remount (ErrorBoundary recover) so pan stress does not drop traffic.
+ * Module-scoped object: properties are mutated (never the binding reassigned), which keeps
+ * the render path pure for react-hooks/globals while still outliving a remount.
+ */
+const moduleTrafficSession = {
+    flights: null,
+    flightsMeta: { capped: false, total: 0 },
+    vessels: null,
+    vesselsMeta: { capped: false, total: 0 },
+};
+
 const formatVesselSourceLabel = (meta) => {
     if (meta?.aisSource === 'axiom-overwatch' || meta?.source?.includes('axiom-overwatch')) {
         return 'Axiom Overwatch';
@@ -57,16 +70,16 @@ const buildTargetViewState = (viewTarget, fallbackTransitionDuration = 1500) => 
 
 const mapViewReducer = (state, action) => {
     switch (action.type) {
-    case 'move':
-        return {
-            ...action.viewState,
-            zoom: Math.min(Math.max(action.viewState.zoom, MAP_MIN_ZOOM), MAP_MAX_ZOOM),
-            transitionDuration: 0,
-        };
-    case 'target':
-        return buildTargetViewState(action.viewTarget, state.transitionDuration);
-    default:
-        return state;
+        case 'move':
+            return {
+                ...action.viewState,
+                zoom: Math.min(Math.max(action.viewState.zoom, MAP_MIN_ZOOM), MAP_MAX_ZOOM),
+                transitionDuration: 0,
+            };
+        case 'target':
+            return buildTargetViewState(action.viewTarget, state.transitionDuration);
+        default:
+            return state;
     }
 };
 
@@ -390,9 +403,6 @@ const ESRI_SATELLITE_STYLE = {
     glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
 };
 
-/** Key-free last resort — MapLibre demo tiles, no token required. */
-const MAP_STYLE_ULTIMATE = 'https://demotiles.maplibre.org/style.json';
-
 /** Inline OSM raster — always paints opaque pixels; survives Opera / lazy-mount resize. */
 const OSM_RASTER_STYLE = {
     version: 8,
@@ -400,13 +410,15 @@ const OSM_RASTER_STYLE = {
         osm: {
             type: 'raster',
             tiles: [
-                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
             ],
             tileSize: 256,
             maxzoom: 19,
-            attribution: '© OpenStreetMap contributors',
+            attribution: '© CARTO © OpenStreetMap © Esri',
         },
     },
     layers: [
@@ -414,6 +426,9 @@ const OSM_RASTER_STYLE = {
         { id: 'osm-raster', type: 'raster', source: 'osm', paint: { 'raster-opacity': 1 } },
     ],
 };
+
+/** Key-free last resort — inline OSM raster, never a remote style.json URL. */
+const MAP_STYLE_ULTIMATE = OSM_RASTER_STYLE;
 
 /** ESRI World Street — inline raster, same pattern as satellite; reliable on Cloudflare Pages. */
 const ESRI_STREET_STYLE = {
@@ -438,17 +453,17 @@ const ESRI_STREET_STYLE = {
 // Each entry can be a URL string or an inline style object — MapLibre accepts both.
 // Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
 // onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
-// Default dark = ESRI street raster; OSM raster + demotiles are fallbacks.
+// Default dark = ESRI street raster (opaque, reliable on Pages + Opera).
 const MAP_STYLES = {
     dark: ESRI_STREET_STYLE,
     satellite: ESRI_SATELLITE_STYLE,
-    voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+    voyager: ESRI_STREET_STYLE,
 };
 
 const MAP_STYLE_FALLBACKS = {
-    dark: OSM_RASTER_STYLE,
-    voyager: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-    satellite: MAP_STYLE_ULTIMATE,
+    dark: ESRI_STREET_STYLE,
+    voyager: ESRI_STREET_STYLE,
+    satellite: OSM_RASTER_STYLE,
 };
 
 /** Basemap source ids — tile failures here trigger style fallback (not overlay layers). */
@@ -543,11 +558,9 @@ const MapContainer = ({
     ), []);
 
     const noteBasemapFailure = useCallback(() => {
-        basemapFailCountRef.current += 1;
-        if (basemapFailCountRef.current >= 4) {
-            advanceStyleFallback();
-        }
-    }, [advanceStyleFallback]);
+        // Raster tiles self-heal; swapping style on tile misses during pan/zoom was
+        // demoting ESRI → OSM and stripping flights/vessels MapLibre layers.
+    }, []);
 
     const handleMapError = useCallback((event) => {
         const sourceId = event?.sourceId || event?.source?.id || event?.error?.sourceId;
@@ -759,7 +772,7 @@ const MapContainer = ({
         cacheKey: `map:vessels:${TRAFFIC_THEATER}`,
         enabled: activeLayers.includes('vessels'),
         freezeAfterLoad: true,
-        isUsable: (payload) => hasFeatureData(payload) || payload?.meta?.requiresKey,
+        isUsable: hasFeatureData,
         maxRetries: 2,
         maxStaleMs: 20 * 60 * 1000
     });
@@ -775,7 +788,11 @@ const MapContainer = ({
     const globalFlightsData = flightsResource.data;
     const globalVesselsData = vesselsResource.data;
 
-    /** Session-frozen GeoJSON — computed once on first fetch, never rebuilt on pan/zoom. */
+    /**
+     * Session-frozen GeoJSON — computed once on first fetch, never rebuilt on pan/zoom.
+     * Render path reads only refs + props; module-scope persistence happens in effects
+     * (react-hooks/immutability forbids mutating module state during render).
+     */
     const sessionFlightsRef = useRef(null);
     const sessionFlightsMetaRef = useRef({ capped: false, total: 0 });
     const flightsGeoJson = useMemo(() => {
@@ -800,6 +817,38 @@ const MapContainer = ({
         return collection;
     }, [globalVesselsData]);
 
+    // Seed refs from the module-level session once on mount so a remounted
+    // MapContainer (ErrorBoundary recover) keeps its traffic snapshot instead of
+    // re-fetching / flashing empty. Writes to module scope happen only here, in an
+    // effect — never during render.
+    useEffect(() => {
+        if (moduleTrafficSession.flights && !sessionFlightsRef.current) {
+            sessionFlightsRef.current = moduleTrafficSession.flights;
+            sessionFlightsMetaRef.current = moduleTrafficSession.flightsMeta;
+        }
+    }, []);
+    useEffect(() => {
+        if (moduleTrafficSession.vessels && !sessionVesselsRef.current) {
+            sessionVesselsRef.current = moduleTrafficSession.vessels;
+            sessionVesselsMetaRef.current = moduleTrafficSession.vesselsMeta;
+        }
+    }, []);
+
+    // Persist the freshly-computed session back to module scope after commit, so it
+    // survives a later remount. Skips when null/empty (no usable payload yet).
+    useEffect(() => {
+        if (sessionFlightsRef.current) {
+            moduleTrafficSession.flights = sessionFlightsRef.current;
+            moduleTrafficSession.flightsMeta = sessionFlightsMetaRef.current;
+        }
+    }, [flightsGeoJson]);
+    useEffect(() => {
+        if (sessionVesselsRef.current) {
+            moduleTrafficSession.vessels = sessionVesselsRef.current;
+            moduleTrafficSession.vesselsMeta = sessionVesselsMetaRef.current;
+        }
+    }, [vesselsGeoJson]);
+
     const trafficLayersReady = mapReady && trafficDeferredReady;
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
@@ -809,9 +858,9 @@ const MapContainer = ({
     const vesselsCapped = sessionVesselsMetaRef.current.capped;
     const globalFlightCount = globalFlightsData?.features?.length ?? 0;
     const globalVesselCount = globalVesselsData?.features?.length ?? 0;
-    const flightSourceLabel = flightsResource.isStale || globalFlightsData?.__meta?.status === 'stale'
-        ? 'ADS-B stale'
-        : 'ADS-B';
+    const flightSourceLabel = visibleFlightCount > 0
+        ? 'ADS-B · session'
+        : (flightsResource.isLoading ? 'Loading ADS-B…' : (flightsResource.isStale ? 'ADS-B stale' : 'ADS-B'));
     const vesselsNeedKey = globalVesselsData?.meta?.requiresKey;
     const vesselMeta = globalVesselsData?.meta;
     const vesselSourceLabel = formatVesselSourceLabel(vesselMeta);
@@ -1317,8 +1366,8 @@ const MapContainer = ({
                 )}
 
                 {/* Flights Layer — icons only (no heatmap/path vectors; WebGL budget) */}
-                {trafficLayersReady && flightsLayerActive && visibleFlightCount > 0 && (
-                    <Source id="flights-data" type="geojson" data={flightsGeoJson}>
+                {trafficLayersReady && flightsLayerActive && (
+                    <Source id="flights-data" type="geojson" data={flightsGeoJson ?? EMPTY_TRAFFIC_FC}>
                         <Layer
                             id="flights-icons"
                             type="symbol"
@@ -1407,8 +1456,8 @@ const MapContainer = ({
                 )}
 
                 {/* Vessels Layer — icons only (no heatmap/path vectors; WebGL budget) */}
-                {trafficLayersReady && vesselsLayerActive && visibleVesselCount > 0 && (
-                    <Source id="vessels-data" type="geojson" data={vesselsGeoJson}>
+                {trafficLayersReady && vesselsLayerActive && (
+                    <Source id="vessels-data" type="geojson" data={vesselsGeoJson ?? EMPTY_TRAFFIC_FC}>
                         <Layer
                             id="vessels-icons"
                             type="symbol"
@@ -1459,127 +1508,127 @@ const MapContainer = ({
                     ].filter(Boolean).join(' ');
 
                     return (
-                    <Popup
-                        longitude={hoverInfo.longitude}
-                        latitude={hoverInfo.latitude}
-                        anchor="bottom"
-                        closeButton={false}
-                        closeOnClick={false}
-                        offset={[0, -8]}
-                        className={tooltipClass}
-                    >
-                        {(() => {
-                            const p = hoverInfo.feature.properties || {};
-                            const layerId = hoverInfo.feature.layer?.id;
-                            if (layerId === 'acled-circles') {
+                        <Popup
+                            longitude={hoverInfo.longitude}
+                            latitude={hoverInfo.latitude}
+                            anchor="bottom"
+                            closeButton={false}
+                            closeOnClick={false}
+                            offset={[0, -8]}
+                            className={tooltipClass}
+                        >
+                            {(() => {
+                                const p = hoverInfo.feature.properties || {};
+                                const layerId = hoverInfo.feature.layer?.id;
+                                if (layerId === 'acled-circles') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header">{p.eventType || 'Conflict event'}</div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Location</span>
+                                                <span>{[p.region, p.country].filter(Boolean).join(', ') || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Fatalities</span>
+                                                <span>{p.fatalities ?? 0}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Actor</span>
+                                                <span>{p.actor1 || '—'}</span>
+                                            </div>
+                                            {p.date && (
+                                                <div className="traffic-tooltip-row">
+                                                    <span>Date</span>
+                                                    <span>{p.date}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+                                if (layerId === 'firms-circles') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header">Thermal signature</div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Confidence</span>
+                                                <span>{p.confidence || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>FRP</span>
+                                                <span>{p.frp != null ? `${Math.round(p.frp)} MW` : '—'}</span>
+                                            </div>
+                                            {p.name && (
+                                                <div className="traffic-tooltip-row">
+                                                    <span>Area</span>
+                                                    <span>{p.name}</span>
+                                                </div>
+                                            )}
+                                            {p.satellite && (
+                                                <div className="traffic-tooltip-row">
+                                                    <span>Satellite</span>
+                                                    <span>{p.satellite}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+                                const isFlight = layerId === 'flights-icons' || layerId === 'flights-labels' || p.hex;
+                                if (isFlight) {
+                                    const header = p.callsign ? p.callsign.toUpperCase() : p.hex;
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header">{header}</div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Altitude</span>
+                                                <span>{Math.round(p.altitude)} m</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Speed</span>
+                                                <span>{Math.round((p.velocity || 0) * 1.94384)} kt</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Heading</span>
+                                                <span>{Math.round(p.heading)}°</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Type</span>
+                                                <span>{p.type || p.desc || '—'}</span>
+                                            </div>
+                                            {p.origin && (
+                                                <div className="traffic-tooltip-row">
+                                                    <span>Route</span>
+                                                    <span>
+                                                        {p.origin}
+                                                        {p.destination ? ` → ${p.destination}` : ''}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
                                 return (
                                     <div className="traffic-tooltip-content">
-                                        <div className="traffic-tooltip-header">{p.eventType || 'Conflict event'}</div>
+                                        <div className="traffic-tooltip-header">{p.name || p.mmsi || 'Vessel'}</div>
                                         <div className="traffic-tooltip-row">
-                                            <span>Location</span>
-                                            <span>{[p.region, p.country].filter(Boolean).join(', ') || '—'}</span>
-                                        </div>
-                                        <div className="traffic-tooltip-row">
-                                            <span>Fatalities</span>
-                                            <span>{p.fatalities ?? 0}</span>
-                                        </div>
-                                        <div className="traffic-tooltip-row">
-                                            <span>Actor</span>
-                                            <span>{p.actor1 || '—'}</span>
-                                        </div>
-                                        {p.date && (
-                                            <div className="traffic-tooltip-row">
-                                                <span>Date</span>
-                                                <span>{p.date}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            }
-                            if (layerId === 'firms-circles') {
-                                return (
-                                    <div className="traffic-tooltip-content">
-                                        <div className="traffic-tooltip-header">Thermal signature</div>
-                                        <div className="traffic-tooltip-row">
-                                            <span>Confidence</span>
-                                            <span>{p.confidence || '—'}</span>
-                                        </div>
-                                        <div className="traffic-tooltip-row">
-                                            <span>FRP</span>
-                                            <span>{p.frp != null ? `${Math.round(p.frp)} MW` : '—'}</span>
-                                        </div>
-                                        {p.name && (
-                                            <div className="traffic-tooltip-row">
-                                                <span>Area</span>
-                                                <span>{p.name}</span>
-                                            </div>
-                                        )}
-                                        {p.satellite && (
-                                            <div className="traffic-tooltip-row">
-                                                <span>Satellite</span>
-                                                <span>{p.satellite}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            }
-                            const isFlight = layerId === 'flights-icons' || layerId === 'flights-labels' || p.hex;
-                            if (isFlight) {
-                                const header = p.callsign ? p.callsign.toUpperCase() : p.hex;
-                                return (
-                                    <div className="traffic-tooltip-content">
-                                        <div className="traffic-tooltip-header">{header}</div>
-                                        <div className="traffic-tooltip-row">
-                                            <span>Altitude</span>
-                                            <span>{Math.round(p.altitude)} m</span>
+                                            <span>Type</span>
+                                            <span>{p.category || '—'}</span>
                                         </div>
                                         <div className="traffic-tooltip-row">
                                             <span>Speed</span>
-                                            <span>{Math.round((p.velocity || 0) * 1.94384)} kt</span>
+                                            <span>{p.speed} kt</span>
                                         </div>
                                         <div className="traffic-tooltip-row">
-                                            <span>Heading</span>
-                                            <span>{Math.round(p.heading)}°</span>
+                                            <span>Course</span>
+                                            <span>{Math.round(p.course)}°</span>
                                         </div>
                                         <div className="traffic-tooltip-row">
-                                            <span>Type</span>
-                                            <span>{p.type || p.desc || '—'}</span>
+                                            <span>MMSI</span>
+                                            <span>{p.mmsi}</span>
                                         </div>
-                                        {p.origin && (
-                                            <div className="traffic-tooltip-row">
-                                                <span>Route</span>
-                                                <span>
-                                                    {p.origin}
-                                                    {p.destination ? ` → ${p.destination}` : ''}
-                                                </span>
-                                            </div>
-                                        )}
                                     </div>
                                 );
-                            }
-                            return (
-                                <div className="traffic-tooltip-content">
-                                    <div className="traffic-tooltip-header">{p.name || p.mmsi || 'Vessel'}</div>
-                                    <div className="traffic-tooltip-row">
-                                        <span>Type</span>
-                                        <span>{p.category || '—'}</span>
-                                    </div>
-                                    <div className="traffic-tooltip-row">
-                                        <span>Speed</span>
-                                        <span>{p.speed} kt</span>
-                                    </div>
-                                    <div className="traffic-tooltip-row">
-                                        <span>Course</span>
-                                        <span>{Math.round(p.course)}°</span>
-                                    </div>
-                                    <div className="traffic-tooltip-row">
-                                        <span>MMSI</span>
-                                        <span>{p.mmsi}</span>
-                                    </div>
-                                </div>
-                            );
-                        })()}
-                    </Popup>
+                            })()}
+                        </Popup>
                     );
                 })()}
 
@@ -1654,10 +1703,6 @@ const MapContainer = ({
             <div
                 className="map-legend map-legend--traffic"
                 style={{
-                    top: 12,
-                    bottom: 'auto',
-                    right: 10,
-                    left: 'auto',
                     visibility: (flightsLayerActive || vesselsLayerActive) ? 'visible' : 'hidden',
                     pointerEvents: (flightsLayerActive || vesselsLayerActive) ? 'auto' : 'none'
                 }}
@@ -1689,9 +1734,11 @@ const MapContainer = ({
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {visibleVesselCount > 0
                             ? `${formatTrafficLegend({ rendered: visibleVesselCount, total: vesselsGlobalTotal, capped: vesselsCapped }) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
-                            : globalVesselCount > 0
-                                ? `${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
-                                : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
+                            : vesselsResource.isLoading
+                                ? 'Loading ships…'
+                                : globalVesselCount > 0
+                                    ? `${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
+                                    : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
                     </span>
                 </div>
                 {axiomOverwatchActive && vesselsLayerActive && (
@@ -1709,32 +1756,32 @@ const MapContainer = ({
                 }}
                 aria-hidden={!showStrategicContext}
             >
-                    <div className="map-legend-title">STRATEGIC CONTEXT</div>
-                    <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: '#ef4444' }} />
-                        <span>Energy route reference</span>
-                    </div>
-                    <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: '#f59e0b' }} />
-                        <span>Shipping lane reference</span>
-                    </div>
-                    <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: '#38bdf8' }} />
-                        <span>Regional city network</span>
-                    </div>
-                    <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
-                    <div className="map-legend-item">
-                        <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#fca5a5' }} />
-                        <span>Persian Gulf focus area</span>
-                    </div>
-                    <div className="map-legend-item">
-                        <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#fcd34d' }} />
-                        <span>Horn of Africa / Yemen</span>
-                    </div>
-                    <div className="map-legend-item">
-                        <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#6ee7b7' }} />
-                        <span>ASEAN urban systems</span>
-                    </div>
+                <div className="map-legend-title">STRATEGIC CONTEXT</div>
+                <div className="map-legend-item">
+                    <span className="map-legend-line" style={{ background: '#ef4444' }} />
+                    <span>Energy route reference</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-line" style={{ background: '#f59e0b' }} />
+                    <span>Shipping lane reference</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-line" style={{ background: '#38bdf8' }} />
+                    <span>Regional city network</span>
+                </div>
+                <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
+                <div className="map-legend-item">
+                    <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#fca5a5' }} />
+                    <span>Persian Gulf focus area</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#fcd34d' }} />
+                    <span>Horn of Africa / Yemen</span>
+                </div>
+                <div className="map-legend-item">
+                    <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#6ee7b7' }} />
+                    <span>ASEAN urban systems</span>
+                </div>
             </div>
 
             {/* Active EO Layer Labels */}

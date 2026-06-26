@@ -4,6 +4,7 @@ import {
     Plane, Ship, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
+import AlphaEarthPanel from './AlphaEarthPanel';
 import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
 import { useFlightStats } from '../hooks/useFlightCount';
@@ -121,6 +122,10 @@ const Sidebar = ({
     showStrategicContext,
     setShowStrategicContext,
     copernicusResource,
+    alphaEarthLayer,
+    showAlphaEarthOverlay,
+    setShowAlphaEarthOverlay,
+    onMapFlyTo,
     mapStyle,
     setMapStyle,
     dashboardVersion = 'v8.3',
@@ -308,6 +313,17 @@ const Sidebar = ({
                                                         previewResource={copernicusResource}
                                                     />
                                                 </div>
+                                                {alphaEarthLayer?.sidecar && (
+                                                    <div className="satellite-alphaearth-block">
+                                                        <div className="layer-group-title satellite-source-title">AlphaEarth · DeepMind</div>
+                                                        <AlphaEarthPanel
+                                                            layer={alphaEarthLayer}
+                                                            showOverlay={showAlphaEarthOverlay}
+                                                            onToggleOverlay={() => setShowAlphaEarthOverlay((v) => !v)}
+                                                            onFlyTo={onMapFlyTo}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -361,7 +377,7 @@ const Sidebar = ({
                 </div>
 
                 <div className="sidebar-provenance">
-                    Data from NASA, ESA, JAXA, World Bank, ReliefWeb, Open-Meteo, and Binance.
+                    Data from NASA, ESA, Google DeepMind AlphaEarth, TimesFM, World Bank, ReliefWeb, Open-Meteo, and Binance.
                     <a href="mailto:non.ar@depa.or.th">Contact</a>
                 </div>
             </div>

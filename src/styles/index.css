@@ -1476,6 +1476,95 @@ body {
   padding-top: 4px;
 }
 
+.satellite-alphaearth-block {
+  margin-top: 10px;
+}
+
+.alphaearth-fly-btn {
+  width: 100%;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.timesfm-card {
+  padding: 10px 12px;
+}
+
+.timesfm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid var(--accent-amber);
+  padding-left: 8px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.timesfm-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--accent-amber);
+}
+
+.timesfm-delta {
+  font-size: 0.5rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.timesfm-delta.up {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.timesfm-delta.down {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.timesfm-chart {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  display: block;
+}
+
+.timesfm-meta,
+.timesfm-bands {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.45rem;
+  color: var(--ink-3);
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.timesfm-bands strong {
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+}
+
+.timesfm-footnote {
+  margin-top: 8px;
+  font-size: 0.42rem;
+  line-height: 1.4;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+}
+
 .layer-icon-wrapper {
   display: flex;
   align-items: center;
@@ -2610,6 +2699,10 @@ body {
 
 .map-legend--traffic {
   min-height: 72px;
+  top: auto;
+  left: auto;
+  right: 10px;
+  bottom: 52px;
 }
 
 .map-legend--strategic {
@@ -3797,4 +3890,61 @@ body {
   color: var(--ink-3);
   letter-spacing: 0.04em;
   font-family: var(--font-mono);
+}
+
+/* ── Legal footer links — discrete, above classification band ── */
+.legal-footer-links {
+  position: fixed;
+  right: 12px;
+  bottom: calc(var(--classification-band) + 4px);
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.legal-footer-link {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legal-footer-link:hover,
+.legal-footer-link:focus-visible {
+  color: rgba(255, 255, 255, 0.95);
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.legal-footer-sep {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .legal-footer-links {
+    right: 8px;
+    bottom: calc(var(--classification-band) + 2px);
+  }
+
+  .legal-footer-link {
+    font-size: 8px;
+    min-width: 40px;
+    padding: 0 4px;
+  }
 }

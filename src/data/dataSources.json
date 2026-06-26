@@ -206,5 +206,31 @@
     "methodology": "Verified data compiled from SIPRI, UNHCR, CSIS, IAEA, and open-source intelligence. Updated by analysts.",
     "coverage": "Conflict milestones, sanctions, nuclear facilities, key figures, actor networks, war costs, displacement",
     "apiEndpoint": "Static JSON files"
+  },
+  {
+    "id": "alphaearth",
+    "name": "AlphaEarth Foundations",
+    "fullName": "Google DeepMind AlphaEarth Satellite Embeddings",
+    "type": "Geospatial Change Detection",
+    "url": "https://deepmind.google/discover/blog/alphaearth-foundations/",
+    "reliability": 9,
+    "updateFrequency": "Annual (pre-computed bundles)",
+    "cacheTTL": "Static (bundled)",
+    "methodology": "Annual satellite embedding vectors (GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL). L2 distance between years highlights structural land-cover and built-environment change. Not a live strike or damage assessment feed.",
+    "coverage": "Manifest-driven AOIs — Gaza Strip 2023–2024 (Middle East theater)",
+    "apiEndpoint": "/data/alphaearth/manifest.json"
+  },
+  {
+    "id": "timefm",
+    "name": "TimesFM",
+    "fullName": "Google TimesFM Time-Series Foundation Model",
+    "type": "Predictive Forecast",
+    "url": "https://github.com/google-research/timesfm",
+    "reliability": 7,
+    "updateFrequency": "Offline batch (bundle refresh)",
+    "cacheTTL": "Static (bundled)",
+    "methodology": "google/timesfm-2.5-200m-pytorch point forecast with Q10/Q90 quantile bands on bundled historical daily series. Probabilistic — not official intelligence. Worst-case (Q90) shown for Stoic transparency.",
+    "coverage": "Global daily event-count series — 30-day horizon",
+    "apiEndpoint": "/data/timefm/manifest.json"
   }
 ]

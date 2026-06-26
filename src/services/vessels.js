@@ -1,3 +1,72 @@
 import { fetchBackendJson } from './backendClient.js';
 
-export const fetchVessels = async (theater = 'global') => fetchBackendJson('/api/vessels', { theater });
+const CLIENT_CACHE_PREFIX = 'tech-monitor:last-good-vessels';
+
+const hasVesselFeatures = (payload) => (
+    payload?.type === 'FeatureCollection'
+    && Array.isArray(payload.features)
+    && payload.features.length > 0
+);
+
+const withMeta = (payload, meta) => {
+    if (!payload || typeof payload !== 'object') return payload;
+
+    Object.defineProperty(payload, '__meta', {
+        value: meta,
+        enumerable: false,
+        configurable: true
+    });
+
+    return payload;
+};
+
+const readLastGoodVessels = (theater) => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+        const raw = window.localStorage.getItem(`${CLIENT_CACHE_PREFIX}:${theater}`);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        if (!hasVesselFeatures(parsed?.data)) return null;
+
+        return withMeta(parsed.data, {
+            status: 'stale',
+            updatedAt: parsed.lastUpdated || null,
+            cache: 'client-vessel-fallback'
+        });
+    } catch {
+        return null;
+    }
+};
+
+const writeLastGoodVessels = (theater, payload) => {
+    if (typeof window === 'undefined' || !hasVesselFeatures(payload)) return;
+
+    try {
+        const updatedAt = payload.__meta?.updatedAt || payload.meta?.fetchedAt || new Date().toISOString();
+        window.localStorage.setItem(`${CLIENT_CACHE_PREFIX}:${theater}`, JSON.stringify({
+            data: payload,
+            lastUpdated: updatedAt
+        }));
+    } catch {
+        // Keep live response if storage is unavailable.
+    }
+};
+
+export const fetchVessels = async (theater = 'global') => {
+    try {
+        const payload = await fetchBackendJson('/api/vessels', { theater });
+
+        if (hasVesselFeatures(payload)) {
+            writeLastGoodVessels(theater, payload);
+            return payload;
+        }
+
+        return readLastGoodVessels(theater) || payload;
+    } catch (error) {
+        const fallback = readLastGoodVessels(theater);
+        if (fallback) return fallback;
+        throw error;
+    }
+};

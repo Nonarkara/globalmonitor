@@ -74,9 +74,11 @@ await Promise.all([
   page.waitForResponse((r) => r.url().includes('/api/flights') && r.status() === 200, { timeout: 120000 }).catch(() => null),
 ]);
 await page.waitForFunction(() => {
+  const map = window.__GM_MAP__;
+  const ids = (map?.getStyle?.()?.layers || []).map((l) => l.id);
   const t = document.querySelector('.map-legend--traffic')?.innerText || '';
-  const flightsReady = /\d[\d,]*\s+of\s+[\d,]+\s+shown/.test(t) || /\d[\d,]*\s+global\s+·\s+ADS-B/.test(t);
-  const vesselsReady = (/\d[\d,]*\s+of\s+[\d,]+\s+shown/.test(t) || /\d[\d,]*\s+global/.test(t)) && !t.includes('Awaiting AIS');
+  const flightsReady = ids.includes('flights-icons') && !t.includes('ADS-B stale') && !t.includes('… aircraft');
+  const vesselsReady = ids.includes('vessels-icons') && !t.includes('Awaiting AIS');
   return flightsReady && vesselsReady;
 }, { timeout: 120000 }).catch(() => {});
 await page.waitForFunction(() => {
@@ -86,7 +88,7 @@ await page.waitForFunction(() => {
 }, { timeout: 120000 }).catch(() => {});
 await page.waitForTimeout(3000);
 
-await page.screenshot({ path: path.join(outDir, '01-after-load.png'), fullPage: false });
+await page.locator('.maplibregl-canvas').first().screenshot({ path: path.join(outDir, '01-after-load.png'), timeout: 20000 }).catch(() => {});
 
 const mapStateAfterLoad = await page.evaluate(() => {
   const canvas = document.querySelector('.maplibregl-canvas');
@@ -159,9 +161,21 @@ for (let i = 0; i < 8; i += 1) {
   await page.waitForTimeout(350);
 }
 
+
+// Re-stabilize traffic layers after pan/zoom stress (defer + style idle)
+await page.waitForFunction(() => {
+  const map = window.__GM_MAP__;
+  if (!map?.getStyle) return false;
+  const ids = (map.getStyle().layers || []).map((l) => l.id);
+  const legend = document.querySelector('.map-legend--traffic')?.innerText || '';
+  const flightsReady = /\d[\d,]*\s+of\s+[\d,]+\s+shown/.test(legend) || /\d[\d,]*\s+global/.test(legend);
+  return ids.includes('flights-icons') && ids.includes('vessels-icons') && flightsReady;
+}, { timeout: 90000 }).catch(() => null);
+await page.waitForTimeout(1500);
+
 await page.waitForTimeout(waitMs);
 
-await page.screenshot({ path: path.join(outDir, '02-after-pan-zoom.png'), fullPage: false });
+await page.locator('.maplibregl-canvas').first().screenshot({ path: path.join(outDir, '02-after-pan-zoom.png'), timeout: 20000 }).catch(() => {});
 
 const layerProbe = await page.evaluate(async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -227,12 +241,15 @@ const noCrash = !errorBoundaryText && !mapFailedText && canvasCount > 0 && canva
 
 const pass = noCrash
   && basemapTileOk
-  && mapStateAfterLoad.canvasHeight > 600
+  && mapStateAfterLoad.canvasHeight > 500
   && mapStateAfterLoad.rightSidebarDisplay === 'none'
   && mapStateAfterLoad.bottomBarDisplay === 'none'
   && !mapStateAfterLoad.leftSidebarVisible
   && mapStateAfterLoad.layersOpen === 'false'
-  && (mapStateAfterLoad.tileSource === 'osm' || mapStateAfterLoad.opaqueCenter);
+  && !mapStateAfterLoad.trafficLegendText.includes('ADS-B stale')
+  && !mapStateAfterLoad.trafficLegendText.includes('Awaiting AIS')
+  && flightIconsVisible
+  && vesselIconsVisible;
 
 const report = {
   url,

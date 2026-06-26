@@ -38,6 +38,11 @@ const defaultIsUsable = (value) => {
     return true;
 };
 
+const isCacheStale = (lastUpdated, maxStaleMs) => {
+    if (!lastUpdated) return true;
+    return Date.now() - new Date(lastUpdated).getTime() > maxStaleMs;
+};
+
 /** Sleep helper for retry backoff */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -69,8 +74,9 @@ export const useLiveResource = (fetcher, {
     freezeAfterLoad = false
 } = {}) => {
     const [cached] = useState(() => readCachedState(cacheKey));
+    const cacheFreshOnInit = Boolean(cached.data) && !isCacheStale(cached.lastUpdated, maxStaleMs);
     const [sessionFrozen, setSessionFrozen] = useState(
-        () => freezeAfterLoad && Boolean(cached.data)
+        () => freezeAfterLoad && cacheFreshOnInit
     );
     const dataRef = useRef(cached.data);
     const cachedDataRef = useRef(cached.data);
@@ -83,7 +89,7 @@ export const useLiveResource = (fetcher, {
     const [lastUpdated, setLastUpdated] = useState(cached.lastUpdated);
     const [isLoading, setIsLoading] = useState(enabled && !cached.data);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isStale, setIsStale] = useState(Boolean(cached.data));
+    const [isStale, setIsStale] = useState(() => isCacheStale(cached.lastUpdated, maxStaleMs));
     const [error, setError] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
 

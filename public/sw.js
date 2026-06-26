@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8-20260622-map-render-fix';
+const CACHE_NAME = 'gpd-v8.4-20260624-timesfm-alphaearth';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

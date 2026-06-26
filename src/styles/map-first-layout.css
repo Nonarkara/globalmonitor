@@ -35,7 +35,7 @@
   bottom: var(--mf-ticker-h);
   width: 100% !important;
   height: calc(100% - var(--mf-chrome-top) - var(--mf-ticker-h));
-  min-height: 70vh;
+  min-height: max(500px, 70vh);
   z-index: 0;
   border-radius: 0;
   overflow: hidden;
@@ -47,14 +47,48 @@
   opacity: 1 !important;
 }
 
+.app-container[data-layout="map-first"] .map-grid-overlay {
+  display: none;
+}
+
 .app-container[data-layout="map-first"] .map-wrapper .maplibregl-canvas-container,
 .app-container[data-layout="map-first"] .map-wrapper .maplibregl-map {
   width: 100% !important;
   height: 100% !important;
+  min-height: 500px;
   background: #1a1a2e !important;
 }
 
-.app-container[data-layout="map-first"] .map-wrapper > div,
+/* Traffic legend — compact bottom-right overlay, never a side column */
+.app-container[data-layout="map-first"] .map-legend--traffic {
+  position: absolute !important;
+  top: auto !important;
+  left: auto !important;
+  right: 10px !important;
+  bottom: 12px !important;
+  max-width: min(240px, 42vw);
+  min-height: 0;
+  padding: 8px 10px;
+  z-index: 21;
+  contain: none !important;
+  background: rgba(9, 23, 52, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.app-container[data-layout="map-first"] .map-legend--traffic .map-legend-title {
+  color: rgba(147, 197, 253, 0.95);
+}
+
+.app-container[data-layout="map-first"] .map-legend--traffic .map-legend-item {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.app-container[data-layout="map-first"] .map-legend--traffic .map-legend-item span {
+  min-width: 0 !important;
+  font-size: 0.62rem;
+}
+
 .app-container[data-layout="map-first"] .map-wrapper .maplibregl-map {
   position: absolute !important;
   inset: 0 !important;

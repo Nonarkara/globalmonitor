@@ -44,6 +44,7 @@ const PANELS = {
     MultiFrontBoard: React.lazy(() => import('./MultiFrontBoard')),
     FlightRadarEmbed: React.lazy(() => import('./FlightRadarEmbed')),
     EventDetailsPanel: React.lazy(() => import('./EventDetailsPanel')),
+    TimesFMPanel: React.lazy(() => import('./TimesFMPanel')),
 };
 
 export const LazyMapContainer = PANELS.MapContainer;
