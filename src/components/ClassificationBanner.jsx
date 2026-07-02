@@ -1,10 +1,8 @@
 import React, { memo } from 'react';
 
 /**
- * Classification Banner — persistent strip at very top and bottom of viewport.
- * Standard on all government/intelligence dashboards.
- *
- * Levels: UNCLASSIFIED, CUI, FOUO, CONFIDENTIAL, SECRET, TOP SECRET
+ * Classification Banner — RAMS status tag block at top and bottom of viewport.
+ * Black ink tag + paper text per RAMS status banner pattern.
  */
 
 // Quiet for unclassified tiers (a thin paper meta-strip, Rams-honest); the
@@ -35,12 +33,18 @@ const ClassificationBanner = ({ level = 'UNCLASSIFIED' }) => {
         borderBottom: '1px solid var(--line-2)',
         fontSize: '0.55rem',
         fontWeight: 700,
-        letterSpacing: '2px',
-        fontFamily: 'var(--font-mono)',
+        letterSpacing: '0.18em',
+        fontFamily: 'var(--font-sans)',
         zIndex: 99999,
         textTransform: 'uppercase',
         userSelect: 'none',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+    };
+
+    const bottomStyle = {
+        ...bannerStyle,
+        borderBottom: 'none',
+        borderTop: '1px solid var(--line-2)',
     };
 
     return (
@@ -48,7 +52,7 @@ const ClassificationBanner = ({ level = 'UNCLASSIFIED' }) => {
             <div style={{ ...bannerStyle, top: 0 }}>
                 {config.label}
             </div>
-            <div style={{ ...bannerStyle, bottom: 0 }}>
+            <div style={{ ...bottomStyle, bottom: 0 }}>
                 {config.label}
             </div>
         </>

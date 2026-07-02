@@ -1,4 +1,4 @@
-# Global Political Dashboard — Project Instructions for Claude
+# Global Political Dashboard — Project Instructions for Codex
 
 This file captures everything Dr Non wants for this project suite. Read it before writing any code.
 
@@ -6,7 +6,7 @@ This file captures everything Dr Non wants for this project suite. Read it befor
 
 ## Who Is Dr Non
 
-Dr Non Arkaraprasertkul — architect (MIT), anthropologist (Harvard), smart city specialist at Thailand's depa. He does not write code. He designs systems from first principles and evaluates everything on **live deployed URLs**, never localhost. He ships constantly, context-switches between 25+ projects, and communicates through documentation. He works exclusively in Claude Code sessions.
+Dr Non Arkaraprasertkul — architect (MIT), anthropologist (Harvard), smart city specialist at Thailand's depa. He does not write code. He designs systems from first principles and evaluates everything on **live deployed URLs**, never localhost. He ships constantly, context-switches between 25+ projects, and communicates through documentation. He works exclusively in Codex sessions.
 
 **Co-creator**: Associate Professor Dr. Poon Thiengburanathum — public ranking model and urban performance methodology.
 
@@ -37,20 +37,19 @@ A suite of **4 real-time geopolitical intelligence dashboards** monitoring the M
 
 ## Hosting Strategy (Cost-Conscious)
 
-Dr Non uses free tiers exclusively while testing. Vercel and Netlify have both been exhausted (402/503). GPD currently has **two parallel deploy targets** — pick based on what you're changing:
+Dr Non uses free tiers exclusively while testing. Vercel and Netlify have both been exhausted (402/503). Current working hosts:
 
 | Platform | Used For | Status |
 |----------|----------|--------|
-| **This laptop (local)** | GPD full stack — Node server (`server/index.mjs`) + SQLite + scheduler, exposed via a named Cloudflare Tunnel at `globalmonitor.nonarkara.org` | **Primary/live** — 24/7 via launchd (`org.nonarkara.globalmonitor`), enables local SQLite persistence + proactive cache warming that a serverless host can't do |
-| **Cloudflare Pages** | GPD frontend + Pages Functions API (`functions/`) | Active, free — alternate/backup deploy path. Functions layer is a port of `server/lib/*`, may lag the local server's feature set (e.g. FloodOps, Oracle) — verify before relying on it |
+| **Fly.io** | GPD (retired) | Was full stack — replaced by Cloudflare Pages |
+| **Cloudflare Pages** | GPD full stack (frontend + API) | Active, free |
 | **Cloudflare Pages** | War Monitor static | Active, free, no limits |
 | **GitHub Pages** | MEM, GPD static backup | Active, free |
-| **Fly.io** | GPD (retired) | Config kept for reference only |
 | **Render** | GPD (original host) | Suspended — one-click resume available |
 | **Vercel** | All projects deleted — fair use exhausted | Dead |
 | **Netlify** | All projects — free tier exhausted | Dead |
 
-**Rule**: Always have a deployment plan that doesn't require payment. The local+tunnel setup is what's actually running day-to-day; keep the Cloudflare Pages Functions layer in sync if you want it as a real fallback, or say so if it's known to be behind.
+**Rule**: Always have a deployment plan that doesn't require payment. If one host dies, deploy to another immediately. Static backups on GitHub Pages are the last resort.
 
 ---
 
@@ -98,32 +97,18 @@ Every dashboard has an `ℹ` or `i` button that opens a modal with:
 
 ## Design Philosophy
 
-> **DESIGN SYSTEM (current): Dieter Rams "Operating System".** As of 2026-06-21 the
-> suite was overhauled from the old dark tactical-glass look to a light, warm-neutral,
-> near-monochrome Rams instrument-panel system. The full spec lives in
-> `RAMS-STYLE.md` (Downloads). This supersedes the dark-theme / glass guidance below.
-> If you are tempted to add a dark panel, a gradient, a shadow, or a second accent
-> colour — don't. Less, but better.
-
-### What Dr Non Wants (Rams system)
-- **Less, but better** — every element earns its place; the hairline grid does the work
-- **Light, warm-neutral, near-monochrome** — paper `#faf9f7`, white cells, ink `#191712`
-  text, hairlines `#e7e5dd`. Tokens are in `src/styles/index.css` `:root`
-  (`--paper --panel --ink --ink-2 --ink-3 --line --line-2 --green --red`)
-- **One signal colour** — Braun green `#1f6e43` (live / positive / primary action).
-  Red `#a23a26` for loss / severity ONLY. Everything else is grey/ink. No other hue.
-- **No glass** — no `backdrop-filter`, no shadows, no gradients, no blur
-- **Square corners** — 0px (the `--radius-*` tokens are 0; `50%` only for dots)
-- **Hairline cell grids** — the signature: line-coloured background, 1px gaps, white cells
-- **Helvetica Neue** grotesque everywhere, **tabular-nums** so figures align in columns
-- **Labels** = small + UPPERCASE + letterspaced (700 / 0.16em); big numbers ≤ weight 600
-- **Real data only** — every number sourced, no placeholder/hallucinated content
-- The map is the light **positron** ("Paper") basemap; traffic icons are ink/green
+### What Dr Non Wants
+- **Bauhaus meets data** — form follows function, every element earns its place
+- **Dark theme** for data dashboards (reduces eye strain, makes data pop)
+- **Glass morphism** — `backdrop-filter: blur(20px)`, frosted glass panels, subtle borders
+- **No rounded corners** — sharp corners or 1-2px max radius. Exceptions: logo pills, tags, buttons (functional radius)
+- **No template aesthetics** — no Bootstrap/Tailwind default look, no "AI blue" (#3B82F6), no icon grids
+- **Visual hierarchy through typography** — weight contrast (ultralight to bold), not just size
+- **Real data only** — every number sourced, no placeholder content, no hallucinated data
+- **Inter** for body, **JetBrains Mono** for data/mono
 
 ### Anti-Patterns (Hard Rejects)
-- Reverting to the dark theme / glass morphism / blur / shadows / gradients
-- A second accent colour, or decorative colour where grey + weight would do
-- Rounded corners (except dots), pills with glow, AI-blue (#3B82F6)
+- White logo box that clashes with dark theme → use transparent or very subtle container
 - Duplicate UI elements (two logo strips, redundant panels)
 - Logos with CSS filter hacks that make them invisible
 - Empty panels / blank space (fill everything or remove the panel)
@@ -145,7 +130,7 @@ This scales ALL rem-based elements proportionally for any screen size.
 
 ### GPD Data Flow
 ```
-External APIs (ACLED, NASA FIRMS, GDELT, EIA, RSS feeds, Yahoo Finance, HII/ThaiWater flood telemetry)
+External APIs (ACLED, NASA FIRMS, GDELT, EIA, RSS feeds, Yahoo Finance)
     ↓
 server/lib/*.mjs (fetcher modules)
     ↓
@@ -205,10 +190,7 @@ When deploying any dashboard:
 
 ### Deploy Commands
 ```bash
-# GPD → this laptop (primary — restart the local server + tunnel picks it up)
-launchctl kickstart -k gui/$(id -u)/org.nonarkara.globalmonitor
-
-# GPD → Cloudflare Pages (frontend + Pages Functions API — alternate path)
+# GPD → Cloudflare Pages (frontend + API)
 npm run deploy:pages
 
 # GPD → GitHub Pages (static backup, needs --base flag)
@@ -260,7 +242,7 @@ dashboards/
     functions/                 # Pages Functions API layer
     fly.toml                   # Fly.io config (retired — reference only)
     Dockerfile                 # Docker build (legacy Fly.io + Render)
-    CLAUDE.md                   # THIS FILE
+    AGENTS.md                   # THIS FILE
   mem-by-non/                   # MEM by NON (vanilla)
     index.html, app.js, style.css
   middleeast-monitor/           # War Monitor (vanilla monolith)

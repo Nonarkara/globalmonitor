@@ -73,7 +73,7 @@ export const loadTrafficIcons = (map, onReady) => {
             markDone();
         };
         img.onerror = markDone;
-        img.src = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+        img.src = `data:image/svg+xml;base64,${btoa(svg)}`;
     }
 };
 

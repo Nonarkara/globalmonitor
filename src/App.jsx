@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
-import RegionSelector from './components/RegionSelector';
 import WorldClock from './components/WorldClock';
 import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import SettingsModal from './components/SettingsModal';
@@ -20,6 +19,7 @@ import OracleSandboxModal from './components/OracleSandboxModal';
 import FloodSandboxModal from './components/FloodSandboxModal';
 import SourceHealthModal from './components/SourceHealthModal';
 import ActivityLogModal from './components/ActivityLogModal';
+import BraunManualModal from './components/BraunManualModal';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
@@ -30,7 +30,6 @@ const DASHBOARD_VERSION = 'v8.3';
 function App() {
   // ponytail: aerosol drowns the live traffic at 0.55 opacity — keep it a toggle, not a default. Re-add 'eo-aerosol' to restore aerosol-on-load.
   const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
-  const [activeRegion, setActiveRegion] = useState('middleeast');
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
@@ -43,6 +42,7 @@ function App() {
   const [isOracleOpen, setIsOracleOpen] = useState(false);
   const [floodSandboxCity, setFloodSandboxCity] = useState(null); // city id when open
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   useEscapeKey(isAboutOpen, () => setIsAboutOpen(false));
@@ -52,8 +52,8 @@ function App() {
     const onDocClick = (e) => {
       if (toolsRef.current && !toolsRef.current.contains(e.target)) setToolsOpen(false);
     };
-    if (toolsOpen) document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
+    if (toolsOpen) document.addEventListener('pointerdown', onDocClick);
+    return () => document.removeEventListener('pointerdown', onDocClick);
   }, [toolsOpen]);
   const [activeSources, setActiveSources] = useState(getDefaultSourceIdsForRegion('middleeast'));
   const [copernicusMode, setCopernicusMode] = useState('true-color');
@@ -82,33 +82,20 @@ function App() {
 
   const [timeMachineDate, setTimeMachineDate] = useState(null);
 
-  const toggleLayer = (layerId) => {
-    setActiveLayers(prev =>
-      prev.includes(layerId)
-        ? prev.filter(id => id !== layerId)
-        : [...prev, layerId]
-    );
-  };
+  const toggleLayer = useCallback((layerId) => {
+    setActiveLayers((prev) => {
+      const next = prev.includes(layerId)
+        ? prev.filter((id) => id !== layerId)
+        : [...prev, layerId];
+      logActivity(LOG_TYPES.USER_ACTION, `Layer ${layerId}: ${next.includes(layerId) ? 'on' : 'off'}`);
+      return next;
+    });
+  }, []);
 
   const resetCoreLayers = useCallback(() => {
     setActiveLayers(['conflicts', 'firms', 'flights', 'vessels']);
     logActivity(LOG_TYPES.USER_ACTION, 'Core operational map layers restored');
   }, []);
-
-  const handleRegionSelect = useCallback((regionId, targetViewState) => {
-    setActiveRegion(regionId);
-    if (viewMode === 'indopacific' && regionId !== 'asean') {
-      setSelectedCountryCode(regionId);
-    }
-    if (viewMode === 'thailand' && regionId !== 'thailand') {
-      setSelectedCountryCode(regionId);
-    }
-    setViewTarget(prev => ({
-      ...prev,
-      ...targetViewState,
-      transitionDuration: 1500,
-    }));
-  }, [viewMode]);
 
   const handleMapFlyTo = useCallback((target) => {
     setViewTarget(prev => ({
@@ -215,15 +202,13 @@ function App() {
           </div>
           {/* Right: Controls */}
           <div className="header-controls">
-            {viewMode === 'middleeast' && (
-              <button
-                onClick={() => setIsNetworkOpen(true)}
-                aria-label="Open actor and faction network analysis"
-                className="header-button header-button-actors"
-              >
-                <Network size={11} aria-hidden="true" /> Actors
-              </button>
-            )}
+            <button
+              onClick={() => setIsManualOpen(true)}
+              aria-label="Open System Manual"
+              className="header-button header-button-manual"
+            >
+              <Info size={11} aria-hidden="true" /> Manual
+            </button>
             <div
               className="header-region-tabs"
               role="tablist"
@@ -240,7 +225,6 @@ function App() {
                     tabIndex={isActive ? 0 : -1}
                     onClick={() => {
                       setViewMode(r.id);
-                      setActiveRegion(r.id === 'middleeast' ? 'middleeast' : r.id === 'indopacific' ? 'asean' : 'thailand');
                       setViewTarget({ ...r.viewState, transitionDuration: 1200 });
                       setActiveSources(getDefaultSourceIdsForRegion(r.id));
                       setSelectedCountryCode(null);
@@ -449,9 +433,29 @@ function App() {
               </ErrorBoundary>
             </>
           )}
+          {viewMode === 'global' && (
+            <>
+              <ErrorBoundary inline label="Global Macro">
+                <LazyPanel name="RegionalNewsPanel" regionName="Global" title="Global Macro & Policy" activeSourceIds={activeSources} viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Humanitarian Impact">
+                <LazyPanel name="HumanitarianPanel" viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Conflict Analytics">
+                <LazyPanel name="AcledAnalytics" viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Displacement Tracker">
+                <LazyPanel name="RefugeePanel" viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Maritime Warnings">
+                <LazyPanel name="MaritimeWarningsPanel" viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Arms & Defense">
+                <LazyPanel name="ArmsDefensePanel" viewMode={viewMode} />
+              </ErrorBoundary>
+            </>
+          )}
         </div>
-
-        {/* Row 4: Bottom bar — 5-column grid, 2 rows */}
         <div className="bottom-bar">
           <ErrorBoundary inline label="Market Radar">
             <LazyPanel name="MarketRadarPanel" viewMode={viewMode} />
@@ -554,9 +558,23 @@ function App() {
               </ErrorBoundary>
             </>
           )}
+          {viewMode === 'global' && (
+            <>
+              <ErrorBoundary inline label="Global Macro">
+                <LazyPanel name="RegionalNewsPanel" regionName="Global" title="Global Macro & Policy" activeSourceIds={activeSources} viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Maritime Warnings">
+                <LazyPanel name="MaritimeWarningsPanel" viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Media Sentiment">
+                <LazyPanel name="SentimentChart" viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="Seismic Activity">
+                <LazyPanel name="SeismicPanel" viewMode={viewMode} />
+              </ErrorBoundary>
+            </>
+          )}
         </div>
-
-        {/* Row 6: Live news ticker */}
         <ErrorBoundary inline label="Live Feed">
           <LiveIntelligenceFeed key={`ticker:${viewMode}:${sourceSetKey}`} activeSourceIds={activeSources} viewMode={viewMode} />
         </ErrorBoundary>
@@ -567,13 +585,6 @@ function App() {
             <LazyPanel name="TimeMachine" onDateChange={setTimeMachineDate} />
           </ErrorBoundary>
         )}
-
-        {/* Floating: Region selector */}
-        <RegionSelector
-          activeRegion={activeRegion}
-          onSelectRegion={handleRegionSelect}
-          viewMode={viewMode}
-        />
 
         {/* Modal: Settings */}
         <SettingsModal
@@ -607,6 +618,12 @@ function App() {
         <SourceHealthModal
           isOpen={isSourceHealthOpen}
           onClose={() => setIsSourceHealthOpen(false)}
+        />
+
+        {/* Modal: System Manual */}
+        <BraunManualModal
+          isOpen={isManualOpen}
+          onClose={() => setIsManualOpen(false)}
         />
 
         {/* Modal: Activity Log */}
@@ -706,7 +723,6 @@ function App() {
             aria-pressed={viewMode === r.id}
             onClick={() => {
               setViewMode(r.id);
-              setActiveRegion(r.id === 'middleeast' ? 'middleeast' : r.id === 'indopacific' ? 'asean' : 'thailand');
               setViewTarget({ ...r.viewState, transitionDuration: 1200 });
               setActiveSources(getDefaultSourceIdsForRegion(r.id));
               setSelectedCountryCode(null);

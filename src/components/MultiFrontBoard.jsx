@@ -34,12 +34,12 @@ const FrontCard = ({ front }) => {
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Icon size={12} style={{ color: front.color, opacity: 0.8 }} />
+                <Icon size={12} style={{ color: front.color === '#ef4444' ? 'var(--red)' : front.color === '#f59e0b' ? 'var(--ink-2)' : 'var(--green)', opacity: 0.9 }} />
                 <span style={{
-                    fontSize: '0.42rem',
+                    fontSize: '9px',
                     fontWeight: 700,
-                    letterSpacing: '1px',
-                    color: front.color,
+                    letterSpacing: '0.14em',
+                    color: front.status === 'CRITICAL' ? 'var(--red)' : front.status === 'ACTIVE' ? 'var(--ink)' : 'var(--ink-3)',
                     textTransform: 'uppercase',
                     padding: '1px 5px',
                     background: '#f2f0ea',
@@ -53,7 +53,7 @@ const FrontCard = ({ front }) => {
             </div>
 
             <div style={{
-                fontSize: '0.52rem',
+                fontSize: '12px',
                 fontWeight: 600,
                 color: 'var(--ink)',
                 letterSpacing: '0.3px',
@@ -63,13 +63,13 @@ const FrontCard = ({ front }) => {
             </div>
 
             <div style={{
-                fontSize: '0.72rem',
-                fontWeight: 200,
+                fontSize: '15px',
+                fontWeight: 600,
                 fontFamily: 'var(--font-mono)',
                 fontVariantNumeric: 'tabular-nums',
-                color: front.dayCount != null ? front.color : 'transparent',
+                color: front.dayCount != null ? 'var(--ink)' : 'transparent',
                 lineHeight: 1,
-                minHeight: '0.72rem'
+                minHeight: '15px'
             }}>
                 {front.dayCount != null ? `DAY ${front.dayCount}` : '\u00A0'}
             </div>
@@ -119,14 +119,15 @@ const MultiFrontBoard = () => {
                 }}>
                     MULTI-FRONT STATUS
                 </span>
-                <div style={{ display: 'flex', gap: '6px', minWidth: '12ch', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', gap: '10px', minWidth: '12ch', justifyContent: 'flex-end' }}>
                     <span style={{
                         fontSize: '0.42rem',
                         fontWeight: 700,
                         color: 'var(--red)',
                         letterSpacing: '0.5px',
                         visibility: criticalCount > 0 ? 'visible' : 'hidden',
-                        fontVariantNumeric: 'tabular-nums'
+                        fontVariantNumeric: 'tabular-nums',
+                        textTransform: 'uppercase'
                     }}>
                         {criticalCount} CRITICAL
                     </span>
@@ -136,7 +137,8 @@ const MultiFrontBoard = () => {
                         color: 'var(--ink-2)',
                         letterSpacing: '0.5px',
                         visibility: activeCount > 0 ? 'visible' : 'hidden',
-                        fontVariantNumeric: 'tabular-nums'
+                        fontVariantNumeric: 'tabular-nums',
+                        textTransform: 'uppercase'
                     }}>
                         {activeCount} ACTIVE
                     </span>

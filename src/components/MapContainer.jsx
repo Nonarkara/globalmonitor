@@ -109,7 +109,14 @@ const buildVesselPaths = (vessels) => {
     return { type: 'FeatureCollection', features };
 };
 
-const MAP_MIN_ZOOM = 2.5;
+const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
+
+const formatCoord = (value, axis) => {
+    const abs = Math.abs(value);
+    const dir = axis === 'lat' ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
+    return `${abs.toFixed(4)}°${dir}`;
+};
+const MAP_MIN_ZOOM = 3; // §11.9 — regional dashboard floor, prevents world-copy repetition
 const MAP_MAX_ZOOM = 18;
 
 const buildTargetViewState = (viewTarget, fallbackTransitionDuration = 1500) => ({
@@ -494,8 +501,10 @@ const MapContainer = ({
     const [failedSources, setFailedSources] = useState(() => new Set());
 
     const [mapIconsReady, setMapIconsReady] = useState(false);
+    const [mapReady, setMapReady] = useState(false);
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
+    const [cursorCoords, setCursorCoords] = useState(null);
 
     const handleMove = useCallback((event) => {
         dispatchViewState({ type: 'move', viewState: event.viewState });
@@ -543,21 +552,29 @@ const MapContainer = ({
 
     // Load custom SVG icons into the MapLibre sprite; re-run on style change
     // because setStyle() wipes all user-added images.
-    useEffect(() => {
+    const loadMapIcons = useCallback(() => {
         const map = mapRef.current?.getMap?.();
         if (!map) return;
+        loadTrafficIcons(map, () => setMapIconsReady(true));
+    }, []);
 
-        const loadIcons = () => {
-            setMapIconsReady(false);
-            loadTrafficIcons(map, () => setMapIconsReady(true));
-        };
+    const handleMapLoad = useCallback(() => {
+        setMapReady(true);
+        loadMapIcons();
+    }, [loadMapIcons]);
 
-        if (map.isStyleLoaded()) loadIcons();
-        map.on('style.load', loadIcons);
-        return () => { map.off('style.load', loadIcons); };
-    }, [mapStyle]);
+    useEffect(() => {
+        if (!mapReady) return undefined;
+        const map = mapRef.current?.getMap?.();
+        if (!map) return undefined;
+
+        loadMapIcons();
+        map.on('style.load', loadMapIcons);
+        return () => { map.off('style.load', loadMapIcons); };
+    }, [mapReady, mapStyle, loadMapIcons]);
 
     const handleMouseMove = useCallback((event) => {
+        setCursorCoords({ lng: event.lngLat.lng, lat: event.lngLat.lat });
         const feature = event.features?.find(
             (f) => f.layer?.id === 'flights-icons' || f.layer?.id === 'vessels-icons'
                 || f.layer?.id === 'flood-stations-alert' || f.layer?.id === 'flood-stations-all'
@@ -571,6 +588,7 @@ const MapContainer = ({
     }, []);
     const handleMouseLeave = useCallback(() => {
         setHoverInfo(null);
+        setCursorCoords(null);
     }, []);
 
     const disasterResource = useLiveResource(useCallback(() => fetchNaturalDisasters(), []), {
@@ -683,6 +701,9 @@ const MapContainer = ({
     const vesselPaths = useMemo(() => buildVesselPaths(vesselsData), [vesselsData]);
     const flightCount = flightsData?.features?.length ?? 0;
     const vesselCount = vesselsData?.features?.length ?? 0;
+    const flightSourceLabel = flightsResource.isStale || flightsData?.__meta?.status === 'stale'
+        ? 'ADS-B stale'
+        : 'ADS-B';
     const vesselsNeedKey = vesselsData?.meta?.requiresKey;
     const vesselSourceLabel = vesselsData?.meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 
@@ -753,6 +774,7 @@ const MapContainer = ({
                 touchZoomRotate
                 {...viewState}
                 onMove={handleMove}
+                onLoad={handleMapLoad}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 interactiveLayerIds={['flights-icons', 'vessels-icons', 'flood-stations-alert', 'flood-stations-all']}
@@ -1435,7 +1457,12 @@ const MapContainer = ({
                         closeButton={false}
                         closeOnClick={false}
                         offset={[0, -8]}
-                        className={`traffic-tooltip ${hoverInfo.feature.layer?.id === 'vessels-icons' ? 'traffic-tooltip--vessel' : ''}`}
+                        className={`traffic-tooltip ${
+                            hoverInfo.feature.layer?.id === 'vessels-icons' ? 'traffic-tooltip--vessel'
+                            : hoverInfo.feature.layer?.id === 'acled-circles' ? 'traffic-tooltip--conflict'
+                            : hoverInfo.feature.layer?.id === 'firms-circles' ? 'traffic-tooltip--heat'
+                            : ''
+                        }`}
                     >
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
@@ -1589,6 +1616,13 @@ const MapContainer = ({
             <div className="map-vignette" aria-hidden="true" />
             <div className="map-grid-overlay" aria-hidden="true" />
 
+            <div className="map-coord-readout" aria-live="polite">
+                <span className="map-coord-readout__label">Cursor position</span>
+                {cursorCoords
+                    ? `${formatCoord(cursorCoords.lat, 'lat')}  ${formatCoord(cursorCoords.lng, 'lng')}`
+                    : 'Move cursor over map'}
+            </div>
+
             {/* Tile-health badge — only renders when one or more raster sources have failed.
                 Worst-case visibility per Dr Non / §12 (Stoic transparency). */}
             {failedSources.size > 0 && (
@@ -1637,7 +1671,7 @@ const MapContainer = ({
                 >
                     <span className="map-legend-line" style={{ background: '#191712' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
-                        {flightCount > 0 ? `${flightCount.toLocaleString()} aircraft · ADS-B` : '… aircraft · ADS-B'}
+                        {flightCount > 0 ? `${flightCount.toLocaleString()} aircraft · ${flightSourceLabel}` : '… aircraft · ADS-B'}
                     </span>
                 </div>
                 <div
