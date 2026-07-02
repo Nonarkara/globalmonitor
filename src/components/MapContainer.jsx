@@ -16,11 +16,10 @@ import { fetchRainviewerTiles } from '../services/rainviewer.js';
 import { fetchAcledEvents } from '../services/acled.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
-import { fetchSdgLayer } from '../services/undpSdg';
 import { getRegion } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
-import { useInterpolatedTraffic } from '../hooks/useInterpolatedTraffic.js';
+import { useTrafficAnimator, EMPTY_TRAFFIC } from '../hooks/useInterpolatedTraffic.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
@@ -73,14 +72,15 @@ const MAX_VESSEL_PATH_M = 3000; // cap at 3 km
 const MIN_VESSEL_SPEED_KNOTS = 1;
 const KNOT_TO_MS = 0.514444;
 
+// Mirrors VESSEL_COLORS in mapTrafficIcons.js — hull icon and its wake vector match.
 const VESSEL_CATEGORY_COLOR = {
-    cargo: '#f59e0b',
-    tanker: '#ef4444',
-    passenger: '#3b82f6',
-    fishing: '#22c55e',
-    pleasure: '#ec4899',
-    tug: '#a78bfa',
-    other: '#38bdf8'
+    cargo: '#1f6e43',
+    tanker: '#a23a26',
+    passenger: '#191712',
+    fishing: '#6f6c63',
+    pleasure: '#8f8b80',
+    tug: '#8f8b80',
+    other: '#a9a59a'
 };
 
 const buildVesselPaths = (vessels) => {
@@ -141,8 +141,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[44, 22], [60, 22], [60, 32], [44, 32], [44, 22]]]
             },
             properties: {
-                fill: '#ef4444',
-                line: '#fca5a5'
+                fill: '#a23a26',
+                line: '#a23a26'
             }
         },
         {
@@ -152,8 +152,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[94, -6], [109, -6], [109, 18], [94, 18], [94, -6]]]
             },
             properties: {
-                fill: '#10b981',
-                line: '#6ee7b7'
+                fill: '#1f6e43',
+                line: '#1f6e43'
             }
         },
         {
@@ -163,8 +163,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[32, 11], [45, 11], [45, 22], [32, 22], [32, 11]]]
             },
             properties: {
-                fill: '#f59e0b',
-                line: '#fcd34d'
+                fill: '#8f8b80',
+                line: '#8f8b80'
             }
         }
     ]
@@ -180,7 +180,7 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[51.47, 25.28], [55.36, 25.25], [72.88, 19.07], [100.5, 13.75]]
             },
             properties: {
-                color: '#ef4444',
+                color: '#a23a26',
                 width: 2.8,
                 glow: 12,
                 label: 'Energy Trade Route (Gulf → India → Bangkok)'
@@ -193,7 +193,7 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[40.0, 16.5], [56.0, 18.2], [72.0, 14.6], [90.0, 8.3], [103.82, 1.35]]
             },
             properties: {
-                color: '#f59e0b',
+                color: '#8f8b80',
                 width: 2.4,
                 glow: 10,
                 label: 'Maritime Shipping Lane (Red Sea → Singapore)'
@@ -206,7 +206,7 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[121.47, 31.23], [121.56, 25.03], [120.98, 14.6], [103.82, 1.35]]
             },
             properties: {
-                color: '#38bdf8',
+                color: '#6f6c63',
                 width: 2.2,
                 glow: 9,
                 label: 'East Asia Trade Corridor (Shanghai → Singapore)'
@@ -218,11 +218,11 @@ const OPERATIONAL_CORRIDORS = {
 const ANCHOR_POINTS = {
     type: 'FeatureCollection',
     features: [
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [51.47, 25.28] }, properties: { color: '#ef4444', radius: 10 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [55.36, 25.25] }, properties: { color: '#ef4444', radius: 12 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [53.68, 32.42] }, properties: { color: '#ef4444', radius: 11 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [100.5, 13.75] }, properties: { color: '#10b981', radius: 12 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [103.82, 1.35] }, properties: { color: '#38bdf8', radius: 11 } }
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [51.47, 25.28] }, properties: { color: '#a23a26', radius: 10 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [55.36, 25.25] }, properties: { color: '#a23a26', radius: 12 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [53.68, 32.42] }, properties: { color: '#a23a26', radius: 11 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [100.5, 13.75] }, properties: { color: '#1f6e43', radius: 12 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [103.82, 1.35] }, properties: { color: '#6f6c63', radius: 11 } }
     ]
 };
 
@@ -236,7 +236,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[99.7, 13.15], [101.45, 13.15], [101.45, 14.55], [99.7, 14.55], [99.7, 13.15]]]
             },
             properties: {
-                color: '#10b981',
+                color: '#1f6e43',
                 height: 120000,
                 base: 0
             }
@@ -248,7 +248,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[103.45, 1.05], [104.15, 1.05], [104.15, 1.62], [103.45, 1.62], [103.45, 1.05]]]
             },
             properties: {
-                color: '#38bdf8',
+                color: '#6f6c63',
                 height: 140000,
                 base: 0
             }
@@ -260,7 +260,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[54.45, 24.35], [55.85, 24.35], [55.85, 25.65], [54.45, 25.65], [54.45, 24.35]]]
             },
             properties: {
-                color: '#ef4444',
+                color: '#a23a26',
                 height: 135000,
                 base: 0
             }
@@ -272,7 +272,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[120.55, 24.65], [122.25, 24.65], [122.25, 25.4], [120.55, 25.4], [120.55, 24.65]]]
             },
             properties: {
-                color: '#f59e0b',
+                color: '#8f8b80',
                 height: 105000,
                 base: 0
             }
@@ -284,7 +284,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[106.2, -6.7], [107.25, -6.7], [107.25, -5.8], [106.2, -5.8], [106.2, -6.7]]]
             },
             properties: {
-                color: '#8b5cf6',
+                color: '#8f8b80',
                 height: 110000,
                 base: 0
             }
@@ -302,7 +302,7 @@ const CITY_NETWORK = {
                 coordinates: [[54.9, 24.8], [72.88, 19.07], [100.5, 13.75], [103.82, 1.35]]
             },
             properties: {
-                color: '#38bdf8'
+                color: '#6f6c63'
             }
         },
         {
@@ -312,7 +312,7 @@ const CITY_NETWORK = {
                 coordinates: [[100.5, 13.75], [106.82, -6.18], [103.82, 1.35], [121.56, 25.03]]
             },
             properties: {
-                color: '#10b981'
+                color: '#1f6e43'
             }
         },
         {
@@ -322,7 +322,7 @@ const CITY_NETWORK = {
                 coordinates: [[103.82, 1.35], [114.17, 22.32], [121.56, 25.03], [139.76, 35.68]]
             },
             properties: {
-                color: '#f59e0b'
+                color: '#8f8b80'
             }
         }
     ]
@@ -334,27 +334,27 @@ const CITY_BEACONS = {
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [100.5, 13.75] },
-            properties: { name: 'Bangkok', tier: 'policy engine', color: '#10b981', radius: 8 }
+            properties: { name: 'Bangkok', tier: 'policy engine', color: '#1f6e43', radius: 8 }
         },
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [103.82, 1.35] },
-            properties: { name: 'Singapore', tier: 'logistics core', color: '#38bdf8', radius: 8 }
+            properties: { name: 'Singapore', tier: 'logistics core', color: '#6f6c63', radius: 8 }
         },
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [55.27, 25.2] },
-            properties: { name: 'Dubai', tier: 'airspace hinge', color: '#ef4444', radius: 8 }
+            properties: { name: 'Dubai', tier: 'airspace hinge', color: '#a23a26', radius: 8 }
         },
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [121.56, 25.03] },
-            properties: { name: 'Taipei', tier: 'tech nexus', color: '#f59e0b', radius: 7 }
+            properties: { name: 'Taipei', tier: 'tech nexus', color: '#8f8b80', radius: 7 }
         },
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [106.82, -6.18] },
-            properties: { name: 'Jakarta', tier: 'metro scale', color: '#8b5cf6', radius: 7 }
+            properties: { name: 'Jakarta', tier: 'metro scale', color: '#8f8b80', radius: 7 }
         }
     ]
 };
@@ -601,12 +601,6 @@ const MapContainer = ({
         intervalMs: 120 * 1000,
         isUsable: hasFeatureData
     });
-    const sdgResource = useLiveResource(useCallback(() => fetchSdgLayer(), []), {
-        cacheKey: 'map:sdg',
-        enabled: activeLayers.includes('sdg'),
-        intervalMs: 24 * 60 * 60 * 1000,
-        isUsable: (d) => d?.features?.length > 0
-    });
     const firmsResource = useLiveResource(useCallback(() => fetchFirmsData(viewMode), [viewMode]), {
         cacheKey: `map:firms:${viewMode}`,
         enabled: activeLayers.includes('firms'),
@@ -645,15 +639,17 @@ const MapContainer = ({
     const weatherData = weatherResource.data;
     const economyData = economyResource.data;
     const aqiData = aqiResource.data;
-    const sdgData = sdgResource.data;
     const firmsData = firmsResource.data;
     const infraData = infraResource.data;
     const flightsData = flightsResource.data;
     const vesselsData = vesselsResource.data;
-    const interpolatedFlights = useInterpolatedTraffic(flightsData, { idKey: 'hex', durationMs: 30_000, frameMs: 250, enabled: flightsLayerActive });
-    const interpolatedVessels = useInterpolatedTraffic(vesselsData, { idKey: 'mmsi', durationMs: 30_000, frameMs: 300, enabled: vesselsLayerActive });
-    const flightPaths = useMemo(() => buildFlightPaths(interpolatedFlights), [interpolatedFlights]);
-    const vesselPaths = useMemo(() => buildVesselPaths(interpolatedVessels), [interpolatedVessels]);
+    // Imperative animators write straight into the MapLibre sources — React never
+    // re-renders on the animation path (the old setState tween froze the page).
+    useTrafficAnimator(mapRef, 'flights-data', flightsData, { idKey: 'hex', durationMs: 30_000, frameMs: 900, enabled: flightsLayerActive });
+    useTrafficAnimator(mapRef, 'vessels-data', vesselsData, { idKey: 'mmsi', durationMs: 30_000, frameMs: 1300, enabled: vesselsLayerActive });
+    // Heading look-ahead trails update on the 30s poll, not per animation frame.
+    const flightPaths = useMemo(() => buildFlightPaths(flightsData), [flightsData]);
+    const vesselPaths = useMemo(() => buildVesselPaths(vesselsData), [vesselsData]);
     const flightCount = flightsData?.features?.length ?? 0;
     const vesselCount = vesselsData?.features?.length ?? 0;
     const vesselsNeedKey = vesselsData?.meta?.requiresKey;
@@ -971,57 +967,23 @@ const MapContainer = ({
                                     id="copernicus-preview-footprint-fill"
                                     type="fill"
                                     paint={{
-                                        'fill-color': copernicusPreview.preset === 'ndvi' ? '#10b981' : '#38bdf8',
-                                        'fill-opacity': 0.08
+                                        'fill-color': '#1f6e43',
+                                        'fill-opacity': 0.06
                                     }}
                                 />
                                 <Layer
                                     id="copernicus-preview-footprint-line"
                                     type="line"
                                     paint={{
-                                        'line-color': copernicusPreview.preset === 'ndvi' ? '#10b981' : '#38bdf8',
+                                        'line-color': '#1f6e43',
                                         'line-width': 1.5,
                                         'line-dasharray': [2, 2],
-                                        'line-opacity': 0.75
+                                        'line-opacity': 0.7
                                     }}
                                 />
                             </Source>
                         )}
                     </>
-                )}
-
-                {/* UN SDG Choropleth Layer */}
-                {activeLayers.includes('sdg') && sdgData && (
-                    <Source id="sdg-data" type="geojson" data={sdgData}>
-                        {/* Country Fill */}
-                        <Layer
-                            id="sdg-fill"
-                            type="fill"
-                            paint={{
-                                'fill-color': [
-                                    'step',
-                                    ['coalesce', ['get', 'sdgValue'], 0],
-                                    'rgba(148, 163, 184, 0.2)', // 0 (or null fallback) = grey
-                                    20, '#fca5a5',             // 0-20% = light red
-                                    40, '#f87171',             // 20-40% = red
-                                    60, '#fcd34d',             // 40-60% = yellow
-                                    80, '#86efac',             // 60-80% = light green
-                                    95, '#4ade80',             // 80-95% = green
-                                    100, '#22c55e'             // >95% = dark green
-                                ],
-                                'fill-opacity': 0.4
-                            }}
-                        />
-                        {/* Country Outline */}
-                        <Layer
-                            id="sdg-line"
-                            type="line"
-                            paint={{
-                                'line-color': 'rgba(255, 255, 255, 0.2)',
-                                'line-width': 1
-                            }}
-                        />
-                    </Source>
                 )}
 
                 {/* FIRMS Fire/Strike Layer */}
@@ -1077,26 +1039,26 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'match', ['get', 'status'],
-                                    'alert', '#ef4444',
-                                    'damaged', '#ef4444',
-                                    'closed', '#dc2626',
-                                    'at_risk', '#f59e0b',
-                                    'intermittent', '#f59e0b',
-                                    'monitoring', '#eab308',
-                                    '#22c55e'
+                                    'alert', '#a23a26',
+                                    'damaged', '#a23a26',
+                                    'closed', '#7c2b1c',
+                                    'at_risk', '#8f8b80',
+                                    'intermittent', '#8f8b80',
+                                    'monitoring', '#8f8b80',
+                                    '#1f6e43'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 8, 8],
                                 'circle-opacity': 0.7,
                                 'circle-stroke-width': 1.5,
                                 'circle-stroke-color': [
                                     'match', ['get', 'status'],
-                                    'alert', '#ef4444',
-                                    'damaged', '#ef4444',
-                                    'closed', '#dc2626',
-                                    'at_risk', '#f59e0b',
-                                    'intermittent', '#f59e0b',
-                                    'monitoring', '#eab308',
-                                    '#22c55e'
+                                    'alert', '#a23a26',
+                                    'damaged', '#a23a26',
+                                    'closed', '#7c2b1c',
+                                    'at_risk', '#8f8b80',
+                                    'intermittent', '#8f8b80',
+                                    'monitoring', '#8f8b80',
+                                    '#1f6e43'
                                 ],
                                 'circle-stroke-opacity': 0.3
                             }}
@@ -1113,8 +1075,8 @@ const MapContainer = ({
                                 'text-anchor': 'top'
                             }}
                             paint={{
-                                'text-color': 'rgba(255,255,255,0.7)',
-                                'text-halo-color': 'rgba(0,0,0,0.8)',
+                                'text-color': '#191712',
+                                'text-halo-color': 'rgba(255,255,255,0.85)',
                                 'text-halo-width': 1
                             }}
                         />
@@ -1131,19 +1093,21 @@ const MapContainer = ({
                             paint={{
                                 'line-color': [
                                     'case',
-                                    ['==', ['get', 'military'], true], '#ef4444',
-                                    '#facc15'
+                                    ['==', ['get', 'military'], true], '#a23a26',
+                                    '#191712'
                                 ],
                                 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.65, 6, 1.1, 10, 1.8],
-                                'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.34, 6, 0.52, 10, 0.72]
+                                'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.28, 6, 0.42, 10, 0.6]
                             }}
                         />
                     </Source>
                 )}
 
-                {/* Flights Layer — density heatmap at world zoom + glow dots + plane icons */}
-                {flightsLayerActive && interpolatedFlights?.features?.length > 0 && (
-                    <Source id="flights-data" type="geojson" data={interpolatedFlights}>
+                {/* Flights Layer — density wash at world zoom + plane icons.
+                    data stays EMPTY_TRAFFIC (stable ref): the traffic animator owns
+                    all setData writes, so React re-renders never touch this source. */}
+                {flightsLayerActive && flightsData?.features?.length > 0 && (
+                    <Source id="flights-data" type="geojson" data={EMPTY_TRAFFIC} buffer={0}>
                         <Layer
                             id="flights-density"
                             type="heatmap"
@@ -1154,14 +1118,13 @@ const MapContainer = ({
                                 'heatmap-color': [
                                     'interpolate', ['linear'], ['heatmap-density'],
                                     0, 'rgba(0,0,0,0)',
-                                    0.1, 'rgba(88,166,255,0.15)',
-                                    0.3, 'rgba(88,166,255,0.35)',
-                                    0.55, 'rgba(56,189,248,0.55)',
-                                    0.8, 'rgba(245,158,11,0.45)',
-                                    1, 'rgba(245,158,11,0.65)'
+                                    0.2, 'rgba(25,23,18,0.08)',
+                                    0.5, 'rgba(25,23,18,0.18)',
+                                    0.8, 'rgba(25,23,18,0.28)',
+                                    1, 'rgba(25,23,18,0.38)'
                                 ],
                                 'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 10, 4, 18, 5, 22],
-                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.55, 5, 0]
+                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 5, 0]
                             }}
                         />
                         <Layer
@@ -1171,11 +1134,11 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'case',
-                                    ['==', ['get', 'military'], true], '#ef4444',
-                                    '#facc15'
+                                    ['==', ['get', 'military'], true], '#a23a26',
+                                    '#191712'
                                 ],
-                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 7, 4, 10, 7, 9],
-                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.45, 5, 0.4, 7, 0.22],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 4, 7, 7, 7],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.3, 5, 0.25, 7, 0.14],
                                 'circle-blur': 0.7,
                             }}
                         />
@@ -1233,7 +1196,7 @@ const MapContainer = ({
                                     'Battles', '#ef4444',
                                     'Explosions/Remote violence', '#f97316',
                                     'Violence against civilians', '#dc2626',
-                                    'Strategic developments', '#3b82f6',
+                                    'Strategic developments', '#6f6c63',
                                     '#f59e0b'
                                 ],
                                 'circle-radius': [
@@ -1261,7 +1224,7 @@ const MapContainer = ({
                                     'match',
                                     ['get', 'category'],
                                     ...Object.entries(VESSEL_CATEGORY_COLOR).flatMap(([k, v]) => [k, v]),
-                                    '#38bdf8'
+                                    '#a9a59a'
                                 ],
                                 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 6, 0.9, 10, 1.5],
                                 'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.32, 6, 0.48, 10, 0.68]
@@ -1270,9 +1233,10 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Vessels Layer — density heatmap at world zoom + glow + triangles by category */}
-                {vesselsLayerActive && interpolatedVessels?.features?.length > 0 && (
-                    <Source id="vessels-data" type="geojson" data={interpolatedVessels}>
+                {/* Vessels Layer — density wash at world zoom + hull icons by category.
+                    data stays EMPTY_TRAFFIC: the traffic animator owns all setData. */}
+                {vesselsLayerActive && vesselsData?.features?.length > 0 && (
+                    <Source id="vessels-data" type="geojson" data={EMPTY_TRAFFIC} buffer={0}>
                         <Layer
                             id="vessels-density"
                             type="heatmap"
@@ -1283,14 +1247,12 @@ const MapContainer = ({
                                 'heatmap-color': [
                                     'interpolate', ['linear'], ['heatmap-density'],
                                     0, 'rgba(0,0,0,0)',
-                                    0.15, 'rgba(34,197,94,0.18)',
-                                    0.35, 'rgba(34,197,94,0.38)',
-                                    0.55, 'rgba(239,68,68,0.35)',
-                                    0.8, 'rgba(245,158,11,0.42)',
-                                    1, 'rgba(245,158,11,0.58)'
+                                    0.25, 'rgba(31,110,67,0.10)',
+                                    0.6, 'rgba(31,110,67,0.20)',
+                                    1, 'rgba(31,110,67,0.32)'
                                 ],
                                 'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 2, 8, 4, 14, 5, 18],
-                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 5, 0]
+                                'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.45, 5, 0]
                             }}
                         />
                         <Layer
@@ -1300,16 +1262,16 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'match', ['get', 'category'],
-                                    'cargo', '#22c55e',
-                                    'tanker', '#ef4444',
-                                    'passenger', '#3b82f6',
-                                    'fishing', '#f59e0b',
-                                    'tug', '#ea580c',
-                                    'pleasure', '#a855f7',
-                                    '#94a3b8'
+                                    'cargo', '#1f6e43',
+                                    'tanker', '#a23a26',
+                                    'passenger', '#191712',
+                                    'fishing', '#6f6c63',
+                                    'tug', '#8f8b80',
+                                    'pleasure', '#8f8b80',
+                                    '#a9a59a'
                                 ],
-                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 6, 4, 8, 7, 8],
-                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.42, 5, 0.38, 7, 0.2],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 4, 4, 6, 7, 6],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.3, 5, 0.26, 7, 0.14],
                                 'circle-blur': 0.7,
                             }}
                         />
@@ -1341,8 +1303,8 @@ const MapContainer = ({
                                 }}
                                 paint={{
                                     'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.86, 6, 0.93, 10, 0.98],
-                                    'text-color': '#e2e8f0',
-                                    'text-halo-color': 'rgba(0,0,0,0.75)',
+                                    'text-color': '#191712',
+                                    'text-halo-color': 'rgba(255,255,255,0.85)',
                                     'text-halo-width': 1,
                                 }}
                             />
@@ -1430,11 +1392,11 @@ const MapContainer = ({
                     </Popup>
                 )}
 
-                {activeLayers.includes('conflicts') && renderSpatialAura(crisesData, 'conflicts', '#ef4444', 16)}
-                {activeLayers.includes('disasters') && renderSpatialAura(disastersData, 'disasters', '#f59e0b', 14)}
-                {activeLayers.includes('weather') && renderSpatialAura(weatherData, 'weather', '#38bdf8', 18)}
-                {activeLayers.includes('economy') && renderSpatialAura(economyData, 'economy', '#FFC400', 12)}
-                {activeLayers.includes('aqi') && renderSpatialAura(aqiData, 'aqi', '#10b981', 15)}
+                {activeLayers.includes('conflicts') && renderSpatialAura(crisesData, 'conflicts', '#a23a26', 16)}
+                {activeLayers.includes('disasters') && renderSpatialAura(disastersData, 'disasters', '#8f8b80', 14)}
+                {activeLayers.includes('weather') && renderSpatialAura(weatherData, 'weather', '#6f6c63', 18)}
+                {activeLayers.includes('economy') && renderSpatialAura(economyData, 'economy', '#8f8b80', 12)}
+                {activeLayers.includes('aqi') && renderSpatialAura(aqiData, 'aqi', '#1f6e43', 15)}
 
                 {activeLayers.includes('disasters') && renderMarkers(disastersData, 'marker-disaster')}
                 {activeLayers.includes('conflicts') && renderMarkers(crisesData, 'marker-conflict')}
@@ -1461,9 +1423,8 @@ const MapContainer = ({
                                 style={{
                                     width: 14,
                                     height: 14,
-                                    background: f.properties.color || '#38bdf8',
-                                    border: '1.5px solid rgba(255,255,255,0.85)',
-                                    boxShadow: `0 0 12px ${f.properties.color || '#38bdf8'}cc`,
+                                    background: f.properties.color || '#191712',
+                                    border: '1.5px solid rgba(255,255,255,0.9)',
                                     cursor: 'pointer',
                                     transition: 'transform 0.15s'
                                 }}
@@ -1492,11 +1453,11 @@ const MapContainer = ({
                         alignItems: 'center',
                         gap: 6,
                         padding: '4px 8px',
-                        background: 'rgba(5, 14, 32, 0.78)',
-                        border: '1px solid rgba(212, 168, 67, 0.45)',
-                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                        background: 'var(--panel)',
+                        border: '1px solid var(--line-2)',
                         fontSize: '0.65rem',
-                        color: 'rgba(252, 211, 77, 0.92)',
+                        fontWeight: 700,
+                        color: 'var(--red)',
                         letterSpacing: '0.5px',
                         textTransform: 'uppercase',
                     }}
@@ -1525,7 +1486,7 @@ const MapContainer = ({
                     className="map-legend-item"
                     style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
                 >
-                    <span className="map-legend-line" style={{ background: '#facc15' }} />
+                    <span className="map-legend-line" style={{ background: '#191712' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {flightCount > 0 ? `${flightCount.toLocaleString()} aircraft · ADS-B` : '… aircraft · ADS-B'}
                     </span>
@@ -1536,7 +1497,7 @@ const MapContainer = ({
                 >
                     <span
                         className="map-legend-line"
-                        style={{ background: vesselCount > 0 ? '#22c55e' : 'rgba(245,158,11,0.35)' }}
+                        style={{ background: vesselCount > 0 ? '#1f6e43' : '#d2cfc5' }}
                     />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {vesselCount > 0
@@ -1548,7 +1509,7 @@ const MapContainer = ({
                     className="map-legend-item"
                     style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
                 >
-                    <span className="map-legend-line" style={{ background: '#facc15' }} />
+                    <span className="map-legend-line" style={{ background: '#8f8b80' }} />
                     <span>Aircraft vectors = 3 min look-ahead · Ship vectors = 2 min</span>
                 </div>
             </div>
@@ -1563,28 +1524,28 @@ const MapContainer = ({
             >
                     <div className="map-legend-title">STRATEGIC CONTEXT</div>
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: '#ef4444' }} />
+                        <span className="map-legend-line" style={{ background: '#a23a26' }} />
                         <span>Energy route reference</span>
                     </div>
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: '#f59e0b' }} />
+                        <span className="map-legend-line" style={{ background: '#8f8b80' }} />
                         <span>Shipping lane reference</span>
                     </div>
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: '#38bdf8' }} />
+                        <span className="map-legend-line" style={{ background: '#6f6c63' }} />
                         <span>Regional city network</span>
                     </div>
                     <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
                     <div className="map-legend-item">
-                        <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#fca5a5' }} />
+                        <span className="map-legend-zone" style={{ background: 'rgba(162,58,38,0.18)', borderColor: '#a23a26' }} />
                         <span>Persian Gulf focus area</span>
                     </div>
                     <div className="map-legend-item">
-                        <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#fcd34d' }} />
+                        <span className="map-legend-zone" style={{ background: 'rgba(143,139,128,0.2)', borderColor: '#8f8b80' }} />
                         <span>Horn of Africa / Yemen</span>
                     </div>
                     <div className="map-legend-item">
-                        <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#6ee7b7' }} />
+                        <span className="map-legend-zone" style={{ background: 'rgba(31,110,67,0.16)', borderColor: '#1f6e43' }} />
                         <span>ASEAN urban systems</span>
                     </div>
             </div>
@@ -1606,11 +1567,9 @@ const MapContainer = ({
                     }}>
                         {activeEoLayers.map(layer => (
                             <div key={layer.id} style={{
-                                background: 'rgba(10, 12, 18, 0.8)',
-                                backdropFilter: 'blur(12px)',
-                                borderRadius: '6px',
+                                background: 'var(--panel)',
                                 padding: '4px 10px',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                border: '1px solid var(--line-2)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px'
@@ -1618,15 +1577,15 @@ const MapContainer = ({
                                 <span style={{ fontSize: '0.7rem' }}>{layer.icon}</span>
                                 <span style={{
                                     fontSize: '0.46rem',
-                                    fontWeight: 600,
-                                    color: 'rgba(255,255,255,0.7)',
+                                    fontWeight: 700,
+                                    color: 'var(--ink)',
                                     letterSpacing: '0.5px'
                                 }}>
                                     {layer.name}
                                 </span>
                                 <span style={{
                                     fontSize: '0.38rem',
-                                    color: 'rgba(255,255,255,0.35)',
+                                    color: 'var(--ink-3)',
                                     letterSpacing: '0.3px'
                                 }}>
                                     {layer.attribution}

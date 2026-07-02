@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -50,128 +50,136 @@ const seedPositions = (geojson, idKey) => {
     return map;
 };
 
+// One mutable display copy per poll. The rAF loop mutates coordinates/heading in
+// place and hands the same object to setData — MapLibre clones it across the
+// worker boundary on every call, so in-place mutation is safe and allocation-free.
+const makeDisplay = (target) => ({
+    type: 'FeatureCollection',
+    features: (target?.features || []).map((f) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [f.geometry.coordinates[0], f.geometry.coordinates[1]] },
+        properties: { ...f.properties },
+    })),
+});
+
+const EMPTY_FC = { type: 'FeatureCollection', features: [] };
+
 /**
- * Smoothly animates moving point traffic (aircraft / ships) between sparse
- * polls. Two-stage motion: lerp from the previous displayed position to the new
- * target over `durationMs`, then dead-reckon along heading at the reported speed
- * so markers keep gliding if the next poll is late.
+ * Animates moving point traffic (aircraft / ships) between sparse polls by
+ * writing straight into a MapLibre GeoJSON source — no React state, so a frame
+ * costs one in-place mutation pass + one setData, and the (large) MapContainer
+ * tree never re-renders on the animation path. This replaced a setState-driven
+ * tween that re-rendered the whole map 4x/sec and froze the page.
+ *
+ * Two-stage motion per poll: lerp from the displayed position to the new target
+ * over `durationMs`, then dead-reckon along heading at the reported speed for at
+ * most one more interval so markers glide through a late poll.
  *
  * CRITICAL: features are matched by stable id (hex/mmsi), never by array index.
  * The backend reorders features every poll, so index pairing would lerp plane A
  * toward plane B's coordinates — the classic teleport/smear bug.
  */
-export const useInterpolatedTraffic = (geojson, {
+export const useTrafficAnimator = (mapRef, sourceId, geojson, {
     idKey = 'hex',
     durationMs = 30000,
-    frameMs = 250,
+    frameMs = 1000,
     enabled = true,
 } = {}) => {
-    const prevRef = useRef(new Map());      // id -> position at tween start
-    const startRef = useRef(0);             // tween start timestamp
+    const displayRef = useRef(null);        // mutable FC currently on the map
     const frameRef = useRef(null);
-    const targetRef = useRef(geojson);
-    const lastFrameAtRef = useRef(0);
-    const [display, setDisplay] = useState(geojson);
-    const displayRef = useRef(geojson);
 
     useEffect(() => {
-        displayRef.current = display;
-    }, [display]);
-
-    useEffect(() => {
-        targetRef.current = geojson;
         if (frameRef.current) cancelAnimationFrame(frameRef.current);
 
-        // No animation: snap straight to the data.
+        const writeToSource = (fc) => {
+            const source = mapRef.current?.getMap?.()?.getSource(sourceId);
+            if (!source) return false;
+            source.setData(fc);
+            return true;
+        };
+
         if (!enabled || !geojson?.features?.length) {
-            prevRef.current = new Map();
-            displayRef.current = geojson;
-            const raf = requestAnimationFrame(() => setDisplay(geojson));
-            return () => cancelAnimationFrame(raf);
+            displayRef.current = null;
+            writeToSource(EMPTY_FC);
+            return undefined;
         }
 
         // Seed the tween origin from what the map is already showing so traffic
         // glides forward from its current pixels rather than jumping.
-        prevRef.current = displayRef.current?.features?.length
+        const prev = displayRef.current?.features?.length
             ? seedPositions(displayRef.current, idKey)
             : seedPositions(geojson, idKey);
-        startRef.current = performance.now();
-        lastFrameAtRef.current = 0;
+        const display = makeDisplay(geojson);
+        displayRef.current = display;
+        const start = performance.now();
+        let lastFrameAt = 0;
+        let wroteOnce = false;
 
         const tick = () => {
             const now = performance.now();
-            const target = targetRef.current;
-            if (!target?.features?.length) {
-                setDisplay(target);
-                return;
-            }
-
-            const elapsed = now - startRef.current;
+            const elapsed = now - start;
             const t = Math.min(1, elapsed / durationMs);
             const overdueMs = elapsed - durationMs; // > 0 once tween is done
             // Animate through the tween plus one extra interval of dead reckoning,
             // then stop scheduling so a stalled feed doesn't spin rAF forever.
             const stillAnimating = t < 1 || overdueMs <= durationMs;
 
-            // Throttle React/setData churn.
-            if (now - lastFrameAtRef.current < frameMs) {
+            // Throttle mutation + worker traffic; keep retrying until the source
+            // exists (react-map-gl adds it asynchronously after style load).
+            if (wroteOnce && now - lastFrameAt < frameMs) {
                 if (stillAnimating) frameRef.current = requestAnimationFrame(tick);
                 return;
             }
-            lastFrameAtRef.current = now;
 
-            const prev = prevRef.current;
-            // Return a fresh top-level FeatureCollection each frame so React's setState
-            // bailout doesn't skip the update; react-map-gl then deep-compares the data
-            // prop and calls setData when coordinates actually change.
-            const features = new Array(target.features.length);
-            for (let i = 0; i < target.features.length; i++) {
-                const tf = target.features[i];
+            const targetFeatures = geojson.features;
+            for (let i = 0; i < targetFeatures.length; i++) {
+                const tf = targetFeatures[i];
+                const df = display.features[i];
                 const id = getFeatureId(tf, idKey);
                 const [tLon, tLat] = tf.geometry.coordinates;
                 const tHeading = tf.properties?.heading ?? 0;
                 const tCourse = tf.properties?.course ?? tHeading;
                 const old = id ? prev.get(id) : null;
-
-                let lon = tLon;
-                let lat = tLat;
-                let heading = tHeading;
-                let course = tCourse;
+                const coords = df.geometry.coordinates;
 
                 if (t < 1 && old) {
                     // Stage 1: glide from displayed position to the new target.
-                    lon = lerp(old.lon, tLon, t);
-                    lat = lerp(old.lat, tLat, t);
-                    heading = lerpAngle(old.heading, tHeading, t);
-                    course = lerpAngle(old.course, tCourse, t);
+                    coords[0] = lerp(old.lon, tLon, t);
+                    coords[1] = lerp(old.lat, tLat, t);
+                    df.properties.heading = lerpAngle(old.heading, tHeading, t);
+                    df.properties.course = lerpAngle(old.course, tCourse, t);
                 } else if (overdueMs > 0) {
                     // Stage 2: dead-reckon forward from the target so a late poll
-                    // doesn't freeze traffic. Cap look-ahead time AND distance so a
-                    // long feed stall parks markers near their last fix instead of
-                    // flinging them off-map. Recompute from target each frame —
-                    // no accumulation drift.
+                    // doesn't freeze traffic. Recompute from target each frame —
+                    // no accumulation drift; distance capped so a long feed stall
+                    // parks markers near their last fix.
                     const drMs = Math.min(overdueMs, durationMs);
                     const dist = Math.min(speedMps(tf.properties) * (drMs / 1000), MAX_DEAD_RECKON_M);
-                    [lon, lat] = advance(tLon, tLat, course, dist);
+                    const [lon, lat] = advance(tLon, tLat, df.properties.course ?? tCourse, dist);
+                    coords[0] = lon;
+                    coords[1] = lat;
+                } else {
+                    coords[0] = tLon;
+                    coords[1] = tLat;
+                    df.properties.heading = tHeading;
+                    df.properties.course = tCourse;
                 }
-
-                features[i] = {
-                    ...tf,
-                    geometry: { type: 'Point', coordinates: [lon, lat] },
-                    properties: { ...tf.properties, heading, course },
-                };
             }
 
-            displayRef.current = { type: 'FeatureCollection', features, meta: target.meta };
-            setDisplay(displayRef.current);
-            if (stillAnimating) frameRef.current = requestAnimationFrame(tick);
+            if (writeToSource(display)) {
+                wroteOnce = true;
+                lastFrameAt = now;
+            }
+            if (stillAnimating || !wroteOnce) frameRef.current = requestAnimationFrame(tick);
         };
 
         frameRef.current = requestAnimationFrame(tick);
         return () => {
             if (frameRef.current) cancelAnimationFrame(frameRef.current);
         };
-    }, [geojson, idKey, durationMs, frameMs, enabled]);
-
-    return display;
+    }, [mapRef, sourceId, geojson, idKey, durationMs, frameMs, enabled]);
 };
+
+// Stable empty collection for <Source data={...}> — the React prop never changes,
+// so react-map-gl never issues its own setData; the animator owns all writes.
+export const EMPTY_TRAFFIC = EMPTY_FC;

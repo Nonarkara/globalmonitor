@@ -35,8 +35,8 @@ const StatCard = ({ label, current, week, daily, color }) => {
                         style={{
                             flex: 1,
                             height: `${Math.max(2, (val / maxDay) * 16)}px`,
-                            background: val > 0 ? color : 'rgba(255,255,255,0.06)',
-                            borderRadius: '1px',
+                            background: val > 0 ? color : 'var(--line)',
+                            borderRadius: 0,
                             opacity: val > 0 ? 0.6 : 0.3,
                             transition: 'height 0.5s ease'
                         }}
@@ -86,28 +86,28 @@ const StrikeStatsPanel = () => {
                     current={data?.current?.missiles || 0}
                     week={weekTotal.missiles || 0}
                     daily={daily.map(d => d.missiles || 0)}
-                    color="#ef4444"
+                    color="var(--red)"
                 />
                 <StatCard
                     label="Drones"
                     current={data?.current?.drones || 0}
                     week={weekTotal.drones || 0}
                     daily={daily.map(d => d.drones || 0)}
-                    color="#f59e0b"
+                    color="var(--red)"
                 />
                 <StatCard
                     label="Intercept"
                     current={data?.current?.interceptions || 0}
                     week={weekTotal.interceptions || 0}
                     daily={daily.map(d => d.interceptions || 0)}
-                    color="#3b82f6"
+                    color="var(--green)"
                 />
                 <StatCard
                     label="Casualties"
                     current={data?.current?.casualties || 0}
                     week={weekTotal.casualties || 0}
                     daily={daily.map(d => d.casualties || 0)}
-                    color="#ef4444"
+                    color="var(--red)"
                 />
             </div>
         </div>

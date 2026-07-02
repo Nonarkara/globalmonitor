@@ -12,9 +12,9 @@ const AGENCIES = [
 ];
 
 const statusColor = (s) => {
-    if (s === 'live') return 'rgba(34, 197, 94, 0.8)';
-    if (s === 'catalog') return 'rgba(59, 130, 246, 0.6)';
-    return 'rgba(255, 255, 255, 0.2)';
+    if (s === 'live') return 'var(--green)';
+    if (s === 'catalog') return 'var(--ink-2)';
+    return 'var(--ink-3)';
 };
 
 const SourceStack = () => (
@@ -32,8 +32,8 @@ const SourceStack = () => (
             ))}
         </div>
         <div className="source-stack-legend">
-            <span><span className="source-stack-dot" style={{ background: 'rgba(34, 197, 94, 0.8)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Live</span>
-            <span><span className="source-stack-dot" style={{ background: 'rgba(59, 130, 246, 0.6)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Catalog</span>
+            <span><span className="source-stack-dot" style={{ background: 'var(--green)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Live</span>
+            <span><span className="source-stack-dot" style={{ background: 'var(--ink-2)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Catalog</span>
         </div>
     </div>
 );

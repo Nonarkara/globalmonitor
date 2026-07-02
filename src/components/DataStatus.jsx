@@ -14,18 +14,18 @@ const S = {
     },
     retryBtn: {
         marginTop: 'var(--sp-1)', padding: '3px 10px',
-        fontSize: 'var(--type-xs)', background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px',
+        fontSize: 'var(--type-xs)', background: 'var(--paper)',
+        border: '1px solid var(--line-2)', borderRadius: 0,
         color: 'var(--text-muted)', cursor: 'pointer',
         letterSpacing: '0.5px', textTransform: 'uppercase',
         fontFamily: 'var(--font-mono)', transition: 'var(--transition)'
     },
     staleBadge: {
         display: 'inline-flex', alignItems: 'center', gap: '4px',
-        fontSize: 'var(--type-xs)', color: 'var(--accent-amber)',
-        padding: '2px 6px', borderRadius: '3px',
-        background: 'rgba(245,158,11,0.1)', letterSpacing: '0.3px',
-        fontFamily: 'var(--font-mono)'
+        fontSize: 'var(--type-xs)', color: 'var(--ink-2)',
+        padding: '2px 6px', borderRadius: 0,
+        background: 'var(--paper)', border: '1px solid var(--line-2)',
+        letterSpacing: '0.3px', fontFamily: 'var(--font-mono)'
     }
 };
 
@@ -98,8 +98,7 @@ const DataStatus = ({
                 <span
                     style={{
                         ...S.staleBadge,
-                        color: 'var(--accent-cyan)',
-                        background: 'rgba(56,189,248,0.1)',
+                        color: 'var(--green)',
                         visibility: isRefreshing ? 'visible' : 'hidden'
                     }}
                     role="status"
