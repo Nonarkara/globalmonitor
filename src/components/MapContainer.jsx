@@ -14,6 +14,7 @@ import { fetchFlights } from '../services/flights.js';
 import { fetchVessels } from '../services/vessels.js';
 import { fetchRainviewerTiles } from '../services/rainviewer.js';
 import { fetchAcledEvents } from '../services/acled.js';
+import { fetchFloodOps } from '../services/flood.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
 import { getRegion } from '../data/regions.js';
@@ -559,6 +560,7 @@ const MapContainer = ({
     const handleMouseMove = useCallback((event) => {
         const feature = event.features?.find(
             (f) => f.layer?.id === 'flights-icons' || f.layer?.id === 'vessels-icons'
+                || f.layer?.id === 'flood-stations-alert' || f.layer?.id === 'flood-stations-all'
         );
         if (feature) {
             const [longitude, latitude] = feature.geometry?.coordinates || [];
@@ -633,6 +635,14 @@ const MapContainer = ({
         isUsable: (payload) => payload?.type === 'FeatureCollection',
         maxRetries: 0
     });
+    // HII flood telemetry — Thailand theater only. One payload carries all
+    // ~775 national gauges + the Chao Phraya cascade flow corridors.
+    const floodResource = useLiveResource(useCallback(() => fetchFloodOps('ayutthaya'), []), {
+        cacheKey: 'map:flood',
+        enabled: viewMode === 'thailand',
+        intervalMs: 10 * 60 * 1000,
+        isUsable: (payload) => Boolean(payload?.geo?.stations?.features?.length)
+    });
 
     const disastersData = disasterResource.data;
     const crisesData = conflictResource.data;
@@ -643,6 +653,27 @@ const MapContainer = ({
     const infraData = infraResource.data;
     const flightsData = flightsResource.data;
     const vesselsData = vesselsResource.data;
+    // Marching-ants dash cycle on the flood corridors: the dashes crawl
+    // downstream, making the direction of water legible at a glance. One
+    // uniform paint write per tick — no geometry upload, negligible cost.
+    useEffect(() => {
+        if (viewMode !== 'thailand' || !floodResource.data?.geo) return undefined;
+        const sequence = [
+            [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0],
+            [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5],
+        ];
+        let step = 0;
+        const timer = setInterval(() => {
+            const map = mapRef.current?.getMap?.();
+            if (!map || !map.getLayer('flood-corridors-flow')) return;
+            step = (step + 1) % sequence.length;
+            try {
+                map.setPaintProperty('flood-corridors-flow', 'line-dasharray', sequence[step]);
+            } catch { /* style mid-swap */ }
+        }, 160);
+        return () => clearInterval(timer);
+    }, [viewMode, floodResource.data]);
+
     // Imperative animators write straight into the MapLibre sources — React never
     // re-renders on the animation path (the old setState tween froze the page).
     useTrafficAnimator(mapRef, 'flights-data', flightsData, { idKey: 'hex', durationMs: 30_000, frameMs: 900, enabled: flightsLayerActive });
@@ -724,7 +755,7 @@ const MapContainer = ({
                 onMove={handleMove}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                interactiveLayerIds={['flights-icons', 'vessels-icons']}
+                interactiveLayerIds={['flights-icons', 'vessels-icons', 'flood-stations-alert', 'flood-stations-all']}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle={MAP_STYLES[mapStyle] || MAP_STYLES.dark}
             >
@@ -1312,6 +1343,90 @@ const MapContainer = ({
                     </Source>
                 )}
 
+                {/* FloodOps — HII gauges + Chao Phraya cascade flow corridors (Thailand) */}
+                {viewMode === 'thailand' && floodResource.data?.geo && (
+                    <>
+                        <Source id="flood-corridors" type="geojson" data={floodResource.data.geo.corridors}>
+                            <Layer
+                                id="flood-corridors-flow"
+                                type="line"
+                                layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+                                paint={{
+                                    'line-color': ['case', ['>=', ['get', 'level'], 4], '#a23a26', '#1f6e43'],
+                                    'line-width': [
+                                        'interpolate', ['linear'], ['coalesce', ['get', 'discharge'], 0],
+                                        0, 1.2, 200, 2.2, 600, 3.6, 1500, 5.5
+                                    ],
+                                    'line-opacity': 0.55,
+                                    'line-dasharray': [0, 4, 3]
+                                }}
+                            />
+                            <Layer
+                                id="flood-corridors-arrows"
+                                type="symbol"
+                                layout={{
+                                    'symbol-placement': 'line',
+                                    'symbol-spacing': 110,
+                                    'text-field': '▶',
+                                    'text-size': 11,
+                                    'text-keep-upright': false,
+                                    'text-allow-overlap': true,
+                                    'text-rotation-alignment': 'map',
+                                    'text-pitch-alignment': 'map',
+                                }}
+                                paint={{
+                                    'text-color': ['case', ['>=', ['get', 'level'], 4], '#a23a26', '#1f6e43'],
+                                    'text-opacity': 0.9,
+                                    'text-halo-color': 'rgba(255,255,255,0.8)',
+                                    'text-halo-width': 1,
+                                }}
+                            />
+                        </Source>
+                        <Source id="flood-stations" type="geojson" data={floodResource.data.geo.stations}>
+                            {/* Alert gauges (level ≥3 or on the cascade) — always visible */}
+                            <Layer
+                                id="flood-stations-alert"
+                                type="circle"
+                                filter={['any', ['>=', ['get', 'level'], 3], ['==', ['get', 'onCascade'], true]]}
+                                paint={{
+                                    'circle-color': [
+                                        'match', ['get', 'level'],
+                                        5, '#7c2b1c',
+                                        4, '#a23a26',
+                                        3, '#6f6c63',
+                                        2, '#8f8b80',
+                                        '#1f6e43'
+                                    ],
+                                    'circle-radius': [
+                                        'case',
+                                        ['>=', ['get', 'level'], 5], 6,
+                                        ['>=', ['get', 'level'], 4], 5,
+                                        ['==', ['get', 'onCascade'], true], 4.5,
+                                        3.5
+                                    ],
+                                    'circle-opacity': 0.9,
+                                    'circle-stroke-width': 1.2,
+                                    'circle-stroke-color': 'rgba(255,255,255,0.9)'
+                                }}
+                            />
+                            {/* Full national network fades in when zoomed to a basin */}
+                            <Layer
+                                id="flood-stations-all"
+                                type="circle"
+                                minzoom={7}
+                                filter={['all', ['<', ['get', 'level'], 3], ['!=', ['get', 'onCascade'], true]]}
+                                paint={{
+                                    'circle-color': ['match', ['get', 'level'], 2, '#8f8b80', 1, '#1f6e43', '#a9a59a'],
+                                    'circle-radius': 3,
+                                    'circle-opacity': 0.7,
+                                    'circle-stroke-width': 1,
+                                    'circle-stroke-color': 'rgba(255,255,255,0.85)'
+                                }}
+                            />
+                        </Source>
+                    </>
+                )}
+
                 {hoverInfo && (
                     <Popup
                         longitude={hoverInfo.longitude}
@@ -1324,6 +1439,40 @@ const MapContainer = ({
                     >
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
+                            const isFloodGauge = String(hoverInfo.feature.layer?.id || '').startsWith('flood-stations');
+                            if (isFloodGauge) {
+                                return (
+                                    <div className="traffic-tooltip-content">
+                                        <div className="traffic-tooltip-header">{p.code} · {p.name}</div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Bank</span>
+                                            <span>{p.pct != null ? `${Math.round(p.pct)}%` : '—'} · lvl {p.level}/5</span>
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Level</span>
+                                            <span>{p.msl != null ? `${p.msl} m MSL` : '—'}</span>
+                                        </div>
+                                        {p.discharge != null && p.discharge !== 0 && (
+                                            <div className="traffic-tooltip-row">
+                                                <span>Flow</span>
+                                                <span>{Math.round(p.discharge)} m³/s</span>
+                                            </div>
+                                        )}
+                                        {p.trendCmH != null && (
+                                            <div className="traffic-tooltip-row">
+                                                <span>Trend</span>
+                                                <span>{p.trendCmH > 0 ? '+' : ''}{p.trendCmH} cm/h</span>
+                                            </div>
+                                        )}
+                                        {p.province && (
+                                            <div className="traffic-tooltip-row">
+                                                <span>Province</span>
+                                                <span>{p.province}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
                             const isFlight = hoverInfo.feature.layer?.id === 'flights-icons' || p.hex;
                             if (isFlight) {
                                 const flagEmoji = (cc) => (cc && cc.length === 2)

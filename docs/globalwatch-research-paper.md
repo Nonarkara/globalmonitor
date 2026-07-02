@@ -202,6 +202,70 @@ Every AI-generated summary is labeled `AI-POWERED` in the interface. Every data 
 
 ---
 
+## 5b. FloodOps — From Situational Awareness to Operational Decision
+
+The Thailand theater carries a capability the other two do not: a live flood-operations
+module built directly on the Hydro-Informatics Institute (HII) national telemetry network,
+the same open dataset recognized by Thailand's national open-data award. This is the point
+where GlobalWatch stops being a monitoring screen and becomes a decision instrument for a
+specific human being — a municipal mayor deciding, tonight, where to send pumps and people.
+
+### The data spine
+
+Two HII / ThaiWater feeds anchor the module, both public and unauthenticated
+(`api-v3.thaiwater.net`), both on a 10-minute national cadence:
+
+- **`waterlevel_load`** — ~775 telemetry gauges reporting water level in metres MSL,
+  percentage of channel capacity, discharge in m³/s, and a 1–5 situation level.
+- **`rain_24h`** — ~4,300 rain gauges reporting 1-hour and 24-hour accumulation, each
+  tagged with a real province geocode.
+
+On top of the raw telemetry we encode the **physical Chao Phraya river network** — the Ping,
+Wang, Yom, and Nan headwaters converging at Nakhon Sawan (station C.2), through the Chao
+Phraya Dam (C.13) and down past Sing Buri (C.3) to Ayutthaya (C.35) and on to Bangkok — with
+reach travel times drawn from Royal Irrigation Department flood-routing practice for the 2011
+and 2021–22 events. A flood wave in these reaches moves at roughly 1–2 m/s; the travel times
+are honest ±30% operational approximations, and the interface says so.
+
+### What the mayor sees
+
+The **Water Inbound** panel answers three questions in one glance: *how much water is coming,
+from where, and when it arrives.* The city's own gauge shows percent-of-bank and an
+instantaneous rate-of-rise in cm/hour (the 10-minute delta). Below it, the upstream cascade
+lists each contributing station — its discharge, its situation level, and its estimated
+time-of-arrival at the city — sorted soonest-first. Basin rain loading is aggregated by real
+province sets, so "146 mm across the Nan basin, 99 stations over the 35 mm heavy-rain
+threshold" is a statement about specific administrative geography, not a national average.
+
+On the map, the same telemetry renders as gauge dots on the severity ramp and as **animated
+flow corridors** — dashed lines with directional arrowheads that crawl downstream, making the
+direction and volume of water legible without reading a number. Corridor width scales with
+live discharge; color escalates to brick-red where an upstream gauge crosses situation level 4.
+
+### God's Mode — planning against the terrain
+
+The final layer is a simulation sandbox we call God's Mode. It decodes real SRTM elevation
+(Terrarium tiles, ~19 m/pixel, proxied through our server for CORS) into an elevation grid
+around the city, then runs a **connected-bathtub inundation model**: water spreads from the
+river channel across every contiguous cell whose ground sits below a simulated water surface.
+The surface is driven by a stage slider — from a monsoon pulse (+0.5 m) to a 2011-scale event
+(+3.5 m) — applied relative to the river's own SRTM surface so the model is datum-safe against
+any offset between the gauge and the elevation model. Isolated high ground stays dry; the flat
+delta floods as a connected sheet, exactly as it does in reality.
+
+The output is operational, not academic: inundated area in km², which named critical sites go
+underwater and to what depth (hospital, city hall, markets, rail station — each sampled at its
+real coordinate), and a ranked **operational directive** — activate the EOC, pre-position
+pumps at the lowest-elevation districts first, coordinate dam release with RID before it
+exceeds downstream channel capacity, decide evacuation staging within a deadline set by the
+nearest rising gauge. The directive is written by an LLM when available and falls back to a
+deterministic rule-based plan when it is not, so the button always produces an actionable
+order. This is honest first-order screening physics — the interface never claims to be a
+hydrodynamic model — but the terrain is real, the gauge is real, the geography is real, and
+the decision it supports is real.
+
+---
+
 ## 6. How to Read GlobalWatch
 
 ### The Three-Panel Structure

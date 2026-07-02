@@ -31,6 +31,8 @@ import { ingestRegionalNews } from './lib/regionalNewsIngest.mjs';
 import { startAisStream, startVesselFinderRefresh, getVesselsGeoJson, getVesselsGeoJsonForTheater } from './lib/aisVessels.mjs';
 import { getRainviewerRadarTiles } from './lib/rainviewer.mjs';
 import { buildForecast as buildOracleForecast } from './lib/oracle/index.mjs';
+import { buildFloodOps, FLOOD_CITIES } from './lib/floodOps.mjs';
+import { buildFloodDirective } from './lib/floodDirective.mjs';
 import { startScheduler } from './lib/scheduler.mjs';
 import {
     saveSnapshot, loadAllSnapshots, getDbHealth,
@@ -68,6 +70,8 @@ loadEnvFile('.env');
 const DIST_DIR = path.resolve(__dirname, '..', 'dist');
 const PORT = Number(process.env.PORT || 4000);
 const cache = new Map();
+// Immutable terrarium elevation tiles for the flood simulator (Map = insertion-order LRU).
+const terrainTileCache = new Map();
 // Tracks in-flight refreshes per cache key so concurrent viewers hitting an
 // expired key coalesce onto a single upstream fetch instead of each firing one.
 const pending = new Map();
@@ -456,6 +460,44 @@ const server = http.createServer(async (request, response) => {
             return;
         }
 
+        if (url.pathname === '/api/flood') {
+            const cityId = FLOOD_CITIES[url.searchParams.get('city')] ? url.searchParams.get('city') : 'ayutthaya';
+            const result = await useCached(
+                `flood:${cityId}`,
+                10 * 60 * 1000, // matches HII 10-min telemetry cadence
+                () => buildFloodOps(cityId),
+                (p) => Array.isArray(p?.geo?.stations?.features) && p.geo.stations.features.length > 0
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/flood/directive') {
+            const cityId = FLOOD_CITIES[url.searchParams.get('city')] ? url.searchParams.get('city') : 'ayutthaya';
+            // Simulation summary comes from the client's terrain run (God's Mode).
+            const deltaM = Number(url.searchParams.get('delta'));
+            const floodedKm2 = Number(url.searchParams.get('km2'));
+            const pois = (url.searchParams.get('pois') || '').split('|').filter(Boolean).slice(0, 8);
+            const sim = Number.isFinite(deltaM)
+                ? { deltaM, floodedKm2: Number.isFinite(floodedKm2) ? floodedKm2 : 0, floodedPois: pois }
+                : null;
+            const opsResult = await useCached(
+                `flood:${cityId}`,
+                10 * 60 * 1000,
+                () => buildFloodOps(cityId),
+                (p) => Array.isArray(p?.geo?.stations?.features)
+            );
+            const simKey = sim ? `${sim.deltaM}:${sim.floodedKm2}:${pois.join(',')}` : 'live';
+            const result = await useCached(
+                `flood-directive:${cityId}:${simKey}`,
+                5 * 60 * 1000,
+                () => buildFloodDirective(opsResult.payload, sim),
+                (p) => typeof p?.directive === 'string' && p.directive.length > 20
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
         if (url.pathname === '/api/rainviewer') {
             const result = await useCached(
                 'rainviewer:radar',
@@ -579,6 +621,47 @@ const server = http.createServer(async (request, response) => {
                 (payload) => payload?.available === true && typeof payload?.imageDataUrl === 'string' && payload.imageDataUrl.startsWith('data:image/')
             );
             json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/terrain') {
+            // Terrarium elevation tiles (AWS Open Data) don't send CORS headers,
+            // so God's Mode reads them through this proxy. Tiles are immutable —
+            // cache aggressively in memory and in the browser.
+            const z = Number(url.searchParams.get('z'));
+            const x = Number(url.searchParams.get('x'));
+            const y = Number(url.searchParams.get('y'));
+            const maxIndex = 2 ** z;
+            if (!Number.isInteger(z) || z < 0 || z > 15
+                || !Number.isInteger(x) || x < 0 || x >= maxIndex
+                || !Number.isInteger(y) || y < 0 || y >= maxIndex) {
+                json(response, 400, { error: 'Bad tile coordinates' }, { status: 'offline' });
+                return;
+            }
+            const tileKey = `terrain:${z}/${x}/${y}`;
+            let buf = terrainTileCache.get(tileKey);
+            if (!buf) {
+                const upstream = await fetch(
+                    `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`,
+                    { signal: AbortSignal.timeout(15000) }
+                );
+                if (!upstream.ok) {
+                    json(response, 502, { error: `terrain tile upstream ${upstream.status}` }, { status: 'offline' });
+                    return;
+                }
+                buf = Buffer.from(await upstream.arrayBuffer());
+                terrainTileCache.set(tileKey, buf);
+                if (terrainTileCache.size > 600) { // ~18MB ceiling; drop oldest
+                    terrainTileCache.delete(terrainTileCache.keys().next().value);
+                }
+            }
+            response.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Content-Length': buf.length,
+                'Cache-Control': 'public, max-age=31536000, immutable',
+                'Access-Control-Allow-Origin': '*',
+            });
+            response.end(buf);
             return;
         }
 

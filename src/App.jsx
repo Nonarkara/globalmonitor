@@ -17,6 +17,7 @@ import ClassificationBanner from './components/ClassificationBanner';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import ActorNetworkModal from './components/ActorNetworkModal';
 import OracleSandboxModal from './components/OracleSandboxModal';
+import FloodSandboxModal from './components/FloodSandboxModal';
 import SourceHealthModal from './components/SourceHealthModal';
 import ActivityLogModal from './components/ActivityLogModal';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
@@ -40,6 +41,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
   const [isOracleOpen, setIsOracleOpen] = useState(false);
+  const [floodSandboxCity, setFloodSandboxCity] = useState(null); // city id when open
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -416,6 +418,9 @@ function App() {
           )}
           {viewMode === 'thailand' && (
             <>
+              <ErrorBoundary inline label="Flood Operations">
+                <LazyPanel name="FloodOpsPanel" onOpenSandbox={(cityId) => setFloodSandboxCity(cityId)} />
+              </ErrorBoundary>
               <ErrorBoundary inline label="Thailand Region News">
                 <LazyPanel name="CountryNewsPanel" mode="thailand"
                   selectedCode={selectedCountryCode}
@@ -584,6 +589,13 @@ function App() {
           isOpen={isOracleOpen}
           onClose={() => setIsOracleOpen(false)}
           theater={viewMode}
+        />
+
+        {/* Modal: Flood God's Mode */}
+        <FloodSandboxModal
+          isOpen={Boolean(floodSandboxCity)}
+          onClose={() => setFloodSandboxCity(null)}
+          city={floodSandboxCity || 'ayutthaya'}
         />
 
         <ActorNetworkModal

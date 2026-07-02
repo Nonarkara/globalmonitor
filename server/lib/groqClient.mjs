@@ -34,10 +34,14 @@ export const groqChat = async (messages, { temperature = 0.4, maxTokens = 700 } 
             }),
             signal: AbortSignal.timeout(15000),
         });
-        if (!res.ok) return null;
+        if (!res.ok) {
+            console.error(`[groq] HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+            return null;
+        }
         const data = await res.json();
         return data.choices?.[0]?.message?.content?.trim() || null;
-    } catch {
+    } catch (error) {
+        console.error(`[groq] request failed: ${error?.message || error}`);
         return null;
     }
 };

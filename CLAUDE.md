@@ -143,7 +143,7 @@ This scales ALL rem-based elements proportionally for any screen size.
 
 ### GPD Data Flow
 ```
-External APIs (ACLED, NASA FIRMS, GDELT, EIA, RSS feeds, Yahoo Finance)
+External APIs (ACLED, NASA FIRMS, GDELT, EIA, RSS feeds, Yahoo Finance, HII/ThaiWater flood telemetry)
     ↓
 server/lib/*.mjs (fetcher modules)
     ↓

@@ -63,6 +63,11 @@ export const startScheduler = (serverPort) => {
     // Rainviewer radar — 5 min
     schedule('/api/rainviewer', 5 * MIN, 8000);
 
+    // FloodOps — HII telemetry is 10-min cadence; warm both monitored cities
+    ['ayutthaya', 'chiangmai'].forEach((c, i) => {
+        schedule(`/api/flood?city=${c}`, 10 * MIN, 9000 + i * 5000);
+    });
+
     // ── Per-theater endpoints ────────────────────────────────────────────────
 
     const theaters = ['middleeast', 'indopacific', 'thailand'];
@@ -89,8 +94,11 @@ export const startScheduler = (serverPort) => {
         // is set, but ready the moment AISSTREAM_API_KEY lands)
         schedule(`/api/vessels?theater=${theater}`, 30 * 1000, 16000 + base);
 
-        // Oracle baseline forecast — 5 min (runs the Monte-Carlo sim on live state)
-        schedule(`/api/oracle?theater=${theater}`, 5 * MIN, 17000 + base);
+        // Oracle baseline forecast — 30 min. The Monte-Carlo is cheap but each
+        // warm also triggers a Groq narrative; at 5 min × 3 theaters it burned
+        // the entire 100k/day free-tier token budget. Viewers still get ≤5-min
+        // freshness via the route's own TTL when they actually look.
+        schedule(`/api/oracle?theater=${theater}`, 30 * MIN, 17000 + base);
     });
 
     // ── Intelligence briefings — staggered 30s apart, 4-min cycle ────────────
