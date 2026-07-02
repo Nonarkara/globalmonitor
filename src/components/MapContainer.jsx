@@ -44,10 +44,22 @@ const projectForward = (lon, lat, headingDeg, distanceM) => {
     return [(lambda2 * 180) / Math.PI, (phi2 * 180) / Math.PI];
 };
 
+// A feature the traffic layers can actually draw. Data can arrive from a live
+// poll, the server's stale cache, or a browser-side last-good snapshot written
+// by an OLDER build — never assume geometry is present or well-formed, because
+// one bad feature here throws during render and takes the whole map down.
+const isRenderablePoint = (f) => (
+    f?.geometry?.type === 'Point'
+    && Array.isArray(f.geometry.coordinates)
+    && Number.isFinite(f.geometry.coordinates[0])
+    && Number.isFinite(f.geometry.coordinates[1])
+);
+
 const buildFlightPaths = (flights) => {
     if (!flights?.features?.length) return null;
     const features = flights.features
         .filter((f) => {
+            if (!isRenderablePoint(f)) return false;
             const p = f.properties || {};
             return !p.onGround
                 && (p.velocity || 0) >= MIN_PATH_VELOCITY_MS
@@ -88,6 +100,7 @@ const buildVesselPaths = (vessels) => {
     if (!vessels?.features?.length) return null;
     const features = vessels.features
         .filter((f) => {
+            if (!isRenderablePoint(f)) return false;
             const p = f.properties || {};
             const speedKnots = p.speed || 0;
             const direction = p.course ?? p.heading;

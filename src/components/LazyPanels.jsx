@@ -1,5 +1,30 @@
 import React, { Suspense } from 'react';
 
+// After a redeploy, hashed chunk files from the previous build no longer exist —
+// an already-open tab that lazy-loads one gets a 404 and the error boundary
+// shows "Something went wrong" on every retry. Recover with ONE forced reload
+// (fresh index.html → fresh chunk URLs); the sessionStorage flag stops loops.
+const RELOAD_FLAG = 'gm:chunk-reload';
+const lazyWithReload = (importer) => React.lazy(() =>
+    importer()
+        .then((module) => {
+            try { sessionStorage.removeItem(RELOAD_FLAG); } catch { /* private mode */ }
+            return module;
+        })
+        .catch((error) => {
+            let alreadyReloaded = false;
+            try {
+                alreadyReloaded = Boolean(sessionStorage.getItem(RELOAD_FLAG));
+                if (!alreadyReloaded) sessionStorage.setItem(RELOAD_FLAG, '1');
+            } catch { alreadyReloaded = true; }
+            if (!alreadyReloaded) {
+                window.location.reload();
+                return new Promise(() => {}); // page is reloading — never resolve
+            }
+            throw error;
+        })
+);
+
 const PanelSkeleton = () => (
     <div className="bottom-card" style={{ padding: '10px 12px' }}>
         <div style={{
@@ -18,36 +43,36 @@ const PanelSkeleton = () => (
 );
 
 const PANELS = {
-    MapContainer: React.lazy(() => import('./MapContainer')),
-    IntelligencePanel: React.lazy(() => import('./IntelligencePanel')),
-    RegionalNewsPanel: React.lazy(() => import('./RegionalNewsPanel')),
-    MarketRadarPanel: React.lazy(() => import('./MarketRadarPanel')),
-    CountryNewsPanel: React.lazy(() => import('./CountryNewsPanel')),
-    MaritimeWarningsPanel: React.lazy(() => import('./MaritimeWarningsPanel')),
-    SeismicPanel: React.lazy(() => import('./SeismicPanel')),
-    TimeMachine: React.lazy(() => import('./TimeMachine')),
-    HormuzTracker: React.lazy(() => import('./HormuzTracker')),
-    OilPriceChart: React.lazy(() => import('./OilPriceChart')),
-    MiddleEastOilDependency: React.lazy(() => import('./MiddleEastOilDependency')),
-    SentimentChart: React.lazy(() => import('./SentimentChart')),
-    AcledAnalytics: React.lazy(() => import('./AcledAnalytics')),
-    HumanitarianPanel: React.lazy(() => import('./HumanitarianPanel')),
-    SanctionsPanel: React.lazy(() => import('./SanctionsPanel')),
-    WarCostTracker: React.lazy(() => import('./WarCostTracker')),
-    NuclearTrackerPanel: React.lazy(() => import('./NuclearTrackerPanel')),
-    KeyFiguresPanel: React.lazy(() => import('./KeyFiguresPanel')),
-    InternationalResponsePanel: React.lazy(() => import('./InternationalResponsePanel')),
-    RefugeePanel: React.lazy(() => import('./RefugeePanel')),
-    ArmsDefensePanel: React.lazy(() => import('./ArmsDefensePanel')),
-    IranWarPanel: React.lazy(() => import('./IranWarPanel')),
-    SouthChinaSeaPanel: React.lazy(() => import('./SouthChinaSeaPanel')),
-    ThailandStatusPanel: React.lazy(() => import('./ThailandStatusPanel')),
-    FloodOpsPanel: React.lazy(() => import('./FloodOpsPanel')),
-    OraclePanel: React.lazy(() => import('./OraclePanel')),
-    LiveTVPanel: React.lazy(() => import('./LiveTVPanel')),
-    MultiFrontBoard: React.lazy(() => import('./MultiFrontBoard')),
-    FlightRadarEmbed: React.lazy(() => import('./FlightRadarEmbed')),
-    EventDetailsPanel: React.lazy(() => import('./EventDetailsPanel')),
+    MapContainer: lazyWithReload(() => import('./MapContainer')),
+    IntelligencePanel: lazyWithReload(() => import('./IntelligencePanel')),
+    RegionalNewsPanel: lazyWithReload(() => import('./RegionalNewsPanel')),
+    MarketRadarPanel: lazyWithReload(() => import('./MarketRadarPanel')),
+    CountryNewsPanel: lazyWithReload(() => import('./CountryNewsPanel')),
+    MaritimeWarningsPanel: lazyWithReload(() => import('./MaritimeWarningsPanel')),
+    SeismicPanel: lazyWithReload(() => import('./SeismicPanel')),
+    TimeMachine: lazyWithReload(() => import('./TimeMachine')),
+    HormuzTracker: lazyWithReload(() => import('./HormuzTracker')),
+    OilPriceChart: lazyWithReload(() => import('./OilPriceChart')),
+    MiddleEastOilDependency: lazyWithReload(() => import('./MiddleEastOilDependency')),
+    SentimentChart: lazyWithReload(() => import('./SentimentChart')),
+    AcledAnalytics: lazyWithReload(() => import('./AcledAnalytics')),
+    HumanitarianPanel: lazyWithReload(() => import('./HumanitarianPanel')),
+    SanctionsPanel: lazyWithReload(() => import('./SanctionsPanel')),
+    WarCostTracker: lazyWithReload(() => import('./WarCostTracker')),
+    NuclearTrackerPanel: lazyWithReload(() => import('./NuclearTrackerPanel')),
+    KeyFiguresPanel: lazyWithReload(() => import('./KeyFiguresPanel')),
+    InternationalResponsePanel: lazyWithReload(() => import('./InternationalResponsePanel')),
+    RefugeePanel: lazyWithReload(() => import('./RefugeePanel')),
+    ArmsDefensePanel: lazyWithReload(() => import('./ArmsDefensePanel')),
+    IranWarPanel: lazyWithReload(() => import('./IranWarPanel')),
+    SouthChinaSeaPanel: lazyWithReload(() => import('./SouthChinaSeaPanel')),
+    ThailandStatusPanel: lazyWithReload(() => import('./ThailandStatusPanel')),
+    FloodOpsPanel: lazyWithReload(() => import('./FloodOpsPanel')),
+    OraclePanel: lazyWithReload(() => import('./OraclePanel')),
+    LiveTVPanel: lazyWithReload(() => import('./LiveTVPanel')),
+    MultiFrontBoard: lazyWithReload(() => import('./MultiFrontBoard')),
+    FlightRadarEmbed: lazyWithReload(() => import('./FlightRadarEmbed')),
+    EventDetailsPanel: lazyWithReload(() => import('./EventDetailsPanel')),
 };
 
 export const LazyMapContainer = PANELS.MapContainer;

@@ -1,11 +1,21 @@
 import { fetchBackendJson } from './backendClient.js';
 
-const CLIENT_CACHE_PREFIX = 'tech-monitor:last-good-flights';
+// v2: key bump orphans payloads cached by older builds — a malformed feature
+// restored from here would crash the map render on every retry.
+const CLIENT_CACHE_PREFIX = 'tech-monitor:last-good-flights:v2';
+
+const isRenderableFeature = (f) => (
+    f?.geometry?.type === 'Point'
+    && Array.isArray(f.geometry.coordinates)
+    && Number.isFinite(f.geometry.coordinates[0])
+    && Number.isFinite(f.geometry.coordinates[1])
+);
 
 const hasFlightFeatures = (payload) => (
     payload?.type === 'FeatureCollection'
     && Array.isArray(payload.features)
     && payload.features.length > 0
+    && payload.features.every(isRenderableFeature)
 );
 
 const withMeta = (payload, meta) => {

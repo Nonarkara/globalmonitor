@@ -36,11 +36,21 @@ const advance = (lon, lat, headingDeg, distM) => {
     return [lon + (dLon * 180) / Math.PI, lat + (dLat * 180) / Math.PI];
 };
 
+// Traffic payloads can come from a live poll, the server's stale cache, or a
+// browser-side snapshot written by an older build — never trust geometry shape.
+const isRenderablePoint = (f) => (
+    f?.geometry?.type === 'Point'
+    && Array.isArray(f.geometry.coordinates)
+    && Number.isFinite(f.geometry.coordinates[0])
+    && Number.isFinite(f.geometry.coordinates[1])
+);
+
 // Snapshot where each feature visually sits right now, keyed by stable id, so a
 // new poll lerps forward from the displayed position instead of snapping back.
 const seedPositions = (geojson, idKey) => {
     const map = new Map();
     for (const feature of geojson?.features || []) {
+        if (!isRenderablePoint(feature)) continue;
         const id = getFeatureId(feature, idKey);
         if (!id) continue;
         const [lon, lat] = feature.geometry.coordinates;
@@ -55,7 +65,7 @@ const seedPositions = (geojson, idKey) => {
 // worker boundary on every call, so in-place mutation is safe and allocation-free.
 const makeDisplay = (target) => ({
     type: 'FeatureCollection',
-    features: (target?.features || []).map((f) => ({
+    features: (target?.features || []).filter(isRenderablePoint).map((f) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [f.geometry.coordinates[0], f.geometry.coordinates[1]] },
         properties: { ...f.properties },
@@ -92,13 +102,22 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
         if (frameRef.current) cancelAnimationFrame(frameRef.current);
 
         const writeToSource = (fc) => {
-            const source = mapRef.current?.getMap?.()?.getSource(sourceId);
-            if (!source) return false;
-            source.setData(fc);
-            return true;
+            try {
+                const source = mapRef.current?.getMap?.()?.getSource(sourceId);
+                if (!source) return false;
+                source.setData(fc);
+                return true;
+            } catch {
+                // Style mid-swap (basemap/theater switch) — retry next frame.
+                return false;
+            }
         };
 
-        if (!enabled || !geojson?.features?.length) {
+        // Sanitize ONCE and use the same array everywhere: the tick loop pairs
+        // target[i] with display[i] by index, so both must come from this list.
+        const targetFeatures = (geojson?.features || []).filter(isRenderablePoint);
+
+        if (!enabled || !targetFeatures.length) {
             displayRef.current = null;
             writeToSource(EMPTY_FC);
             return undefined;
@@ -109,7 +128,7 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
         const prev = displayRef.current?.features?.length
             ? seedPositions(displayRef.current, idKey)
             : seedPositions(geojson, idKey);
-        const display = makeDisplay(geojson);
+        const display = makeDisplay({ features: targetFeatures });
         displayRef.current = display;
         const start = performance.now();
         let lastFrameAt = 0;
@@ -131,7 +150,6 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
                 return;
             }
 
-            const targetFeatures = geojson.features;
             for (let i = 0; i < targetFeatures.length; i++) {
                 const tf = targetFeatures[i];
                 const df = display.features[i];
