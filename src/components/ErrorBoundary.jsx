@@ -13,6 +13,17 @@ class ErrorBoundary extends React.Component {
     componentDidCatch(error, errorInfo) {
         console.error("ErrorBoundary caught an error", error, errorInfo);
         this.setState({ errorInfo });
+        // Persist the most recent crash so it survives a Retry/reload and can be
+        // read back off the device when a crash can't be reproduced locally.
+        try {
+            window.localStorage.setItem('gm:last-error', JSON.stringify({
+                at: new Date().toISOString(),
+                label: this.props.label || (this.props.inline ? 'inline' : 'page'),
+                message: String(error?.message || error),
+                stack: String(error?.stack || '').split('\n').slice(0, 8).join('\n'),
+                componentStack: String(errorInfo?.componentStack || '').split('\n').slice(0, 8).join('\n'),
+            }));
+        } catch { /* storage unavailable */ }
     }
 
     handleRetry = () => {
@@ -75,11 +86,12 @@ class ErrorBoundary extends React.Component {
                     >
                         Retry
                     </button>
-                    <details style={{ whiteSpace: 'pre-wrap', color: 'var(--ink-2)', fontSize: '0.8rem', maxWidth: '600px' }}>
-                        {this.state.error && this.state.error.toString()}
-                        <br />
-                        {this.state.errorInfo && this.state.errorInfo.componentStack}
-                    </details>
+                    <div style={{ whiteSpace: 'pre-wrap', color: 'var(--ink)', fontSize: '0.72rem', fontFamily: 'var(--font-mono)', maxWidth: '760px', textAlign: 'left', background: 'var(--panel)', border: '1px solid var(--line-2)', padding: '12px 14px', lineHeight: 1.5, overflow: 'auto', maxHeight: '40vh' }}>
+                        <strong style={{ color: 'var(--red)' }}>{this.state.error && this.state.error.toString()}</strong>
+                        {'\n\n'}
+                        {this.state.error && this.state.error.stack}
+                        {this.state.errorInfo && '\n— component tree —' + this.state.errorInfo.componentStack}
+                    </div>
                 </div>
             );
         }
