@@ -68,9 +68,13 @@ class ErrorBoundary extends React.Component {
                 );
             }
 
-            // Full-page fallback
+            // Region-level fallback. The component this replaces (e.g. the map)
+            // is often pulled out of the grid with `position:absolute; inset:0`,
+            // so a 100vw/100vh block here would drop back INTO the grid and blow
+            // out the surrounding layout (the "top bar screwed" symptom). Pin it
+            // to its container instead so it occupies exactly the failed region.
             return (
-                <div style={{ color: 'var(--red)', padding: '20px', background: 'var(--paper)', height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                <div style={{ position: 'absolute', inset: 0, zIndex: 1, color: 'var(--red)', padding: '20px', background: 'var(--paper)', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', overflow: 'auto', pointerEvents: 'auto' }}>
                     <h2 style={{ fontSize: '1.5rem' }}>Something went wrong.</h2>
                     <button
                         onClick={this.handleRetry}
