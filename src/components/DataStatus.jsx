@@ -32,7 +32,7 @@ const S = {
 const DataStatus = ({
     isLoading, isRefreshing, isStale, error, retryCount,
     data, isEmpty, emptyMessage = 'No data available',
-    refresh, children
+    demoLabel, refresh, children
 }) => {
     // First load — skeleton placeholder (fixed slot height)
     if (!data && isLoading) {
@@ -86,6 +86,18 @@ const DataStatus = ({
                 }}
                 aria-live="polite"
             >
+                <span
+                    style={{
+                        ...S.staleBadge,
+                        color: 'var(--red)',
+                        background: 'rgba(220,38,38,0.12)',
+                        visibility: demoLabel ? 'visible' : 'hidden'
+                    }}
+                    role="status"
+                    title="Fallback demo content — data source key not configured. Not live intelligence."
+                >
+                    {demoLabel}
+                </span>
                 <span
                     style={{
                         ...S.staleBadge,

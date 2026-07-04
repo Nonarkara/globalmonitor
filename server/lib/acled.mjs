@@ -3,8 +3,18 @@
  * Free API: https://acleddata.com/acled-api-documentation/
  * Returns battles, explosions/remote violence, violence against civilians
  * with exact lat/lon, fatalities, actors, and dates.
+ *
+ * SINGLE SOURCE OF TRUTH: production (Cloudflare Pages Functions) routes
+ * /api/acled through functions/_lib/router.mjs, which imports fetchAcledEvents
+ * from THIS file. Dev (Express, server/index.mjs) uses it too. There is no
+ * separate prod copy — a fix here applies to both. Do not fork this fetcher.
  */
 import axios from 'axios';
+
+// Source label for offline/demo fallback events. Deliberately distinct from
+// 'acled' so the frontend (DataStatus/AcledAnalytics) can badge it as DEMO
+// data and never present curated events with the same weight as a live feed.
+const DEMO_SOURCE = 'demo_offline_no_acled_key';
 
 const ACLED_BASE = 'https://api.acleddata.com/acled/read';
 
@@ -151,11 +161,11 @@ function buildFallbackEvents(theater = 'middleeast') {
                 region: e.region,
                 fatalities: e.fatalities,
                 notes: e.notes,
-                source: 'OSINT verified reporting'
+                source: DEMO_SOURCE
             }
         })),
         total: events.length,
         since: '2026-02-28',
-        source: 'curated_fallback'
+        source: DEMO_SOURCE
     };
 }

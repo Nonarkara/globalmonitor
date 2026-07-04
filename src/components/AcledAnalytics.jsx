@@ -128,6 +128,10 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
         };
     }, [data]);
 
+    // Demo/offline fallback: ACLED key not configured. Curated events must never
+    // wear the same badge as a live feed (workspace conservation law).
+    const isDemo = analysis?.source === 'demo_offline_no_acled_key';
+
     return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
             <div className="panel-header" style={{
@@ -142,8 +146,8 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                         Conflict Analytics
                     </span>
                 </div>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    ACLED · {analysis?.source === 'acled' ? 'LIVE' : 'CURATED'} · {viewMode.toUpperCase()}
+                <span style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                    ACLED · {analysis?.source === 'acled' ? 'LIVE' : 'DEMO'} · {viewMode.toUpperCase()}
                 </span>
             </div>
 
@@ -156,6 +160,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                 data={data}
                 isEmpty={data && !data.features?.length}
                 emptyMessage="No conflict data"
+                demoLabel={isDemo ? 'DEMO DATA — ACLED key not configured' : null}
                 refresh={refresh}
             >
                 {analysis && (
