@@ -90,13 +90,18 @@ export const fetchAcledEvents = async (options = {}) => {
         };
     } catch (err) {
         console.warn('[ACLED] API fetch failed, using fallback:', err.message);
-        return buildFallbackEvents();
+        return buildFallbackEvents(theater);
     }
 };
 
 /**
  * Curated fallback events from verified war reporting (Day 1-29 of Iran conflict).
  * These represent major verified strikes/incidents from open-source intelligence.
+ *
+ * IMPORTANT: this is DEMO/OFFLINE content, not a live feed. It must never be
+ * rendered with the same visual treatment as a real ACLED response — see
+ * `source: 'demo_offline_no_acled_key'` below and the `AcledAnalytics.jsx` /
+ * `functions/_lib/router.mjs` consumers that key off it.
  */
 const FALLBACK_EVENTS = {
     middleeast: [
@@ -151,11 +156,11 @@ function buildFallbackEvents(theater = 'middleeast') {
                 region: e.region,
                 fatalities: e.fatalities,
                 notes: e.notes,
-                source: 'OSINT verified reporting'
+                source: 'demo_offline_no_acled_key'
             }
         })),
         total: events.length,
         since: '2026-02-28',
-        source: 'curated_fallback'
+        source: 'demo_offline_no_acled_key'
     };
 }

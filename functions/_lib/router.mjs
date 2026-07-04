@@ -1,3 +1,8 @@
+// NOTE (F1 dual-backend drift): this router (Cloudflare Pages Functions, prod)
+// duplicates the routing/meta logic in server/index.mjs (Express, dev/Fly.io).
+// Both import the SAME server/lib/*.mjs fetchers, so fetch-level fixes apply to
+// both — but response-shaping logic (e.g. X-Tech-Status derivation) must be
+// edited in both places. See server/index.mjs's matching note.
 import {
     buildCopernicusUnavailablePayload,
     fetchCopernicusPreview,
@@ -247,7 +252,12 @@ export async function handleApiRequest(request, env) {
                 (p) => p?.type === 'FeatureCollection'
             );
             if (result.meta.cache !== 'hit') upsertAcledEvents(result.payload).catch(() => {});
-            return jsonResponse(result.payload, 200, result.meta);
+            // Conservation law: the fallback/demo payload (no ACLED_API_KEY configured,
+            // or upstream fetch failed) must never be labeled as live via X-Tech-Status —
+            // it is truthfully "unconfigured" even when served from cache.
+            const isDemo = result.payload?.source === 'demo_offline_no_acled_key';
+            const meta = isDemo ? { ...result.meta, status: 'unconfigured' } : result.meta;
+            return jsonResponse(result.payload, 200, meta);
         }
 
         if (url.pathname === '/api/oil-prices') {

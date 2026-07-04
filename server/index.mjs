@@ -1,3 +1,8 @@
+// NOTE (F1 dual-backend drift): this file's route handlers (Express, dev/Fly.io)
+// duplicate the routing/meta logic in functions/_lib/router.mjs (Cloudflare Pages
+// Functions, prod). Both import the SAME server/lib/*.mjs fetchers, so fetch-level
+// fixes apply to both — but response-shaping logic (e.g. X-Tech-Status derivation)
+// must be edited in both places. See functions/_lib/router.mjs's matching note.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -523,7 +528,11 @@ const server = http.createServer(async (request, response) => {
                 upsertAcledEvents(result.payload).catch(() => {});
                 dbUpsertAcled(result.payload, theater);
             }
-            json(response, 200, result.payload, result.meta);
+            // Conservation law: never label the fallback/demo payload as live —
+            // mirrors the same guard in functions/_lib/router.mjs (keep both in sync).
+            const isDemo = result.payload?.source === 'demo_offline_no_acled_key';
+            const meta = isDemo ? { ...result.meta, status: 'unconfigured' } : result.meta;
+            json(response, 200, result.payload, meta);
             return;
         }
 

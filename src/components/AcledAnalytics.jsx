@@ -143,7 +143,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                     </span>
                 </div>
                 <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    ACLED · {analysis?.source === 'acled' ? 'LIVE' : 'CURATED'} · {viewMode.toUpperCase()}
+                    ACLED · {analysis?.source === 'acled' ? 'LIVE' : 'DEMO'} · {viewMode.toUpperCase()}
                 </span>
             </div>
 
@@ -157,6 +157,8 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                 isEmpty={data && !data.features?.length}
                 emptyMessage="No conflict data"
                 refresh={refresh}
+                isDemo={Boolean(data) && data.source !== 'acled'}
+                demoLabel="DEMO — NO ACLED KEY"
             >
                 {analysis && (
                     <>
