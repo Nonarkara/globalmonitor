@@ -81,6 +81,10 @@
   --transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, opacity 0.14s ease;
   /* "mono" numerals → the Braun grotesque with tabular figures (no separate monospace). */
   --font-mono: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* RAMS typography: Helvetica Neue system stack (no banned template fonts, no
+     extra Google Fonts fetch — matches index.html's body font comment). Used by
+     ClassificationBanner.jsx, which referenced this token before it was defined. */
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   --z-map: 0;
   --z-panels: 10;
