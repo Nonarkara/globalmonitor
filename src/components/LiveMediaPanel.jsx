@@ -1,3 +1,8 @@
+// AGENT-QUESTION (security-hardening audit A2, 2026-07-05): This panel has no
+// import anywhere in src/ — not in App.jsx, Sidebar.jsx, or LazyPanels.jsx's
+// string-keyed lazy map. It appears dead, but is left in place rather than
+// deleted: it is a self-contained live-webcam panel that may be intended for
+// re-wiring. Delete if confirmed abandoned; otherwise wire it into LazyPanels.
 import React, { useState } from 'react';
 import { ExternalLink, PlayCircle, Radio, Webcam } from 'lucide-react';
 
