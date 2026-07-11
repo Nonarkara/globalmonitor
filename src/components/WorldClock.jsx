@@ -31,13 +31,12 @@ const INDO_PACIFIC_CITIES = [
 ];
 
 const THAILAND_CITIES = [
-    { name: 'Bangkok', tz: 'Asia/Bangkok', label: 'Bangkok (TH)', primary: true },
-    { name: 'Chiang Mai', tz: 'Asia/Bangkok' },
-    { name: 'Khon Kaen', tz: 'Asia/Bangkok' },
-    { name: 'Phuket', tz: 'Asia/Bangkok' },
+    { name: 'Bangkok', tz: 'Asia/Bangkok', label: 'Bangkok · ICT', primary: true },
     { name: 'Singapore', tz: 'Asia/Singapore' },
+    { name: 'Jakarta', tz: 'Asia/Jakarta' },
+    { name: 'Manila', tz: 'Asia/Manila' },
     { name: 'Tokyo', tz: 'Asia/Tokyo' },
-    { name: 'Beijing', tz: 'Asia/Shanghai' },
+    { name: 'Delhi', tz: 'Asia/Kolkata' },
     { name: 'Sydney', tz: 'Australia/Sydney' },
     { name: 'London', tz: 'Europe/London' },
     { name: 'Washington', tz: 'America/New_York' },
@@ -58,9 +57,32 @@ const formatTime = (date, timezone, showSeconds = false) => {
     }
 };
 
-const SecondaryClock = memo(({ city, timeRef }) => (
+const formatTzAbbr = (date, timezone) => {
+    try {
+        const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: timezone,
+            timeZoneName: 'short'
+        }).formatToParts(date);
+        return parts.find((part) => part.type === 'timeZoneName')?.value || '';
+    } catch {
+        return '';
+    }
+};
+
+/** One city per timezone so secondary row never shows duplicate times. */
+const uniqueTimezoneCities = (cities) => {
+    const seen = new Set();
+    return cities.filter((city) => {
+        if (city.primary || seen.has(city.tz)) return false;
+        seen.add(city.tz);
+        return true;
+    });
+};
+
+const SecondaryClock = memo(({ city, timeRef, tzRef }) => (
     <div className="secondary-clock-h">
         <span className="clock-city-small">{city.name}</span>
+        <span className="clock-tz-small" ref={tzRef} aria-hidden="true">—</span>
         <span className="clock-time-small" ref={timeRef} aria-live="off">--:--</span>
     </div>
 ));
@@ -90,13 +112,16 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
     const secondaryTimeRefs = useRef([]);
 
     const primaryCity = cities.find((city) => city.primary) || cities[0];
-    const secondaryCities = cities.filter((city) => !city.primary);
+    const secondaryCities = uniqueTimezoneCities(cities);
+    const secondaryTzRefs = useRef([]);
 
     useEffect(() => {
         secondaryTimeRefs.current = secondaryTimeRefs.current.slice(0, secondaryCities.length);
+        secondaryTzRefs.current = secondaryTzRefs.current.slice(0, secondaryCities.length);
 
         let lastMinute = -1;
         let lastDateKey = '';
+        let lastTzKey = '';
 
         const tick = () => {
             const now = new Date();
@@ -111,12 +136,18 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
             }
 
             const minute = now.getMinutes();
-            if (minute !== lastMinute) {
+            const tzKey = `${now.getHours()}:${Math.floor(now.getDate() / 7)}`;
+            if (minute !== lastMinute || tzKey !== lastTzKey) {
                 lastMinute = minute;
+                lastTzKey = tzKey;
                 secondaryCities.forEach((city, index) => {
-                    const el = secondaryTimeRefs.current[index];
-                    if (el) {
-                        el.textContent = formatTime(now, city.tz, false);
+                    const timeEl = secondaryTimeRefs.current[index];
+                    if (timeEl) {
+                        timeEl.textContent = formatTime(now, city.tz, false);
+                    }
+                    const tzEl = secondaryTzRefs.current[index];
+                    if (tzEl) {
+                        tzEl.textContent = formatTzAbbr(now, city.tz);
                     }
                 });
             }
@@ -135,6 +166,7 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
                         key={cityKey(city)}
                         city={city}
                         timeRef={(el) => { secondaryTimeRefs.current[index] = el; }}
+                        tzRef={(el) => { secondaryTzRefs.current[index] = el; }}
                     />
                 ))}
             </div>
@@ -149,6 +181,7 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
                         key={cityKey(city)}
                         city={city}
                         timeRef={(el) => { secondaryTimeRefs.current[index + 4] = el; }}
+                        tzRef={(el) => { secondaryTzRefs.current[index + 4] = el; }}
                     />
                 ))}
             </div>

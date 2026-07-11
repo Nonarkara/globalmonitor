@@ -1,6 +1,6 @@
 # Globalmonitor (v3-global) — Live Context
 
-Last updated: 2026-06-21 (Cloudflare Pages primary — Fly.io retired).
+Last updated: 2026-07-05 (custom domain routing fix in progress).
 
 ## VERIFY BEFORE RECOMMEND (mandatory for all agents)
 
@@ -13,6 +13,7 @@ Cursor rule: [.cursor/rules/verify-before-recommend.mdc](.cursor/rules/verify-be
 ## Live URL
 
 - **Production URL**: https://globalmonitor.pages.dev/ — Cloudflare Pages (static frontend + API via Pages Functions, same origin).
+- **Custom domain (pending DNS)**: https://globalmonitor.nonarkara.org — attached to Pages project `globalmonitor` (2026-07-05) but **CNAME not set**; still serves stale bundle `index-ilcENpxt.js` until DNS points to Pages. Required record in zone `nonarkara.org` (`8809ee955a8edb681c34f45ed8f5b765`): **CNAME** `globalmonitor` → `globalmonitor.pages.dev`, proxied. Wrangler OAuth on this machine has `pages:write` but not `dns:write` — DNS edit needs a scoped API token or dashboard one-click after domain attach.
 - **Current source repo**: https://github.com/Nonarkara/globalmonitor
 - **Clean v3 mirror repo**: https://github.com/Nonarkara/globalmonitor-v3
 - **Legacy static backup**: https://nonarkara.github.io/globalmonitor/

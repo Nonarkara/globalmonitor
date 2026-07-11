@@ -602,7 +602,17 @@ body {
   gap: 4px;
   justify-self: end;
   min-width: 0;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 1024px) {
+  .app-container[data-layout="map-first"] .header-controls {
+    flex-wrap: nowrap;
+  }
+
+  .app-container[data-layout="map-first"] .header-region-tab {
+    padding: 5px 8px;
+  }
 }
 
 .header-button,
@@ -2135,10 +2145,11 @@ body {
 
 .secondary-clocks-side {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(4, minmax(64px, 1fr));
+  gap: 4px 8px;
   min-width: 0;
   overflow: hidden;
+  align-items: center;
 }
 
 .secondary-clocks-side.left-side {
@@ -2157,17 +2168,30 @@ body {
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
+  gap: 0;
 }
 
 .clock-city-small {
   font-size: 0.5rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  line-height: 1.15;
+}
+
+.clock-tz-small {
+  font-family: var(--font-mono);
+  font-size: 0.42rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  line-height: 1.1;
+  min-height: 0.55rem;
 }
 
 .clock-time-small {
