@@ -16,21 +16,20 @@ import { fetchRainviewerTiles } from '../services/rainviewer.js';
 import { fetchAcledEvents } from '../services/acled.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
-import { fetchSdgLayer } from '../services/undpSdg';
 import { getRegion } from '../data/regions.js';
 import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
-import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
-const TRAFFIC_SESSION_MAX_FLIGHTS = 1200;
-const TRAFFIC_SESSION_MAX_VESSELS = 1200;
+const TRAFFIC_SESSION_MAX_FLIGHTS = 300;
+const TRAFFIC_SESSION_MAX_VESSELS = 300;
 /** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
 const TRAFFIC_DEFER_MS = 3000;
+const TRAFFIC_HOVER_THROTTLE_MS = 80;
 
 const EMPTY_TRAFFIC_FC = Object.freeze({ type: 'FeatureCollection', features: [] });
 /**
@@ -53,7 +52,7 @@ const formatVesselSourceLabel = (meta) => {
     return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 };
 
-const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'vessels-labels', 'acled-circles', 'firms-circles'];
+const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
 
 const formatCoord = (value, axis) => {
     const abs = Math.abs(value);
@@ -453,7 +452,7 @@ const ESRI_STREET_STYLE = {
 // Each entry can be a URL string or an inline style object — MapLibre accepts both.
 // Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
 // onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
-// Default dark = ESRI street raster (opaque, reliable on Pages + Opera).
+// Default dark = Esri street raster, which is reliable on Cloudflare Pages.
 const MAP_STYLES = {
     dark: ESRI_STREET_STYLE,
     satellite: ESRI_SATELLITE_STYLE,
@@ -516,6 +515,7 @@ const MapContainer = ({
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
+    const lastHoverUpdateRef = useRef(0);
 
     const handleMove = useCallback((event) => {
         dispatchViewState({ type: 'move', viewState: event.viewState });
@@ -641,17 +641,8 @@ const MapContainer = ({
         };
     }, [mapReady, activeMapStyleKey, repaintMap]);
 
-    // Load custom SVG icons into the MapLibre sprite; re-run on style change
-    // because setStyle() wipes all user-added images.
-    const loadMapIcons = useCallback(() => {
-        const map = mapRef.current?.getMap?.();
-        if (!map) return;
-        loadTrafficIcons(map);
-    }, []);
-
     const handleMapLoad = useCallback(() => {
         setMapReady(true);
-        loadMapIcons();
         const map = mapRef.current?.getMap?.();
         if (map && typeof window !== 'undefined') {
             window.__GM_MAP__ = map;
@@ -664,28 +655,28 @@ const MapContainer = ({
             window.setTimeout(repaint, 250);
             window.setTimeout(repaint, 1000);
         }
-    }, [loadMapIcons]);
+    }, []);
 
     useEffect(() => {
-        if (!mapReady) {
-            setTrafficDeferredReady(false);
-            return undefined;
-        }
+        if (!mapReady) return undefined;
         const timer = window.setTimeout(() => setTrafficDeferredReady(true), TRAFFIC_DEFER_MS);
         return () => window.clearTimeout(timer);
     }, [mapReady]);
 
-    useEffect(() => {
-        if (!mapReady) return undefined;
-        loadMapIcons();
-        const map = mapRef.current?.getMap?.();
-        if (!map) return undefined;
-
-        map.on('style.load', loadMapIcons);
-        return () => { map.off('style.load', loadMapIcons); };
-    }, [mapReady, activeMapStyleKey, loadMapIcons]);
+    const interactiveLayerIds = useMemo(() => {
+        const layers = [];
+        if (flightsLayerActive) layers.push('flights-icons');
+        if (vesselsLayerActive) layers.push('vessels-icons');
+        if (activeLayers.includes('conflicts')) layers.push('acled-circles');
+        if (activeLayers.includes('firms')) layers.push('firms-circles');
+        return layers;
+    }, [activeLayers, flightsLayerActive, vesselsLayerActive]);
 
     const handleMouseMove = useCallback((event) => {
+        const now = window.performance?.now?.() ?? Date.now();
+        if (now - lastHoverUpdateRef.current < TRAFFIC_HOVER_THROTTLE_MS) return;
+        lastHoverUpdateRef.current = now;
+
         setCursorCoords({ lng: event.lngLat.lng, lat: event.lngLat.lat });
         const feature = event.features?.find(
             (f) => HOVER_LAYERS.includes(f.layer?.id)
@@ -702,6 +693,7 @@ const MapContainer = ({
         }
     }, []);
     const handleMouseLeave = useCallback(() => {
+        lastHoverUpdateRef.current = 0;
         setHoverInfo(null);
         setCursorCoords(null);
     }, []);
@@ -736,7 +728,11 @@ const MapContainer = ({
         intervalMs: 120 * 1000,
         isUsable: hasFeatureData
     });
-    const sdgResource = useLiveResource(useCallback(() => fetchSdgLayer(), []), {
+    const loadSdgLayer = useCallback(async () => {
+        const { fetchSdgLayer } = await import('../services/undpSdg');
+        return fetchSdgLayer();
+    }, []);
+    const sdgResource = useLiveResource(loadSdgLayer, {
         cacheKey: 'map:sdg',
         enabled: activeLayers.includes('sdg'),
         intervalMs: 24 * 60 * 60 * 1000,
@@ -790,72 +786,69 @@ const MapContainer = ({
 
     /**
      * Session-frozen GeoJSON — computed once on first fetch, never rebuilt on pan/zoom.
-     * Render path reads only refs + props; module-scope persistence happens in effects
-     * (react-hooks/immutability forbids mutating module state during render).
+     * The memo stays pure; module-scope persistence happens after commit so a
+     * recovered MapContainer can reuse the same traffic snapshot.
      */
-    const sessionFlightsRef = useRef(null);
-    const sessionFlightsMetaRef = useRef({ capped: false, total: 0 });
-    const flightsGeoJson = useMemo(() => {
-        if (sessionFlightsRef.current) return sessionFlightsRef.current;
+    const flightsSnapshot = useMemo(() => {
+        if (moduleTrafficSession.flights) {
+            return {
+                collection: moduleTrafficSession.flights,
+                meta: moduleTrafficSession.flightsMeta
+            };
+        }
         const sanitized = sanitizePointCollection(globalFlightsData);
-        if (!sanitized?.features?.length) return null;
+        if (!sanitized?.features?.length) {
+            return { collection: null, meta: { capped: false, total: 0 } };
+        }
         const { collection, capped, totalInView } = spreadSamplePointCollection(sanitized, TRAFFIC_SESSION_MAX_FLIGHTS);
-        sessionFlightsRef.current = collection;
-        sessionFlightsMetaRef.current = { capped, total: totalInView };
-        return collection;
+        return {
+            collection,
+            meta: { capped, total: totalInView }
+        };
     }, [globalFlightsData]);
 
-    const sessionVesselsRef = useRef(null);
-    const sessionVesselsMetaRef = useRef({ capped: false, total: 0 });
-    const vesselsGeoJson = useMemo(() => {
-        if (sessionVesselsRef.current) return sessionVesselsRef.current;
+    const vesselsSnapshot = useMemo(() => {
+        if (moduleTrafficSession.vessels) {
+            return {
+                collection: moduleTrafficSession.vessels,
+                meta: moduleTrafficSession.vesselsMeta
+            };
+        }
         const sanitized = sanitizePointCollection(globalVesselsData);
-        if (!sanitized?.features?.length) return null;
+        if (!sanitized?.features?.length) {
+            return { collection: null, meta: { capped: false, total: 0 } };
+        }
         const { collection, capped, totalInView } = spreadSamplePointCollection(sanitized, TRAFFIC_SESSION_MAX_VESSELS);
-        sessionVesselsRef.current = collection;
-        sessionVesselsMetaRef.current = { capped, total: totalInView };
-        return collection;
+        return {
+            collection,
+            meta: { capped, total: totalInView }
+        };
     }, [globalVesselsData]);
-
-    // Seed refs from the module-level session once on mount so a remounted
-    // MapContainer (ErrorBoundary recover) keeps its traffic snapshot instead of
-    // re-fetching / flashing empty. Writes to module scope happen only here, in an
-    // effect — never during render.
-    useEffect(() => {
-        if (moduleTrafficSession.flights && !sessionFlightsRef.current) {
-            sessionFlightsRef.current = moduleTrafficSession.flights;
-            sessionFlightsMetaRef.current = moduleTrafficSession.flightsMeta;
-        }
-    }, []);
-    useEffect(() => {
-        if (moduleTrafficSession.vessels && !sessionVesselsRef.current) {
-            sessionVesselsRef.current = moduleTrafficSession.vessels;
-            sessionVesselsMetaRef.current = moduleTrafficSession.vesselsMeta;
-        }
-    }, []);
 
     // Persist the freshly-computed session back to module scope after commit, so it
     // survives a later remount. Skips when null/empty (no usable payload yet).
     useEffect(() => {
-        if (sessionFlightsRef.current) {
-            moduleTrafficSession.flights = sessionFlightsRef.current;
-            moduleTrafficSession.flightsMeta = sessionFlightsMetaRef.current;
+        if (flightsSnapshot.collection && !moduleTrafficSession.flights) {
+            moduleTrafficSession.flights = flightsSnapshot.collection;
+            moduleTrafficSession.flightsMeta = flightsSnapshot.meta;
         }
-    }, [flightsGeoJson]);
+    }, [flightsSnapshot]);
     useEffect(() => {
-        if (sessionVesselsRef.current) {
-            moduleTrafficSession.vessels = sessionVesselsRef.current;
-            moduleTrafficSession.vesselsMeta = sessionVesselsMetaRef.current;
+        if (vesselsSnapshot.collection && !moduleTrafficSession.vessels) {
+            moduleTrafficSession.vessels = vesselsSnapshot.collection;
+            moduleTrafficSession.vesselsMeta = vesselsSnapshot.meta;
         }
-    }, [vesselsGeoJson]);
+    }, [vesselsSnapshot]);
 
     const trafficLayersReady = mapReady && trafficDeferredReady;
+    const flightsGeoJson = flightsSnapshot.collection;
+    const vesselsGeoJson = vesselsSnapshot.collection;
     const visibleFlightCount = flightsGeoJson?.features?.length ?? 0;
     const visibleVesselCount = vesselsGeoJson?.features?.length ?? 0;
-    const flightsGlobalTotal = sessionFlightsMetaRef.current.total || (globalFlightsData?.features?.length ?? 0);
-    const vesselsGlobalTotal = sessionVesselsMetaRef.current.total || (globalVesselsData?.features?.length ?? 0);
-    const flightsCapped = sessionFlightsMetaRef.current.capped;
-    const vesselsCapped = sessionVesselsMetaRef.current.capped;
+    const flightsGlobalTotal = flightsSnapshot.meta.total || (globalFlightsData?.features?.length ?? 0);
+    const vesselsGlobalTotal = vesselsSnapshot.meta.total || (globalVesselsData?.features?.length ?? 0);
+    const flightsCapped = flightsSnapshot.meta.capped;
+    const vesselsCapped = vesselsSnapshot.meta.capped;
     const globalFlightCount = globalFlightsData?.features?.length ?? 0;
     const globalVesselCount = globalVesselsData?.features?.length ?? 0;
     const flightSourceLabel = visibleFlightCount > 0
@@ -972,7 +965,7 @@ const MapContainer = ({
                 onMouseLeave={handleMouseLeave}
                 onLoad={handleMapLoad}
                 onError={handleMapError}
-                interactiveLayerIds={HOVER_LAYERS}
+                interactiveLayerIds={interactiveLayerIds}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle={activeMapStyle}
             >
@@ -1365,29 +1358,29 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Flights Layer — icons only (no heatmap/path vectors; WebGL budget) */}
+                {/* Flights Layer — lightweight circles; labels only at close zoom. */}
                 {trafficLayersReady && flightsLayerActive && (
                     <Source id="flights-data" type="geojson" data={flightsGeoJson ?? EMPTY_TRAFFIC_FC}>
                         <Layer
                             id="flights-icons"
-                            type="symbol"
-                            layout={{
-                                'icon-image': FLIGHT_ICON_IMAGE,
-                                'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.2, 3, 1.5, 5, 1.8, 7, 1.7, 10, 1.5],
-                                'icon-rotate': ['get', 'heading'],
-                                'icon-rotation-alignment': 'map',
-                                'icon-allow-overlap': true,
-                                'icon-ignore-placement': true,
-                                'icon-pitch-alignment': 'map',
-                            }}
+                            type="circle"
                             paint={{
-                                'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.9, 6, 0.96, 10, 1]
+                                'circle-color': [
+                                    'case',
+                                    ['==', ['get', 'military'], true],
+                                    '#ef4444',
+                                    '#facc15'
+                                ],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2.1, 5, 3, 8, 4.5],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.62, 6, 0.82, 10, 0.9],
+                                'circle-stroke-color': 'rgba(255,255,255,0.42)',
+                                'circle-stroke-width': 0.6
                             }}
                         />
                         <Layer
                             id="flights-labels"
                             type="symbol"
-                            minzoom={7}
+                            minzoom={8.5}
                             layout={{
                                 'text-field': ['coalesce', ['get', 'callsign'], ['get', 'hex'], ''],
                                 'text-size': 9,
@@ -1455,29 +1448,33 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Vessels Layer — icons only (no heatmap/path vectors; WebGL budget) */}
+                {/* Vessels Layer — lightweight circles; labels only at close zoom. */}
                 {trafficLayersReady && vesselsLayerActive && (
                     <Source id="vessels-data" type="geojson" data={vesselsGeoJson ?? EMPTY_TRAFFIC_FC}>
                         <Layer
                             id="vessels-icons"
-                            type="symbol"
-                            layout={{
-                                'icon-image': VESSEL_ICON_IMAGE,
-                                'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.0, 3, 1.25, 5, 1.5, 7, 1.4, 10, 1.2],
-                                'icon-rotate': ['get', 'heading'],
-                                'icon-rotation-alignment': 'map',
-                                'icon-allow-overlap': true,
-                                'icon-ignore-placement': true,
-                                'icon-pitch-alignment': 'map',
-                            }}
+                            type="circle"
                             paint={{
-                                'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.88, 6, 0.94, 10, 0.98],
+                                'circle-color': [
+                                    'match', ['get', 'category'],
+                                    'cargo', '#22c55e',
+                                    'tanker', '#ef4444',
+                                    'passenger', '#3b82f6',
+                                    'fishing', '#f59e0b',
+                                    'tug', '#ea580c',
+                                    'pleasure', '#a855f7',
+                                    '#94a3b8'
+                                ],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2, 5, 2.8, 8, 4.2],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.58, 6, 0.78, 10, 0.88],
+                                'circle-stroke-color': 'rgba(255,255,255,0.38)',
+                                'circle-stroke-width': 0.6
                             }}
                         />
                         <Layer
                             id="vessels-labels"
                             type="symbol"
-                            minzoom={6}
+                            minzoom={8}
                             layout={{
                                 'text-field': ['coalesce', ['get', 'name'], ''],
                                 'text-size': 10,

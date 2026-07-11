@@ -5,7 +5,8 @@ import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
-import { REGIONS, getRegion } from './data/regions';
+import { REGIONS } from './data/regions';
+import { formatDayCount } from './data/warConstants';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { fetchAlphaEarthForRegion } from './services/alphaearth';
 import { useLiveResource } from './hooks/useLiveResource';
@@ -26,10 +27,18 @@ import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
 
 const DASHBOARD_VERSION = 'v8.4';
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms'];
+const DEFAULT_VIEW_TARGET = {
+  longitude: 52,
+  latitude: 29,
+  zoom: 4.15,
+  pitch: 18,
+  bearing: -6
+};
 
 function App() {
-  // ponytail: aerosol drowns the live traffic at 0.55 opacity — keep it a toggle, not a default. Re-add 'eo-aerosol' to restore aerosol-on-load.
-  const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
+  // First paint should read as a composed war-room map. Dense live traffic stays opt-in.
+  const [activeLayers, setActiveLayers] = useState(DEFAULT_MAP_LAYERS);
   const [mapStyle, setMapStyle] = useState('dark');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
@@ -50,11 +59,7 @@ function App() {
   useEscapeKey(isLegalOpen, () => setIsLegalOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileDrawer, setMobileDrawer] = useState(() => (
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
-      ? 'intel'
-      : 'none'
-  ));
+  const [mobileDrawer, setMobileDrawer] = useState('none');
   const toolsRef = useRef(null);
   useEffect(() => {
     const onDocClick = (e) => {
@@ -81,13 +86,7 @@ function App() {
     setTimeout(() => setIsRefreshingAll(false), 1500);
   }, []);
 
-  const [viewTarget, setViewTarget] = useState({
-    longitude: 53,
-    latitude: 30,
-    zoom: 4.5,
-    pitch: 25,
-    bearing: -8
-  });
+  const [viewTarget, setViewTarget] = useState(DEFAULT_VIEW_TARGET);
 
   const [timeMachineDate, setTimeMachineDate] = useState(null);
   const [mapRecoverKey, setMapRecoverKey] = useState(0);
@@ -108,7 +107,7 @@ function App() {
   }, []);
 
   const resetCoreLayers = useCallback(() => {
-    setActiveLayers(['conflicts', 'firms', 'flights', 'vessels']);
+    setActiveLayers(DEFAULT_MAP_LAYERS);
     logActivity(LOG_TYPES.USER_ACTION, 'Core operational map layers restored');
   }, []);
 
@@ -231,7 +230,7 @@ function App() {
                 Global Political Dashboard
               </span>
               <span className="header-subtitle">
-                {getRegion(viewMode).label}
+                {formatDayCount()}
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">

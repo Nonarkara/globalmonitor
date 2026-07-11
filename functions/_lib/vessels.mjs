@@ -4,6 +4,13 @@ import { AIS_BOXES_BY_THEATER, fetchAisSnapshotWithRetry } from './aisSnapshot.m
 import { getSharedCache } from './cache.mjs';
 
 const AIS_CACHE_KEY = 'vessels:ais:global:v3';
+const MAX_CLIENT_VESSELS = 1200;
+
+const sampleForClient = (features, max = MAX_CLIENT_VESSELS) => {
+    if (features.length <= max) return features;
+    const stride = features.length / max;
+    return Array.from({ length: max }, (_, index) => features[Math.floor(index * stride)]);
+};
 const STATIC_SNAPSHOT_PATH = '/data/ais/ais-snapshot.json';
 const AIS_CACHE_TTL_MS = 15 * 60 * 1000;
 const AIS_STALE_HOLD_MS = 30 * 60 * 1000;
@@ -252,6 +259,7 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
 
     const merged = mergeFeatures(fleet, aisFeatures);
     const filtered = filterByTheater(merged, theater);
+    const clientFeatures = sampleForClient(filtered);
     const theaterAisCount = filterByTheater(aisFeatures, theater).length;
     const sources = [];
     if (aisSource === 'axiom-overwatch' && theaterAisCount > 0) sources.push('axiom-overwatch.io');
@@ -261,9 +269,11 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
 
     return {
         type: 'FeatureCollection',
-        features: filtered,
+        features: clientFeatures,
         meta: {
             count: filtered.length,
+            deliveredCount: clientFeatures.length,
+            sampled: clientFeatures.length < filtered.length,
             fetchedAt: new Date().toISOString(),
             source: sources.length ? sources.join('+') : 'none',
             sources,
