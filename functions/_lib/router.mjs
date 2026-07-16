@@ -23,6 +23,9 @@ import { searchPlanetaryComputer } from '../../server/lib/planetaryComputer.mjs'
 import { listPresets as listEvalscriptPresets } from '../../server/lib/evalscripts.mjs';
 import { probeCog } from '../../server/lib/cogReader.mjs';
 import { ingestRegionalNews } from '../../server/lib/regionalNewsIngest.mjs';
+import { buildForecast as buildOracleForecast } from '../../server/lib/oracle/index.mjs';
+import { buildFloodOps, FLOOD_CITIES } from '../../server/lib/floodOps.mjs';
+import { buildFloodDirective } from '../../server/lib/floodDirective.mjs';
 import { getRainviewerRadarTilesWorker as getRainviewerRadarTiles } from './rainviewerWorker.mjs';
 import {
     isSupabaseEnabled,
@@ -224,6 +227,73 @@ export async function handleApiRequest(request, env) {
                 status: payload.meta.connected ? 'live' : (payload.meta.requiresKey ? 'unconfigured' : 'stale'),
                 updatedAt: payload.meta.fetchedAt
             });
+        }
+
+        if (url.pathname === '/api/oracle') {
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const scenario = url.searchParams.get('scenario') || null;
+            const escDeltaRaw = url.searchParams.get('escDelta');
+            const escalationDelta = escDeltaRaw != null ? Number(escDeltaRaw) : undefined;
+            const pRaw = url.searchParams.get('p');
+            let postureDeltas = null;
+            if (pRaw) {
+                postureDeltas = {};
+                for (const pair of pRaw.split(',')) {
+                    const [id, delta] = pair.split(':');
+                    if (id && delta != null && Number.isFinite(Number(delta))) {
+                        postureDeltas[id] = Number(delta);
+                    }
+                }
+            }
+            const injection = (scenario || escalationDelta != null || postureDeltas)
+                ? { scenario, escalationDelta, postureDeltas }
+                : null;
+            const isSlider = Boolean(postureDeltas);
+            const cacheKey = `oracle:${theater}:${scenario || 'base'}:${escDeltaRaw || 0}:${pRaw || ''}`;
+            const result = await useCached(
+                cacheKey,
+                injection ? 2 * 60 * 1000 : 5 * 60 * 1000,
+                () => buildOracleForecast(cache, theater, injection, { narrate: !isSlider }),
+                (p) => p && Array.isArray(p?.forecast?.outcomes)
+            );
+            return jsonResponse(result.payload, 200, result.meta);
+        }
+
+        if (url.pathname === '/api/flood') {
+            const requestedCity = url.searchParams.get('city');
+            const cityId = FLOOD_CITIES[requestedCity] ? requestedCity : 'ayutthaya';
+            const result = await useCached(
+                `flood:${cityId}`,
+                10 * 60 * 1000,
+                () => buildFloodOps(cityId),
+                (p) => Array.isArray(p?.geo?.stations?.features) && p.geo.stations.features.length > 0
+            );
+            return jsonResponse(result.payload, 200, result.meta);
+        }
+
+        if (url.pathname === '/api/flood/directive') {
+            const requestedCity = url.searchParams.get('city');
+            const cityId = FLOOD_CITIES[requestedCity] ? requestedCity : 'ayutthaya';
+            const deltaM = Number(url.searchParams.get('delta'));
+            const floodedKm2 = Number(url.searchParams.get('km2'));
+            const pois = (url.searchParams.get('pois') || '').split('|').filter(Boolean).slice(0, 8);
+            const sim = Number.isFinite(deltaM)
+                ? { deltaM, floodedKm2: Number.isFinite(floodedKm2) ? floodedKm2 : 0, floodedPois: pois }
+                : null;
+            const opsResult = await useCached(
+                `flood:${cityId}`,
+                10 * 60 * 1000,
+                () => buildFloodOps(cityId),
+                (p) => Array.isArray(p?.geo?.stations?.features)
+            );
+            const simKey = sim ? `${sim.deltaM}:${sim.floodedKm2}:${pois.join(',')}` : 'live';
+            const result = await useCached(
+                `flood-directive:${cityId}:${simKey}`,
+                5 * 60 * 1000,
+                () => buildFloodDirective(opsResult.payload, sim),
+                (p) => typeof p?.directive === 'string' && p.directive.length > 20
+            );
+            return jsonResponse(result.payload, 200, result.meta);
         }
 
         if (url.pathname === '/api/rainviewer') {
