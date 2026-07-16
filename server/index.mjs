@@ -289,7 +289,7 @@ const server = http.createServer(async (request, response) => {
             const result = await useCached(
                 `regional-news:${region}:${code}`,
                 5 * 60 * 1000,
-                () => ingestRegionalNews(region, code),
+                () => ingestRegionalNews(region, code, { persistLocal: dbUpsertNews }),
                 (payload) => Array.isArray(payload?.items) && payload.items.length > 0
             );
             recordHealth('regional-news', !!result.payload?.items?.length, result.payload?.status || null);

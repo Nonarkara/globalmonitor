@@ -7,7 +7,6 @@
  * in the cache so the user never sees an empty panel.
  */
 import { upsertNewsItems, fetchNewsItems, recordIngestionRun, isSupabaseEnabled } from './supabase.mjs';
-import { upsertNewsItems as dbUpsertNews } from './localDb.mjs';
 
 const DEFAULT_LIMIT = 8;
 
@@ -87,7 +86,7 @@ const fetchOne = async (query) => {
 /**
  * Pull tech + urgent for one country/province, persist, return merged list.
  */
-export const ingestRegionalNews = async (region, code) => {
+export const ingestRegionalNews = async (region, code, { persistLocal } = {}) => {
     const queries = queriesFor(region, code);
     if (!queries) return { items: [], status: 'unknown-code' };
     const startedAt = Date.now();
@@ -107,8 +106,8 @@ export const ingestRegionalNews = async (region, code) => {
 
     let upsertResult = { inserted: 0, error: null };
     if (items.length) {
-        // Always persist to local SQLite (primary)
-        dbUpsertNews(items, region, code);
+        // The Node server injects SQLite persistence; edge runtimes omit it.
+        persistLocal?.(items, region, code);
         // Persist to Supabase if configured (secondary)
         if (isSupabaseEnabled()) {
             upsertResult = await upsertNewsItems(region, code, items);
