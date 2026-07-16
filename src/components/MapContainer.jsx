@@ -123,6 +123,13 @@ const buildVesselPaths = (vessels) => {
 };
 
 const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
+const getTooltipClassName = (layerId) => [
+    'traffic-tooltip',
+    layerId === 'vessels-icons' ? 'traffic-tooltip--vessel'
+        : layerId === 'acled-circles' ? 'traffic-tooltip--conflict'
+            : layerId === 'firms-circles' ? 'traffic-tooltip--heat'
+                : null,
+].filter(Boolean).join(' ');
 
 const formatCoord = (value, axis) => {
     const abs = Math.abs(value);
@@ -1470,12 +1477,7 @@ const MapContainer = ({
                         closeButton={false}
                         closeOnClick={false}
                         offset={[0, -8]}
-                        className={`traffic-tooltip ${
-                            hoverInfo.feature.layer?.id === 'vessels-icons' ? 'traffic-tooltip--vessel'
-                            : hoverInfo.feature.layer?.id === 'acled-circles' ? 'traffic-tooltip--conflict'
-                            : hoverInfo.feature.layer?.id === 'firms-circles' ? 'traffic-tooltip--heat'
-                            : ''
-                        }`}
+                        className={getTooltipClassName(hoverInfo.feature.layer?.id)}
                     >
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
