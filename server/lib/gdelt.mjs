@@ -1,13 +1,12 @@
 /**
- * GDELT Sentiment — fetches tone/sentiment timeline for Middle East region.
+ * GDELT Sentiment — fetches tone/sentiment timeline for the requested theater.
  */
+import { getTheater, resolveTheater } from './theaters.mjs';
 
 export const fetchGdeltSentiment = async (theater = 'middleeast') => {
-    const query = theater === 'thailand'
-        ? 'Thailand OR Bangkok OR Myanmar border'
-        : theater === 'indopacific'
-            ? 'Thailand OR Singapore OR Vietnam OR Philippines'
-            : 'Iran OR Israel OR Gulf OR Hormuz';
+    // Query terms come from the shared theater registry; 'global' uses broad
+    // conflict terms (see theaters.mjs).
+    const query = getTheater(resolveTheater(theater)).gdeltQuery;
 
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=timelinetone&timespan=7d&format=json`;
 
