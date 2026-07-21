@@ -4,35 +4,18 @@
  * Large explosions from military strikes can register as seismic events.
  */
 
-const THEATERS = {
-    middleeast: {
-        minlatitude: 10,
-        maxlatitude: 42,
-        minlongitude: 24,
-        maxlongitude: 65
-    },
-    indopacific: {
-        minlatitude: -10,
-        maxlatitude: 25,
-        minlongitude: 90,
-        maxlongitude: 135
-    },
-    thailand: {
-        minlatitude: 5,
-        maxlatitude: 21,
-        minlongitude: 97,
-        maxlongitude: 106
-    }
-};
+import { getTheater, resolveTheater } from './theaters.mjs';
 
 export const fetchUsgsQuakes = async (theater = 'middleeast') => {
-    const bbox = THEATERS[theater] || THEATERS.middleeast;
+    const resolved = resolveTheater(theater);
+    // Global omits bbox params entirely — USGS rejects -180..180 bounds.
+    const usgsParams = getTheater(resolved).usgsParams || {};
     const params = new URLSearchParams({
         format: 'geojson',
         minmagnitude: '2.5',
         limit: '50',
         orderby: 'time',
-        ...Object.fromEntries(Object.entries(bbox).map(([k, v]) => [k, String(v)]))
+        ...Object.fromEntries(Object.entries(usgsParams).map(([k, v]) => [k, String(v)]))
     });
 
     const url = `https://earthquake.usgs.gov/fdsnws/event/1/query?${params}`;
@@ -66,6 +49,7 @@ export const fetchUsgsQuakes = async (theater = 'middleeast') => {
     return {
         type: 'FeatureCollection',
         features: data.features || [],
+        theater: resolved,
         summary: {
             total: features.length,
             significant: significant.length,

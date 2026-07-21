@@ -1,11 +1,10 @@
 import { fetchFleetVessels, getVesselFinderConfig } from '../../server/lib/vesselFinder.mjs';
+import { THEATERS } from '../../server/lib/theaters.mjs';
 import { fetchAisSnapshot } from './aisSnapshot.mjs';
 
-const THEATER_BBOXES = {
-    thailand: [97, 5, 106, 21],
-    indopacific: [90, -10, 135, 25],
-    middleeast: [24, 10, 65, 42]
-};
+const THEATER_BBOXES = Object.fromEntries(
+    Object.entries(THEATERS).map(([id, t]) => [id, t.bbox])
+);
 
 const filterByTheater = (features, theater) => {
     const bbox = THEATER_BBOXES[theater];

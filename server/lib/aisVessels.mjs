@@ -10,6 +10,7 @@
 import { createRequire } from 'node:module';
 import { mapShipTypeCategory } from './shipTypes.mjs';
 import { getFleetFeatures, getVesselFinderConfig, startVesselFinderRefresh } from './vesselFinder.mjs';
+import { THEATERS } from './theaters.mjs';
 
 export { startVesselFinderRefresh, mapShipTypeCategory };
 const require = createRequire(import.meta.url);
@@ -59,11 +60,10 @@ function prune() {
 }
 
 // Regional bounding boxes for theater-scoped vessel feeds [minLon, minLat, maxLon, maxLat]
-const THEATER_BBOXES = {
-    thailand: [97, 5, 106, 21],
-    indopacific: [90, -10, 135, 25],
-    middleeast: [24, 10, 65, 42],
-};
+// — from the shared theater registry (theaters.mjs).
+const THEATER_BBOXES = Object.fromEntries(
+    Object.entries(THEATERS).map(([id, t]) => [id, t.bbox])
+);
 
 export function getVesselsGeoJsonForTheater(theater) {
     const base = getVesselsGeoJson();

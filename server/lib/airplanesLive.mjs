@@ -4,60 +4,26 @@
  * Middle East theater uses multiple query points for coverage.
  */
 
+import { THEATERS } from './theaters.mjs';
+
 const MAX_RADIUS_NM = 250;
 const REQUEST_STAGGER_MS = 350;
 
-const THEATER_BOUNDS = {
-    global: { lamin: -90, lomin: -180, lamax: 90, lomax: 180 },
-    worldwide: { lamin: -90, lomin: -180, lamax: 90, lomax: 180 },
-    middleeast: { lamin: 10, lomin: 24, lamax: 42, lomax: 65 },
-    indopacific: { lamin: -10, lomin: 90, lamax: 25, lomax: 135 },
-    thailand: { lamin: 5, lomin: 97, lamax: 21, lomax: 106 }
-};
+// Bounds + overlapping 250 nm query circles come from the shared theater
+// registry (theaters.mjs).
+const THEATER_BOUNDS = Object.fromEntries(
+    Object.entries(THEATERS).map(([id, t]) => [id, t.bounds])
+);
+// Back-compat alias: callers historically used 'worldwide' for the global feed.
+THEATER_BOUNDS.worldwide = THEATERS.global.bounds;
 
 /** Overlapping 250 nm circles to cover each theater bbox. */
 const THEATER_QUERY_POINTS = {
-    global: [
-        { lat: 40.0, lon: -100.0 },  // North America central
-        { lat: 45.0, lon: -70.0 },   // US East / Atlantic
-        { lat: 60.0, lon: -150.0 },  // Alaska / North Pacific
-        { lat: 51.0, lon: 0.0 },       // UK / Western Europe
-        { lat: 48.0, lon: 10.0 },      // Central Europe
-        { lat: 55.0, lon: 37.0 },      // Eastern Europe / Russia west
-        { lat: 25.0, lon: 55.0 },      // Gulf / Middle East
-        { lat: 30.0, lon: 80.0 },      // South Asia
-        { lat: 35.0, lon: 135.0 },     // Japan
-        { lat: 20.0, lon: 110.0 },     // Southeast Asia
-        { lat: 10.0, lon: -75.0 },     // Caribbean / northern South America
-        { lat: -25.0, lon: 135.0 },    // Australia
-        { lat: -15.0, lon: -50.0 },    // Brazil
-        { lat: -35.0, lon: 25.0 }      // South Africa
-    ],
+    global: THEATERS.global.queryPoints,
     worldwide: null, // alias → global
-    middleeast: [
-        { lat: 26.0, lon: 50.0 },  // Gulf
-        { lat: 33.5, lon: 36.0 },  // Levant
-        { lat: 30.0, lon: 32.0 },  // Egypt / Sinai
-        { lat: 24.0, lon: 54.0 },  // UAE / Oman
-        { lat: 29.0, lon: 48.0 },  // Kuwait / S Iraq
-        { lat: 22.0, lon: 38.0 },  // Red Sea
-    ],
-    indopacific: [
-        { lat: 14.0, lon: 100.0 },  // Bangkok / Gulf of Thailand
-        { lat: 5.0, lon: 110.0 },   // South China Sea central
-        { lat: 1.35, lon: 103.82 }, // Singapore
-        { lat: -6.2, lon: 106.85 }, // Jakarta
-        { lat: 14.6, lon: 121.0 },  // Manila
-        { lat: -2.0, lon: 118.0 },  // Sulawesi / eastern Indonesia
-        { lat: 10.8, lon: 106.7 },  // Ho Chi Minh / Mekong delta
-        { lat: 22.3, lon: 114.2 },  // Hong Kong / Pearl River
-    ],
-    thailand: [
-        { lat: 14.5, lon: 100.9925 }, // Bangkok
-        { lat: 18.79, lon: 98.98 },   // Chiang Mai
-        { lat: 7.88, lon: 98.39 },    // Phuket
-        { lat: 16.44, lon: 102.83 },  // Khon Kaen
-    ]
+    middleeast: THEATERS.middleeast.queryPoints,
+    indopacific: THEATERS.indopacific.queryPoints,
+    thailand: THEATERS.thailand.queryPoints
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

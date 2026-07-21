@@ -5,6 +5,8 @@
  * every 8 hours (3/day max) and return stale in-memory data between pulls.
  */
 
+import { THEATERS } from './theaters.mjs';
+
 const API_BASE = 'http://api.aviationstack.com/v1/flights';
 const CACHE_MS = 8 * 60 * 60 * 1000;
 const MAX_RESULTS = 100;
@@ -19,8 +21,12 @@ const THEATER_FILTERS = {
 
 const cache = new Map();
 
+// Quota guard: aviationstack's free plan is 100 requests/month, so live
+// pulls are restricted to the Middle East (the quota-protected theater);
+// every other theater short-circuits below. Bounds come from the shared
+// theater registry.
 const THEATER_BOUNDS = {
-    middleeast: { lamin: 10, lomin: 24, lamax: 42, lomax: 65 },
+    middleeast: THEATERS.middleeast.bounds,
 };
 
 const getApiKey = () => process.env.AVIATIONSTACK_API_KEY || process.env.AVIATION_STACK_KEY || '';

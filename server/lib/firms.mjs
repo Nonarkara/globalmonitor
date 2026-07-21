@@ -3,13 +3,9 @@
  * Fetches VIIRS near-real-time fire/thermal anomaly data and converts to GeoJSON.
  */
 
-const FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY || '';
+import { getTheater, resolveTheater, FIRMS_GLOBAL_SUB_BBOXES } from './theaters.mjs';
 
-const THEATER_BBOX = {
-    middleeast: '24,10,65,42',
-    indopacific: '90,-10,135,25',
-    thailand: '97,5,106,21'
-};
+const FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY || '';
 
 const parseCsvLine = (line) => {
     const parts = line.split(',');
@@ -75,54 +71,71 @@ const getMockFirmsData = (theater = 'middleeast') => {
     }));
 };
 
+const parseFireCsv = (text, allFeatures) => {
+    const lines = text.trim().split('\n');
+    // Skip header row
+    for (let i = 1; i < lines.length; i++) {
+        const row = parseCsvLine(lines[i]);
+
+        if (isNaN(row.latitude) || isNaN(row.longitude)) continue;
+        if (row.confidence === 'low' || row.confidence === 'l') continue;
+
+        allFeatures.push({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [row.longitude, row.latitude]
+            },
+            properties: {
+                confidence: row.confidence,
+                frp: isNaN(row.frp) ? 0 : row.frp,
+                brightness: row.bright_ti4,
+                acq_date: row.acq_date,
+                acq_time: row.acq_time,
+                daynight: row.daynight,
+                satellite: row.satellite
+            }
+        });
+    }
+};
+
+const fetchFireCsv = async (url) => {
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return '';
+    return res.text();
+};
+
 export const fetchFirmsPayload = async (theater = 'middleeast') => {
-    const bbox = THEATER_BBOX[theater] || THEATER_BBOX.middleeast;
+    const resolved = resolveTheater(theater);
     const days = 2;
 
     // Try MAP_KEY authenticated endpoint first
     if (FIRMS_MAP_KEY) {
-        const urls = [
-            `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${FIRMS_MAP_KEY}/VIIRS_SNPP_NRT/${bbox}/${days}`,
-            `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${FIRMS_MAP_KEY}/VIIRS_NOAA20_NRT/${bbox}/${days}`
-        ];
+        // Global coverage: the FIRMS area API caps CSV responses at ~5000
+        // rows, which a single worldwide request exceeds — fetch continental
+        // sub-bboxes (theaters.mjs) in parallel instead, tolerating
+        // per-request failure so one bad region never blanks the map.
+        const bboxList = resolved === 'global'
+            ? FIRMS_GLOBAL_SUB_BBOXES.map((b) => b.join(','))
+            : [getTheater(resolved).bboxCsv];
 
-        const allFeatures = [];
-
-        for (const url of urls) {
-            try {
-                const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-                if (!res.ok) continue;
-
-                const text = await res.text();
-                const lines = text.trim().split('\n');
-
-                // Skip header row
-                for (let i = 1; i < lines.length; i++) {
-                    const row = parseCsvLine(lines[i]);
-
-                    if (isNaN(row.latitude) || isNaN(row.longitude)) continue;
-                    if (row.confidence === 'low' || row.confidence === 'l') continue;
-
-                    allFeatures.push({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [row.longitude, row.latitude]
-                        },
-                        properties: {
-                            confidence: row.confidence,
-                            frp: isNaN(row.frp) ? 0 : row.frp,
-                            brightness: row.bright_ti4,
-                            acq_date: row.acq_date,
-                            acq_time: row.acq_time,
-                            daynight: row.daynight,
-                            satellite: row.satellite
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error(`FIRMS fetch error for ${url}:`, err.message);
+        const requests = [];
+        for (const bbox of bboxList) {
+            for (const sensor of ['VIIRS_SNPP_NRT', 'VIIRS_NOAA20_NRT']) {
+                requests.push(
+                    fetchFireCsv(`https://firms.modaps.eosdis.nasa.gov/api/area/csv/${FIRMS_MAP_KEY}/${sensor}/${bbox}/${days}`)
+                        .catch((err) => {
+                            console.error(`FIRMS fetch error (${sensor} ${bbox}):`, err.message);
+                            return '';
+                        })
+                );
             }
+        }
+
+        const texts = await Promise.all(requests);
+        const allFeatures = [];
+        for (const text of texts) {
+            if (text) parseFireCsv(text, allFeatures);
         }
 
         // If we got data, return it
@@ -131,22 +144,23 @@ export const fetchFirmsPayload = async (theater = 'middleeast') => {
                 type: 'FeatureCollection',
                 features: allFeatures,
                 meta: {
-                    theater,
+                    theater: resolved,
                     count: allFeatures.length,
                     fetchedAt: new Date().toISOString(),
-                    source: 'nasa-firms-live'
+                    source: 'nasa-firms-live',
+                    ...(resolved === 'global' ? { coverage: 'global-sub-bboxes', subBboxes: bboxList.length } : {})
                 }
             };
         }
     }
 
     // Fall back to mock data when API key unavailable or no results
-    const features = getMockFirmsData(theater);
+    const features = getMockFirmsData(resolved);
     return {
         type: 'FeatureCollection',
         features,
         meta: {
-            theater,
+            theater: resolved,
             count: features.length,
             fetchedAt: new Date().toISOString(),
             source: 'sample-data',

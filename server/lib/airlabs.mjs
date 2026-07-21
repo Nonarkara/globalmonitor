@@ -10,13 +10,14 @@
  * Requires env: AIRLABS_API_KEY (airlabs.co).
  */
 
-// Airlabs bbox = "minLat,minLng,maxLat,maxLng"
-const THEATER_BBOX = {
-    middleeast: '12,30,40,62',
-    indopacific: '-10,95,30,135',
-    thailand: '5,97,21,106',
-    global: '-60,-180,75,180',
-};
+import { THEATERS } from './theaters.mjs';
+
+// Airlabs bbox = "minLat,minLng,maxLat,maxLng" — sourced from the shared
+// theater registry (theaters.mjs). Unknown theaters fall back to 'global'
+// in getAirlabsEnrichment below (historical behavior preserved).
+const THEATER_BBOX = Object.fromEntries(
+    Object.entries(THEATERS).map(([id, t]) => [id, t.airlabsBbox])
+);
 
 const TTL_MS = 3 * 60 * 60 * 1000; // 3h — well under the monthly cap
 const cache = new Map();           // theater -> { byHex:Map, fetchedAt:number }
