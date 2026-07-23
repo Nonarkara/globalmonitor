@@ -237,4 +237,18 @@ export const REGIONS = {
     }
 };
 
-export const getRegion = (id) => REGIONS[id] || REGIONS.middleeast;
+/**
+ * Default theater for this deployment — the single frontend choke point.
+ *
+ * Set at BUILD time via the Vite env var VITE_DEFAULT_THEATER
+ * (e.g. VITE_DEFAULT_THEATER=global npm run build) so the same codebase
+ * serves both deployments: the Middle East flagship
+ * (globalmonitor.nonarkara.org, default 'middleeast') and the global
+ * conflict watch (global.nonarkara.org, 'global'). Unknown values fall
+ * back to 'middleeast' to preserve current behavior.
+ */
+export const DEFAULT_THEATER = REGIONS[import.meta.env?.VITE_DEFAULT_THEATER]
+    ? import.meta.env.VITE_DEFAULT_THEATER
+    : 'middleeast';
+
+export const getRegion = (id) => REGIONS[id] || REGIONS[DEFAULT_THEATER];
