@@ -563,11 +563,16 @@ function App() {
           )}
           {viewMode === 'global' && (
             <>
-              <ErrorBoundary inline label="Global Macro">
-                <LazyPanel name="RegionalNewsPanel" regionName="Global" title="Global Macro & Policy" activeSourceIds={activeSources} viewMode={viewMode} />
+              {/* Distinct world-conflict wires — no duplication of the right-sidebar
+                  Global Macro / Maritime panels. Each is a real dedicated feed. */}
+              <ErrorBoundary inline label="Ukraine War">
+                <LazyPanel name="RegionalNewsPanel" regionName="Ukraine" title="Ukraine War" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
-              <ErrorBoundary inline label="Maritime Warnings">
-                <LazyPanel name="MaritimeWarningsPanel" viewMode={viewMode} />
+              <ErrorBoundary inline label="Africa Conflicts">
+                <LazyPanel name="RegionalNewsPanel" regionName="Africa" title="Africa — Sudan / Sahel / DRC" activeSourceIds={activeSources} viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="World Conflict Wire">
+                <LazyPanel name="RegionalNewsPanel" regionName="WorldConflict" title="World Conflict Wire" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
               <ErrorBoundary inline label="Media Sentiment">
                 <LazyPanel name="SentimentChart" viewMode={viewMode} />
