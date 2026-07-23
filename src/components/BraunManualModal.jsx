@@ -12,7 +12,8 @@ const BraunManualModal = ({ isOpen, onClose }) => {
             position: 'fixed', inset: 0, zIndex: 10000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            pointerEvents: 'auto'
         }} onClick={onClose}>
             <div style={{
                 width: '100%', maxWidth: '850px', maxHeight: '90vh',
