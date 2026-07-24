@@ -46,6 +46,10 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
             SouthChinaSea:'"South China Sea" OR "Taiwan Strait" tension OR naval OR incident',
             ASEAN:        'ASEAN geopolitics OR diplomacy OR summit OR "Southeast Asia"',
             Taiwan:       'Taiwan China military OR strait OR exercise OR invasion',
+            // Global-theater conflict wires (global.nonarkara.org).
+            Ukraine:      '"Ukraine" war OR Russia OR front OR strike OR drone OR offensive OR ceasefire',
+            Africa:       'Sudan OR Sahel OR "DR Congo" OR Ethiopia conflict OR RSF OR M23 OR Darfur OR famine',
+            WorldConflict:'armed conflict OR war OR ceasefire OR offensive OR insurgency OR coup -sport -football',
         };
         if (RSS_REGIONS[regionName]) {
             const q = encodeURIComponent(RSS_REGIONS[regionName]);

@@ -3,17 +3,17 @@
  * https://opensky-network.org/api/states/all
  */
 
+import { THEATERS } from './theaters.mjs';
+
 const TOKEN_URL =
     'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token';
 const STATES_URL = 'https://opensky-network.org/api/states/all';
 
-const THEATER_BOUNDS = {
-    global: { lamin: -90, lomin: -180, lamax: 90, lomax: 180 },
-    worldwide: { lamin: -90, lomin: -180, lamax: 90, lomax: 180 },
-    middleeast: { lamin: 10, lomin: 24, lamax: 42, lomax: 65 },
-    indopacific: { lamin: -10, lomin: 90, lamax: 25, lomax: 135 },
-    thailand: { lamin: 5, lomin: 97, lamax: 21, lomax: 106 }
-};
+const THEATER_BOUNDS = Object.fromEntries(
+    Object.entries(THEATERS).map(([id, t]) => [id, t.bounds])
+);
+// Back-compat alias: callers historically used 'worldwide' for the global feed.
+THEATER_BOUNDS.worldwide = THEATERS.global.bounds;
 
 const CATEGORY_LABELS = {
     0: 'Unknown',

@@ -5,7 +5,7 @@ import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
-import { REGIONS, getRegion } from './data/regions';
+import { REGIONS, getRegion, DEFAULT_THEATER } from './data/regions';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
 import { Settings, RefreshCw, Network, Database, FileText, Printer, Info, Menu, ChevronDown } from 'lucide-react';
@@ -32,8 +32,11 @@ function App() {
   const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
-  // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
-  const [viewMode, setViewMode] = useState('middleeast');
+  // Region nav: 'middleeast' | 'indopacific' | 'thailand' | 'global'.
+  // Initial theater is the build-time default (VITE_DEFAULT_THEATER via
+  // DEFAULT_THEATER in regions.js) so one codebase serves both the
+  // Middle East flagship and the global conflict watch deployments.
+  const [viewMode, setViewMode] = useState(DEFAULT_THEATER);
   // Selected country (Indo-Pacific) or province (Thailand) — drives CountryNewsPanel
   const [selectedCountryCode, setSelectedCountryCode] = useState(null);
 
@@ -55,7 +58,7 @@ function App() {
     if (toolsOpen) document.addEventListener('pointerdown', onDocClick);
     return () => document.removeEventListener('pointerdown', onDocClick);
   }, [toolsOpen]);
-  const [activeSources, setActiveSources] = useState(getDefaultSourceIdsForRegion('middleeast'));
+  const [activeSources, setActiveSources] = useState(getDefaultSourceIdsForRegion(DEFAULT_THEATER));
   const [copernicusMode, setCopernicusMode] = useState('true-color');
   const [showCopernicusOverlay, setShowCopernicusOverlay] = useState(true);
   const [showStrategicContext, setShowStrategicContext] = useState(false);
@@ -560,11 +563,16 @@ function App() {
           )}
           {viewMode === 'global' && (
             <>
-              <ErrorBoundary inline label="Global Macro">
-                <LazyPanel name="RegionalNewsPanel" regionName="Global" title="Global Macro & Policy" activeSourceIds={activeSources} viewMode={viewMode} />
+              {/* Distinct world-conflict wires — no duplication of the right-sidebar
+                  Global Macro / Maritime panels. Each is a real dedicated feed. */}
+              <ErrorBoundary inline label="Ukraine War">
+                <LazyPanel name="RegionalNewsPanel" regionName="Ukraine" title="Ukraine War" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
-              <ErrorBoundary inline label="Maritime Warnings">
-                <LazyPanel name="MaritimeWarningsPanel" viewMode={viewMode} />
+              <ErrorBoundary inline label="Africa Conflicts">
+                <LazyPanel name="RegionalNewsPanel" regionName="Africa" title="Africa — Sudan / Sahel / DRC" activeSourceIds={activeSources} viewMode={viewMode} />
+              </ErrorBoundary>
+              <ErrorBoundary inline label="World Conflict Wire">
+                <LazyPanel name="RegionalNewsPanel" regionName="WorldConflict" title="World Conflict Wire" activeSourceIds={activeSources} viewMode={viewMode} />
               </ErrorBoundary>
               <ErrorBoundary inline label="Media Sentiment">
                 <LazyPanel name="SentimentChart" viewMode={viewMode} />

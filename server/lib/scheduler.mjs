@@ -53,6 +53,11 @@ export const startScheduler = (serverPort) => {
     ['middleeast', 'indopacific', 'thailand'].forEach((t, i) => {
         schedule(`/api/flights?theater=${t}`, 30 * 1000, 5000 + i * 8000);
     });
+    // Global flights — 60s (the /api/flights default theater is 'global', so
+    // the global deployment's UI would otherwise trigger cold 14-point
+    // worldwide fetches; 60s keeps the 35s route TTL warm without hammering
+    // airplanes.live's 1 req/s budget alongside the regional warms).
+    schedule('/api/flights?theater=global', 60 * 1000, 29000);
 
     // Oil prices — 30 min
     schedule('/api/oil-prices', 30 * MIN, 6000);
@@ -100,6 +105,22 @@ export const startScheduler = (serverPort) => {
         // freshness via the route's own TTL when they actually look.
         schedule(`/api/oracle?theater=${theater}`, 30 * MIN, 17000 + base);
     });
+
+    // ── Global theater — modest cadence ─────────────────────────────────────
+    // Warmed separately at longer intervals: global payloads are heavy
+    // (FIRMS global fans out to 10 sub-bbox requests; worldwide GDELT/ACLED
+    // queries are the broadest we run), and a worldwide Oracle forecast
+    // doesn't exist (oracle supports only the 3 regional theaters).
+    // schedule() timers fire independently, so these run in parallel with
+    // the per-theater warms above.
+    schedule('/api/firms?theater=global', 30 * MIN, 18000);
+    schedule('/api/quakes?theater=global', 30 * MIN, 19000);
+    schedule('/api/sentiment?theater=global', 60 * MIN, 20000);
+    schedule('/api/acled?theater=global', 120 * MIN, 21000);
+    schedule('/api/humanitarian?theater=global', 120 * MIN, 22000);
+    // Vessels global — cheap (in-memory unfiltered feed), but it's the
+    // /api/vessels default theater, so keep its cache key warm too.
+    schedule('/api/vessels?theater=global', 30 * 1000, 23000);
 
     // ── Intelligence briefings — staggered 30s apart, 4-min cycle ────────────
 

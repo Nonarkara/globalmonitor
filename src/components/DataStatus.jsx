@@ -32,7 +32,7 @@ const S = {
 const DataStatus = ({
     isLoading, isRefreshing, isStale, error, retryCount,
     data, isEmpty, emptyMessage = 'No data available',
-    refresh, children
+    refresh, children, isDemo = false, demoLabel = 'DEMO DATA'
 }) => {
     // First load — skeleton placeholder (fixed slot height)
     if (!data && isLoading) {
@@ -86,6 +86,18 @@ const DataStatus = ({
                 }}
                 aria-live="polite"
             >
+                {isDemo && (
+                    <span
+                        style={{
+                            ...S.staleBadge,
+                            color: 'var(--red)',
+                            borderColor: 'var(--red)'
+                        }}
+                        role="status"
+                    >
+                        {demoLabel}
+                    </span>
+                )}
                 <span
                     style={{
                         ...S.staleBadge,

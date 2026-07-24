@@ -42,6 +42,19 @@ export const INTELLIGENCE_SOURCES = [
     { id: 'arab_news', name: 'Arab News', url: 'https://www.arabnews.com/rss.xml', group: 'middle-east', trustScore: 11 },
     { id: 'rudaw', name: 'Rudaw', url: 'https://www.rudaw.net/english/rss', group: 'middle-east', trustScore: 10 },
     { id: 'tasnim', name: 'Tasnim News', url: buildGoogleNewsSearchUrl('Tasnim News Agency Iran'), group: 'middle-east', trustScore: 8 },
+
+    // ── Global conflict wire (group 'global-wire') ───────────────────────────
+    // Real, authoritative worldwide sources for the global.nonarkara.org
+    // deployment. A dedicated group (not 'worldwide') keeps the Middle East /
+    // ASEAN / Thailand source sets byte-identical — those theaters never pull
+    // 'global-wire'. All URLs verified live (UN News is gzip; Node fetch
+    // decompresses transparently). No fabricated feeds.
+    { id: 'un_news', name: 'UN News', url: 'https://news.un.org/feed/subscribe/en/news/all/rss.xml', group: 'global-wire', trustScore: 14 },
+    { id: 'reliefweb', name: 'ReliefWeb', url: 'https://reliefweb.int/updates/rss.xml', group: 'global-wire', trustScore: 14 },
+    { id: 'reuters_world_wire', name: 'Reuters World', url: buildGoogleNewsSearchUrl('Reuters world news conflict OR crisis'), group: 'global-wire', trustScore: 15 },
+    { id: 'ap_world', name: 'AP World', url: buildGoogleNewsSearchUrl('AP News world conflict OR war OR crisis'), group: 'global-wire', trustScore: 14 },
+    { id: 'ukraine_wire', name: 'Ukraine Wire', url: buildGoogleNewsSearchUrl('Ukraine Russia war front OR strike OR offensive OR drone'), group: 'global-wire', trustScore: 12 },
+    { id: 'africa_wire', name: 'Africa Conflicts', url: buildGoogleNewsSearchUrl('Sudan OR Sahel OR "DR Congo" conflict OR RSF OR M23 OR Darfur'), group: 'global-wire', trustScore: 11 },
 ];
 
 export const SOURCE_IDS_BY_REGION = {
@@ -54,9 +67,19 @@ export const SOURCE_IDS_BY_REGION = {
     thailand: INTELLIGENCE_SOURCES
         .filter((source) => ['worldwide', 'asia', 'thailand'].includes(source.group))
         .map((source) => source.id),
-    global: INTELLIGENCE_SOURCES
-        .filter((source) => source.group === 'worldwide')
-        .map((source) => source.id),
+    // Global deployment: an EXPLICIT genuinely-global curation. Three world
+    // anchors (BBC World, Guardian World, Al Jazeera) plus every 'global-wire'
+    // conflict source. Deliberately EXCLUDES 'reuters_world' — it is tagged
+    // 'worldwide' but runs an Iran/Israel query, and its ME-heavy volume
+    // floods the global ranking (verified: the global ticker was Iran/Yemen
+    // dominated until it was dropped). 'reuters_world_wire' (true world query)
+    // covers Reuters for the global view instead.
+    global: [
+        'bbc_world', 'guardian_world', 'aljazeera',
+        ...INTELLIGENCE_SOURCES
+            .filter((source) => source.group === 'global-wire')
+            .map((source) => source.id),
+    ],
 };
 
 export const APAC_SOURCES = INTELLIGENCE_SOURCES.filter((source) => ['worldwide', 'asia', 'thailand'].includes(source.group));

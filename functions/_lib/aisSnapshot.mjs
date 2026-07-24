@@ -1,18 +1,22 @@
 import { mapShipTypeCategory } from '../../server/lib/shipTypes.mjs';
+import { THEATERS } from '../../server/lib/theaters.mjs';
 
 const AIS_STREAM_URL = 'wss://stream.aisstream.io/v0/stream';
 const SNAPSHOT_MS = 6000;
 const MAX_VESSELS = 6000;
 
+// aisstream.io expects each corner as [latitude, longitude] (lat first).
+const corner = (t) => [[t.bbox[1], t.bbox[0]], [t.bbox[3], t.bbox[2]]];
+
 const VESSEL_BOXES = [
-    [[-180, -90], [180, 90]],
-    [[55.0, 25.5], [57.5, 27.5]],   // Strait of Hormuz
-    [[42.5, 11.5], [44.0, 13.5]],   // Bab-el-Mandeb
-    [[100.0, 0.5], [104.5, 6.5]],   // Strait of Malacca
-    [[118.5, 21.5], [122.5, 26.5]], // Taiwan Strait
-    [[97.0, 5.0], [106.0, 21.0]],   // Thailand + Gulf of Thailand
-    [[105.0, -8.0], [125.0, 8.0]],  // Indonesia / Java / Borneo
-    [[108.0, 8.0], [120.0, 22.0]],  // Vietnam / Philippines / South China Sea
+    [[-90, -180], [90, 180]],       // worldwide
+    [[25.5, 55.0], [27.5, 57.5]],   // Strait of Hormuz
+    [[11.5, 42.5], [13.5, 44.0]],   // Bab-el-Mandeb
+    [[0.5, 100.0], [6.5, 104.5]],   // Strait of Malacca
+    [[21.5, 118.5], [26.5, 122.5]], // Taiwan Strait
+    corner(THEATERS.thailand),      // Thailand + Gulf of Thailand
+    [[-8.0, 105.0], [8.0, 125.0]],  // Indonesia / Java / Borneo
+    [[8.0, 108.0], [22.0, 120.0]],  // Vietnam / Philippines / South China Sea
 ];
 
 const toFeature = (mmsi, v) => ({
