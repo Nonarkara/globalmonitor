@@ -240,15 +240,32 @@ export const REGIONS = {
 /**
  * Default theater for this deployment — the single frontend choke point.
  *
- * Set at BUILD time via the Vite env var VITE_DEFAULT_THEATER
- * (e.g. VITE_DEFAULT_THEATER=global npm run build) so the same codebase
- * serves both deployments: the Middle East flagship
- * (globalmonitor.nonarkara.org, default 'middleeast') and the global
- * conflict watch (global.nonarkara.org, 'global'). Unknown values fall
- * back to 'middleeast' to preserve current behavior.
+ * Resolved at RUNTIME from window.location.hostname, not at build time.
+ * One build, one running server (localhost:8802 behind the Cloudflare
+ * tunnel) serves every domain: globalmonitor.nonarkara.org lands on
+ * 'middleeast' (the flagship), global.nonarkara.org lands on 'global' (the
+ * conflict watch). Adding a domain is a routing change only — no separate
+ * build, no second server process, no doubled scheduler/API-quota load.
+ *
+ * VITE_DEFAULT_THEATER remains as a build-time override for contexts with
+ * no meaningful hostname (local dev, a Cloudflare Pages preview URL) —
+ * checked only when the hostname doesn't match a known mapping.
  */
-export const DEFAULT_THEATER = REGIONS[import.meta.env?.VITE_DEFAULT_THEATER]
-    ? import.meta.env.VITE_DEFAULT_THEATER
-    : 'middleeast';
+const HOSTNAME_THEATERS = {
+    'global.nonarkara.org': 'global',
+    'globalmonitor.nonarkara.org': 'middleeast',
+};
+
+const resolveDefaultTheater = () => {
+    if (typeof window !== 'undefined') {
+        const byHost = HOSTNAME_THEATERS[window.location.hostname];
+        if (byHost && REGIONS[byHost]) return byHost;
+    }
+    return REGIONS[import.meta.env?.VITE_DEFAULT_THEATER]
+        ? import.meta.env.VITE_DEFAULT_THEATER
+        : 'middleeast';
+};
+
+export const DEFAULT_THEATER = resolveDefaultTheater();
 
 export const getRegion = (id) => REGIONS[id] || REGIONS[DEFAULT_THEATER];
