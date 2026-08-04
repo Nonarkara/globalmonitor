@@ -5,6 +5,7 @@ import { normalizeAirLabsFlights } from '../server/lib/airLabs.mjs';
 import { airportsCsvToFeatureCollection } from '../scripts/refresh-airports.mjs';
 import { sanitizePointCollection } from '../src/utils/geojsonValidate.js';
 import { buildPopupClassName } from '../src/utils/mapPopup.js';
+import { fetchFlightSnapshot } from '../functions/_lib/router.mjs';
 
 test('AirLabs records normalize to safe MapLibre points', () => {
     const features = normalizeAirLabsFlights([
@@ -55,4 +56,32 @@ test('popup class names never contain an empty DOMTokenList token', () => {
         assert.ok(className);
         assert.equal(className.split(' ').some((token) => token.length === 0), false);
     }
+});
+
+test('flight fallback reads the Pages static asset through context.next', async () => {
+    const snapshot = {
+        type: 'FeatureCollection',
+        features: Array.from({ length: 50 }, (_, index) => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [index, 10] },
+            properties: { hex: String(index) },
+        })),
+        meta: { source: 'opensky-snapshot' },
+    };
+    let requestedPath = null;
+    const result = await fetchFlightSnapshot(
+        new Request('https://example.test/api/flights?theater=global'),
+        { type: 'FeatureCollection', features: [], meta: { error: 'throttled' } },
+        async (request) => {
+            requestedPath = new URL(request.url).pathname;
+            return new Response(JSON.stringify(snapshot), {
+                headers: { 'content-type': 'application/geo+json' },
+            });
+        },
+    );
+
+    assert.equal(requestedPath, '/data/flights/opensky-snapshot.geojson');
+    assert.equal(result.features.length, 50);
+    assert.equal(result.meta.stale, true);
+    assert.equal(result.meta.liveError, 'throttled');
 });

@@ -51,9 +51,14 @@ const parseSourceIds = (searchParams) => {
     return raw.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
-const fetchFlightSnapshot = async (request, livePayload) => {
+export const fetchFlightSnapshot = async (request, livePayload, next) => {
     const snapshotUrl = new URL('/data/flights/opensky-snapshot.geojson', request.url);
-    const response = await fetch(snapshotUrl, { signal: AbortSignal.timeout(5000) });
+    const snapshotRequest = new Request(snapshotUrl, {
+        headers: { accept: 'application/geo+json, application/json' },
+    });
+    const response = next
+        ? await next(snapshotRequest)
+        : await fetch(snapshotRequest, { signal: AbortSignal.timeout(5000) });
     if (!response.ok) return livePayload;
     const snapshot = await response.json();
     if (!Array.isArray(snapshot?.features) || snapshot.features.length < 50) return livePayload;
@@ -68,7 +73,7 @@ const fetchFlightSnapshot = async (request, livePayload) => {
     };
 };
 
-export async function handleApiRequest(request, env) {
+export async function handleApiRequest(request, env, next) {
     applyEnv(env);
 
     if (request.method === 'OPTIONS') {
@@ -225,7 +230,7 @@ export async function handleApiRequest(request, env) {
                     if ((livePayload.features?.length ?? 0) >= minCount || theater !== 'global') {
                         return livePayload;
                     }
-                    return fetchFlightSnapshot(request, livePayload);
+                    return fetchFlightSnapshot(request, livePayload, next);
                 },
                 (p) => p?.type === 'FeatureCollection' && (p.features?.length ?? 0) >= minCount
             );
