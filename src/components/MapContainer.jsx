@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useEffect, useMemo, useReducer } from 'react';
+import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import { AlertTriangle } from 'lucide-react';
@@ -10,6 +10,7 @@ import { fetchMacroEconomy } from '../services/worldBank';
 import { fetchAirQuality } from '../services/airQuality';
 import { fetchFirmsData } from '../services/firms';
 import { fetchInfrastructure } from '../services/infrastructure';
+import { fetchAirportLocations } from '../services/airports.js';
 import { fetchFlights } from '../services/flights.js';
 import { fetchVessels } from '../services/vessels.js';
 import { fetchRainviewerTiles } from '../services/rainviewer.js';
@@ -21,6 +22,7 @@ import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
+import { buildPopupClassName } from '../utils/mapPopup.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
@@ -52,12 +54,24 @@ const formatVesselSourceLabel = (meta) => {
     return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 };
 
-const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'acled-circles', 'firms-circles'];
+const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'airports-points', 'acled-circles', 'firms-circles'];
 
 const formatCoord = (value, axis) => {
     const abs = Math.abs(value);
     const dir = axis === 'lat' ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
     return `${abs.toFixed(4)}°${dir}`;
+};
+
+const sameHoverTarget = (current, next) => {
+    if (!current || !next) return current === next;
+    const currentProperties = current.feature?.properties || {};
+    const nextProperties = next.feature?.properties || {};
+    const currentId = currentProperties.id || currentProperties.hex || currentProperties.mmsi || currentProperties.ident;
+    const nextId = nextProperties.id || nextProperties.hex || nextProperties.mmsi || nextProperties.ident;
+    return current.longitude === next.longitude
+        && current.latitude === next.latitude
+        && current.feature?.layer?.id === next.feature?.layer?.id
+        && currentId === nextId;
 };
 const MAP_MIN_ZOOM = 3; // §11.9 — regional dashboard floor, prevents world-copy repetition
 const MAP_MAX_ZOOM = 18;
@@ -66,21 +80,6 @@ const buildTargetViewState = (viewTarget, fallbackTransitionDuration = 1500) => 
     ...viewTarget,
     transitionDuration: viewTarget.transitionDuration ?? fallbackTransitionDuration,
 });
-
-const mapViewReducer = (state, action) => {
-    switch (action.type) {
-        case 'move':
-            return {
-                ...action.viewState,
-                zoom: Math.min(Math.max(action.viewState.zoom, MAP_MIN_ZOOM), MAP_MAX_ZOOM),
-                transitionDuration: 0,
-            };
-        case 'target':
-            return buildTargetViewState(action.viewTarget, state.transitionDuration);
-        default:
-            return state;
-    }
-};
 
 const STRATEGIC_ZONES = {
     type: 'FeatureCollection',
@@ -497,17 +496,14 @@ const MapContainer = ({
 }) => {
     const region = getRegion(viewMode);
     const regionDots = region.dots;
-    const [viewState, dispatchViewState] = useReducer(
-        mapViewReducer,
-        viewTarget,
-        (initialViewTarget) => buildTargetViewState(initialViewTarget)
-    );
+    const initialViewStateRef = useRef(buildTargetViewState(viewTarget, 0));
     const mapRef = useRef(null);
     const wrapperRef = useRef(null);
     const basemapFailCountRef = useRef(0);
     // Track which raster sources have failed (auth / 404 / CORS / 5xx) so the
     // user sees what is missing instead of a silently-empty map.
     const [failedSources, setFailedSources] = useState(() => new Set());
+    const failedSourcesRef = useRef(new Set());
 
     const [mapReady, setMapReady] = useState(false);
     const [trafficDeferredReady, setTrafficDeferredReady] = useState(false);
@@ -517,19 +513,25 @@ const MapContainer = ({
     const [cursorCoords, setCursorCoords] = useState(null);
     const lastHoverUpdateRef = useRef(0);
 
-    const handleMove = useCallback((event) => {
-        dispatchViewState({ type: 'move', viewState: event.viewState });
-    }, []);
-
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
+    const airportsLayerActive = activeLayers.includes('airports');
     const weatherLayerActive = activeLayers.includes('weather');
     const styleFallbackLevel = styleFallbackState.mapStyleKey === mapStyle ? styleFallbackState.level : 0;
     const activeMapStyle = resolveMapStyle(mapStyle, styleFallbackLevel);
     const activeMapStyleKey = styleCacheKey(mapStyle, styleFallbackLevel, activeMapStyle);
 
     useEffect(() => {
-        dispatchViewState({ type: 'target', viewTarget });
+        const map = mapRef.current?.getMap?.();
+        if (!map) return;
+        map.flyTo({
+            center: [viewTarget.longitude, viewTarget.latitude],
+            zoom: viewTarget.zoom,
+            bearing: viewTarget.bearing ?? 0,
+            pitch: viewTarget.pitch ?? 0,
+            duration: viewTarget.transitionDuration ?? 1500,
+            essential: true,
+        });
     }, [viewTarget]);
 
     useEffect(() => {
@@ -546,9 +548,10 @@ const MapContainer = ({
     const advanceStyleFallback = useCallback(() => {
         setStyleFallbackState((state) => {
             const level = state.mapStyleKey === mapStyle ? state.level : 0;
+            if (state.mapStyleKey === mapStyle && level >= 2) return state;
             return {
                 mapStyleKey: mapStyle,
-                level: level >= 2 ? level : level + 1,
+                level: level + 1,
             };
         });
     }, [mapStyle]);
@@ -585,12 +588,12 @@ const MapContainer = ({
             const sourceId = e?.sourceId || e?.source?.id || e?.error?.sourceId;
             if (sourceId) {
                 if (isBasemapSourceId(sourceId)) noteBasemapFailure();
-                setFailedSources((prev) => {
-                    if (prev.has(sourceId)) return prev;
-                    const next = new Set(prev);
+                if (!failedSourcesRef.current.has(sourceId)) {
+                    const next = new Set(failedSourcesRef.current);
                     next.add(sourceId);
-                    return next;
-                });
+                    failedSourcesRef.current = next;
+                    setFailedSources(next);
+                }
                 return;
             }
 
@@ -667,35 +670,42 @@ const MapContainer = ({
         const layers = [];
         if (flightsLayerActive) layers.push('flights-icons');
         if (vesselsLayerActive) layers.push('vessels-icons');
+        if (airportsLayerActive) layers.push('airports-points');
         if (activeLayers.includes('conflicts')) layers.push('acled-circles');
         if (activeLayers.includes('firms')) layers.push('firms-circles');
         return layers;
-    }, [activeLayers, flightsLayerActive, vesselsLayerActive]);
+    }, [activeLayers, airportsLayerActive, flightsLayerActive, vesselsLayerActive]);
 
     const handleMouseMove = useCallback((event) => {
         const now = window.performance?.now?.() ?? Date.now();
         if (now - lastHoverUpdateRef.current < TRAFFIC_HOVER_THROTTLE_MS) return;
         lastHoverUpdateRef.current = now;
 
-        setCursorCoords({ lng: event.lngLat.lng, lat: event.lngLat.lat });
+        setCursorCoords((current) => {
+            const next = { lng: event.lngLat.lng, lat: event.lngLat.lat };
+            return current?.lng === next.lng && current?.lat === next.lat ? current : next;
+        });
         const feature = event.features?.find(
             (f) => HOVER_LAYERS.includes(f.layer?.id)
         );
         if (feature) {
             const [longitude, latitude] = feature.geometry?.coordinates || [];
             if (isValidLngLat(longitude, latitude)) {
-                setHoverInfo({ longitude, latitude, feature });
+                setHoverInfo((current) => {
+                    const next = { longitude, latitude, feature };
+                    return sameHoverTarget(current, next) ? current : next;
+                });
             } else {
-                setHoverInfo(null);
+                setHoverInfo((current) => current === null ? current : null);
             }
         } else {
-            setHoverInfo(null);
+            setHoverInfo((current) => current === null ? current : null);
         }
     }, []);
     const handleMouseLeave = useCallback(() => {
         lastHoverUpdateRef.current = 0;
-        setHoverInfo(null);
-        setCursorCoords(null);
+        setHoverInfo((current) => current === null ? current : null);
+        setCursorCoords((current) => current === null ? current : null);
     }, []);
 
     const disasterResource = useLiveResource(useCallback(() => fetchNaturalDisasters(), []), {
@@ -750,6 +760,14 @@ const MapContainer = ({
         intervalMs: 10 * 60 * 1000,
         isUsable: hasFeatureData
     });
+    const airportsResource = useLiveResource(useCallback(() => fetchAirportLocations(), []), {
+        cacheKey: 'map:airports:worldwide',
+        enabled: airportsLayerActive,
+        freezeAfterLoad: true,
+        isUsable: (payload) => payload?.type === 'FeatureCollection' && Array.isArray(payload.features),
+        maxRetries: 1,
+        maxStaleMs: 30 * 24 * 60 * 60 * 1000
+    });
     const flightsResource = useLiveResource(useCallback(() => fetchFlights(TRAFFIC_THEATER), []), {
         cacheKey: `map:flights:${TRAFFIC_THEATER}`,
         enabled: activeLayers.includes('flights'),
@@ -781,6 +799,10 @@ const MapContainer = ({
     const sdgData = sdgResource.data;
     const firmsData = firmsResource.data;
     const infraData = infraResource.data;
+    const airportsData = useMemo(
+        () => sanitizePointCollection(airportsResource.data) ?? EMPTY_TRAFFIC_FC,
+        [airportsResource.data]
+    );
     const globalFlightsData = flightsResource.data;
     const globalVesselsData = vesselsResource.data;
 
@@ -950,7 +972,7 @@ const MapContainer = ({
             <Map
                 ref={mapRef}
                 mapLib={maplibregl}
-                minZoom={MAP_MIN_ZOOM}
+                minZoom={viewMode === 'global' ? 1.5 : MAP_MIN_ZOOM}
                 maxZoom={MAP_MAX_ZOOM}
                 renderWorldCopies={false}
                 maxPitch={60}
@@ -959,8 +981,7 @@ const MapContainer = ({
                 touchZoomRotate
                 antialias
                 trackResize
-                {...viewState}
-                onMove={handleMove}
+                initialViewState={initialViewStateRef.current}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onLoad={handleMapLoad}
@@ -1399,6 +1420,47 @@ const MapContainer = ({
                     </Source>
                 )}
 
+                {/* Worldwide scheduled-service and large airports — static, zero API quota. */}
+                {trafficLayersReady && airportsLayerActive && (
+                    <Source id="airports-data" type="geojson" data={airportsData}>
+                        <Layer
+                            id="airports-points"
+                            type="circle"
+                            paint={{
+                                'circle-color': [
+                                    'case',
+                                    ['==', ['get', 'type'], 'large_airport'],
+                                    '#f59e0b',
+                                    '#f8fafc'
+                                ],
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 1.5, 5, 2.4, 9, 4.2],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.55, 6, 0.82],
+                                'circle-stroke-color': 'rgba(0,0,0,0.72)',
+                                'circle-stroke-width': 0.8
+                            }}
+                        />
+                        <Layer
+                            id="airports-labels"
+                            type="symbol"
+                            minzoom={6.5}
+                            layout={{
+                                'text-field': ['coalesce', ['get', 'iata'], ['get', 'icao'], ''],
+                                'text-size': 9,
+                                'text-font': ['Open Sans Regular'],
+                                'text-offset': [0, 1.2],
+                                'text-anchor': 'top',
+                                'text-allow-overlap': false,
+                                'text-optional': true,
+                            }}
+                            paint={{
+                                'text-color': '#f8fafc',
+                                'text-halo-color': 'rgba(0,0,0,0.82)',
+                                'text-halo-width': 1,
+                            }}
+                        />
+                    </Source>
+                )}
+
                 {/* ACLED Conflict Events Layer */}
                 {activeLayers.includes('conflicts') && acledData?.features?.length > 0 && (
                     <Source id="acled-data" type="geojson" data={acledData}>
@@ -1495,14 +1557,7 @@ const MapContainer = ({
 
                 {hoverInfo && (() => {
                     const hoverLayerId = hoverInfo.feature.layer?.id;
-                    const tooltipClass = [
-                        'traffic-tooltip',
-                        hoverLayerId === 'vessels-icons' || hoverLayerId === 'vessels-labels' ? 'traffic-tooltip--vessel'
-                            : hoverLayerId === 'flights-icons' || hoverLayerId === 'flights-labels' ? 'traffic-tooltip--flight'
-                                : hoverLayerId === 'acled-circles' ? 'traffic-tooltip--conflict'
-                                    : hoverLayerId === 'firms-circles' ? 'traffic-tooltip--heat'
-                                        : null,
-                    ].filter(Boolean).join(' ');
+                    const tooltipClass = buildPopupClassName(hoverLayerId);
 
                     return (
                         <Popup
@@ -1566,6 +1621,29 @@ const MapContainer = ({
                                                     <span>{p.satellite}</span>
                                                 </div>
                                             )}
+                                        </div>
+                                    );
+                                }
+                                if (layerId === 'airports-points' || layerId === 'airports-labels') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header">{p.name || p.iata || p.icao || 'Airport'}</div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Code</span>
+                                                <span>{[p.iata, p.icao].filter(Boolean).join(' / ') || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Location</span>
+                                                <span>{[p.municipality, p.country].filter(Boolean).join(', ') || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Elevation</span>
+                                                <span>{Number.isFinite(Number(p.elevationFt)) ? `${Number(p.elevationFt).toLocaleString()} ft` : '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Source</span>
+                                                <span>OurAirports</span>
+                                            </div>
                                         </div>
                                     );
                                 }

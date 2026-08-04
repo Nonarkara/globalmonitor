@@ -1,10 +1,11 @@
 /**
- * Unified flight payload — airplanes.live primary, OpenSky + aviationstack supplements, Aviation Edge fallback.
+ * Unified flight payload — OpenSky primary, quota-safe AirLabs supplement, legacy fallbacks.
  */
 import { fetchAirplanesLivePayload } from './airplanesLive.mjs';
+import { fetchAirLabsFlightsPayload, isAirLabsConfigured } from './airLabs.mjs';
 import { fetchAviationEdgePayload } from './aviationEdge.mjs';
 import { fetchAviationStackPayload, isAviationStackConfigured } from './aviationStack.mjs';
-import { fetchOpenSkyPayload, isOpenSkyConfigured } from './opensky.mjs';
+import { fetchOpenSkyPayload } from './opensky.mjs';
 
 const normalizeHex = (hex) => (hex || '').toLowerCase().replace(/^0x/, '');
 
@@ -28,6 +29,8 @@ const mergeFlightPayloads = (primary, supplement) => {
             const props = existing.properties;
             const extra = feature.properties;
             if (!props.origin && extra.origin) props.origin = extra.origin;
+            if (!props.destination && extra.destination) props.destination = extra.destination;
+            if ((!props.type || props.type === 'Unknown') && extra.type) props.type = extra.type;
             if (extra.category != null) props.openskyCategory = extra.category;
             if (extra.spi) props.spi = extra.spi;
             if (!props.military && extra.military) props.military = extra.military;
@@ -71,24 +74,52 @@ const mergeFlightPayloads = (primary, supplement) => {
 };
 
 export const fetchFlightsPayload = async (theater = 'global') => {
-    let payload = await fetchAirplanesLivePayload(theater);
+    const [openSky, airLabs] = await Promise.all([
+        fetchOpenSkyPayload(theater),
+        isAirLabsConfigured()
+            ? fetchAirLabsFlightsPayload(theater)
+            : Promise.resolve(null),
+    ]);
 
-    if (isOpenSkyConfigured()) {
-        const opensky = await fetchOpenSkyPayload(theater);
-        if (opensky.features?.length > 0) {
-            if (payload.features?.length > 0) {
-                payload = mergeFlightPayloads(payload, opensky);
-            } else {
-                payload = {
-                    ...opensky,
-                    meta: {
-                        ...opensky.meta,
-                        source: 'opensky',
-                        fallback: 'airplanes.live empty'
-                    }
-                };
-            }
+    let payload = openSky.features?.length > 0
+        ? openSky
+        : {
+            type: 'FeatureCollection',
+            features: [],
+            meta: {
+                theater,
+                count: 0,
+                fetchedAt: new Date().toISOString(),
+                source: 'opensky',
+                error: openSky.meta?.error || 'OpenSky returned no aircraft',
+            },
+        };
+
+    if (airLabs?.features?.length > 0) {
+        if (payload.features?.length > 0) {
+            payload = mergeFlightPayloads(payload, airLabs);
+        } else {
+            payload = airLabs;
         }
+    } else if (airLabs?.meta) {
+        payload = {
+            ...payload,
+            meta: {
+                ...payload.meta,
+                supplements: [
+                    ...(Array.isArray(payload.meta?.supplements) ? payload.meta.supplements : []),
+                    {
+                        source: 'airlabs',
+                        count: 0,
+                        added: 0,
+                        enriched: 0,
+                        cache: airLabs.meta.cache || null,
+                        error: airLabs.meta.error || null,
+                        nextRefreshAt: airLabs.meta.nextRefreshAt || null,
+                    },
+                ],
+            },
+        };
     }
 
     if (isAviationStackConfigured()) {
@@ -128,6 +159,13 @@ export const fetchFlightsPayload = async (theater = 'global') => {
     }
 
     if (payload.features?.length > 0) return payload;
+
+    // The global multi-point airplanes.live path is rate-limited from Cloudflare
+    // and exceeded the browser's 15s API timeout. Keep it only for bounded theaters.
+    if (theater !== 'global' && theater !== 'worldwide') {
+        const airplanesLive = await fetchAirplanesLivePayload(theater);
+        if (airplanesLive.features?.length > 0) return airplanesLive;
+    }
 
     const apiKey = process.env.AVIATION_EDGE_KEY;
     if (apiKey) {

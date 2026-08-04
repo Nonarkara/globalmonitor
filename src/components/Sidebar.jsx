@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2,
-    Plane, Ship, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
+    Plane, Ship, MapPin, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import AlphaEarthPanel from './AlphaEarthPanel';
@@ -40,6 +40,12 @@ const CORE_LAYERS = {
         title: 'Aircraft (ADS-B)',
         desc: 'Live aircraft positions and heading vectors',
         icon: <Plane size={18} />,
+        group: 'mobility',
+    },
+    airports: {
+        title: 'Airports',
+        desc: 'Worldwide scheduled-service and large airports',
+        icon: <MapPin size={18} />,
         group: 'mobility',
     },
     vessels: {
@@ -90,10 +96,10 @@ const EO_LAYER_META = {
 };
 
 const REGION_CORE_IDS = {
-    middleeast: ['firms', 'conflicts', 'infrastructure', 'flights', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
-    indopacific: ['firms', 'conflicts', 'flights', 'vessels', 'weather', 'aqi', 'disasters'],
-    thailand: ['firms', 'conflicts', 'flights', 'vessels', 'weather', 'aqi', 'disasters'],
-    global: ['firms', 'conflicts', 'flights', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    middleeast: ['firms', 'conflicts', 'infrastructure', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    indopacific: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    thailand: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    global: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
 };
 
 const GROUP_ORDER = [
@@ -263,6 +269,16 @@ const Sidebar = ({
                             aria-pressed={activeLayers.includes('flights')}
                         >
                             Flights
+                        </button>
+                        <button
+                            type="button"
+                            role="switch"
+                            onClick={() => toggleLayer('airports')}
+                            className={`sidebar-mini-action ${activeLayers.includes('airports') ? 'active' : ''}`}
+                            aria-checked={activeLayers.includes('airports')}
+                            aria-pressed={activeLayers.includes('airports')}
+                        >
+                            Airports
                         </button>
                         <button
                             type="button"

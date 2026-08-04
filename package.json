@@ -9,6 +9,9 @@
     "dev:stack": "node scripts/dev-stack.mjs",
     "build": "vite build",
     "build:pages": "vite build",
+    "test": "node --test tests/*.test.mjs",
+    "test:traffic": "node scripts/traffic-layers-check.mjs",
+    "refresh:airports": "node scripts/refresh-airports.mjs",
     "refresh:ais": "node scripts/refresh-ais-snapshot.mjs",
     "deploy:pages": "npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true",
     "deploy:pages:ais": "npm run refresh:ais && npm run deploy:pages",
@@ -37,6 +40,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "playwright": "^1.62.1",
     "vite": "^7.3.1"
   },
   "overrides": {

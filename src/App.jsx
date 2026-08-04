@@ -758,15 +758,17 @@ function App() {
           onClose={() => setIsActivityLogOpen(false)}
         />
 
-        <LegalModal
-          isOpen={isLegalOpen}
-          onClose={() => setIsLegalOpen(false)}
-          initialTab={legalInitialTab}
-          onOpenDataProvenance={() => {
-            setIsLegalOpen(false);
-            setIsSourceHealthOpen(true);
-          }}
-        />
+        {isLegalOpen && (
+          <LegalModal
+            isOpen
+            onClose={() => setIsLegalOpen(false)}
+            initialTab={legalInitialTab}
+            onOpenDataProvenance={() => {
+              setIsLegalOpen(false);
+              setIsSourceHealthOpen(true);
+            }}
+          />
+        )}
       </div>
 
       <LegalFooterLinks onOpenSection={openLegalModal} />

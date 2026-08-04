@@ -3753,6 +3753,7 @@ body {
 .traffic-tooltip.maplibregl-popup,
 .traffic-tooltip.mapboxgl-popup {
   max-width: 220px !important;
+  pointer-events: none;
 }
 
 .traffic-tooltip .maplibregl-popup-tip,
@@ -3773,6 +3774,7 @@ body {
   font-family: var(--font-sans);
   font-size: 0.75rem;
   line-height: 1.4;
+  pointer-events: none;
 }
 
 .traffic-tooltip.traffic-tooltip--vessel .maplibregl-popup-content,

@@ -187,8 +187,10 @@ Pattern: extend [server/lib/supabase.mjs](server/lib/supabase.mjs) with an `upse
 
 ## Flight tracking (ADS-B)
 - **Primary**: https://github.com/airplanes-live/api — free REST API, no key
-- **Supplement**: OpenSky Network — OAuth2 client credentials (`OPENSKY_CLIENT_ID` + `OPENSKY_CLIENT_SECRET`). Authenticated tier: 4,000 daily credits per endpoint bucket; worldwide `/states/all` costs 4 credits per request.
-- **Coverage**: airplanes.live uses 15 overlapping 250 nm query points worldwide when `theater=global` or `theater=worldwide`; OpenSky adds origin-country, emitter category, and SPI metadata when configured.
+- **Primary**: OpenSky Network — anonymous `/states/all` access works without credentials; optional OAuth2 credentials (`OPENSKY_CLIENT_ID` + `OPENSKY_CLIENT_SECRET`) increase quota. Global results are cached for 15 minutes.
+- **Quota-limited supplement**: AirLabs (`AIRLABS_API_KEY`) is cached for one hour and requests only map fields. Monthly-limit errors are suppressed until the next UTC month, while OpenSky continues serving aircraft.
+- **Fallback**: airplanes.live is used for theater-scoped requests only; its multi-point global path is deliberately avoided because upstream throttling previously exceeded the frontend timeout.
+- **Airports**: 4,374 worldwide scheduled-service and large airports are generated from the public-domain OurAirports dataset (`npm run refresh:airports`) and served as static GeoJSON with no runtime quota.
 - Endpoint: `GET /api/flights?theater=global` (default). Map always fetches global regardless of theater nav
 - Rate limit: airplanes.live 1 req/sec; server caches 2 min
 - **Local env template** (`.env.local` — gitignored):

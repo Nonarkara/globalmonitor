@@ -26,7 +26,9 @@ Key outcomes:
 ## What It Tracks
 
 - Conflict and humanitarian hotspots via ACLED, curated fallbacks, UNHCR, and ReliefWeb
-- Flight positions via airplanes.live, OpenSky, and optional aviationstack supplement
+- Resilient flight positions via OpenSky, a quota-safe AirLabs supplement, and theater-scoped fallbacks
+- 4,374 worldwide scheduled-service and large-airport locations from OurAirports
+- Global ship positions from Axiom Overwatch/AIS with a discoverable Ships layer switch
 - Ship positions via VesselFinder fleet overlay (Pages) or AIS WebSocket (local Node API)
 - NASA FIRMS thermal anomalies and NASA GIBS environmental/satellite overlays
 - Weather and air quality via Open-Meteo
@@ -126,5 +128,7 @@ Notes:
 ## Cloudflare Pages API caveats
 
 - **Flights, markets, ACLED, FIRMS, rainviewer, etc.**: served by Pages Functions (`functions/_lib/router.mjs`).
-- **Global AIS WebSocket** (aisstream.io): requires long-running Node process — available in `npm run dev:stack` only. On Pages, configure `VESSELFINDER_FLEET_KEY` for fleet ship overlay.
-- **Secrets**: bind env vars in Cloudflare Pages project settings (OpenSky, Supabase, Copernicus, VesselFinder, etc.).
+- **Global AIS WebSocket** (aisstream.io): requires a long-running Node process. Cloudflare Pages uses the free Axiom Overwatch REST snapshot when the WebSocket collector is unavailable; VesselFinder remains an optional fleet overlay.
+- **AirLabs**: set `AIRLABS_API_KEY` as a server-side Pages secret. The one-hour provider cache is designed for the 1,000-request monthly tier; OpenSky remains the working primary feed if AirLabs is unavailable or exhausted.
+- **Airport refresh**: run `npm run refresh:airports` to regenerate the public-domain worldwide airport GeoJSON from OurAirports.
+- **Secrets**: bind env vars in Cloudflare Pages project settings (AirLabs, OpenSky, Supabase, Copernicus, VesselFinder, etc.). Never expose them as `VITE_*` variables.

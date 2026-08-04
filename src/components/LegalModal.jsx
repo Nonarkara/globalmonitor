@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import {
@@ -265,10 +265,6 @@ const LegalModal = ({
   const [activeTab, setActiveTab] = useState(initialTab);
 
   useEscapeKey(isOpen, onClose);
-
-  useEffect(() => {
-    if (isOpen) setActiveTab(initialTab);
-  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 

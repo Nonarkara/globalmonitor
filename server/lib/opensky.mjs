@@ -37,7 +37,7 @@ const CATEGORY_LABELS = {
 
 let tokenCache = { token: null, expiresAt: 0 };
 
-export const isOpenSkyConfigured = () =>
+export const isOpenSkyAuthenticated = () =>
     Boolean(process.env.OPENSKY_CLIENT_ID && process.env.OPENSKY_CLIENT_SECRET);
 
 const resolveTheater = (theater) => {
@@ -74,7 +74,7 @@ const getAccessToken = async () => {
     return tokenCache.token;
 };
 
-const stateToFeature = (state) => {
+export const openSkyStateToFeature = (state) => {
     const lon = state[5];
     const lat = state[6];
     if (lon == null || lat == null) return null;
@@ -98,7 +98,8 @@ const stateToFeature = (state) => {
             desc: category != null ? `OpenSky cat ${category}` : '',
             military: spi || category === 15,
             spi,
-            category
+            category,
+            source: 'opensky'
         }
     };
 };
@@ -106,20 +107,6 @@ const stateToFeature = (state) => {
 export const fetchOpenSkyPayload = async (theater = 'global') => {
     const resolved = resolveTheater(theater);
     const bounds = THEATER_BOUNDS[resolved];
-
-    if (!isOpenSkyConfigured()) {
-        return {
-            type: 'FeatureCollection',
-            features: [],
-            meta: {
-                theater: resolved,
-                count: 0,
-                fetchedAt: new Date().toISOString(),
-                source: 'opensky',
-                configured: false
-            }
-        };
-    }
 
     const query = new URLSearchParams({ extended: '1' });
     if (resolved !== 'global') {
@@ -130,9 +117,10 @@ export const fetchOpenSkyPayload = async (theater = 'global') => {
     }
 
     try {
-        const token = await getAccessToken();
+        const authenticated = isOpenSkyAuthenticated();
+        const token = authenticated ? await getAccessToken() : null;
         const res = await fetch(`${STATES_URL}?${query}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
             signal: AbortSignal.timeout(15000)
         });
 
@@ -147,7 +135,7 @@ export const fetchOpenSkyPayload = async (theater = 'global') => {
         const features = [];
 
         for (const state of states) {
-            const feature = stateToFeature(state);
+            const feature = openSkyStateToFeature(state);
             if (!feature) continue;
             const [lon, lat] = feature.geometry.coordinates;
             if (!inBounds(lat, lon, bounds)) continue;
@@ -163,6 +151,7 @@ export const fetchOpenSkyPayload = async (theater = 'global') => {
                 fetchedAt: new Date().toISOString(),
                 source: 'opensky',
                 configured: true,
+                authenticated,
                 coverage: resolved === 'global' ? 'worldwide' : resolved
             }
         };
@@ -177,6 +166,7 @@ export const fetchOpenSkyPayload = async (theater = 'global') => {
                 fetchedAt: new Date().toISOString(),
                 source: 'opensky',
                 configured: true,
+                authenticated: isOpenSkyAuthenticated(),
                 error: err.message
             }
         };
