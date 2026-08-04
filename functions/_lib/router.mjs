@@ -253,7 +253,7 @@ export async function handleApiRequest(request, env, next) {
                 });
             }
 
-            const payload = await fetchVesselsPayload(theater, { origin: url.origin });
+            const payload = await fetchVesselsPayload(theater, { origin: url.origin, next });
             const count = payload.features?.length ?? 0;
             const usable = payload?.type === 'FeatureCollection' && (count > 0 || payload.meta?.requiresKey);
             if (usable) {

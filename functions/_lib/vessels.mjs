@@ -59,7 +59,7 @@ const resolveSnapshotAisSource = (staticMeta, features) => {
 };
 
 /** Static snapshot baked into dist/ — fallback when Worker WebSocket collect is empty. */
-async function loadStaticAisSnapshot(origin) {
+async function loadStaticAisSnapshot(origin, next) {
     if (!origin) return { features: [], meta: null, error: 'no_origin' };
 
     const cache = getSharedCache();
@@ -71,7 +71,10 @@ async function loadStaticAisSnapshot(origin) {
 
     try {
         const url = new URL(STATIC_SNAPSHOT_PATH, origin).href;
-        const resp = await fetch(url, { cf: { cacheTtl: 300 } });
+        const request = new Request(url, { headers: { accept: 'application/json' } });
+        const resp = next
+            ? await next(request)
+            : await fetch(request, { cf: { cacheTtl: 300 } });
         if (!resp.ok) {
             return { features: [], meta: null, error: `static_fetch_${resp.status}` };
         }
@@ -104,7 +107,7 @@ const cacheAisResult = (cache, now, features, aisSource, staticMeta, error, aisA
 };
 
 /** One global AIS collect per cache TTL — static snapshot first on CF (WS never delivers frames). */
-async function getGlobalAisFeatures(apiKey, origin) {
+async function getGlobalAisFeatures(apiKey, origin, next) {
     const cache = getSharedCache();
     const now = Date.now();
     const hit = cache.get(AIS_CACHE_KEY);
@@ -125,7 +128,7 @@ async function getGlobalAisFeatures(apiKey, origin) {
     let staticCache = null;
     let aisAttempt = null;
 
-    const staticResult = await loadStaticAisSnapshot(origin);
+    const staticResult = await loadStaticAisSnapshot(origin, next);
     staticCache = staticResult.cache;
     staticMeta = staticResult.meta;
     if (staticResult.features.length > 0) {
@@ -207,7 +210,7 @@ async function getGlobalAisFeatures(apiKey, origin) {
 }
 
 /** Worker-safe vessel feed — AIS one-shot snapshot + VesselFinder fleet REST. */
-export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
+export async function fetchVesselsPayload(theater = 'global', { origin, next } = {}) {
     const vfConfig = getVesselFinderConfig();
     const aisKey = process.env.AISSTREAM_API_KEY || '';
     const hasAisKey = Boolean(aisKey);
@@ -223,7 +226,7 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
     let staticMeta = null;
     if (hasAisKey) {
         try {
-            const aisResult = await getGlobalAisFeatures(aisKey, origin);
+            const aisResult = await getGlobalAisFeatures(aisKey, origin, next);
             aisFeatures = aisResult.features;
             aisError = aisResult.error;
             aisCache = aisResult.cache;
@@ -234,7 +237,7 @@ export async function fetchVesselsPayload(theater = 'global', { origin } = {}) {
             aisError = err.message;
         }
     } else {
-        const staticResult = await loadStaticAisSnapshot(origin);
+        const staticResult = await loadStaticAisSnapshot(origin, next);
         if (staticResult.features.length > 0) {
             aisFeatures = staticResult.features;
             staticMeta = staticResult.meta;
