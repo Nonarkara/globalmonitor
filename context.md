@@ -191,6 +191,7 @@ Pattern: extend [server/lib/supabase.mjs](server/lib/supabase.mjs) with an `upse
 - **Quota-limited supplement**: AirLabs (`AIRLABS_API_KEY`) is cached for one hour and requests only map fields. Monthly-limit errors are suppressed until the next UTC month, while OpenSky continues serving aircraft.
 - **Fallback**: airplanes.live is used for theater-scoped requests only; its multi-point global path is deliberately avoided because upstream throttling previously exceeded the frontend timeout.
 - **Airports**: 4,374 worldwide scheduled-service and large airports are generated from the public-domain OurAirports dataset (`npm run refresh:airports`) and served as static GeoJSON with no runtime quota.
+- **Cloudflare safety snapshot**: `npm run refresh:flights` stores up to 2,000 geographically spread OpenSky aircraft. The 15-minute AIS deployment workflow refreshes both traffic snapshots; live providers take priority and the snapshot is used only when the production edge is throttled.
 - Endpoint: `GET /api/flights?theater=global` (default). Map always fetches global regardless of theater nav
 - Rate limit: airplanes.live 1 req/sec; server caches 2 min
 - **Local env template** (`.env.local` — gitignored):

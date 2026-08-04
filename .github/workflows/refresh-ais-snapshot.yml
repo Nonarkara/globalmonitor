@@ -25,6 +25,8 @@ jobs:
         run: npm run refresh:ais
         env:
           AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
+      - name: Refresh OpenSky safety snapshot
+        run: npm run refresh:flights
       - run: npx vite build
         env:
           VITE_API_BASE_URL: ""

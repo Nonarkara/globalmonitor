@@ -51,6 +51,23 @@ const parseSourceIds = (searchParams) => {
     return raw.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
+const fetchFlightSnapshot = async (request, livePayload) => {
+    const snapshotUrl = new URL('/data/flights/opensky-snapshot.geojson', request.url);
+    const response = await fetch(snapshotUrl, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return livePayload;
+    const snapshot = await response.json();
+    if (!Array.isArray(snapshot?.features) || snapshot.features.length < 50) return livePayload;
+    return {
+        ...snapshot,
+        meta: {
+            ...snapshot.meta,
+            source: 'opensky-snapshot',
+            stale: true,
+            liveError: livePayload?.meta?.error || 'Live flight providers unavailable',
+        },
+    };
+};
+
 export async function handleApiRequest(request, env) {
     applyEnv(env);
 
@@ -203,7 +220,13 @@ export async function handleApiRequest(request, env) {
             const result = await useCached(
                 `flights:v3:${theater}`,
                 FLIGHTS_CACHE_TTL_MS,
-                () => fetchFlightsPayload(theater),
+                async () => {
+                    const livePayload = await fetchFlightsPayload(theater);
+                    if ((livePayload.features?.length ?? 0) >= minCount || theater !== 'global') {
+                        return livePayload;
+                    }
+                    return fetchFlightSnapshot(request, livePayload);
+                },
                 (p) => p?.type === 'FeatureCollection' && (p.features?.length ?? 0) >= minCount
             );
             return jsonResponse(result.payload, 200, result.meta);

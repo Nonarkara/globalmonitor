@@ -130,5 +130,6 @@ Notes:
 - **Flights, markets, ACLED, FIRMS, rainviewer, etc.**: served by Pages Functions (`functions/_lib/router.mjs`).
 - **Global AIS WebSocket** (aisstream.io): requires a long-running Node process. Cloudflare Pages uses the free Axiom Overwatch REST snapshot when the WebSocket collector is unavailable; VesselFinder remains an optional fleet overlay.
 - **AirLabs**: set `AIRLABS_API_KEY` as a server-side Pages secret. The one-hour provider cache is designed for the 1,000-request monthly tier; OpenSky remains the working primary feed if AirLabs is unavailable or exhausted.
+- **Flight resilience**: `npm run refresh:flights` writes a geographically spread OpenSky snapshot. The existing 15-minute scheduled deployment refreshes it alongside AIS, preventing Cloudflare upstream throttling from blanking or crashing the aircraft layer.
 - **Airport refresh**: run `npm run refresh:airports` to regenerate the public-domain worldwide airport GeoJSON from OurAirports.
 - **Secrets**: bind env vars in Cloudflare Pages project settings (AirLabs, OpenSky, Supabase, Copernicus, VesselFinder, etc.). Never expose them as `VITE_*` variables.
