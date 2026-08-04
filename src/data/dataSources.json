@@ -86,7 +86,7 @@
     "reliability": 9,
     "updateFrequency": "Real-time ADS-B (5s resolution)",
     "cacheTTL": "15 minutes",
-    "methodology": "Worldwide /states/all query is the resilient primary feed. Anonymous access works without credentials; optional OAuth2 credentials add quota. A geographically spread safety snapshot is refreshed every 15 minutes for Cloudflare upstream throttling. Invalid coordinates are discarded before MapLibre rendering.",
+    "methodology": "Worldwide /states/all query is the resilient primary feed outside Cloudflare. Anonymous access works without credentials; optional OAuth2 credentials enable live edge use. Cloudflare skips its known-throttled anonymous path and immediately uses a geographically spread safety snapshot refreshed every 15 minutes. Invalid coordinates are discarded before MapLibre rendering.",
     "coverage": "Global — theater bbox filter applied server-side",
     "apiEndpoint": "/api/flights"
   },

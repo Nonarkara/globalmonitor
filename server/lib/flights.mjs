@@ -5,7 +5,7 @@ import { fetchAirplanesLivePayload } from './airplanesLive.mjs';
 import { fetchAirLabsFlightsPayload, isAirLabsConfigured } from './airLabs.mjs';
 import { fetchAviationEdgePayload } from './aviationEdge.mjs';
 import { fetchAviationStackPayload, isAviationStackConfigured } from './aviationStack.mjs';
-import { fetchOpenSkyPayload } from './opensky.mjs';
+import { fetchOpenSkyPayload, isOpenSkyAuthenticated } from './opensky.mjs';
 
 const normalizeHex = (hex) => (hex || '').toLowerCase().replace(/^0x/, '');
 
@@ -74,8 +74,20 @@ const mergeFlightPayloads = (primary, supplement) => {
 };
 
 export const fetchFlightsPayload = async (theater = 'global') => {
+    const shouldFetchOpenSky = !process.env.CF_PAGES || isOpenSkyAuthenticated();
     const [openSky, airLabs] = await Promise.all([
-        fetchOpenSkyPayload(theater),
+        shouldFetchOpenSky
+            ? fetchOpenSkyPayload(theater)
+            : Promise.resolve({
+                type: 'FeatureCollection',
+                features: [],
+                meta: {
+                    theater,
+                    count: 0,
+                    source: 'opensky',
+                    error: 'Anonymous OpenSky skipped on Cloudflare edge',
+                },
+            }),
         isAirLabsConfigured()
             ? fetchAirLabsFlightsPayload(theater)
             : Promise.resolve(null),

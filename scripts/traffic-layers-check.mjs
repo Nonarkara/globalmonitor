@@ -87,18 +87,75 @@ try {
         mapFailed: document.body.innerText.includes('Map failed to render'),
         mapCanvas: document.querySelectorAll('.maplibregl-canvas').length,
         popupCount: document.querySelectorAll('.maplibregl-popup').length,
+        headerLogos: [...document.querySelectorAll('.header-brand-logo')].map((img) => ({
+            alt: img.alt,
+            loaded: img.complete && img.naturalWidth > 0,
+        })),
     }));
 
+    await page.getByRole('button', { name: 'Tools and advanced options' }).click();
+    await page.getByRole('menuitem', { name: /About/i }).click();
+    const aboutDialog = page.getByRole('dialog');
+    await aboutDialog.waitFor({ state: 'visible' });
+    await page.waitForFunction(() => [...document.querySelectorAll('[role="dialog"] img')]
+        .every((img) => img.complete), null, { timeout: 10000 });
+    const aboutState = await aboutDialog.evaluate((dialog) => ({
+        fundedBy: dialog.innerText.includes('FUNDED BY'),
+        executedBy: dialog.innerText.includes('EXECUTED BY'),
+        creators: dialog.innerText.includes('Dr. Non Arkaraprasertkul')
+            && dialog.innerText.includes('Dr. Poon Thiengburanathum'),
+        logos: [...dialog.querySelectorAll('img')].map((img) => ({
+            alt: img.alt,
+            loaded: img.complete && img.naturalWidth > 0,
+        })),
+    }));
+    await page.keyboard.press('Escape');
+
+    const mobileErrors = [];
+    const mobilePage = await browser.newPage({ viewport: { width: 375, height: 812 } });
+    mobilePage.on('pageerror', (error) => mobileErrors.push(error.message));
+    await mobilePage.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await mobilePage.locator('.maplibregl-canvas').waitFor({ state: 'visible', timeout: 30000 });
+    const mobileState = await mobilePage.evaluate(() => ({
+        errorBoundary: document.body.innerText.includes('Something went wrong'),
+        mapCanvas: document.querySelectorAll('.maplibregl-canvas').length,
+        fitsViewport: document.documentElement.scrollWidth <= window.innerWidth + 1,
+    }));
+    await mobilePage.close();
+
     await page.waitForTimeout(500);
+    const relevantPageErrors = pageErrors.filter((error) => (
+        !error.stack?.includes('https://www.youtube.com/')
+    ));
     const relevantConsoleErrors = consoleErrors.filter(({ text }) => (
         /DOMTokenList|Map failed to render|Something went wrong|TypeError|RECOVERABLE_CAUSE/i.test(text)
     ));
-    console.log(JSON.stringify({ url, layers, state, pageErrors, relevantConsoleErrors }, null, 2));
+    console.log(JSON.stringify({
+        url,
+        layers,
+        state,
+        aboutState,
+        mobileState,
+        pageErrors,
+        relevantPageErrors,
+        mobileErrors,
+        relevantConsoleErrors,
+    }, null, 2));
     if (
         state.errorBoundary
         || state.mapFailed
         || state.mapCanvas !== 1
-        || pageErrors.length > 0
+        || state.headerLogos.length !== 4
+        || state.headerLogos.some((logo) => !logo.loaded)
+        || !aboutState.fundedBy
+        || !aboutState.executedBy
+        || !aboutState.creators
+        || aboutState.logos.some((logo) => !logo.loaded)
+        || mobileState.errorBoundary
+        || mobileState.mapCanvas !== 1
+        || !mobileState.fitsViewport
+        || relevantPageErrors.length > 0
+        || mobileErrors.length > 0
         || relevantConsoleErrors.length > 0
     ) {
         process.exitCode = 1;
