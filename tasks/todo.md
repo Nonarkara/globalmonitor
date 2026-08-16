@@ -29,7 +29,7 @@ Decisions (Dr Non, this session):
 
 ## C. Ship
 - [x] C1 `npm run build` + `npm run deploy:pages`
-- [ ] C2 Attach `asia.nonarkara.org` custom domain
+- [x] C2 Attach `asia.nonarkara.org` custom domain
 - [x] C3 Verify live: theaters switch, logo renders, map legible
 
 ## Notes
@@ -54,12 +54,19 @@ DONE & live on globalmonitor.pages.dev (deployment d2ea3f4d):
 - Rebased onto 6 upstream flight/vessel commits that landed mid-work, so the
   deploy carries their fixes too (an earlier deploy of mine briefly did not).
 
+- [x] C2 `asia.nonarkara.org` is LIVE — HTTP 200, serving "Asia Political
+  Dashboard — AsiaWatch", depa logo 200/34528 B. The wrangler OAuth token is
+  Workers/Pages-scoped and cannot write DNS (10000 Authentication error), so the
+  CNAME (asia -> globalmonitor.pages.dev, Proxied) was added through the
+  dashboard once Dr Non re-authenticated. Cloudflare still shows the domain
+  "pending" while it finishes cert validation; the site already serves HTTPS.
+  NOTE for next time: the Cloudflare DNS modal closes whenever automation makes
+  a separate round-trip, and a OneTrust cookie overlay intercepts clicks. The
+  reliable path is ONE async in-page routine that opens the form, sets the type,
+  fills, and saves without returning control in between. A DNS-scoped API token
+  would remove this whole class of problem.
+
 OPEN:
-- [ ] C2 `asia.nonarkara.org` — attached to the Pages project (status
-  "initializing") but the DNS CNAME does not exist yet. The wrangler OAuth token
-  is Workers/Pages-scoped and cannot write DNS (10000 Authentication error), and
-  the browser session went unresponsive mid-task. Needs ONE record:
-      asia  CNAME  globalmonitor.pages.dev   (Proxied)
 - [ ] A2/A3 composition on global.nonarkara.org. Current code is already far
   cleaner than the screenshot showed (map-first layout, lightweight flight
   circles instead of the giant black plane icons, panels behind toggles) — that
