@@ -158,7 +158,7 @@ const EscalationGauge = () => {
                     textTransform: 'uppercase',
                     opacity: 0.8,
                     transition: 'color 0.5s ease',
-                    maxWidth: '9ch',
+                    maxWidth: '13ch',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
