@@ -66,10 +66,56 @@ DONE & live on globalmonitor.pages.dev (deployment d2ea3f4d):
   fills, and saves without returning control in between. A DNS-scoped API token
   would remove this whole class of problem.
 
+## Review — global.nonarkara.org repointed 2026-08-17
+
+The mystery is solved and closed. `global.nonarkara.org` was never a Pages
+project or a Worker — it was a **Cloudflare Tunnel record** (`city-reporter`),
+i.e. served off a local machine. That machine had stopped answering for this
+one route, so Cloudflare kept serving a frozen cached build from months ago
+(bundle `CvR_YMVQ`) and 522'd on anything not in cache — which is exactly why
+the depa logo 404'd and the composition looked stale. Nothing was wrong with
+the source; the site was a ghost.
+
+Fix: gave it a real deployment instead of a dead tunnel.
+- New worktree `v3-middleeast` on branch `middleeast`, cut from `f5ba1f9` —
+  the last commit before the Asia pivot. It keeps the four Middle East
+  theaters, the map-first layout and the lightweight flight markers, and
+  carries all six upstream flight/vessel fixes.
+- Ported the two fixes that are not Asia-specific: `depa-logo.png` rename
+  (A1) and the `9ch -> 13ch` gauge fix (A4).
+- New Pages project `globalmonitor-me`; DNS record changed from
+  `Tunnel -> city-reporter` to `CNAME -> globalmonitor-me.pages.dev` (Proxied).
+
+Verified live, in a real browser, not just curl: bundle is `BkXeLqNv` (the new
+one) on every hit, all four sponsor logos load including depa (34528 B, was
+2723 B of HTML), map canvas renders 3334x1464, four theaters present, and
+/api/escalation returns 200 for all four.
+
+The `city-reporter` tunnel is untouched and still serves its six other
+hostnames (cdp, chula-api, kmitl-api, nst-api all 200) — only `global` was
+pulled off it. Separately noticed: `api.chula.nonarkara.org` fails to connect
+entirely. Pre-existing, unrelated to this work, but someone should look.
+
+Also closed the MEM single point of failure: `v2-standalone/app.js` pointed at
+`globalmonitor.fly.dev`, a host whose deploys are blocked on Fly billing — if
+it broke we could not have patched it. Now points at
+`global.nonarkara.org/api`. All six endpoints MEM calls (acled, escalation,
+firms, fronts, markets, ticker) verified 200 with `Access-Control-Allow-Origin: *`
+before the switch. mem.nonarkara.org confirmed live afterwards: 90 tiles,
+59 markers, real news/markets/fronts, zero empty states.
+
+A2/A3 (composition) are resolved by consequence — the current code was already
+map-first with lightweight markers; only the frozen build looked bad.
+
+NOTE for next time, still true: the wrangler OAuth token is Workers/Pages-scoped.
+It cannot write DNS **or purge cache** (both 10000 Authentication error). A
+zone-scoped token would remove this whole class of problem. The dashboard
+workaround that works: one async in-page routine that opens the form, sets the
+value with the native setter, and saves without returning control in between.
+A Tunnel record is a CNAME underneath, so retargeting its `target` textarea is
+enough — no need to delete and recreate.
+
 OPEN:
-- [ ] A2/A3 composition on global.nonarkara.org. Current code is already far
-  cleaner than the screenshot showed (map-first layout, lightweight flight
-  circles instead of the giant black plane icons, panels behind toggles) — that
-  screenshot is a STALE build. global.nonarkara.org is NOT any of the 58 Pages
-  projects nor a Worker in this account, so its origin is still unidentified; it
-  needs either a redeploy from its real source or repointing at Pages.
+- [ ] Two Thailand panels in globalmonitor still carry `// AGENT-QUESTION:`
+  markers (`LiveMediaPanel.jsx`, `StrikeStatsPanel.jsx`) — delete vs wire is
+  Dr Non's call.
