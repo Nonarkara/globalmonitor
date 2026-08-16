@@ -12,6 +12,8 @@ const THEATER_BOUNDS = {
     worldwide: { lamin: -90, lomin: -180, lamax: 90, lomax: 180 },
     middleeast: { lamin: 10, lomin: 24, lamax: 42, lomax: 65 },
     indopacific: { lamin: -10, lomin: 90, lamax: 25, lomax: 135 },
+    eastasia: { lamin: 18, lomin: 100, lamax: 47, lomax: 148 },
+    southasia: { lamin: 5, lomin: 60, lamax: 37, lomax: 92 },
     thailand: { lamin: 5, lomin: 97, lamax: 21, lomax: 106 }
 };
 

@@ -18,6 +18,7 @@ import { fetchAcledEvents } from '../services/acled.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
 import { getRegion } from '../data/regions.js';
+import { THAILAND_BORDER_GEOJSON } from '../data/thailandBorders.js';
 import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
@@ -1748,6 +1749,46 @@ const MapContainer = ({
                                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.4)'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                             />
+                        </Marker>
+                    );
+                })}
+
+                {/* Thailand 3-Border Conflict Zone Beacons */}
+                {(viewMode === 'thailand' || viewMode === 'indopacific') && THAILAND_BORDER_GEOJSON.features.map((b) => {
+                    const [lng, lat] = b.geometry.coordinates;
+                    return (
+                        <Marker
+                            key={b.properties.id}
+                            longitude={lng}
+                            latitude={lat}
+                            anchor="center"
+                            onClick={(event) => {
+                                event.originalEvent.stopPropagation();
+                                onRegionDotClick?.({ ...b.properties, longitude: lng, latitude: lat });
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '6px',
+                                    padding: '3px 8px', borderRadius: '12px',
+                                    background: 'rgba(12, 16, 26, 0.9)',
+                                    border: `1.5px solid ${b.properties.color}`,
+                                    boxShadow: `0 0 16px ${b.properties.color}a0`,
+                                    cursor: 'pointer', transition: 'transform 0.2s ease'
+                                }}
+                                title={`${b.properties.name} - ${b.properties.riskLevel} RISK`}
+                                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                            >
+                                <div style={{
+                                    width: 8, height: 8, borderRadius: '50%',
+                                    background: b.properties.color,
+                                    boxShadow: `0 0 8px ${b.properties.color}`
+                                }} />
+                                <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#fff', letterSpacing: '0.5px' }}>
+                                    {b.properties.shortName}
+                                </span>
+                            </div>
                         </Marker>
                     );
                 })}

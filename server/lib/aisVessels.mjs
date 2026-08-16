@@ -59,6 +59,8 @@ function prune() {
 const THEATER_BBOXES = {
     thailand: [95, 0.5, 108, 22],
     indopacific: [90, -10, 135, 25],
+    eastasia: [100, 18, 148, 47],
+    southasia: [60, 5, 92, 37],
     middleeast: [24, 10, 65, 42],
     global: null,
 };

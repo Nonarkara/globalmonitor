@@ -5,11 +5,24 @@ import { getSharedCache } from './cache.mjs';
 
 const AIS_CACHE_KEY = 'vessels:ais:global:v3';
 const MAX_CLIENT_VESSELS = 1200;
+const FLEET_SOURCE = 'vesselfinder-fleet';
 
 const sampleForClient = (features, max = MAX_CLIENT_VESSELS) => {
     if (features.length <= max) return features;
-    const stride = features.length / max;
-    return Array.from({ length: max }, (_, index) => features[Math.floor(index * stride)]);
+
+    const pinned = features.filter((feature) => feature.properties?.source === FLEET_SOURCE);
+    if (pinned.length >= max) return pinned.slice(0, max);
+
+    const sampleBudget = max - pinned.length;
+    const remainder = features.filter((feature) => feature.properties?.source !== FLEET_SOURCE);
+    const stride = remainder.length / sampleBudget;
+    const sampled = Array.from(
+        { length: sampleBudget },
+        (_, index) => remainder[Math.floor(index * stride)],
+    ).filter(Boolean);
+
+    const selected = new Set([...pinned, ...sampled]);
+    return features.filter((feature) => selected.has(feature));
 };
 const STATIC_SNAPSHOT_PATH = '/data/ais/ais-snapshot.json';
 const AIS_CACHE_TTL_MS = 15 * 60 * 1000;
@@ -20,6 +33,8 @@ const IS_CF_WORKER = typeof navigator === 'undefined' && typeof globalThis.WebSo
 const THEATER_BBOXES = {
     thailand: [95, 0.5, 108, 22],
     indopacific: [90, -10, 135, 25],
+    eastasia: [100, 18, 148, 47],
+    southasia: [60, 5, 92, 37],
     middleeast: [24, 10, 65, 42],
 };
 

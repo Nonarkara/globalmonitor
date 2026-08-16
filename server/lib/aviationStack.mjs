@@ -12,6 +12,8 @@ const MAX_RESULTS = 100;
 const THEATER_FILTERS = {
     middleeast: { depIata: null, arrIata: null },
     indopacific: { depIata: null, arrIata: null },
+    eastasia: { depIata: null, arrIata: null },
+    southasia: { depIata: null, arrIata: null },
     thailand: { depIata: 'BKK', arrIata: null },
     global: { depIata: null, arrIata: null },
     worldwide: { depIata: null, arrIata: null },

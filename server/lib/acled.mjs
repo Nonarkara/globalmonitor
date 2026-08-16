@@ -20,6 +20,12 @@ const THEATER_COUNTRIES = {
         'Indonesia', 'Singapore', 'Cambodia', 'Laos', 'Brunei',
         'India', 'Bangladesh', 'Sri Lanka', 'Pakistan'
     ],
+    eastasia: [
+        'China', 'Japan', 'South Korea', 'North Korea', 'Taiwan', 'Mongolia'
+    ],
+    southasia: [
+        'India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Afghanistan'
+    ],
     thailand: ['Thailand', 'Myanmar', 'Laos', 'Cambodia', 'Malaysia']
 };
 

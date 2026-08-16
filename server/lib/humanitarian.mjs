@@ -23,6 +23,8 @@ const COUNTRY_NAMES = {
 const THEATER_COUNTRY_CODES = {
     middleeast: ['SYR', 'IRQ', 'AFG', 'YEM', 'SDN', 'PSE', 'LBN'],
     indopacific: ['THA', 'MMR', 'KHM', 'LAO', 'VNM', 'PHL', 'IDN', 'MYS', 'IND', 'BGD', 'LKA', 'PAK'],
+    eastasia: ['PRK', 'MNG', 'CHN'],
+    southasia: ['AFG', 'PAK', 'IND', 'BGD', 'LKA', 'NPL'],
     thailand: ['THA', 'MMR', 'KHM', 'LAO', 'MYS']
 };
 

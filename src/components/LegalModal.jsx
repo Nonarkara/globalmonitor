@@ -68,7 +68,7 @@ function AboutSection() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', background: '#fff', borderRadius: '5px' }}>
-        <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" style={{ height: '20px', objectFit: 'contain' }} />
+        <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" style={{ height: '20px', objectFit: 'contain' }} />
         <img src={`${import.meta.env.BASE_URL}mdes.png`} alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain' }} />
         <img src={`${import.meta.env.BASE_URL}smart-city-thailand-logo.svg`} alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain' }} />
       </div>

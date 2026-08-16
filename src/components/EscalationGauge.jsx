@@ -158,7 +158,10 @@ const EscalationGauge = () => {
                     textTransform: 'uppercase',
                     opacity: 0.8,
                     transition: 'color 0.5s ease',
-                    maxWidth: '9ch',
+                    // 9ch clipped "ELEVATED" to "ELEVA…" — `ch` ignores the 1.5px
+                    // letter-spacing added to every character. 13ch fits the longest
+                    // real label while still truncating anything genuinely runaway.
+                    maxWidth: '13ch',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'

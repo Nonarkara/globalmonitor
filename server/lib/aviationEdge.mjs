@@ -1,6 +1,8 @@
 const THEATER_CENTERS = {
     middleeast: { lat: 30, lon: 53 },
     indopacific: { lat: 5, lon: 110 },
+    eastasia: { lat: 32, lon: 122 },
+    southasia: { lat: 21, lon: 78 },
     thailand: { lat: 14.5, lon: 100.9925 }
 };
 

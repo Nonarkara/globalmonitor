@@ -8,6 +8,8 @@ const FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY || '';
 const THEATER_BBOX = {
     middleeast: '24,10,65,42',
     indopacific: '90,-10,135,25',
+    eastasia: '100,18,148,47',
+    southasia: '60,5,92,37',
     thailand: '97,5,106,21'
 };
 

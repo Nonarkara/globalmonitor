@@ -17,6 +17,18 @@ const THEATERS = {
         minlongitude: 90,
         maxlongitude: 135
     },
+    eastasia: {
+        minlatitude: 18,
+        maxlatitude: 47,
+        minlongitude: 100,
+        maxlongitude: 148
+    },
+    southasia: {
+        minlatitude: 5,
+        maxlatitude: 37,
+        minlongitude: 60,
+        maxlongitude: 92
+    },
     thailand: {
         minlatitude: 5,
         maxlatitude: 21,

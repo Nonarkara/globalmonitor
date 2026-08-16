@@ -5,7 +5,7 @@ import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
-import { REGIONS } from './data/regions';
+import { REGIONS, REGION_VIEW_STATES } from './data/regions';
 import { formatDayCount } from './data/warConstants';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { fetchAlphaEarthForRegion } from './services/alphaearth';
@@ -26,15 +26,12 @@ import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
 
-const DASHBOARD_VERSION = 'v8.4';
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms'];
-const DEFAULT_VIEW_TARGET = {
-  longitude: 52,
-  latitude: 29,
-  zoom: 4.15,
-  pitch: 18,
-  bearing: -6
-};
+const DASHBOARD_VERSION = 'v8.5';
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'vessels', 'flights'];
+// Derived from the region registry rather than hardcoded, so the opening camera
+// can never drift away from the opening theater again (it was pinned to the Gulf
+// while the default tab said Southeast Asia).
+const DEFAULT_VIEW_TARGET = { ...REGION_VIEW_STATES.indopacific };
 
 function App() {
   // First paint should read as a composed war-room map. Dense live traffic stays opt-in.
@@ -42,7 +39,8 @@ function App() {
   const [mapStyle, setMapStyle] = useState('dark');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
-  const [viewMode, setViewMode] = useState('middleeast');
+  // Asia dashboard: open on Southeast Asia, not the Gulf.
+  const [viewMode, setViewMode] = useState('indopacific');
   // Selected country (Indo-Pacific) or province (Thailand) — drives CountryNewsPanel
   const [selectedCountryCode, setSelectedCountryCode] = useState(null);
 
@@ -218,7 +216,7 @@ function App() {
           {/* Left: Sponsor logos in white pill */}
           <div className="header-brand-strip" aria-label="Project partners">
             <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" className="header-brand-logo header-brand-logo-pmua" />
-            <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
+            <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
             <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" className="header-brand-logo header-brand-logo-axiom" />
             <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" className="header-brand-logo header-brand-logo-retl" />
           </div>
@@ -227,7 +225,7 @@ function App() {
           <div className="header-status">
             <div className="header-title-lockup">
               <span className="header-title">
-                Global Political Dashboard
+                Asia Political Dashboard
               </span>
               <span className="header-subtitle">
                 {formatDayCount()}
@@ -520,6 +518,12 @@ function App() {
                   <ErrorBoundary inline label="Thailand Security">
                     <LazyPanel name="IntelligencePanel" panelKey={`thaiSecurity:${sourceSetKey}`} briefingId="thaiSecurity" activeSourceIds={activeSources} viewMode={viewMode} />
                   </ErrorBoundary>
+                  <ErrorBoundary inline label="Thailand Border Conflict Monitor">
+                    <LazyPanel name="ThailandBorderConflictTracker" onFlyToBorder={handleMapFlyTo} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Thailand Oil Shipment Tracker">
+                    <LazyPanel name="ThailandOilShipmentTracker" />
+                  </ErrorBoundary>
                   <ErrorBoundary inline label="Myanmar Border Crisis">
                     <LazyPanel name="IntelligencePanel" panelKey={`myanmarConflict:${sourceSetKey}`} briefingId="myanmarConflict" activeSourceIds={activeSources} viewMode={viewMode} />
                   </ErrorBoundary>
@@ -639,6 +643,15 @@ function App() {
               )}
               {viewMode === 'thailand' && (
                 <>
+                  <ErrorBoundary inline label="Thailand Border Conflict Monitor">
+                    <LazyPanel name="ThailandBorderConflictTracker" onFlyToBorder={handleMapFlyTo} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Thailand Oil Shipment Tracker">
+                    <LazyPanel name="ThailandOilShipmentTracker" />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Thailand Flight Tracker">
+                    <LazyPanel name="ThailandFlightTracker" />
+                  </ErrorBoundary>
                   <ErrorBoundary inline label="Myanmar Border Crisis">
                     <LazyPanel name="RegionalNewsPanel" regionName="Myanmar" title="Myanmar Border Crisis" activeSourceIds={activeSources} viewMode={viewMode} />
                   </ErrorBoundary>

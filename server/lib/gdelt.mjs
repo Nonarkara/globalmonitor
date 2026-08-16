@@ -1,13 +1,18 @@
 /**
- * GDELT Sentiment — fetches tone/sentiment timeline for Middle East region.
+ * GDELT Sentiment — fetches the tone/sentiment timeline for a theater.
  */
 
-export const fetchGdeltSentiment = async (theater = 'middleeast') => {
-    const query = theater === 'thailand'
-        ? 'Thailand OR Bangkok OR Myanmar border'
-        : theater === 'indopacific'
-            ? 'Thailand OR Singapore OR Vietnam OR Philippines'
-            : 'Iran OR Israel OR Gulf OR Hormuz';
+const THEATER_QUERIES = {
+    thailand:    'Thailand OR Bangkok OR Myanmar border',
+    indopacific: 'Thailand OR Singapore OR Vietnam OR Philippines',
+    eastasia:    'China OR Japan OR Taiwan OR "South Korea" OR "North Korea"',
+    southasia:   'India OR Pakistan OR Bangladesh OR "Sri Lanka"',
+    // Gulf read through an Asian lens: the energy artery, not the war.
+    middleeast:  'Hormuz OR Gulf oil OR OPEC OR "crude exports" OR Iran'
+};
+
+export const fetchGdeltSentiment = async (theater = 'indopacific') => {
+    const query = THEATER_QUERIES[theater] || THEATER_QUERIES.indopacific;
 
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=timelinetone&timespan=7d&format=json`;
 

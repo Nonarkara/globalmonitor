@@ -45,6 +45,9 @@ const PANELS = {
     FlightRadarEmbed: React.lazy(() => import('./FlightRadarEmbed')),
     EventDetailsPanel: React.lazy(() => import('./EventDetailsPanel')),
     TimesFMPanel: React.lazy(() => import('./TimesFMPanel')),
+    ThailandBorderConflictTracker: React.lazy(() => import('./ThailandBorderConflictTracker')),
+    ThailandOilShipmentTracker: React.lazy(() => import('./ThailandOilShipmentTracker')),
+    ThailandFlightTracker: React.lazy(() => import('./ThailandFlightTracker')),
 };
 
 export const LazyMapContainer = PANELS.MapContainer;
