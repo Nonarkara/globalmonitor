@@ -119,3 +119,63 @@ OPEN:
 - [ ] Two Thailand panels in globalmonitor still carry `// AGENT-QUESTION:`
   markers (`LiveMediaPanel.jsx`, `StrikeStatsPanel.jsx`) — delete vs wire is
   Dr Non's call.
+
+## Review — the four sites, sorted 2026-08-17 (second pass)
+
+Dr Non's brief: globalmonitor = "my best system, flights/ships/TV — bring it back";
+asia = Asia; global = "just a map, make it useful and unique"; mem = legacy, improve.
+
+**Where the best system actually lived.** Not in this repo. It was
+`Nonarkara/globalmonitor-v3` (remote `v3`), main at 5d3fd20 — the Dieter Rams
+light instrument panel with per-theater live traffic, GPD Oracle, sanctions,
+TV. It ran as a local Node server behind a Cloudflare Tunnel on another
+machine; the tunnel died, so global.nonarkara.org served a frozen build and
+everything else here was the newer map-first lineage. Nobody "removed" it —
+it was on a laptop that stopped answering.
+
+**Why the planes vanished everywhere.** airplanes.live started returning 403
+to unregistered callers ("Please contact us…"). Every branch's flight layer
+died at once; Pages fell back to a committed snapshot labelled stale (that is
+the "many planes" he saw in the morning — a photograph). Fix: the loader now
+falls through to adsb.lol (same readsb v2 API, keyless) — verified answering
+from the Cloudflare edge — with an 11 s wall per theater fetch and the
+snapshot as last resort. meta.source names the host that actually answered.
+
+**Plumbing now (all Cloudflare Pages, nothing on a laptop):**
+- `globalmonitor` project ← repo globalmonitor-v3 (worktree `v3-classic`,
+  branch `classic` → v3/main). Domains globalmonitor.nonarkara.org +
+  globalmonitor.pages.dev. Keeps the three bound secrets (Airlabs key exists
+  ONLY there). Verified in a real browser: 186–229 aircraft over the Gulf,
+  1,200 ships, all four logos, TV, Oracle.
+- `asiawatch` project ← this repo main. asia.nonarkara.org moved here (domain
+  detached/attached via API, DNS CNAME edited in the dashboard). AISSTREAM +
+  VESSELFINDER secrets re-bound from .env.local; Airlabs not recoverable.
+  `npm run deploy:pages` on main now targets asiawatch — deploying main to
+  `globalmonitor` again would overwrite the flagship.
+- `globalmonitor-me` project ← branch `middleeast` (worktree `v3-middleeast`).
+  global.nonarkara.org. Reframed as the world console: opens on the Global
+  theater, intel column + market strip docked on desktop, live air + sea
+  traffic on by default, flat camera. Verified headless: 1,200 planes and
+  ships worldwide, decoded headlines.
+- `mem-by-non` unchanged today beyond earlier fixes; its API base is
+  global.nonarkara.org/api.
+
+**Cross-branch fixes shipped to all three React builds:** adsb.lol fallback +
+deadline; RSS entity decoding at the parser (Yemen&#039;s → Yemen's); Sky News
+Arabia stream went private → Sky News EN channel embed; ADS-B label credits
+adsb.lol; traffic cap 300 → 1200 on main/ME.
+
+**Axiom card #24** now links globalmonitor.nonarkara.org, shows a fresh
+screenshot of the live instrument panel, and says four theaters (EN/TH/ZH).
+
+**Known limits, stated honestly:**
+- main/ME frontends fetch flights once for the whole world and skip the
+  worldwide live path on the edge → they show the stale snapshot (1,200 of
+  ~2,000, labelled). Classic fetches per theater and is truly live. If Asia
+  should be truly live too, the fix is per-theater fetching in MapContainer.
+- Cold-edge flight calls take 10–24 s; client timeout for /api/flights and
+  /api/vessels raised to 30 s on classic. First paint may take a moment.
+- OPENSKY_CLIENT_SECRET is empty locally; with it bound, authenticated
+  OpenSky would be a second live source on the edge. Only Dr Non can fetch it.
+- The wrangler OAuth token still can't write DNS or purge cache. Every DNS
+  edit today went through the dashboard with the one-shot in-page routine.
