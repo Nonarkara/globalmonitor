@@ -407,16 +407,17 @@ const OSM_RASTER_STYLE = {
     sources: {
         osm: {
             type: 'raster',
+            // Entries in `tiles` are MIRRORS of one imagery set — MapLibre round-robins
+            // tiles across them. Mixing OSM/Esri in here painted a patchwork of three
+            // different maps. Voyager a/b/c only.
             tiles: [
                 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                 'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                 'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
             ],
             tileSize: 256,
             maxzoom: 19,
-            attribution: '© CARTO © OpenStreetMap © Esri',
+            attribution: '© CARTO © OpenStreetMap',
         },
     },
     layers: [
