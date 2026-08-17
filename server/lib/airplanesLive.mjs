@@ -8,7 +8,10 @@
 export const FLIGHTS_CACHE_TTL_MS = 15 * 60 * 1000;
 
 const MAX_RADIUS_NM = 250;
-const REQUEST_STAGGER_MS = 350;
+const REQUEST_STAGGER_MS = 250;
+// Hard wall for one theater fetch. Whatever query points have answered by
+// then are served (and cached) — partial live beats a browser-side timeout.
+const FETCH_DEADLINE_MS = 11000;
 
 const THEATER_BOUNDS = {
     global: { lamin: -90, lomin: -180, lamax: 90, lomax: 180 },
@@ -93,7 +96,7 @@ const READSB_HOSTS = [
 
 const fetchPointFrom = async (base, lat, lon, attempt = 0) => {
     const url = `${base}/${lat}/${lon}/${MAX_RADIUS_NM}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (res.status === 429 && attempt < 3) {
         await sleep(1500 * (attempt + 1));
         return fetchPointFrom(base, lat, lon, attempt + 1);
@@ -161,9 +164,13 @@ export const fetchAirplanesLivePayload = async (theater = 'global') => {
     try {
         // Staggered parallel fetches — sequential 1.5s gaps exceeded Workers wall-clock
         // budgets and cached sparse theater payloads (e.g. 1 aircraft for all of ME).
+        const deadline = sleep(FETCH_DEADLINE_MS).then(() => { throw new Error('deadline'); });
         const results = await Promise.allSettled(
             points.map((point, index) =>
-                sleep(index * REQUEST_STAGGER_MS).then(() => fetchPoint(point.lat, point.lon))
+                Promise.race([
+                    sleep(index * REQUEST_STAGGER_MS).then(() => fetchPoint(point.lat, point.lon)),
+                    deadline
+                ])
             )
         );
 
