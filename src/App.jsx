@@ -5,7 +5,7 @@ import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
-import { REGIONS } from './data/regions';
+import { REGIONS, REGION_VIEW_STATES } from './data/regions';
 import { formatDayCount } from './data/warConstants';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { fetchAlphaEarthForRegion } from './services/alphaearth';
@@ -27,22 +27,24 @@ import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
 
 const DASHBOARD_VERSION = 'v8.4';
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms'];
-const DEFAULT_VIEW_TARGET = {
-  longitude: 52,
-  latitude: 29,
-  zoom: 4.15,
-  pitch: 18,
-  bearing: -6
-};
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'flights', 'vessels'];
+// global.nonarkara.org is the world-scope console: open on the Global theater
+// (the flagship Middle East view lives at globalmonitor.nonarkara.org).
+const DEFAULT_THEATER = 'global';
+const DEFAULT_VIEW_TARGET = { ...REGION_VIEW_STATES[DEFAULT_THEATER] };
+// Desktop opens with the intel column + market strip docked; phones keep the
+// map as hero and reach the same panels through the drawer tabs.
+const initialDrawer = () => (
+  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches ? 'intel' : 'none'
+);
 
 function App() {
-  // First paint should read as a composed war-room map. Dense live traffic stays opt-in.
+  // World console: first paint is the composed map with live air + sea traffic on.
   const [activeLayers, setActiveLayers] = useState(DEFAULT_MAP_LAYERS);
   const [mapStyle, setMapStyle] = useState('dark');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
-  const [viewMode, setViewMode] = useState('middleeast');
+  const [viewMode, setViewMode] = useState(DEFAULT_THEATER);
   // Selected country (Indo-Pacific) or province (Thailand) — drives CountryNewsPanel
   const [selectedCountryCode, setSelectedCountryCode] = useState(null);
 
@@ -59,7 +61,7 @@ function App() {
   useEscapeKey(isLegalOpen, () => setIsLegalOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileDrawer, setMobileDrawer] = useState('none');
+  const [mobileDrawer, setMobileDrawer] = useState(initialDrawer);
   const toolsRef = useRef(null);
   useEffect(() => {
     const onDocClick = (e) => {

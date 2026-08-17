@@ -121,12 +121,16 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
 
     useEffect(() => {
         const kickoff = setTimeout(fetchNews, 0);
+        // The first call often lands while the ticker cache is still warming on a
+        // cold edge; one early retry beats an empty panel for five minutes.
+        const earlyRetry = setTimeout(fetchNews, 20 * 1000);
 
         // Refresh regional news every 5 minutes
         const interval = setInterval(fetchNews, 5 * 60 * 1000);
 
         return () => {
             clearTimeout(kickoff);
+            clearTimeout(earlyRetry);
             clearInterval(interval);
         };
     }, [fetchNews]);

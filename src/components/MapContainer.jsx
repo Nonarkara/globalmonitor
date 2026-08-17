@@ -27,8 +27,8 @@ import { buildPopupClassName } from '../utils/mapPopup.js';
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
-const TRAFFIC_SESSION_MAX_FLIGHTS = 300;
-const TRAFFIC_SESSION_MAX_VESSELS = 300;
+const TRAFFIC_SESSION_MAX_FLIGHTS = 1200;
+const TRAFFIC_SESSION_MAX_VESSELS = 1200;
 /** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
 const TRAFFIC_DEFER_MS = 3000;
 const TRAFFIC_HOVER_THROTTLE_MS = 80;

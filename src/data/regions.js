@@ -18,7 +18,7 @@ export const REGION_VIEW_STATES = {
     middleeast: { longitude: 53, latitude: 30, zoom: 4.5, pitch: 25, bearing: -8 },
     indopacific: { longitude: 110, latitude: 5, zoom: 3.6, pitch: 0, bearing: 0 },
     thailand: { longitude: 100.9925, latitude: 14.5, zoom: 5.6, pitch: 20, bearing: 0 },
-    global: { longitude: 0, latitude: 20, zoom: 1.7, pitch: 20, bearing: -10 }
+    global: { longitude: 10, latitude: 22, zoom: 1.7, pitch: 0, bearing: 0 }
 };
 
 // ---------------------------------------------------------------------------

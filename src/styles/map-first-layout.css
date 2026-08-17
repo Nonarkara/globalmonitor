@@ -356,6 +356,15 @@
   pointer-events: none;
 }
 
+/* Desktop with the intel column open: the market strip docks alongside it
+   (world console). Right edge steps in so the two never overlap. */
+@media (min-width: 1024px) {
+  .app-container[data-layout="map-first"][data-mobile-drawer="intel"] .bottom-bar {
+    display: flex !important;
+    right: calc(var(--mf-right-w) + var(--mf-inset) + var(--mf-gap));
+  }
+}
+
 /* Default: all intel/market panels hidden — map is hero */
 .app-container[data-layout="map-first"] .right-sidebar,
 .app-container[data-layout="map-first"] .bottom-bar,
