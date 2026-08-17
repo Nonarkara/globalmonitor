@@ -64,17 +64,6 @@ timeout); if nothing answers, `/api/flights` serves the committed
 **Rule**: Always have a deployment plan that doesn't require payment — and one that
 doesn't require a laptop to be awake.
 
-----------|----------|--------|
-| **This laptop (local)** | GPD full stack — Node server (`server/index.mjs`) + SQLite + scheduler, exposed via a named Cloudflare Tunnel at `globalmonitor.nonarkara.org` | **Primary/live** — 24/7 via launchd (`org.nonarkara.globalmonitor`), enables local SQLite persistence + proactive cache warming that a serverless host can't do |
-| **Cloudflare Pages** | GPD frontend + Pages Functions API (`functions/`) | Active, free — alternate/backup deploy path. Functions layer is a port of `server/lib/*`, may lag the local server's feature set (e.g. FloodOps, Oracle) — verify before relying on it |
-| **Cloudflare Pages** | War Monitor static | Active, free, no limits |
-| **GitHub Pages** | MEM, GPD static backup | Active, free |
-| **Fly.io** | GPD (retired) | Config kept for reference only |
-| **Render** | GPD (original host) | Suspended — one-click resume available |
-| **Vercel** | All projects deleted — fair use exhausted | Dead |
-| **Netlify** | All projects — free tier exhausted | Dead |
-
-**Rule**: Always have a deployment plan that doesn't require payment. The local+tunnel setup is what's actually running day-to-day; keep the Cloudflare Pages Functions layer in sync if you want it as a real fallback, or say so if it's known to be behind.
 
 ---
 
