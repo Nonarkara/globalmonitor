@@ -83,16 +83,42 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const inBounds = (lat, lon, bounds) =>
     lat >= bounds.lamin && lat <= bounds.lamax && lon >= bounds.lomin && lon <= bounds.lomax;
 
-const fetchPoint = async (lat, lon, attempt = 0) => {
-    const url = `https://api.airplanes.live/v2/point/${lat}/${lon}/${MAX_RADIUS_NM}`;
+// readsb/tar1090 "v2 point" API — airplanes.live began returning 403 to
+// unregistered callers in Aug 2026 ("Please contact us…"), so adsb.lol (same
+// API shape, no key, CC-BY) is tried next. First host to answer wins.
+const READSB_HOSTS = [
+    'https://api.airplanes.live/v2/point',
+    'https://api.adsb.lol/v2/point'
+];
+
+const fetchPointFrom = async (base, lat, lon, attempt = 0) => {
+    const url = `${base}/${lat}/${lon}/${MAX_RADIUS_NM}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (res.status === 429 && attempt < 3) {
         await sleep(1500 * (attempt + 1));
-        return fetchPoint(lat, lon, attempt + 1);
+        return fetchPointFrom(base, lat, lon, attempt + 1);
     }
-    if (!res.ok) throw new Error(`Airplanes.live ${res.status}`);
+    if (!res.ok) throw new Error(`${new URL(base).host} ${res.status}`);
     const data = await res.json();
     return data.ac || [];
+};
+
+// Which host actually answered — surfaced in meta.source so the UI credits
+// the real provider instead of claiming airplanes.live when adsb.lol served it.
+const answeredHosts = new Set();
+
+const fetchPoint = async (lat, lon) => {
+    let lastError;
+    for (const base of READSB_HOSTS) {
+        try {
+            const ac = await fetchPointFrom(base, lat, lon);
+            answeredHosts.add(new URL(base).host.replace(/^api\./, ''));
+            return ac;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw lastError || new Error('No ADS-B host answered');
 };
 
 const toFeature = (ac) => {
@@ -162,7 +188,7 @@ export const fetchAirplanesLivePayload = async (theater = 'global') => {
                 theater: resolved,
                 count: features.length,
                 fetchedAt: new Date().toISOString(),
-                source: 'airplanes.live',
+                source: answeredHosts.size ? [...answeredHosts].join('+') : 'airplanes.live',
                 coverage: resolved === 'global' ? 'worldwide' : resolved,
                 ...(features.length === 0 && pointErrors.length ? { error: pointErrors[0] } : {})
             }
@@ -176,7 +202,7 @@ export const fetchAirplanesLivePayload = async (theater = 'global') => {
                 theater: resolved,
                 count: 0,
                 fetchedAt: new Date().toISOString(),
-                source: 'airplanes.live',
+                source: answeredHosts.size ? [...answeredHosts].join('+') : 'airplanes.live',
                 coverage: resolved === 'global' ? 'worldwide' : resolved,
                 error: err.message
             }
