@@ -101,7 +101,7 @@ const parseSourceIds = (searchParams) => {
     return raw.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
-export async function handleApiRequest(request, env) {
+export async function handleApiRequest(request, env, next) {
     applyEnv(env);
 
     if (request.method === 'OPTIONS') {
@@ -271,19 +271,43 @@ export async function handleApiRequest(request, env) {
 
         if (url.pathname === '/api/vessels') {
             const theater = url.searchParams.get('theater') || 'global';
-            const result = await useCached(
-                `vessels:v2:${theater}`,
-                60 * 1000,
-                () => fetchVesselsPayload(theater),
-                (p) => p?.type === 'FeatureCollection' && (
-                    (p.features?.length ?? 0) > 0 || p.meta?.requiresKey
-                )
-            );
-            const payload = result.payload;
+            const cacheKey = `vessels:v7:${theater}`;
+            const ttlMs = 15 * 60 * 1000;
+            const now = Date.now();
+            const cached = getSharedCache().get(cacheKey);
+            if (cached && cached.expiresAt > now) {
+                recordHealth(cacheKey, true, null);
+                const payload = cached.payload;
+                return jsonResponse(payload, 200, {
+                    status: payload.meta?.connected ? 'live' : (payload.meta?.requiresKey ? 'unconfigured' : 'stale'),
+                    cache: 'hit',
+                    updatedAt: cached.updatedAt,
+                });
+            }
+
+            const payload = await fetchVesselsPayload(theater, { origin: url.origin, next });
+            const count = payload.features?.length ?? 0;
+            const usable = payload?.type === 'FeatureCollection' && (count > 0 || payload.meta?.requiresKey);
+            if (usable) {
+                const updatedAt = new Date().toISOString();
+                getSharedCache().set(cacheKey, { payload, updatedAt, expiresAt: now + ttlMs });
+                recordHealth(cacheKey, true, null);
+            } else if (cached?.payload?.features?.length > 0) {
+                // Upstream blipped: hold the last good snapshot rather than empty the map.
+                recordHealth(cacheKey, true, payload.meta?.aisError || 'stale hold');
+                return jsonResponse(cached.payload, 200, {
+                    status: 'stale',
+                    cache: 'stale-hold',
+                    updatedAt: cached.updatedAt,
+                });
+            } else {
+                recordHealth(cacheKey, false, payload.meta?.aisError || 'empty vessel snapshot');
+            }
+
             return jsonResponse(payload, 200, {
-                ...result.meta,
-                status: payload.meta.connected ? 'live' : (payload.meta.requiresKey ? 'unconfigured' : 'stale'),
-                updatedAt: payload.meta.fetchedAt
+                status: payload.meta?.connected ? 'live' : (payload.meta?.requiresKey ? 'unconfigured' : 'stale'),
+                cache: usable ? 'miss' : 'bypass',
+                updatedAt: payload.meta?.fetchedAt,
             });
         }
 
