@@ -40,9 +40,52 @@ import {
     upsertMarketQuotes,
     upsertSentimentReadings
 } from '../../server/lib/supabase.mjs';
+import { THEATERS } from '../../server/lib/theaters.mjs';
 import { getSharedCache, recordHealth, useCached, getCacheEntries, getLoaderHealth } from './cache.mjs';
 import { fetchVesselsPayload } from './vessels.mjs';
 import { jsonResponse, optionsResponse } from './response.mjs';
+
+/**
+ * Static ADS-B safety snapshot (public/data/flights/adsb-snapshot.geojson,
+ * refreshed by `npm run refresh:flights` before every deploy). Used when no
+ * live provider answers from the edge. Cut to the theater bbox so a Gulf view
+ * gets Gulf aircraft, and labelled stale — never passed off as live.
+ */
+export const fetchFlightSnapshot = async (request, livePayload, next, theater = 'global') => {
+    const snapshotUrl = new URL('/data/flights/adsb-snapshot.geojson', request.url);
+    const snapshotRequest = new Request(snapshotUrl, {
+        headers: { accept: 'application/geo+json, application/json' }
+    });
+    let response;
+    try {
+        response = next
+            ? await next(snapshotRequest)
+            : await fetch(snapshotRequest, { signal: AbortSignal.timeout(5000) });
+    } catch {
+        return livePayload;
+    }
+    if (!response?.ok) return livePayload;
+    const snapshot = await response.json();
+    if (!Array.isArray(snapshot?.features) || snapshot.features.length < 50) return livePayload;
+
+    const bounds = THEATERS[theater]?.bounds || THEATERS.global.bounds;
+    const features = snapshot.features.filter((f) => {
+        const [lon, lat] = f?.geometry?.coordinates || [];
+        return lat >= bounds.lamin && lat <= bounds.lamax && lon >= bounds.lomin && lon <= bounds.lomax;
+    });
+    return {
+        ...snapshot,
+        features,
+        meta: {
+            ...snapshot.meta,
+            theater,
+            count: features.length,
+            source: 'adsb-snapshot',
+            stale: true,
+            liveError: livePayload?.meta?.error || 'Live flight providers unavailable'
+        }
+    };
+};
 
 const applyEnv = (env = {}) => {
     for (const [key, value] of Object.entries(env)) {
@@ -208,12 +251,22 @@ export async function handleApiRequest(request, env) {
             const theater = url.searchParams.get('theater') || 'global';
             const minCount = theater === 'global' ? 50 : 3;
             const result = await useCached(
-                `flights:v2:${theater}`,
+                `flights:v3:${theater}`,
                 10 * 60 * 1000,
-                () => fetchFlightsPayload(theater),
+                async () => {
+                    const live = await fetchFlightsPayload(theater);
+                    if ((live.features?.length ?? 0) >= minCount) return live;
+                    // Live ADS-B providers are often unreachable from the Cloudflare
+                    // edge. Serve the committed snapshot, cut to this theater and
+                    // labelled stale, rather than a 500 that empties the map.
+                    return fetchFlightSnapshot(request, live, next, theater);
+                },
                 (p) => p?.type === 'FeatureCollection' && (p.features?.length ?? 0) >= minCount
             );
-            return jsonResponse(result.payload, 200, result.meta);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                status: result.payload?.meta?.stale ? 'stale' : (result.meta?.status || 'live')
+            });
         }
 
         if (url.pathname === '/api/vessels') {

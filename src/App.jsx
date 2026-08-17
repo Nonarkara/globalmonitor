@@ -184,7 +184,7 @@ function App() {
           {/* Left: Sponsor logos in white pill */}
           <div className="header-brand-strip" aria-label="Project partners">
             <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" className="header-brand-logo header-brand-logo-pmua" />
-            <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
+            <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
             <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" className="header-brand-logo header-brand-logo-axiom" />
             <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" className="header-brand-logo header-brand-logo-retl" />
           </div>
@@ -662,7 +662,7 @@ function App() {
 
               {/* Supporting organizations */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', border: '1px solid var(--line)' }}>
-                <img src={`${import.meta.env.BASE_URL}Logo depa-01.png`} alt="depa" style={{ height: '20px', objectFit: 'contain' }} />
+                <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" style={{ height: '20px', objectFit: 'contain' }} />
                 <img src={`${import.meta.env.BASE_URL}mdes.png`} alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain' }} />
                 <img src={`${import.meta.env.BASE_URL}smart-city-thailand-logo.svg`} alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain' }} />
               </div>

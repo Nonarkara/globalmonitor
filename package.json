@@ -9,10 +9,11 @@
     "dev:stack": "node scripts/dev-stack.mjs",
     "build": "vite build",
     "build:pages": "vite build",
-    "deploy:pages": "npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true",
+    "deploy:pages": "npm run refresh:flights && npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server/index.mjs"
+    "start": "node server/index.mjs",
+    "refresh:flights": "node scripts/refresh-flight-snapshot.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.0",
