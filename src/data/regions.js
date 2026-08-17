@@ -170,7 +170,7 @@ export const TV_CHANNELS_MIDDLEEAST = [
     { id: 'aljazeera-en',     name: 'Al Jazeera',    lang: 'EN', color: '#D4A843', embedUrl: ytVideo('gCNeDWCI0vo'),                              embedUrlUnmuted: ytVideoUnmuted('gCNeDWCI0vo') },
     { id: 'aljazeera-ar',     name: 'الجزيرة',         lang: 'AR', color: '#D4A843', embedUrl: ytVideo('bNyUyrR0PHo'),                              embedUrlUnmuted: ytVideoUnmuted('bNyUyrR0PHo') },
     { id: 'france24-en',      name: 'France 24',     lang: 'EN', color: '#0055A4', embedUrl: ytChannel('UCQfwfsi5VrQ8yKZ-UWmAEFg'),               embedUrlUnmuted: ytChannelUnmuted('UCQfwfsi5VrQ8yKZ-UWmAEFg') },
-    { id: 'sky-news-arabia',  name: 'Sky News',      lang: 'عربية', color: '#C41230', embedUrl: ytVideo('U--OjmpjF5o'),                          embedUrlUnmuted: ytVideoUnmuted('U--OjmpjF5o') },
+    { id: 'sky-news',         name: 'Sky News',      lang: 'EN', color: '#C41230', embedUrl: ytChannel('UCoMdktPbSTixAyNGwb-UYkQ'),               embedUrlUnmuted: ytChannelUnmuted('UCoMdktPbSTixAyNGwb-UYkQ') },
     { id: 'earthlive-me',     name: 'ME Cams',       lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('gmtlJ_m2r5A'),                            embedUrlUnmuted: ytVideoUnmuted('gmtlJ_m2r5A') },
     { id: 'earthlive-cctv',   name: 'City CCTV',     lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('2Sl8n9clE8E'),                            embedUrlUnmuted: ytVideoUnmuted('2Sl8n9clE8E') },
     { id: 'i24-news',         name: 'i24 News',      lang: 'EN', color: '#0088CC', embedUrl: ytChannel('UCp1VEgMfOGBIIwlMDBJwFgA'),               embedUrlUnmuted: ytChannelUnmuted('UCp1VEgMfOGBIIwlMDBJwFgA') },
