@@ -10,6 +10,14 @@ import { generateBriefingSummary } from './gemini.mjs';
 
 const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
+// RSS titles arrive HTML-escaped (Yemen&#039;s, Al Jazeera &#8211; …). Decode
+// once here so no panel has to remember to.
+const NAMED_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”' };
+const decodeEntities = (value = '') => String(value)
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&([a-z]+);/gi, (m, n) => NAMED_ENTITIES[n.toLowerCase()] ?? m);
+
 const normalizeTitle = (value = '') => value.toLowerCase().replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 
 const resolveDate = (value) => {
@@ -75,10 +83,10 @@ const parseJsonFallback = (payload, source) => {
     const feedTitle = payload.feed?.title || source.name;
 
     return payload.items.map((item) => ({
-        title: item.title,
+        title: decodeEntities(item.title),
         link: item.link,
         pubDate: resolveDate(item.pubDate),
-        source: item.author || feedTitle
+        source: decodeEntities(item.author || feedTitle)
     })).filter((item) => {
         if (!item.title || !item.link) return false;
         const normalizedItemTitle = normalizeTitle(item.title);
@@ -109,7 +117,7 @@ const parseXmlFeed = (xml, source) => {
         if (!title || !link) continue;
         if (normalizeTitle(title) === normalizeTitle(feedTitle) || title === feedTitle) continue;
 
-        items.push({ title, link, pubDate: resolveDate(pubDate), source: itemSource });
+        items.push({ title: decodeEntities(title), link, pubDate: resolveDate(pubDate), source: decodeEntities(itemSource) });
     }
 
     // Try Atom <entry> if no RSS <item> found
@@ -123,7 +131,7 @@ const parseXmlFeed = (xml, source) => {
                 || block.match(/<published>([\s\S]*?)<\/published>/)?.[1] || '').trim();
 
             if (!title || !link) continue;
-            items.push({ title, link, pubDate: resolveDate(pubDate), source: feedTitle });
+            items.push({ title: decodeEntities(title), link, pubDate: resolveDate(pubDate), source: decodeEntities(feedTitle) });
         }
     }
 

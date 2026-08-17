@@ -14,10 +14,14 @@ const attachMeta = (payload, meta) => {
     return payload;
 };
 
+// Live traffic (ADS-B / AIS) fans out to rate-limited upstreams on a cold
+// edge cache and can take ~20s the first time; everything else stays at 15s.
+const SLOW_PATHS = new Set(['/api/flights', '/api/vessels']);
+
 export const fetchBackendJson = async (path, params = {}) => {
     const response = await axios.get(`${API_BASE_URL}${path}`, {
         params,
-        timeout: 15000
+        timeout: SLOW_PATHS.has(path) ? 30000 : 15000
     });
 
     return attachMeta(response.data, {
