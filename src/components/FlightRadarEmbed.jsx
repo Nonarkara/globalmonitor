@@ -47,7 +47,7 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
         >
             <Plane size={18} style={{ color: 'var(--ink-2)', opacity: flightsActive ? 0.95 : 0.4 }} />
             <span style={{ fontSize: 'var(--type-xs)', color: flightsActive ? 'var(--ink)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.5px' }}>
-                ADS-B Exchange · airplanes.live
+                ADS-B · adsb.lol · airplanes.live
             </span>
             <span style={{ fontSize: '0.5rem', color: flightsActive ? 'var(--ink-2)' : 'var(--ink-3)' }}>
                 {flightsActive && flightCount > 0
