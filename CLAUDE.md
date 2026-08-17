@@ -37,10 +37,34 @@ A suite of **4 real-time geopolitical intelligence dashboards** monitoring the M
 
 ## Hosting Strategy (Cost-Conscious)
 
-Dr Non uses free tiers exclusively while testing. Vercel and Netlify have both been exhausted (402/503). GPD currently has **two parallel deploy targets** — pick based on what you're changing:
+*Rewritten 2026-08-17. The "primary = this laptop + tunnel" arrangement below it is
+gone — that tunnel went dark and served a frozen build for weeks. Nothing production
+depends on a local machine any more.*
+
+**Repo:** `Nonarkara/globalmonitor-v3` (this checkout: worktree `conflict-tracker/v3-classic`,
+branch `classic` tracking `v3/main`). This is Dr Non's **flagship** — the dense Rams
+instrument-panel version with per-theater live aircraft + ships, TV, Oracle, sanctions.
 
 | Platform | Used For | Status |
 |----------|----------|--------|
+| **Cloudflare Pages `globalmonitor`** | GPD flagship — frontend + Pages Functions API. Domains: **globalmonitor.nonarkara.org**, globalmonitor.pages.dev | **Primary/live.** Secrets bound: AIRLABS_API_KEY, AISSTREAM_API_KEY, VESSELFINDER_FLEET_KEY (Airlabs exists ONLY here — not on disk). Deploy: `npm run deploy:pages` (refreshes the ADS-B snapshot, builds, deploys). |
+| Cloudflare Pages `asiawatch` | Asia build (`Nonarkara/globalmonitor` main) → asia.nonarkara.org | Live, separate codebase |
+| Cloudflare Pages `globalmonitor-me` | World console (`globalmonitor` branch `middleeast`) → global.nonarkara.org | Live, separate codebase |
+| Cloudflare Pages `mem-by-non` | MEM → mem.nonarkara.org (its API base is global.nonarkara.org/api) | Live |
+| Local laptop + tunnel | — | **Retired 2026-08-17.** Do not point production at a tunnel again. |
+| Fly.io / Render / Vercel / Netlify | — | Dead or retired |
+
+**Live flight data on the edge:** airplanes.live now 403s unregistered callers; the
+loader falls through to **adsb.lol** (same readsb v2 API, keyless, answers from the
+Cloudflare edge). Each theater fetch has an 11 s wall (partial live beats a browser
+timeout); if nothing answers, `/api/flights` serves the committed
+`public/data/flights/adsb-snapshot.geojson`, cut to the theater and labelled
+`stale: true`. Ships: Axiom Overwatch REST + VesselFinder fleet + committed AIS asset.
+
+**Rule**: Always have a deployment plan that doesn't require payment — and one that
+doesn't require a laptop to be awake.
+
+----------|----------|--------|
 | **This laptop (local)** | GPD full stack — Node server (`server/index.mjs`) + SQLite + scheduler, exposed via a named Cloudflare Tunnel at `globalmonitor.nonarkara.org` | **Primary/live** — 24/7 via launchd (`org.nonarkara.globalmonitor`), enables local SQLite persistence + proactive cache warming that a serverless host can't do |
 | **Cloudflare Pages** | GPD frontend + Pages Functions API (`functions/`) | Active, free — alternate/backup deploy path. Functions layer is a port of `server/lib/*`, may lag the local server's feature set (e.g. FloodOps, Oracle) — verify before relying on it |
 | **Cloudflare Pages** | War Monitor static | Active, free, no limits |
@@ -58,7 +82,7 @@ Dr Non uses free tiers exclusively while testing. Vercel and Netlify have both b
 
 All dashboards MUST display these logos in the header:
 1. **PMUA** (`pmua-logo.webp`) — PRIMARY funder, largest logo
-2. **depa** (`Logo depa-01.png`)
+2. **depa** (`depa-logo.png` — renamed 2026-08-17; the old name had a space and 404'd behind SPA fallbacks)
 3. **Axiom** (`axiom-logo.png`) — execution partner
 4. **ReTL** (`retl-logo.svg`) — execution partner (The Reason to Live Company)
 
@@ -205,10 +229,7 @@ When deploying any dashboard:
 
 ### Deploy Commands
 ```bash
-# GPD → this laptop (primary — restart the local server + tunnel picks it up)
-launchctl kickstart -k gui/$(id -u)/org.nonarkara.globalmonitor
-
-# GPD → Cloudflare Pages (frontend + Pages Functions API — alternate path)
+# GPD → Cloudflare Pages project `globalmonitor` (primary; serves globalmonitor.nonarkara.org)
 npm run deploy:pages
 
 # GPD → GitHub Pages (static backup, needs --base flag)
