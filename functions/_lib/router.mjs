@@ -23,7 +23,7 @@ import { searchStacScenes } from '../../server/lib/stacCatalog.mjs';
 import { searchPlanetaryComputer } from '../../server/lib/planetaryComputer.mjs';
 import { listPresets as listEvalscriptPresets } from '../../server/lib/evalscripts.mjs';
 import { probeCog } from '../../server/lib/cogReader.mjs';
-import { ingestRegionalNews } from '../../server/lib/regionalNewsIngest.mjs';
+import { ingestRegionalNews, fetchArbitraryRssQuery } from '../../server/lib/regionalNewsIngest.mjs';
 import { getRainviewerRadarTilesWorker as getRainviewerRadarTiles } from './rainviewerWorker.mjs';
 import {
     isSupabaseEnabled,
@@ -127,6 +127,27 @@ export async function handleApiRequest(request, env, next) {
             return jsonResponse(result.payload, 200, result.meta);
         }
 
+        if (url.pathname === '/api/news-rss') {
+            const q = url.searchParams.get('q');
+            const hl = url.searchParams.get('hl') || 'en-US';
+            if (!q) {
+                return jsonResponse({ error: 'Missing required ?q param' }, 400);
+            }
+            try {
+                const result = await useCached(
+                    `news-rss:${q}:${hl}`,
+                    5 * 60 * 1000,
+                    () => fetchArbitraryRssQuery(q, hl),
+                    (items) => Array.isArray(items) && items.length > 0
+                );
+                recordHealth('news-rss', !!result.payload?.length, result.payload?.length ? null : 'empty RSS result');
+                return jsonResponse(result.payload, 200, result.meta);
+            } catch (error) {
+                recordHealth('news-rss', false, error.message);
+                return jsonResponse([], 200, { status: 'error', updatedAt: new Date().toISOString(), cache: 'miss' });
+            }
+        }
+
         if (url.pathname === '/api/regional-news') {
             const region = url.searchParams.get('region') || 'indopacific';
             const code = (url.searchParams.get('code') || '').toUpperCase();
@@ -187,13 +208,22 @@ export async function handleApiRequest(request, env, next) {
         }
 
         if (url.pathname === '/api/nga-warnings') {
-            const result = await useCached(
-                'nga-warnings',
-                30 * 60 * 1000,
-                () => fetchNgaWarnings(),
-                (p) => Array.isArray(p?.warnings)
-            );
-            return jsonResponse(result.payload, 200, result.meta);
+            try {
+                const result = await useCached(
+                    'nga-warnings',
+                    30 * 60 * 1000,
+                    () => fetchNgaWarnings(),
+                    (p) => Array.isArray(p?.warnings)
+                );
+                return jsonResponse(result.payload, 200, result.meta);
+            } catch (error) {
+                recordHealth('nga-warnings', false, error.message);
+                return jsonResponse(
+                    { warnings: [], total: 0, highThreat: 0, elevatedThreat: 0, updatedAt: null, error: error.message },
+                    200,
+                    { status: 'error', updatedAt: new Date().toISOString(), cache: 'miss' }
+                );
+            }
         }
 
         if (url.pathname === '/api/quakes') {
@@ -213,7 +243,7 @@ export async function handleApiRequest(request, env, next) {
                 `gdelt:${theater}`,
                 30 * 60 * 1000,
                 () => fetchGdeltSentiment(theater),
-                (p) => Array.isArray(p?.timeline)
+                (p) => Array.isArray(p?.timeline) && p.timeline.length > 0
             );
             if (result.meta.cache !== 'hit') upsertSentimentReadings(result.payload).catch(() => {});
             return jsonResponse(result.payload, 200, result.meta);

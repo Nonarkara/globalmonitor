@@ -19,6 +19,7 @@ import { useOnlineStatus } from './hooks/useOnlineStatus';
 import SourceHealthModal from './components/SourceHealthModal';
 import ActivityLogModal from './components/ActivityLogModal';
 import BraunManualModal from './components/BraunManualModal';
+import PapersModal from './components/PapersModal';
 import LegalModal from './components/LegalModal';
 import LegalFooterLinks from './components/LegalFooterLinks';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
@@ -50,6 +51,7 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [isPapersOpen, setIsPapersOpen] = useState(false);
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
@@ -288,6 +290,13 @@ function App() {
             >
               <Info size={11} aria-hidden="true" /> Manual
             </button>
+            <button
+              onClick={() => setIsPapersOpen(true)}
+              aria-label="Open Papers"
+              className="header-button header-button-manual header-button-papers"
+            >
+              <FileText size={11} aria-hidden="true" /> Papers
+            </button>
             <div
               className="header-region-tabs"
               role="tablist"
@@ -332,6 +341,9 @@ function App() {
               </button>
               {toolsOpen && (
                 <div className="header-tools-menu" role="menu">
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); setIsPapersOpen(true); }}>
+                    <FileText size={12} aria-hidden="true" /> Papers
+                  </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsSourceHealthOpen(true); }}>
                     <Database size={12} aria-hidden="true" /> Data health
                   </button>
@@ -663,9 +675,9 @@ function App() {
               )}
               {viewMode === 'global' && (
                 <>
-                  <ErrorBoundary inline label="Global Macro">
-                    <LazyPanel name="RegionalNewsPanel" regionName="Global" title="Global Macro & Policy" activeSourceIds={activeSources} viewMode={viewMode} />
-                  </ErrorBoundary>
+                  {/* "Global Macro & Policy" already renders above in the intel
+                      column — repeating it here was literal duplicate content,
+                      not a second data source. */}
                   <ErrorBoundary inline label="Maritime Warnings">
                     <LazyPanel name="MaritimeWarningsPanel" viewMode={viewMode} />
                   </ErrorBoundary>
@@ -746,6 +758,12 @@ function App() {
         <BraunManualModal
           isOpen={isManualOpen}
           onClose={() => setIsManualOpen(false)}
+          theaters="Middle East, Indo-Pacific, Thailand, and Global"
+        />
+        <PapersModal
+          isOpen={isPapersOpen}
+          onClose={() => setIsPapersOpen(false)}
+          systemId="world"
         />
 
         {/* Modal: Source Health */}

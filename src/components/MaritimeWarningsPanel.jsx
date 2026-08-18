@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Anchor, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { fetchNgaWarnings } from '../services/ngaWarnings';
+import { getRegion } from '../data/regions';
 import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 
@@ -97,7 +98,7 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
                 retryCount={retryCount}
                 data={data}
                 isEmpty={data && warnings.length === 0}
-                emptyMessage={`No active maritime warnings for ${viewMode === 'indopacific' ? 'Indo-Pacific' : viewMode === 'thailand' ? 'Thailand' : 'Middle East'} region`}
+                emptyMessage={`No active maritime warnings for ${getRegion(viewMode).label}`}
                 refresh={refresh}
             >
                 <div className="panel-content" style={{

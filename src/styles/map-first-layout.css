@@ -250,6 +250,12 @@
   flex-wrap: nowrap;
 }
 
+@media (max-width: 720px) {
+  .app-container[data-layout="map-first"] .header-button-papers {
+    display: none;
+  }
+}
+
 .app-container[data-layout="map-first"] .header-status {
   height: auto;
   min-height: 0;
@@ -431,7 +437,11 @@
 }
 
 .app-container[data-layout="map-first"] .bottom-bar > .bottom-card {
-  flex: 0 0 min(200px, 22vw);
+  /* grow-basis (not 0 0): on a theater with few cards (e.g. Global) they
+     stretch to fill the bar edge-to-edge instead of leaving trailing empty
+     space; on a theater with enough cards to already fill the row, growth
+     has nothing to distribute and this is a no-op. */
+  flex: 1 1 min(200px, 22vw);
   max-height: 104px;
   min-height: 104px;
   height: 104px;

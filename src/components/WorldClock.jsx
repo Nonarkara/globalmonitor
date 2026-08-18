@@ -100,12 +100,27 @@ PrimaryClock.displayName = 'PrimaryClock';
 
 const cityKey = (city) => `${city.name}-${city.tz}`;
 
+const GLOBAL_CITIES = [
+    { name: 'UTC', tz: 'UTC', label: 'UTC', primary: true },
+    { name: 'Washington', tz: 'America/New_York' },
+    { name: 'London', tz: 'Europe/London' },
+    { name: 'Jerusalem', tz: 'Asia/Jerusalem' },
+    { name: 'Tehran', tz: 'Asia/Tehran' },
+    { name: 'Singapore', tz: 'Asia/Singapore' },
+    { name: 'Delhi', tz: 'Asia/Kolkata' },
+    { name: 'Tokyo', tz: 'Asia/Tokyo' },
+    { name: 'Canberra', tz: 'Australia/Sydney' },
+];
+
+const CITIES_BY_THEATER = {
+    thailand: THAILAND_CITIES,
+    indopacific: INDO_PACIFIC_CITIES,
+    global: GLOBAL_CITIES,
+    middleeast: ME_CITIES,
+};
+
 const WorldClock = ({ viewMode = 'middleeast' }) => {
-    const cities = viewMode === 'thailand'
-        ? THAILAND_CITIES
-        : viewMode === 'indopacific'
-            ? INDO_PACIFIC_CITIES
-            : ME_CITIES;
+    const cities = CITIES_BY_THEATER[viewMode] || GLOBAL_CITIES;
 
     const primaryTimeRef = useRef(null);
     const primaryDateRef = useRef(null);

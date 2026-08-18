@@ -12,7 +12,7 @@ const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
 // RSS titles arrive HTML-escaped (Yemen&#039;s, Al Jazeera &#8211; …). Decode
 // once here so no panel has to remember to.
 const NAMED_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”' };
-const decodeEntities = (value = '') => String(value)
+export const decodeEntities = (value = '') => String(value)
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
     .replace(/&([a-z]+);/gi, (m, n) => NAMED_ENTITIES[n.toLowerCase()] ?? m);

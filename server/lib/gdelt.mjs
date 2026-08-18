@@ -27,7 +27,11 @@ export const fetchGdeltSentiment = async (theater = 'middleeast') => {
             fetchedAt: new Date().toISOString()
         };
     } catch (err) {
+        // Used to swallow every failure into a fake-successful empty timeline —
+        // useCached's isUsable check (Array.isArray) passed on an empty array,
+        // so a dead GDELT request got cached and served with status:'live'.
+        // Throw instead so useCached can serve its real stale-fallback.
         console.error('GDELT error:', err.message);
-        return { timeline: [], query, fetchedAt: new Date().toISOString() };
+        throw err;
     }
 };

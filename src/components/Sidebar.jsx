@@ -216,9 +216,9 @@ const Sidebar = ({
         <aside className="grid-panel sidebar-panel" style={{ flex: 1 }}>
             <div className="sidebar-header">
                 <div className="sidebar-brand-lockup">
-                    <span className="sidebar-brand-title">Global Political Dashboard</span>
+                    <span className="sidebar-brand-title">World Console</span>
                     <span className="sidebar-brand-subtitle">
-                        {REGION_LABEL[viewMode] || 'Middle East'} · GlobeWatch {dashboardVersion}
+                        {REGION_LABEL[viewMode] || 'Global'} · {dashboardVersion}
                     </span>
                 </div>
             </div>

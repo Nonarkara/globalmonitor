@@ -523,9 +523,16 @@ body {
 }
 
 .header-brand-logo-depa,
-.header-brand-logo-axiom,
 .header-brand-logo-retl {
   height: 14px;
+}
+
+.header-brand-logo-axiom {
+  height: 16px;
+  width: auto;
+  max-width: 72px;
+  object-fit: contain;
+  object-position: left center;
 }
 
 .header-status {
