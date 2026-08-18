@@ -55,7 +55,7 @@ const queriesFor = (region, code) => {
 };
 
 // Lightweight RSS parser using regex — avoids pulling in xml2js for one route.
-const parseRssItems = (xml, max = 6) => {
+export const parseRssItems = (xml, max = 6, defaultSource = 'News') => {
     if (!xml || typeof xml !== 'string') return [];
     const items = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
@@ -65,12 +65,13 @@ const parseRssItems = (xml, max = 6) => {
         const title = (/<title(?:\s[^>]*)?>([\s\S]*?)<\/title>/.exec(block) || [])[1]?.replace(/<!\[CDATA\[(.*?)\]\]>/s, '$1')?.trim();
         const link = (/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/.exec(block) || [])[1]?.trim();
         const pubDate = (/<pubDate(?:\s[^>]*)?>([\s\S]*?)<\/pubDate>/.exec(block) || [])[1]?.trim();
-        const source = (/<source(?:\s[^>]*)?>([\s\S]*?)<\/source>/.exec(block) || [])[1]?.replace(/<!\[CDATA\[(.*?)\]\]>/s, '$1')?.trim();
+        const source = (/<source(?:\s[^>]*)?>([\s\S]*?)<\/source>/.exec(block) || [])[1]?.replace(/<!\[CDATA\[(.*?)\]\]>/s, '$1')?.trim()
+            || (/<News:Source>([\s\S]*?)<\/News:Source>/.exec(block) || [])[1]?.trim();
         if (title && link) {
             items.push({
                 title,
                 link,
-                source: source || 'Google News',
+                source: source || defaultSource,
                 pubDate: pubDate ? new Date(pubDate) : new Date()
             });
         }
@@ -78,11 +79,22 @@ const parseRssItems = (xml, max = 6) => {
     return items;
 };
 
-/**
- * Arbitrary free-text news query. Google News RSS first; GDELT DOC ArtList
- * when Google 503s from Cloudflare's edge IPs (same class of block as
- * airplanes.live). GDELT already answers from the edge for sentiment.
- */
+const unwrapRedirectUrl = (link) => {
+    if (!link) return link;
+    try {
+        const parsed = new URL(link);
+        return parsed.searchParams.get('url') || link;
+    } catch {
+        return link;
+    }
+};
+
+const firstNonEmpty = (promises) => Promise.any(promises.map(async (pending) => {
+    const items = await pending;
+    if (!Array.isArray(items) || items.length === 0) throw new Error('empty');
+    return items;
+}));
+
 const parseGdeltSeen = (value) => {
     const match = String(value || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
     if (!match) return new Date();
@@ -91,7 +103,7 @@ const parseGdeltSeen = (value) => {
 
 const fetchGdeltArtList = async (query) => {
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=ArtList&maxrecords=10&timespan=3d&sort=datedesc&format=json`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`GDELT DOC ${res.status}`);
     const data = await res.json();
     return (data.articles || [])
@@ -105,36 +117,55 @@ const fetchGdeltArtList = async (query) => {
         .filter((item) => item.title && item.link);
 };
 
+const fetchRssUrl = async (url, defaultSource) => {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': BROWSER_UA } });
+    if (!res.ok) throw new Error(`RSS ${res.status}`);
+    const items = parseRssItems(await res.text(), 6, defaultSource)
+        .filter((item) => item.title && item.title !== 'Google News')
+        .map((item) => ({
+            ...item,
+            title: decodeEntities(item.title),
+            source: decodeEntities(item.source),
+            link: unwrapRedirectUrl(item.link)
+        }));
+    if (!items.length) throw new Error('RSS empty');
+    return items;
+};
+
+const fetchBbcWorldFiltered = async (query) => {
+    const res = await fetch('https://feeds.bbci.co.uk/news/world/rss.xml', {
+        signal: AbortSignal.timeout(8000),
+        headers: { 'User-Agent': BROWSER_UA }
+    });
+    if (!res.ok) throw new Error(`BBC RSS ${res.status}`);
+    const items = parseRssItems(await res.text(), 25, 'BBC')
+        .map((item) => ({ ...item, title: decodeEntities(item.title), source: decodeEntities(item.source) }));
+    const tokens = String(query).split(/[^A-Za-z0-9]+/).filter((token) => token.length > 3);
+    const hit = items.filter((item) => {
+        const title = item.title.toLowerCase();
+        return tokens.some((token) => title.includes(token.toLowerCase()));
+    });
+    return hit.slice(0, 6);
+};
+
+/**
+ * Race public RSS. Google News search 503s from Cloudflare egress; waiting
+ * on it then GDELT (often a timeout) left panels empty for 18s+. First
+ * usable list wins — Bing search RSS and BBC World (title-filtered).
+ */
 export const fetchArbitraryRssQuery = async (query, locale = 'en-US') => {
-    try {
-        const url = buildGoogleNewsRss(query, locale);
-        const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': BROWSER_UA } });
-        if (!res.ok) throw new Error(`Google News RSS ${res.status}`);
-        const text = await res.text();
-        const items = parseRssItems(text, 6)
-            .filter((item) => item.title && item.title !== 'Google News')
-            .map((item) => ({ ...item, title: decodeEntities(item.title), source: decodeEntities(item.source) }));
-        if (items.length) return items;
-        throw new Error('Google News RSS empty');
-    } catch {
-        return fetchGdeltArtList(query);
-    }
+    const bing = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=RSS&mkt=en-US&setlang=en`;
+    return firstNonEmpty([
+        fetchRssUrl(buildGoogleNewsRss(query, locale), 'Google News'),
+        fetchRssUrl(bing, 'Bing News'),
+        fetchGdeltArtList(query),
+        fetchBbcWorldFiltered(query)
+    ]);
 };
 
 const fetchOne = async (query) => {
-    const url = buildGoogleNewsRss(query);
     try {
-        const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': BROWSER_UA } });
-        if (!res.ok) throw new Error(`Google News RSS ${res.status}`);
-        const text = await res.text();
-        const items = parseRssItems(text);
-        if (items.length) return items;
-        throw new Error('Google News RSS empty');
-    } catch {
-        /* Google News often 503s from the Cloudflare edge — try GDELT. */
-    }
-    try {
-        return await fetchGdeltArtList(query);
+        return await fetchArbitraryRssQuery(query);
     } catch {
         return [];
     }
@@ -143,7 +174,7 @@ const fetchOne = async (query) => {
 /**
  * Pull tech + urgent for one country/province, persist, return merged list.
  */
-export const ingestRegionalNews = async (region, code, { persistLocal } = {}) => {
+export const ingestRegionalNews = async (region, code) => {
     const queries = queriesFor(region, code);
     if (!queries) return { items: [], status: 'unknown-code' };
     const startedAt = Date.now();
@@ -162,13 +193,8 @@ export const ingestRegionalNews = async (region, code, { persistLocal } = {}) =>
     const items = deduped.slice(0, DEFAULT_LIMIT);
 
     let upsertResult = { inserted: 0, error: null };
-    if (items.length) {
-        // The Node server injects SQLite persistence; edge runtimes omit it.
-        persistLocal?.(items, region, code);
-        // Persist to Supabase if configured (secondary)
-        if (isSupabaseEnabled()) {
-            upsertResult = await upsertNewsItems(region, code, items);
-        }
+    if (isSupabaseEnabled() && items.length) {
+        upsertResult = await upsertNewsItems(region, code, items);
     }
 
     await recordIngestionRun({
