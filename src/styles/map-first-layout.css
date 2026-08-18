@@ -250,6 +250,12 @@
   flex-wrap: nowrap;
 }
 
+@media (max-width: 720px) {
+  .app-container[data-layout="map-first"] .header-button-papers {
+    display: none;
+  }
+}
+
 .app-container[data-layout="map-first"] .header-status {
   height: auto;
   min-height: 0;

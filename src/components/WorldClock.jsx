@@ -100,12 +100,51 @@ PrimaryClock.displayName = 'PrimaryClock';
 
 const cityKey = (city) => `${city.name}-${city.tz}`;
 
+const EAST_ASIA_CITIES = [
+    { name: 'Tokyo', tz: 'Asia/Tokyo', label: 'Tokyo (JP)', primary: true },
+    { name: 'Seoul', tz: 'Asia/Seoul' },
+    { name: 'Beijing', tz: 'Asia/Shanghai' },
+    { name: 'Taipei', tz: 'Asia/Taipei' },
+    { name: 'Singapore', tz: 'Asia/Singapore' },
+    { name: 'Delhi', tz: 'Asia/Kolkata' },
+    { name: 'Washington', tz: 'America/New_York' },
+    { name: 'London', tz: 'Europe/London' },
+];
+
+const SOUTH_ASIA_CITIES = [
+    { name: 'Delhi', tz: 'Asia/Kolkata', label: 'Delhi (IN)', primary: true },
+    { name: 'Islamabad', tz: 'Asia/Karachi' },
+    { name: 'Dhaka', tz: 'Asia/Dhaka' },
+    { name: 'Colombo', tz: 'Asia/Colombo' },
+    { name: 'Singapore', tz: 'Asia/Singapore' },
+    { name: 'Dubai', tz: 'Asia/Dubai' },
+    { name: 'Washington', tz: 'America/New_York' },
+    { name: 'London', tz: 'Europe/London' },
+];
+
+const GLOBAL_CITIES = [
+    { name: 'UTC', tz: 'UTC', label: 'UTC', primary: true },
+    { name: 'Washington', tz: 'America/New_York' },
+    { name: 'London', tz: 'Europe/London' },
+    { name: 'Jerusalem', tz: 'Asia/Jerusalem' },
+    { name: 'Tehran', tz: 'Asia/Tehran' },
+    { name: 'Singapore', tz: 'Asia/Singapore' },
+    { name: 'Delhi', tz: 'Asia/Kolkata' },
+    { name: 'Tokyo', tz: 'Asia/Tokyo' },
+    { name: 'Canberra', tz: 'Australia/Sydney' },
+];
+
+const CITIES_BY_THEATER = {
+    thailand: THAILAND_CITIES,
+    indopacific: INDO_PACIFIC_CITIES,
+    eastasia: EAST_ASIA_CITIES,
+    southasia: SOUTH_ASIA_CITIES,
+    global: GLOBAL_CITIES,
+    middleeast: ME_CITIES,
+};
+
 const WorldClock = ({ viewMode = 'middleeast' }) => {
-    const cities = viewMode === 'thailand'
-        ? THAILAND_CITIES
-        : viewMode === 'indopacific'
-            ? INDO_PACIFIC_CITIES
-            : ME_CITIES;
+    const cities = CITIES_BY_THEATER[viewMode] || INDO_PACIFIC_CITIES;
 
     const primaryTimeRef = useRef(null);
     const primaryDateRef = useRef(null);

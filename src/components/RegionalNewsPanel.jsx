@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchLiveNews } from '../services/liveNews';
+import { fetchBackendJson } from '../services/backendClient';
 import { Rss, RefreshCw } from 'lucide-react';
 
 const safeDateString = (date) => {
@@ -17,91 +18,32 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
         return () => { mountedRef.current = false; };
     }, []);
 
-    const parseDepaXml = (xml) => {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xml, "text/xml");
-        if (xmlDoc.querySelector("parsererror")) return [];
-        const items = xmlDoc.querySelectorAll("item");
-        const depaQueryStr = '"Digital Economy Promotion Agency" OR "สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"';
-        const newsItems = [];
-        Array.from(items).forEach(item => {
-            const itemTitle = item.querySelector("title")?.textContent;
-            const link = item.querySelector("link")?.textContent;
-            const pubDateStr = item.querySelector("pubDate")?.textContent;
-            const source = item.querySelector("source")?.textContent || 'Google News';
-            if (itemTitle && link) {
-                if (itemTitle.includes(depaQueryStr) || itemTitle === 'Google News') return;
-                newsItems.push({ title: itemTitle, link, pubDate: pubDateStr ? new Date(pubDateStr) : new Date(), source });
-            }
-        });
-        return newsItems.slice(0, 5);
-    };
-
     const fetchNews = useCallback(() => {
         setIsRefreshing(true);
 
         // Google News RSS-backed regions — fetched direct, not from liveNews aggregate
         const RSS_REGIONS = {
-            Myanmar:      '"Myanmar" conflict OR border OR refugee OR junta',
-            SouthChinaSea:'"South China Sea" OR "Taiwan Strait" tension OR naval OR incident',
-            ASEAN:        'ASEAN geopolitics OR diplomacy OR summit OR "Southeast Asia"',
-            Taiwan:       'Taiwan China military OR strait OR exercise OR invasion',
+            Myanmar:          '"Myanmar" conflict OR border OR refugee OR junta',
+            SouthChinaSea:    '"South China Sea" OR "Taiwan Strait" tension OR naval OR incident',
+            ASEAN:            'ASEAN geopolitics OR diplomacy OR summit OR "Southeast Asia"',
+            Taiwan:           'Taiwan China military OR strait OR exercise OR invasion',
+            KoreanPeninsula:  '"North Korea" OR "Korean Peninsula" missile OR nuclear OR DMZ',
+            EastChinaSea:     '"East China Sea" OR Senkaku OR Diaoyu',
+            IndiaPakistan:    'India Pakistan Kashmir OR LoC OR ceasefire',
+            IndianOcean:      '"Indian Ocean" navy OR chokepoint OR "Bay of Bengal"',
+            Afghanistan:      'Afghanistan Taliban OR Pakistan border',
         };
         if (RSS_REGIONS[regionName]) {
-            const q = encodeURIComponent(RSS_REGIONS[regionName]);
-            const rssUrl = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&cb=${Date.now()}`;
-            const encoded = encodeURIComponent(rssUrl);
-            const parseXml = (xml) => {
-                const doc = new DOMParser().parseFromString(xml, 'text/xml');
-                if (doc.querySelector('parsererror')) return [];
-                return Array.from(doc.querySelectorAll('item')).slice(0, 5).map(item => ({
-                    title: item.querySelector('title')?.textContent,
-                    link: item.querySelector('link')?.textContent,
-                    pubDate: new Date(item.querySelector('pubDate')?.textContent || Date.now()),
-                    source: item.querySelector('source')?.textContent || 'Google News',
-                })).filter(it => it.title && it.link && it.title !== 'Google News');
-            };
-            (async () => {
-                let items = null;
-                try { const r = await fetch(`https://api.allorigins.win/get?url=${encoded}`); items = parseXml((await r.json())?.contents || ''); } catch { /* try next proxy */ }
-                if (!items?.length) try { const r = await fetch(`https://corsproxy.io/?url=${encoded}`); items = parseXml(await r.text()); } catch { /* fall through to empty state */ }
-                if (mountedRef.current) setNews(items || []);
-            })().catch(() => { if (mountedRef.current) setNews([]); })
-              .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
+            fetchBackendJson('/api/news-rss', { q: RSS_REGIONS[regionName] })
+                .then((items) => { if (mountedRef.current) setNews(Array.isArray(items) ? items : []); })
+                .catch(() => { if (mountedRef.current) setNews([]); })
+                .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
             return;
         }
 
         if (regionName === 'DEPA') {
-            const depaSearchUrl = 'https://news.google.com/rss/search?q="Digital+Economy+Promotion+Agency"+OR+"สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"&hl=th&gl=TH&ceid=TH:th';
-            const freshUrl = depaSearchUrl + '&cb=' + Date.now();
-            const encoded = encodeURIComponent(freshUrl);
-
-            const tryProxy = async (url, extract) => {
-                const res = await fetch(url);
-                const data = await res.json();
-                const xml = extract(data);
-                if (!xml) throw new Error('No XML');
-                const items = parseDepaXml(xml);
-                if (items.length === 0) throw new Error('No items');
-                return items;
-            };
-
-            const tryRawProxy = async (url) => {
-                const res = await fetch(url);
-                const text = await res.text();
-                if (!text.includes('<')) throw new Error('Not XML');
-                const items = parseDepaXml(text);
-                if (items.length === 0) throw new Error('No items');
-                return items;
-            };
-
-            (async () => {
-                let items = null;
-                try { items = await tryProxy(`https://api.allorigins.win/get?url=${encoded}`, d => d?.contents); } catch { items = items || null; }
-                if (!items) try { items = await tryRawProxy(`https://api.codetabs.com/v1/proxy?quest=${encoded}`); } catch { items = items || null; }
-                if (!items) try { items = await tryRawProxy(`https://corsproxy.io/?url=${encoded}`); } catch { items = items || null; }
-                if (mountedRef.current) setNews(items || []);
-            })()
+            fetchBackendJson('/api/news-rss', { q: '"Digital Economy Promotion Agency" OR "สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"', hl: 'th-TH' })
+                .then((items) => { if (mountedRef.current) setNews(Array.isArray(items) ? items : []); })
                 .catch(() => { if (mountedRef.current) setNews([]); })
                 .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
             return;

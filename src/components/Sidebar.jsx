@@ -110,8 +110,10 @@ const GROUP_ORDER = [
 ];
 
 const REGION_LABEL = {
-    middleeast: 'Middle East',
-    indopacific: 'Indo-Pacific',
+    middleeast: 'Gulf Lifeline',
+    indopacific: 'Southeast Asia',
+    eastasia: 'East Asia',
+    southasia: 'South Asia',
     thailand: 'Thailand',
     global: 'Global',
 };
@@ -216,9 +218,9 @@ const Sidebar = ({
         <aside className="grid-panel sidebar-panel" style={{ flex: 1 }}>
             <div className="sidebar-header">
                 <div className="sidebar-brand-lockup">
-                    <span className="sidebar-brand-title">Global Political Dashboard</span>
+                    <span className="sidebar-brand-title">AsiaWatch</span>
                     <span className="sidebar-brand-subtitle">
-                        {REGION_LABEL[viewMode] || 'Middle East'} · GlobeWatch {dashboardVersion}
+                        {REGION_LABEL[viewMode] || 'Southeast Asia'} · {dashboardVersion}
                     </span>
                 </div>
             </div>

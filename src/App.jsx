@@ -19,6 +19,7 @@ import { useOnlineStatus } from './hooks/useOnlineStatus';
 import SourceHealthModal from './components/SourceHealthModal';
 import ActivityLogModal from './components/ActivityLogModal';
 import BraunManualModal from './components/BraunManualModal';
+import PapersModal from './components/PapersModal';
 import LegalModal from './components/LegalModal';
 import LegalFooterLinks from './components/LegalFooterLinks';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
@@ -46,6 +47,7 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [isPapersOpen, setIsPapersOpen] = useState(false);
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
@@ -284,6 +286,13 @@ function App() {
             >
               <Info size={11} aria-hidden="true" /> Manual
             </button>
+            <button
+              onClick={() => setIsPapersOpen(true)}
+              aria-label="Open Papers"
+              className="header-button header-button-manual header-button-papers"
+            >
+              <FileText size={11} aria-hidden="true" /> Papers
+            </button>
             <div
               className="header-region-tabs"
               role="tablist"
@@ -328,6 +337,9 @@ function App() {
               </button>
               {toolsOpen && (
                 <div className="header-tools-menu" role="menu">
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); setIsPapersOpen(true); }}>
+                    <FileText size={12} aria-hidden="true" /> Papers
+                  </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsSourceHealthOpen(true); }}>
                     <Database size={12} aria-hidden="true" /> Data health
                   </button>
@@ -547,6 +559,56 @@ function App() {
                   </ErrorBoundary>
                 </>
               )}
+              {viewMode === 'eastasia' && (
+                <>
+                  <ErrorBoundary inline label="Taiwan Strait">
+                    <LazyPanel name="IntelligencePanel" panelKey={`taiwanStrait:${sourceSetKey}`} briefingId="taiwanStrait" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Korean Peninsula">
+                    <LazyPanel name="IntelligencePanel" panelKey={`koreanPeninsula:${sourceSetKey}`} briefingId="koreanPeninsula" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="South China Sea">
+                    <LazyPanel name="IntelligencePanel" panelKey={`southChinaSea:${sourceSetKey}`} briefingId="southChinaSea" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Humanitarian Crisis">
+                    <LazyPanel name="HumanitarianPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Conflict Analytics">
+                    <LazyPanel name="AcledAnalytics" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="TimesFM Forecast">
+                    <LazyPanel name="TimesFMPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Arms & Defense">
+                    <LazyPanel name="ArmsDefensePanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                </>
+              )}
+              {viewMode === 'southasia' && (
+                <>
+                  <ErrorBoundary inline label="India–Pakistan">
+                    <LazyPanel name="IntelligencePanel" panelKey={`indiaPakistan:${sourceSetKey}`} briefingId="indiaPakistan" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Indian Ocean">
+                    <LazyPanel name="IntelligencePanel" panelKey={`indianOcean:${sourceSetKey}`} briefingId="indianOcean" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Humanitarian Crisis">
+                    <LazyPanel name="HumanitarianPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Displacement Tracker">
+                    <LazyPanel name="RefugeePanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Conflict Analytics">
+                    <LazyPanel name="AcledAnalytics" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="TimesFM Forecast">
+                    <LazyPanel name="TimesFMPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Arms & Defense">
+                    <LazyPanel name="ArmsDefensePanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                </>
+              )}
               {viewMode === 'global' && (
                 <>
                   <ErrorBoundary inline label="Global Macro">
@@ -672,6 +734,47 @@ function App() {
                   </ErrorBoundary>
                 </>
               )}
+              {viewMode === 'eastasia' && (
+                <>
+                  <ErrorBoundary inline label="Taiwan Strait Watch">
+                    <LazyPanel name="RegionalNewsPanel" regionName="Taiwan" title="Taiwan Strait" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Korean Peninsula Watch">
+                    <LazyPanel name="RegionalNewsPanel" regionName="KoreanPeninsula" title="Korean Peninsula" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="East China Sea">
+                    <LazyPanel name="RegionalNewsPanel" regionName="EastChinaSea" title="East China Sea" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Maritime Warnings">
+                    <LazyPanel name="MaritimeWarningsPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Media Sentiment">
+                    <LazyPanel name="SentimentChart" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Seismic Activity">
+                    <LazyPanel name="SeismicPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                </>
+              )}
+              {viewMode === 'southasia' && (
+                <>
+                  <ErrorBoundary inline label="India–Pakistan Watch">
+                    <LazyPanel name="RegionalNewsPanel" regionName="IndiaPakistan" title="India–Pakistan" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Indian Ocean Watch">
+                    <LazyPanel name="RegionalNewsPanel" regionName="IndianOcean" title="Indian Ocean" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Afghanistan Watch">
+                    <LazyPanel name="RegionalNewsPanel" regionName="Afghanistan" title="Afghanistan" activeSourceIds={activeSources} viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Media Sentiment">
+                    <LazyPanel name="SentimentChart" viewMode={viewMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary inline label="Seismic Activity">
+                    <LazyPanel name="SeismicPanel" viewMode={viewMode} />
+                  </ErrorBoundary>
+                </>
+              )}
               {viewMode === 'global' && (
                 <>
                   <ErrorBoundary inline label="Global Macro">
@@ -757,6 +860,11 @@ function App() {
         <BraunManualModal
           isOpen={isManualOpen}
           onClose={() => setIsManualOpen(false)}
+        />
+        <PapersModal
+          isOpen={isPapersOpen}
+          onClose={() => setIsPapersOpen(false)}
+          systemId="asia"
         />
 
         {/* Modal: Source Health */}

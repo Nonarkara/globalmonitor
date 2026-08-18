@@ -57,6 +57,12 @@ export const SOURCE_IDS_BY_REGION = {
     global: INTELLIGENCE_SOURCES
         .filter((source) => source.group === 'worldwide')
         .map((source) => source.id),
+    eastasia: INTELLIGENCE_SOURCES
+        .filter((source) => ['worldwide', 'asia'].includes(source.group))
+        .map((source) => source.id),
+    southasia: INTELLIGENCE_SOURCES
+        .filter((source) => ['worldwide', 'asia'].includes(source.group))
+        .map((source) => source.id),
 };
 
 export const APAC_SOURCES = INTELLIGENCE_SOURCES.filter((source) => ['worldwide', 'asia', 'thailand'].includes(source.group));
@@ -261,6 +267,90 @@ export const BRIEFING_DEFINITIONS = {
         ],
         fallbackItems: [
             { title: 'Monitoring Thailand southern security, political developments, and Myanmar border situation.', link: 'https://www.bangkokpost.com/', source: 'Monitor', pubDate: new Date(), tags: ['conflict', 'diplomacy'] }
+        ]
+    },
+    taiwanStrait: {
+        id: 'taiwanStrait',
+        title: 'Taiwan Strait',
+        description: 'PLA activity, Taiwan air-defence responses, US transits, and cross-strait political signals.',
+        queries: [
+            'Taiwan China military OR strait OR exercise OR incursion',
+            'PLA Taiwan ADIZ OR aircraft OR navy',
+            'Taiwan US arms OR transit OR deterrence',
+            'Taiwan election OR DPP OR KMT China'
+        ],
+        locale: 'en-US',
+        sourceFilter: (source) => ['worldwide', 'asia'].includes(source.group),
+        focusTags: ['naval', 'airspace', 'conflict', 'diplomacy'],
+        primarySources: [
+            { label: 'CNA Taiwan', url: 'https://www.cna.com.tw/eng/' },
+            { label: 'Reuters Asia', url: 'https://www.reuters.com/world/asia-pacific/' }
+        ],
+        fallbackItems: [
+            { title: 'Tracking Taiwan Strait military activity, ADIZ incursions, and US-Taiwan signalling.', link: 'https://www.reuters.com/world/asia-pacific/', source: 'Monitor', pubDate: new Date(), tags: ['naval', 'conflict'] }
+        ]
+    },
+    koreanPeninsula: {
+        id: 'koreanPeninsula',
+        title: 'Korean Peninsula',
+        description: 'North Korean missile and nuclear tests, ROK-US exercises, and peninsula diplomacy.',
+        queries: [
+            '"North Korea" missile OR nuclear OR launch OR ICBM',
+            'Korea DMZ OR "joint exercise" OR THAAD',
+            '"South Korea" North Korea talks OR sanctions',
+            'Pyongyang Japan missile OR JSDF'
+        ],
+        locale: 'en-US',
+        sourceFilter: (source) => ['worldwide', 'asia'].includes(source.group),
+        focusTags: ['conflict', 'nuclear', 'diplomacy', 'airspace'],
+        primarySources: [
+            { label: 'NK News', url: 'https://www.nknews.org/' },
+            { label: 'Yonhap', url: 'https://en.yna.co.kr/' }
+        ],
+        fallbackItems: [
+            { title: 'Monitoring North Korean launches, ROK-US exercises, and peninsula diplomacy.', link: 'https://en.yna.co.kr/', source: 'Monitor', pubDate: new Date(), tags: ['conflict', 'nuclear'] }
+        ]
+    },
+    indiaPakistan: {
+        id: 'indiaPakistan',
+        title: 'India–Pakistan',
+        description: 'Line of Control, Kashmir, nuclear signalling, and India-Pakistan diplomatic channels.',
+        queries: [
+            'India Pakistan Kashmir OR LoC OR ceasefire',
+            'India Pakistan military OR strike OR artillery',
+            'Pakistan India nuclear OR missile test',
+            'Modi Pakistan OR Sharif India talks'
+        ],
+        locale: 'en-US',
+        sourceFilter: (source) => ['worldwide', 'asia'].includes(source.group),
+        focusTags: ['conflict', 'nuclear', 'diplomacy', 'strikes'],
+        primarySources: [
+            { label: 'The Hindu', url: 'https://www.thehindu.com/' },
+            { label: 'Dawn', url: 'https://www.dawn.com/' }
+        ],
+        fallbackItems: [
+            { title: 'Tracking India–Pakistan military signalling, Kashmir, and diplomatic channels.', link: 'https://www.dawn.com/', source: 'Monitor', pubDate: new Date(), tags: ['conflict', 'diplomacy'] }
+        ]
+    },
+    indianOcean: {
+        id: 'indianOcean',
+        title: 'Indian Ocean',
+        description: 'Naval presence, chokepoints, Hambantota/Gwadar, and Bay of Bengal security.',
+        queries: [
+            '"Indian Ocean" navy OR chokepoint OR "Bay of Bengal"',
+            'Gwadar OR Hambantota OR "String of Pearls"',
+            'India navy QUAD OR Malabar OR aircraft carrier',
+            'Sri Lanka port OR Maldives India China'
+        ],
+        locale: 'en-US',
+        sourceFilter: (source) => ['worldwide', 'asia'].includes(source.group),
+        focusTags: ['naval', 'diplomacy', 'energy', 'conflict'],
+        primarySources: [
+            { label: 'The Diplomat', url: 'https://thediplomat.com/' },
+            { label: 'IDSA', url: 'https://www.idsa.in/' }
+        ],
+        fallbackItems: [
+            { title: 'Monitoring Indian Ocean naval presence, port access, and chokepoint security.', link: 'https://thediplomat.com/', source: 'Monitor', pubDate: new Date(), tags: ['naval', 'diplomacy'] }
         ]
     }
 };

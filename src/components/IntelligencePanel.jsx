@@ -8,7 +8,15 @@ const ICONS = {
     iranDiplomacy: Globe,
     gulfSecurity: Anchor,
     proxyTheater: Shield,
-    energyMarkets: Droplets
+    energyMarkets: Droplets,
+    taiwanStrait: Anchor,
+    koreanPeninsula: Shield,
+    indiaPakistan: AlertTriangle,
+    indianOcean: Anchor,
+    southChinaSea: Anchor,
+    aseanDiplomacy: Globe,
+    myanmarConflict: Flame,
+    thaiSecurity: Shield,
 };
 
 const formatAge = (value) => {
