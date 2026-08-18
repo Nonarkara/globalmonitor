@@ -202,6 +202,18 @@ export const TV_CHANNELS_THAILAND = [
     { id: 'phuket-cam',     name: 'Phuket Cam',     lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('CL45U17CjIM'),                embedUrlUnmuted: ytVideoUnmuted('CL45U17CjIM') }
 ];
 
+// Global TV — world desks only. Channel embeds, not one-off video IDs that go dead.
+export const TV_CHANNELS_GLOBAL = [
+    { id: 'sky-news',      name: 'Sky News',   lang: 'EN', color: '#C41230', embedUrl: ytChannel('UCoMdktPbSTixAyNGwb-UYkQ'), embedUrlUnmuted: ytChannelUnmuted('UCoMdktPbSTixAyNGwb-UYkQ') },
+    { id: 'france24-en',   name: 'France 24',  lang: 'EN', color: '#0055A4', embedUrl: ytChannel('UCQfwfsi5VrQ8yKZ-UWmAEFg'), embedUrlUnmuted: ytChannelUnmuted('UCQfwfsi5VrQ8yKZ-UWmAEFg') },
+    { id: 'dw-news',       name: 'DW News',    lang: 'EN', color: '#0033A0', embedUrl: ytChannel('UCknLrEdhRCp1aegoMqRaCZg'), embedUrlUnmuted: ytChannelUnmuted('UCknLrEdhRCp1aegoMqRaCZg') },
+    { id: 'cna',           name: 'CNA',        lang: 'EN', color: '#E60023', embedUrl: ytChannel('UCXi6CllNFjlb-kiuHNuKPOA'), embedUrlUnmuted: ytChannelUnmuted('UCXi6CllNFjlb-kiuHNuKPOA') },
+    { id: 'nhk-world',     name: 'NHK World',  lang: 'EN', color: '#FF0000', embedUrl: ytChannel('UCSPEjw8F2nQDtmUKPFNF7_A'), embedUrlUnmuted: ytChannelUnmuted('UCSPEjw8F2nQDtmUKPFNF7_A') },
+    { id: 'bloomberg-tv',  name: 'Bloomberg',  lang: 'EN', color: '#000000', embedUrl: ytChannel('UCIALMKvObZNtJ6AmdCLP7Lg'), embedUrlUnmuted: ytChannelUnmuted('UCIALMKvObZNtJ6AmdCLP7Lg') },
+    { id: 'wion',          name: 'WION',       lang: 'EN', color: '#E94B3C', embedUrl: ytChannel('UC_gUM8rL-Lrg6O3adPW9K1g'), embedUrlUnmuted: ytChannelUnmuted('UC_gUM8rL-Lrg6O3adPW9K1g') },
+    { id: 'trt-world',     name: 'TRT World',  lang: 'EN', color: '#E30A17', embedUrl: ytChannel('UC7fWeaHhqgM4Lba5uttl0SA'), embedUrlUnmuted: ytChannelUnmuted('UC7fWeaHhqgM4Lba5uttl0SA') }
+];
+
 // ---------------------------------------------------------------------------
 // Single getter for any region — the consumer side of the registry.
 // ---------------------------------------------------------------------------
@@ -233,7 +245,7 @@ export const REGIONS = {
         label: 'Global',
         viewState: REGION_VIEW_STATES.global,
         dots: null,
-        channels: TV_CHANNELS_MIDDLEEAST
+        channels: TV_CHANNELS_GLOBAL
     }
 };
 

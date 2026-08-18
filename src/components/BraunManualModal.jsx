@@ -2,7 +2,7 @@ import React from 'react';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { X } from 'lucide-react';
 
-const BraunManualModal = ({ isOpen, onClose }) => {
+const BraunManualModal = ({ isOpen, onClose, theaters = 'Middle East, Indo-Pacific, Thailand, and Global' }) => {
     useEscapeKey(isOpen, onClose);
 
     if (!isOpen) return null;
@@ -75,7 +75,7 @@ const BraunManualModal = ({ isOpen, onClose }) => {
                         <div style={{ marginBottom: '25px' }}>
                             <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px', textTransform: 'uppercase' }}>1.1 Theater Selection</div>
                             <div style={{ fontSize: '14px', lineHeight: 1.5, color: '#333' }}>
-                                Use the top right tabs to switch between Middle East, ASEAN, and Thailand. Surrounding intelligence panels automatically re-orient to the selected theater.
+                                Use the top right tabs to switch between {theaters}. Surrounding intelligence panels automatically re-orient to the selected theater.
                             </div>
                         </div>
 

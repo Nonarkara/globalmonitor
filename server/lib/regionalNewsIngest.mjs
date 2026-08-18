@@ -7,8 +7,15 @@
  * in the cache so the user never sees an empty panel.
  */
 import { upsertNewsItems, fetchNewsItems, recordIngestionRun, isSupabaseEnabled } from './supabase.mjs';
+import { decodeEntities } from './intelligence.mjs';
 
 const DEFAULT_LIMIT = 8;
+
+// Google's News RSS endpoint 503s requests with no User-Agent — the default
+// on a Cloudflare Workers fetch — even though the same URL answers 200 from
+// any normal network. Not a scraping workaround; this is what every real
+// RSS reader sends.
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 // Build a Google News RSS search URL.
 const buildGoogleNewsRss = (query, locale = 'en-US') => {
@@ -71,13 +78,63 @@ const parseRssItems = (xml, max = 6) => {
     return items;
 };
 
+/**
+ * Arbitrary free-text news query. Google News RSS first; GDELT DOC ArtList
+ * when Google 503s from Cloudflare's edge IPs (same class of block as
+ * airplanes.live). GDELT already answers from the edge for sentiment.
+ */
+const parseGdeltSeen = (value) => {
+    const match = String(value || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+    if (!match) return new Date();
+    return new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]));
+};
+
+const fetchGdeltArtList = async (query) => {
+    const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=ArtList&maxrecords=10&timespan=3d&sort=datedesc&format=json`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`GDELT DOC ${res.status}`);
+    const data = await res.json();
+    return (data.articles || [])
+        .slice(0, 6)
+        .map((article) => ({
+            title: decodeEntities(article.title || ''),
+            link: article.url,
+            source: article.domain || 'GDELT',
+            pubDate: parseGdeltSeen(article.seendate)
+        }))
+        .filter((item) => item.title && item.link);
+};
+
+export const fetchArbitraryRssQuery = async (query, locale = 'en-US') => {
+    try {
+        const url = buildGoogleNewsRss(query, locale);
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': BROWSER_UA } });
+        if (!res.ok) throw new Error(`Google News RSS ${res.status}`);
+        const text = await res.text();
+        const items = parseRssItems(text, 6)
+            .filter((item) => item.title && item.title !== 'Google News')
+            .map((item) => ({ ...item, title: decodeEntities(item.title), source: decodeEntities(item.source) }));
+        if (items.length) return items;
+        throw new Error('Google News RSS empty');
+    } catch {
+        return fetchGdeltArtList(query);
+    }
+};
+
 const fetchOne = async (query) => {
     const url = buildGoogleNewsRss(query);
     try {
-        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-        if (!res.ok) return [];
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': BROWSER_UA } });
+        if (!res.ok) throw new Error(`Google News RSS ${res.status}`);
         const text = await res.text();
-        return parseRssItems(text);
+        const items = parseRssItems(text);
+        if (items.length) return items;
+        throw new Error('Google News RSS empty');
+    } catch {
+        /* Google News often 503s from the Cloudflare edge — try GDELT. */
+    }
+    try {
+        return await fetchGdeltArtList(query);
     } catch {
         return [];
     }

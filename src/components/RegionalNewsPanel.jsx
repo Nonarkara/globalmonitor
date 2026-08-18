@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchLiveNews } from '../services/liveNews';
+import { fetchBackendJson } from '../services/backendClient';
 import { Rss, RefreshCw } from 'lucide-react';
 
 const safeDateString = (date) => {
@@ -65,13 +66,10 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                     source: item.querySelector('source')?.textContent || 'Google News',
                 })).filter(it => it.title && it.link && it.title !== 'Google News');
             };
-            (async () => {
-                let items = null;
-                try { const r = await fetch(`https://api.allorigins.win/get?url=${encoded}`); items = parseXml((await r.json())?.contents || ''); } catch { /* try next proxy */ }
-                if (!items?.length) try { const r = await fetch(`https://corsproxy.io/?url=${encoded}`); items = parseXml(await r.text()); } catch { /* fall through to empty state */ }
-                if (mountedRef.current) setNews(items || []);
-            })().catch(() => { if (mountedRef.current) setNews([]); })
-              .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
+            fetchBackendJson('/api/news-rss', { q: RSS_REGIONS[regionName] })
+                .then((items) => { if (mountedRef.current) setNews(Array.isArray(items) ? items : []); })
+                .catch(() => { if (mountedRef.current) setNews([]); })
+                .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
             return;
         }
 
@@ -99,13 +97,8 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                 return items;
             };
 
-            (async () => {
-                let items = null;
-                try { items = await tryProxy(`https://api.allorigins.win/get?url=${encoded}`, d => d?.contents); } catch { items = items || null; }
-                if (!items) try { items = await tryRawProxy(`https://api.codetabs.com/v1/proxy?quest=${encoded}`); } catch { items = items || null; }
-                if (!items) try { items = await tryRawProxy(`https://corsproxy.io/?url=${encoded}`); } catch { items = items || null; }
-                if (mountedRef.current) setNews(items || []);
-            })()
+            fetchBackendJson('/api/news-rss', { q: '"Digital Economy Promotion Agency" OR "สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"', hl: 'th-TH' })
+                .then((items) => { if (mountedRef.current) setNews(Array.isArray(items) ? items : []); })
                 .catch(() => { if (mountedRef.current) setNews([]); })
                 .finally(() => { if (mountedRef.current) setIsRefreshing(false); });
             return;

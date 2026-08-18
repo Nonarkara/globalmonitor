@@ -20,6 +20,7 @@ import FloodSandboxModal from './components/FloodSandboxModal';
 import SourceHealthModal from './components/SourceHealthModal';
 import ActivityLogModal from './components/ActivityLogModal';
 import BraunManualModal from './components/BraunManualModal';
+import PapersModal from './components/PapersModal';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
@@ -46,6 +47,7 @@ function App() {
   const [floodSandboxCity, setFloodSandboxCity] = useState(null); // city id when open
   const [isSourceHealthOpen, setIsSourceHealthOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [isPapersOpen, setIsPapersOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   useEscapeKey(isAboutOpen, () => setIsAboutOpen(false));
@@ -212,6 +214,13 @@ function App() {
             >
               <Info size={11} aria-hidden="true" /> Manual
             </button>
+            <button
+              onClick={() => setIsPapersOpen(true)}
+              aria-label="Open Papers"
+              className="header-button header-button-manual"
+            >
+              <FileText size={11} aria-hidden="true" /> Papers
+            </button>
             <div
               className="header-region-tabs"
               role="tablist"
@@ -256,6 +265,9 @@ function App() {
               </button>
               {toolsOpen && (
                 <div className="header-tools-menu" role="menu">
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); setIsPapersOpen(true); }}>
+                    <FileText size={12} aria-hidden="true" /> Papers
+                  </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsSourceHealthOpen(true); }}>
                     <Database size={12} aria-hidden="true" /> Data health
                   </button>
@@ -632,6 +644,12 @@ function App() {
         <BraunManualModal
           isOpen={isManualOpen}
           onClose={() => setIsManualOpen(false)}
+          theaters="Middle East, Indo-Pacific, Thailand, and Global"
+        />
+        <PapersModal
+          isOpen={isPapersOpen}
+          onClose={() => setIsPapersOpen(false)}
+          systemId="flagship"
         />
 
         {/* Modal: Activity Log */}
