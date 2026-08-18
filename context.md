@@ -49,7 +49,7 @@ GitHub Pages backup deploys separately; if only gh-pages has the change, use `Co
 
 ## Deploy status (2026-06-21)
 - **Primary host**: Cloudflare Pages at `https://globalmonitor.pages.dev/` — static `dist/` + API via `functions/`.
-- **Deploy command**: `npm run deploy:pages` (or `npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true`).
+- **Deploy command**: `npm run deploy:pages` (or `npx wrangler pages deploy dist --project-name globalmonitor-me --branch=middleeast --commit-dirty=true`). Production branch is `middleeast`; `--branch=main` publishes Preview and never reaches https://global.nonarkara.org.
 - **Build**: same-origin API — `VITE_API_BASE_URL` empty at build time; `/api/*` served by Pages Functions.
 - **Local eval**: `npm run dev:stack` — full Node API with AIS WebSocket on port 4000.
 - **Pages API caveat**: global AIS WebSocket (aisstream.io) needs long-running Node; Pages serves VesselFinder fleet overlay when `VESSELFINDER_FLEET_KEY` is bound in Cloudflare env.

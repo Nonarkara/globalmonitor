@@ -14,7 +14,7 @@
     "refresh:airports": "node scripts/refresh-airports.mjs",
     "refresh:flights": "node scripts/refresh-flight-snapshot.mjs",
     "refresh:ais": "node scripts/refresh-ais-snapshot.mjs",
-    "deploy:pages": "npm run refresh:flights && npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor-me --branch=main --commit-dirty=true",
+    "deploy:pages": "npm run refresh:flights && npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor-me --branch=middleeast --commit-dirty=true",
     "deploy:pages:ais": "npm run refresh:ais && npm run deploy:pages",
     "lint": "eslint .",
     "preview": "vite preview",

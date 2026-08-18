@@ -3,8 +3,9 @@ import { fetchLiveNews } from '../services/liveNews';
 import { fetchBackendJson } from '../services/backendClient';
 import { Rss, RefreshCw } from 'lucide-react';
 
-const safeDateString = (date) => {
-    if (!(date instanceof Date) || isNaN(date.getTime())) return '--:--';
+const safeDateString = (value) => {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return '--:--';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
@@ -142,7 +143,7 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                     >
                         <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
                     </button>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--bg-dark)', fontWeight: 'bold', background: 'var(--accent-blue)', padding: '2px 6px', borderRadius: '4px' }}>LIVE</span>
+                    <span style={{ fontSize: '0.65rem', color: news.length ? 'var(--bg-dark)' : 'var(--ink-3)', fontWeight: 'bold', background: news.length ? 'var(--accent-blue)' : 'transparent', border: news.length ? 'none' : '1px solid var(--line)', padding: '2px 6px', borderRadius: 0 }}>{news.length ? 'LIVE' : (isRefreshing ? '…' : 'NO SIGNAL')}</span>
                 </div>
             </div>
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
