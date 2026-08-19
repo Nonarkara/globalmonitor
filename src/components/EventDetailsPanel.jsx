@@ -21,6 +21,9 @@ const EventDetailsPanel = ({ event, onClose }) => {
     } else if (properties.type === 'conflict') {
         catClass = 'cat-conflict';
         catLabel = properties.types || 'Humanitarian Crisis';
+    } else if (properties.type === 'storm') {
+        catClass = 'cat-disaster';
+        catLabel = properties.category || 'Storm';
     } else if (properties.type === 'weather') {
         catClass = 'cat-weather';
         catLabel = 'Weather Alert';

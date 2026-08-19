@@ -6,8 +6,8 @@
 :root {
   --mf-alert-h: 0px;
   --mf-clock-h: 48px;
-  --mf-header-h: 52px;
-  --mf-multi-front-h: 132px;
+  --mf-header-h: 44px;
+  --mf-multi-front-h: 96px;
   --mf-ticker-h: 32px;
   --mf-mobile-tabs-h: 44px;
   --mf-inset: 10px;
@@ -321,6 +321,45 @@
   pointer-events: auto;
 }
 
+.map-sky-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-sky-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--mf-rail-w);
+  min-height: 44px;
+  padding: 0 4px;
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  color: var(--ink-2);
+  cursor: pointer;
+  font: 700 9px/1.15 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.map-sky-chip:hover,
+.map-sky-chip.is-active {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+.map-sky-chip.is-active {
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.map-sky-chip--photo.is-active {
+  border-color: var(--accent-amber, #f59e0b);
+  color: var(--accent-amber, #f59e0b);
+  box-shadow: inset 0 0 0 1px var(--accent-amber, #f59e0b);
+}
+
 .map-first-rail-btn {
   display: inline-flex;
   align-items: center;
@@ -491,6 +530,24 @@
   padding: 8px 10px 6px;
 }
 
+.app-container[data-layout="map-first"] .layer-card {
+  padding: 8px 10px;
+  min-height: 44px;
+  gap: 8px;
+}
+
+.app-container[data-layout="map-first"] .layer-desc {
+  display: none;
+}
+
+.app-container[data-layout="map-first"] .basemap-option-swatch {
+  height: 28px;
+}
+
+.app-container[data-layout="map-first"] .sidebar-section {
+  gap: 6px;
+}
+
 /* Sidebar backdrop when open on narrow screens */
 .map-first-backdrop {
   display: none;
@@ -594,6 +651,10 @@
     bottom: calc(var(--mf-ticker-h) + var(--mf-mobile-tabs-h));
     min-height: 55vh;
     min-height: 55dvh;
+  }
+
+  .map-sky-strip {
+    display: none;
   }
 
   .app-container[data-layout="map-first"] .left-sidebar {

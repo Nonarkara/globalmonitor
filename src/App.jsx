@@ -23,6 +23,7 @@ import PapersModal from './components/PapersModal';
 import LegalModal from './components/LegalModal';
 import LegalFooterLinks from './components/LegalFooterLinks';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
+import SkyStrip from './components/SkyStrip';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
@@ -173,6 +174,7 @@ function App() {
         id="main-content"
         role="main"
         data-layout="map-first"
+        data-theater={viewMode}
         data-sidebar-open={sidebarOpen ? 'true' : 'false'}
         data-layers-open={sidebarOpen || mobileDrawer === 'layers' ? 'true' : 'false'}
         data-mobile-drawer={mobileDrawer}
@@ -402,6 +404,7 @@ function App() {
           >
             <Layers size={18} aria-hidden="true" />
           </button>
+          <SkyStrip activeLayers={activeLayers} toggleLayer={toggleLayer} />
         </div>
         <div className="left-sidebar">
           <ErrorBoundary inline label="Sidebar">

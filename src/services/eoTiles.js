@@ -25,14 +25,16 @@ const gibsRedundant = (url) => [
 
 /**
  * GIBS date for tile requests.
- * MODIS data has 1-2 day processing lag — using 2 days ago is more reliable
- * than yesterday. Falls back gracefully (NASA returns blank tiles, not errors).
+ * VIIRS true-color is usually ready by yesterday; MODIS AOD needs ~2 days.
+ * Blank tiles, not errors, if a date is missing.
  */
-const yesterday = () => {
+export const gibsDate = (daysAgo = 2) => {
     const d = new Date();
-    d.setDate(d.getDate() - 2); // 2 days ago — matches MODIS processing lag
+    d.setUTCDate(d.getUTCDate() - daysAgo);
     return d.toISOString().slice(0, 10);
 };
+
+const yesterday = () => gibsDate(2);
 
 /**
  * All available Earth Observation raster layers.
@@ -75,18 +77,33 @@ export const EO_TILE_LAYERS = [
     },
     {
         id: 'eo-true-color',
-        name: 'True Color (VIIRS)',
-        description: 'Daily true-color satellite imagery',
-        group: 'satellite',
+        name: 'Latest photo',
+        description: `NASA VIIRS NOAA-20 · ${gibsDate(1)} · ~1 day lag`,
+        group: 'sky',
         icon: '🛰️',
         tiles: gibsRedundant(
-            gibsTileUrl('VIIRS_SNPP_CorrectedReflectance_TrueColor', 'GoogleMapsCompatible_Level9', 'jpg')
+            gibsTileUrl('VIIRS_NOAA20_CorrectedReflectance_TrueColor', 'GoogleMapsCompatible_Level9', 'jpg')
+                .replace('{time}', gibsDate(1))
+        ),
+        tileSize: 256,
+        attribution: 'NASA GIBS / VIIRS NOAA-20',
+        opacity: 0.88,
+        maxzoom: 9
+    },
+    {
+        id: 'eo-cloud',
+        name: 'Cloud',
+        description: 'Daytime cloud fraction — where the optical photo goes blind',
+        group: 'sky',
+        icon: '☁️',
+        tiles: gibsRedundant(
+            gibsTileUrl('MODIS_Terra_Cloud_Fraction_Day', 'GoogleMapsCompatible_Level6', 'png')
                 .replace('{time}', yesterday())
         ),
         tileSize: 256,
-        attribution: 'NASA GIBS / VIIRS',
-        opacity: 0.7,
-        maxzoom: 9
+        attribution: 'NASA GIBS / MODIS Terra',
+        opacity: 0.55,
+        maxzoom: 6
     },
     {
         id: 'eo-sea-surface-temp',

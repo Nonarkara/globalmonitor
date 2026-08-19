@@ -9,11 +9,11 @@ import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
 import { useFlightStats } from '../hooks/useFlightCount';
 import { useVesselStats } from '../hooks/useVesselCount';
-import { formatTrafficCount } from '../utils/formatTrafficCount.js';
+import { SKY_LAYERS, SKY_LAYER_IDS } from '../data/skyLayers';
 
 const BASEMAP_CONFIGS = [
     { id: 'dark', title: 'Dark', desc: 'Low-glare operations map', icon: <Moon size={16} /> },
-    { id: 'satellite', title: 'Satellite', desc: 'Esri imagery with place labels', icon: <Satellite size={16} /> },
+    { id: 'satellite', title: 'Archive', desc: 'Esri mosaic — not today’s pass', icon: <Satellite size={16} /> },
     { id: 'voyager', title: 'Political', desc: 'Borders and place context', icon: <MapIcon size={16} /> },
 ];
 
@@ -55,8 +55,8 @@ const CORE_LAYERS = {
         group: 'mobility',
     },
     weather: {
-        title: 'Precipitation / rain radar',
-        desc: 'Live RainViewer radar and precipitation overlay',
+        title: 'Rain radar',
+        desc: 'Live RainViewer precipitation',
         icon: <CloudRain size={18} />,
         group: 'environment',
     },
@@ -80,19 +80,23 @@ const CORE_LAYERS = {
     },
 };
 
+const ALL_THEATERS = ['middleeast', 'indopacific', 'thailand', 'global'];
+
 const EO_LAYER_META = {
-    'eo-aerosol': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-precipitation': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-jaxa-soil-moisture': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-weather-radar': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-fires': { group: 'satellite', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-nightlights': { group: 'satellite', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-sea-surface-temp': { group: 'satellite', regions: ['middleeast', 'indopacific'] },
-    'eo-snow-cover': { group: 'satellite', regions: ['middleeast'] },
-    'eo-sentinel2-cloudless': { group: 'satellite', regions: ['indopacific', 'thailand'] },
-    'eo-surface-water': { group: 'satellite', regions: ['indopacific', 'thailand'] },
-    'eo-bathymetry': { group: 'satellite', regions: ['indopacific'] },
-    'eo-wind': { group: 'satellite', regions: ['middleeast', 'indopacific', 'thailand'] },
+    'eo-aerosol': { group: 'sky', regions: ALL_THEATERS },
+    'eo-cloud': { group: 'sky', regions: ALL_THEATERS },
+    'eo-true-color': { group: 'sky', regions: ALL_THEATERS },
+    'eo-precipitation': { group: 'environment', regions: ALL_THEATERS },
+    'eo-jaxa-soil-moisture': { group: 'environment', regions: ALL_THEATERS },
+    'eo-weather-radar': { group: 'environment', regions: ALL_THEATERS },
+    'eo-fires': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-nightlights': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-sea-surface-temp': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-snow-cover': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-sentinel2-cloudless': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-surface-water': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-bathymetry': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-wind': { group: 'satellite', regions: ALL_THEATERS },
 };
 
 const REGION_CORE_IDS = {
@@ -153,6 +157,7 @@ const Sidebar = ({
         const coreIds = REGION_CORE_IDS[region] || REGION_CORE_IDS.middleeast;
 
         coreIds.forEach((id) => {
+            if (SKY_LAYER_IDS.includes(id)) return;
             const layer = CORE_LAYERS[id];
             if (layer) groups[layer.group].push({ id, ...layer, kind: 'core' });
         });
@@ -160,7 +165,8 @@ const Sidebar = ({
         EO_TILE_LAYERS.forEach((eo) => {
             const meta = EO_LAYER_META[eo.id];
             if (!meta || !meta.regions.includes(region)) return;
-            if (['eo-true-color', 'eo-vegetation'].includes(eo.id)) return;
+            if (SKY_LAYER_IDS.includes(eo.id)) return;
+            if (eo.id === 'eo-vegetation' || eo.id === 'eo-weather-radar' || eo.id === 'eo-precipitation') return;
             groups[meta.group].push({
                 id: eo.id,
                 title: eo.id === 'eo-jaxa-soil-moisture' ? 'Drought / soil moisture' : eo.name,
@@ -224,6 +230,32 @@ const Sidebar = ({
             </div>
 
             <div ref={contentRef} className="sidebar-content">
+                <section className="sidebar-section">
+                    <h3 className="section-title">Sky</h3>
+                    <div className="sky-chip-grid" role="toolbar" aria-label="Sky and satellite overlays">
+                        {SKY_LAYERS.map((layer) => {
+                            const isActive = activeLayers.includes(layer.id);
+                            return (
+                                <button
+                                    key={layer.id}
+                                    type="button"
+                                    className={`sidebar-mini-action sky-chip${isActive ? ' active' : ''}${layer.id === 'eo-true-color' ? ' sky-chip--photo' : ''}`}
+                                    onClick={() => toggleLayer(layer.id)}
+                                    aria-pressed={isActive}
+                                    aria-label={layer.aria}
+                                    title={layer.hint}
+                                >
+                                    {layer.title}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="sky-caption">
+                        Photo is NASA VIIRS, about a day old — the latest optical pass of the ground.
+                        Archive is Esri’s mosaic, not today.
+                    </p>
+                </section>
+
                 {/* BASEMAP */}
                 <section className="sidebar-section">
                     <h3 className="section-title">Basemap</h3>
@@ -238,7 +270,7 @@ const Sidebar = ({
                                     onClick={() => setMapStyle(base.id)}
                                     role="radio"
                                     aria-checked={isActive}
-                                    aria-label={`Use ${base.title} basemap`}
+                                    aria-label={base.id === 'satellite' ? 'Use Esri archive photo basemap, not today’s satellite pass' : `Use ${base.title} basemap`}
                                 >
                                     <span className={`basemap-option-swatch basemap-option-swatch--${base.id}`} aria-hidden="true" />
                                     <span className="basemap-option-copy">

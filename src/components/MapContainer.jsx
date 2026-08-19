@@ -3,7 +3,7 @@ import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { fetchNaturalDisasters } from '../services/nasaEonet';
+import { fetchNaturalDisasters, fetchActiveStorms } from '../services/nasaEonet';
 import { fetchConflictsAndCrises } from '../services/reliefWeb';
 import { fetchLiveWeather } from '../services/weather';
 import { fetchMacroEconomy } from '../services/worldBank';
@@ -715,6 +715,12 @@ const MapContainer = ({
         intervalMs: 120 * 1000,
         isUsable: hasFeatureData
     });
+    const stormResource = useLiveResource(useCallback(() => fetchActiveStorms(), []), {
+        cacheKey: 'map:typhoons',
+        enabled: activeLayers.includes('typhoons'),
+        intervalMs: 10 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
     const conflictResource = useLiveResource(useCallback(() => fetchConflictsAndCrises(), []), {
         cacheKey: 'map:conflicts',
         enabled: activeLayers.includes('conflicts'),
@@ -793,6 +799,7 @@ const MapContainer = ({
     });
 
     const disastersData = disasterResource.data;
+    const stormsData = stormResource.data;
     const crisesData = conflictResource.data;
     const weatherData = weatherResource.data;
     const economyData = economyResource.data;
@@ -1710,11 +1717,13 @@ const MapContainer = ({
 
                 {activeLayers.includes('conflicts') && renderSpatialAura(crisesData, 'conflicts', '#ef4444', 16)}
                 {activeLayers.includes('disasters') && renderSpatialAura(disastersData, 'disasters', '#f59e0b', 14)}
+                {activeLayers.includes('typhoons') && renderSpatialAura(stormsData, 'typhoons', '#f59e0b', 18)}
                 {activeLayers.includes('weather') && renderSpatialAura(weatherData, 'weather', '#38bdf8', 18)}
                 {activeLayers.includes('economy') && renderSpatialAura(economyData, 'economy', '#FFC400', 12)}
                 {activeLayers.includes('aqi') && renderSpatialAura(aqiData, 'aqi', '#10b981', 15)}
 
                 {activeLayers.includes('disasters') && renderMarkers(disastersData, 'marker-disaster')}
+                {activeLayers.includes('typhoons') && renderMarkers(stormsData, 'marker-storm')}
                 {activeLayers.includes('conflicts') && renderMarkers(crisesData, 'marker-conflict')}
                 {activeLayers.includes('weather') && renderMarkers(weatherData, 'marker-weather')}
                 {activeLayers.includes('economy') && renderMarkers(economyData, 'marker-economy')}
