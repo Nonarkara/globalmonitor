@@ -3,8 +3,13 @@
   --paper: #faf9f7;
   --panel: #ffffff;
   --ink: #191712;
-  --ink-2: #6f6c63;
-  --ink-3: #a9a59a;
+  /* Ratios measured against --paper #faf9f7, not white. --ink-3 was #a9a59a at
+     2.34:1 — it carries the source/age captions, the smallest text on the page,
+     so it failed WCAG AA outright. Both secondary tiers move together: lifting
+     --ink-3 alone to 4.5:1 would have landed it on top of --ink-2's 4.99:1 and
+     erased the step between them. Same warm-grey family, same three tiers. */
+  --ink-2: #5c5650; /* 6.88:1 */
+  --ink-3: #78726c; /* 4.51:1 */
   --line: rgba(0, 0, 0, 0.12);
   --line-2: rgba(0, 0, 0, 0.18);
   --amber: #f59e0b;
@@ -87,6 +92,15 @@
    13px on mobile → ~16px on 1440px laptop → ~24px on 4K/72" display */
 html {
   font-size: clamp(13px, 1.15vw, 24px);
+}
+
+/* Below the layout's own collapse point, 1.15vw is far under the 13px floor, so
+   every rem token rendered ~19% under spec — micro labels landed near 6px on a
+   390px phone. The phone is the first impression (a link opened in WhatsApp), so
+   pin the root to 16px there. Sharing the 1024px seam with the layout keeps the
+   size change on a boundary the reader already perceives. */
+@media (max-width: 1024px) {
+  html { font-size: 16px; }
 }
 
 @media (min-width: 2560px) {
@@ -3417,6 +3431,20 @@ body {
     padding: 10px 12px !important;
   }
 
+  /* These labels were sized for the 72" wall display, where a 32px root makes
+     0.42rem read as 13px. On a phone the same token lands at 6.7px. Floor the
+     class-based ones at 9px here; the remaining sub-9px text comes from inline
+     fontSize props in the panel components and needs a per-component pass. */
+  .header-icon-label,
+  .header-subtitle,
+  .timesfm-footnote,
+  .clock-city,
+  .clock-tz-small,
+  .clock-war-date,
+  .live-pill {
+    font-size: 9px;
+  }
+
   /* Header logo strip: allow horizontal scroll as last resort */
   .header-brand-strip {
     overflow-x: auto;
@@ -3468,10 +3496,18 @@ body {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+  /* Tablets are touch surfaces too — 40px sat under the 44px floor that the
+     <=480px block already enforces, leaving 481-768px as the only touch range
+     below spec. */
   button,
   .layer-card,
   .region-btn {
-    min-height: 40px;
+    min-height: 44px;
+  }
+
+  .header-bar button,
+  .header-region-tab {
+    min-width: 44px;
   }
 }
 

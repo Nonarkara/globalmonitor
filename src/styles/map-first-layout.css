@@ -691,6 +691,15 @@
     --mf-clock-h: 48px;
   }
 
+  /* index.css sets the 44px touch floor on `button`, but this file loads after it
+     and its [data-layout] selectors are more specific, so the 26px header value
+     was winning on phones. Restate the floor at matching specificity. */
+  .app-container[data-layout="map-first"] .header-icon-button,
+  .app-container[data-layout="map-first"] .header-button,
+  .app-container[data-layout="map-first"] .header-region-tab {
+    min-height: 44px;
+  }
+
   .app-container[data-layout="map-first"] .map-wrapper {
     min-height: 58vh;
     min-height: 58dvh;

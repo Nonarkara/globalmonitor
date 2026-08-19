@@ -178,7 +178,8 @@ export async function handleApiRequest(request, env, next) {
 
         if (url.pathname === '/api/escalation') {
             const payload = computeEscalation(cache);
-            return jsonResponse(payload, 200, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            // A null score means every upstream was silent — don't stamp that 'live'.
+            return jsonResponse(payload, 200, { status: payload.score === null ? 'stale' : 'live', updatedAt: payload.updatedAt, cache: 'miss' });
         }
 
         if (url.pathname === '/api/strike-stats') {

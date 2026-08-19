@@ -101,15 +101,6 @@ export const computeEscalation = (serverCache) => {
 
     const total = Math.round(firmsScore + newsScore + marketScore + strikeScore);
     const clamped = Math.min(100, Math.max(0, total));
-    const { level, label } = getLevel(clamped);
-
-    // Record hourly history
-    const currentHour = new Date().getHours();
-    if (currentHour !== lastHistoryHour) {
-        history.push({ t: new Date().toISOString(), score: clamped });
-        if (history.length > 24) history.shift();
-        lastHistoryHour = currentHour;
-    }
 
     // Track source health
     const sourceHealth = {
@@ -118,6 +109,40 @@ export const computeEscalation = (serverCache) => {
         markets: Array.isArray(marketsEntry?.payload) && marketsEntry.payload.length > 0 ? 'live' : 'offline',
         briefings: strikeScore > 0 ? 'live' : 'no-data'
     };
+
+    // Every scorer reads an in-memory cache that a cold Cloudflare isolate starts
+    // empty — and on a static Pages deploy, cold is the normal case. All four
+    // silent therefore produced total=0, which getLevel() reads as a green "LOW":
+    // absence of signal rendered as a measured all-clear. Report the absence
+    // instead. The gauge already gates on `typeof score === 'number'` and falls
+    // back to its neutral shell, so null shows an empty arc rather than a hole.
+    const hasSignal = sourceHealth.firms !== 'offline'
+        || sourceHealth.news !== 'offline'
+        || sourceHealth.markets !== 'offline'
+        || sourceHealth.briefings !== 'no-data';
+
+    if (!hasSignal) {
+        return {
+            score: null,
+            level: 'unknown',
+            label: 'NO DATA',
+            components: { firms: 0, news: 0, market: 0, strikes: 0 },
+            sourceHealth,
+            history: [...history],
+            updatedAt: new Date().toISOString()
+        };
+    }
+
+    const { level, label } = getLevel(clamped);
+
+    // Record hourly history — only once there is real signal, so a cold isolate
+    // no longer writes a fabricated 0 into the 24h trend.
+    const currentHour = new Date().getHours();
+    if (currentHour !== lastHistoryHour) {
+        history.push({ t: new Date().toISOString(), score: clamped });
+        if (history.length > 24) history.shift();
+        lastHistoryHour = currentHour;
+    }
 
     return {
         score: clamped,
