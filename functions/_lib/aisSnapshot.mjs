@@ -115,6 +115,10 @@ export async function fetchAisSnapshot(apiKey, {
     timeoutMs = SNAPSHOT_MS,
     maxVessels = MAX_VESSELS,
     boundingBoxes = VESSEL_BOXES,
+    // Early exit keeps the Cloudflare request under its 30s wall clock by bailing
+    // at EARLY_EXIT_MIN_VESSELS. The offline snapshot script has no such limit and
+    // wants the whole window, since window length is what determines vessel count.
+    earlyExit = true,
 } = {}) {
     if (!apiKey || apiKey.length < 8) return { features: [], error: 'missing_api_key' };
 
@@ -155,6 +159,7 @@ export async function fetchAisSnapshot(apiKey, {
         };
 
         const maybeEarlyFinish = () => {
+            if (!earlyExit) return;
             const elapsed = Date.now() - startedAt;
             if (elapsed >= MIN_COLLECT_MS && positions.size >= EARLY_EXIT_MIN_VESSELS) {
                 finish();
