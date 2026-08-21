@@ -25,3 +25,8 @@ dist-ssr
 .vercel
 .wrangler/
 .firecrawl/
+
+# env files
+.env
+.env.*
+!.env.example
