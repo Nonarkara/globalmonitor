@@ -80,24 +80,40 @@ const CORE_LAYERS = {
     },
 };
 
+// Every theater the header can select. 'eastasia' and 'southasia' were missing from
+// every entry below, so those two tabs offered no satellite or environment layers at
+// all — which is why the aerosol overlay looked like it had been removed.
+const ALL_THEATERS = ['middleeast', 'indopacific', 'eastasia', 'southasia', 'thailand', 'global'];
+const LAND_THEATERS = ['middleeast', 'indopacific', 'eastasia', 'southasia', 'thailand', 'global'];
+const MARITIME_THEATERS = ['middleeast', 'indopacific', 'eastasia', 'southasia', 'global'];
+
 const EO_LAYER_META = {
-    'eo-aerosol': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-precipitation': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-jaxa-soil-moisture': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-weather-radar': { group: 'environment', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-fires': { group: 'satellite', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-nightlights': { group: 'satellite', regions: ['middleeast', 'indopacific', 'thailand'] },
-    'eo-sea-surface-temp': { group: 'satellite', regions: ['middleeast', 'indopacific'] },
-    'eo-snow-cover': { group: 'satellite', regions: ['middleeast'] },
-    'eo-sentinel2-cloudless': { group: 'satellite', regions: ['indopacific', 'thailand'] },
-    'eo-surface-water': { group: 'satellite', regions: ['indopacific', 'thailand'] },
-    'eo-bathymetry': { group: 'satellite', regions: ['indopacific'] },
-    'eo-wind': { group: 'satellite', regions: ['middleeast', 'indopacific', 'thailand'] },
+    'eo-aerosol': { group: 'environment', regions: ALL_THEATERS },
+    'eo-smoke': { group: 'environment', regions: ALL_THEATERS },
+    'eo-no2': { group: 'environment', regions: ALL_THEATERS },
+    'eo-carbon-monoxide': { group: 'environment', regions: ALL_THEATERS },
+    'eo-precipitation': { group: 'environment', regions: ALL_THEATERS },
+    'eo-jaxa-soil-moisture': { group: 'environment', regions: LAND_THEATERS },
+    'eo-weather-radar': { group: 'environment', regions: ALL_THEATERS },
+    'eo-nightlights': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-true-color': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-vegetation': { group: 'satellite', regions: LAND_THEATERS },
+    'eo-sea-surface-temp': { group: 'satellite', regions: MARITIME_THEATERS },
+    'eo-snow-cover': { group: 'satellite', regions: ['middleeast', 'eastasia', 'southasia', 'global'] },
+    'eo-sentinel2-cloudless': { group: 'satellite', regions: ALL_THEATERS },
+    'eo-surface-water': { group: 'satellite', regions: LAND_THEATERS },
+    'eo-bathymetry': { group: 'satellite', regions: MARITIME_THEATERS },
 };
 
+// eastasia and southasia had no entry here either, so both silently fell back to the
+// middleeast list — which is why an East Asia view offered a Gulf 'infrastructure'
+// layer. Each theater now names its own core set.
+const ASIA_CORE = ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'];
 const REGION_CORE_IDS = {
     middleeast: ['firms', 'conflicts', 'infrastructure', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
     indopacific: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    eastasia: ASIA_CORE,
+    southasia: ASIA_CORE,
     thailand: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
     global: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
 };

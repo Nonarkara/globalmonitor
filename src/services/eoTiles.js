@@ -10,9 +10,16 @@
  * All endpoints are free, no API key needed.
  */
 
-/** Build a GIBS WMTS tile URL template (single string with {time} placeholder). */
+/** Build a GIBS WMTS tile URL.
+ *
+ *  The time slot is the literal token `default`, which GIBS resolves to the most
+ *  recent date it actually holds for that layer. Previously every layer was
+ *  pinned to "2 days ago", but each product has its own lag — AMSR2 soil moisture
+ *  runs ~6 days behind, MODIS 3km AOD is same-day — so the fixed offset returned
+ *  404s and blank tiles for anything that did not happen to match. `default` also
+ *  self-heals when a mission changes its processing latency. */
 const gibsTileUrl = (layer, tileMatrix = 'GoogleMapsCompatible_Level9', format = 'png') =>
-    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/{time}/${tileMatrix}/{z}/{y}/{x}.${format}`;
+    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer}/default/default/${tileMatrix}/{z}/{y}/{x}.${format}`;
 
 /** Expand one GIBS tile template into 3 subdomain-rotated URLs so MapLibre can round-robin.
  *  If one subdomain stalls, the others keep the layer alive. NASA GIBS supports
@@ -23,15 +30,23 @@ const gibsRedundant = (url) => [
     url.replace('gibs.earthdata.nasa.gov', 'gibs-b.earthdata.nasa.gov')
 ];
 
-/**
- * GIBS date for tile requests.
- * MODIS data has 1-2 day processing lag — using 2 days ago is more reliable
- * than yesterday. Falls back gracefully (NASA returns blank tiles, not errors).
- */
-const yesterday = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 2); // 2 days ago — matches MODIS processing lag
-    return d.toISOString().slice(0, 10);
+/** RainViewer rotates the path segment in its radar tile URL every few minutes and
+ *  drops old ones, so a committed path goes 404 within the hour. Fetch the current
+ *  one from their public manifest and patch the layer in place.
+ *  Ceiling: a toggle in the first second of page load can still use the stale path;
+ *  it corrects on the next toggle. Move to a fetch-on-toggle if that ever matters. */
+const refreshRadarPath = async () => {
+    try {
+        const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+        const data = await res.json();
+        const frames = data?.radar?.past;
+        const latest = Array.isArray(frames) && frames.length ? frames[frames.length - 1].path : null;
+        if (!latest) return;
+        const layer = EO_TILE_LAYERS.find((l) => l.id === 'eo-weather-radar');
+        if (layer) layer.tiles = [`${data.host || 'https://tilecache.rainviewer.com'}${latest}/256/{z}/{x}/{y}/2/1_1.png`];
+    } catch {
+        // Keep whatever path is baked in; a dead radar layer must not break the map.
+    }
 };
 
 /**
@@ -45,8 +60,9 @@ export const EO_TILE_LAYERS = [
         description: 'City lights observed by the Suomi-NPP satellite',
         group: 'satellite',
         icon: '🌃',
+        // GIBS serves this one as JPEG at Level8; the old Level9 PNG request was a 400.
         tiles: gibsRedundant(
-            gibsTileUrl('VIIRS_SNPP_DayNightBand_AtSensor_M15').replace('{time}', yesterday())
+            gibsTileUrl('VIIRS_SNPP_DayNightBand_AtSensor_M15', 'GoogleMapsCompatible_Level8', 'jpg')
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / VIIRS',
@@ -61,12 +77,6 @@ export const EO_TILE_LAYERS = [
         icon: '🌿',
         tiles: gibsRedundant(
             gibsTileUrl('MODIS_Terra_NDVI_8Day', 'GoogleMapsCompatible_Level9', 'png')
-                .replace('{time}', (() => {
-                    // NDVI is 8-day composite, use recent available date
-                    const d = new Date();
-                    d.setDate(d.getDate() - 10);
-                    return d.toISOString().slice(0, 10);
-                })())
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / MODIS Terra',
@@ -81,7 +91,6 @@ export const EO_TILE_LAYERS = [
         icon: '🛰️',
         tiles: gibsRedundant(
             gibsTileUrl('VIIRS_SNPP_CorrectedReflectance_TrueColor', 'GoogleMapsCompatible_Level9', 'jpg')
-                .replace('{time}', yesterday())
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / VIIRS',
@@ -91,36 +100,37 @@ export const EO_TILE_LAYERS = [
     {
         id: 'eo-sea-surface-temp',
         name: 'Sea Surface Temp',
-        description: 'Ocean temperature from MODIS satellite',
+        description: 'Gap-free daily ocean surface temperature analysis (GHRSST MUR)',
         group: 'satellite',
         icon: '🌊',
+        // MODIS_Aqua_L3_SST_MidIR_Monthly no longer exists in the EPSG:3857 endpoint
+        // and returned 400 on every request. MUR L4 is the gap-free daily successor.
         tiles: gibsRedundant(
-            gibsTileUrl('MODIS_Aqua_L3_SST_MidIR_Monthly', 'GoogleMapsCompatible_Level7', 'png')
-                .replace('{time}', (() => {
-                    const d = new Date();
-                    d.setMonth(d.getMonth() - 1);
-                    return d.toISOString().slice(0, 7) + '-01';
-                })())
+            gibsTileUrl('GHRSST_L4_MUR_Sea_Surface_Temperature', 'GoogleMapsCompatible_Level7', 'png')
         ),
         tileSize: 256,
-        attribution: 'NASA GIBS / MODIS Aqua',
+        attribution: 'NASA GIBS / GHRSST MUR',
         opacity: 0.6,
         maxzoom: 7
     },
     {
-        id: 'eo-fires',
-        name: 'Active Fires (VIIRS)',
-        description: 'Thermal anomalies detected by VIIRS satellite',
+        // Replaces the old eo-fires raster. GIBS now publishes every
+        // Thermal_Anomalies product as vector tiles only, so the PNG request was a
+        // permanent 400 — and the `firms` core layer already plots active fire
+        // detections as points. Smoke is the complement to that heat signal: FIRMS
+        // says something is burning, this says where the plume went.
+        id: 'eo-smoke',
+        name: 'Smoke Plumes (OMPS)',
+        description: 'UV aerosol index tuned for thick smoke from intense fires and explosions',
         group: 'satellite',
-        icon: '🔥',
+        icon: '🌫️',
         tiles: gibsRedundant(
-            gibsTileUrl('VIIRS_SNPP_Thermal_Anomalies_375m_All', 'GoogleMapsCompatible_Level9', 'png')
-                .replace('{time}', yesterday())
+            gibsTileUrl('OMPS_Aerosol_Index_PyroCumuloNimbus', 'GoogleMapsCompatible_Level6', 'png')
         ),
         tileSize: 256,
-        attribution: 'NASA GIBS / VIIRS',
-        opacity: 0.85,
-        maxzoom: 9
+        attribution: 'NASA GIBS / OMPS',
+        opacity: 0.7,
+        maxzoom: 6
     },
     {
         id: 'eo-precipitation',
@@ -130,7 +140,6 @@ export const EO_TILE_LAYERS = [
         icon: '🌧️',
         tiles: gibsRedundant(
             gibsTileUrl('IMERG_Precipitation_Rate', 'GoogleMapsCompatible_Level6', 'png')
-                .replace('{time}', yesterday())
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / GPM IMERG',
@@ -143,9 +152,9 @@ export const EO_TILE_LAYERS = [
         description: 'Global snow coverage from MODIS',
         group: 'satellite',
         icon: '❄️',
+        // Level9 was a 400 — GIBS caps this product at Level8.
         tiles: gibsRedundant(
-            gibsTileUrl('MODIS_Terra_NDSI_Snow_Cover', 'GoogleMapsCompatible_Level9', 'png')
-                .replace('{time}', yesterday())
+            gibsTileUrl('MODIS_Terra_NDSI_Snow_Cover', 'GoogleMapsCompatible_Level8', 'png')
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / MODIS',
@@ -155,16 +164,43 @@ export const EO_TILE_LAYERS = [
     {
         id: 'eo-aerosol',
         name: 'Aerosol (MODIS)',
-        description: 'Atmospheric aerosol optical depth',
+        description: 'Aerosol optical depth — haze, dust, smoke and industrial particulate',
         group: 'satellite',
         icon: '💨',
         tiles: gibsRedundant(
             gibsTileUrl('MODIS_Combined_Value_Added_AOD', 'GoogleMapsCompatible_Level6', 'png')
-                .replace('{time}', yesterday())
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / MODIS',
         opacity: 0.55,
+        maxzoom: 6
+    },
+    {
+        id: 'eo-no2',
+        name: 'Nitrogen Dioxide (OMI)',
+        description: 'Tropospheric NO₂ column — combustion tracer from strikes, fires and industry',
+        group: 'satellite',
+        icon: '🟤',
+        tiles: gibsRedundant(
+            gibsTileUrl('OMI_Nitrogen_Dioxide_Tropo_Column', 'GoogleMapsCompatible_Level6', 'png')
+        ),
+        tileSize: 256,
+        attribution: 'NASA GIBS / Aura OMI',
+        opacity: 0.6,
+        maxzoom: 6
+    },
+    {
+        id: 'eo-carbon-monoxide',
+        name: 'Carbon Monoxide (AIRS)',
+        description: 'CO at 500 hPa — the atmospheric signature of burning, traceable downwind for days',
+        group: 'satellite',
+        icon: '🟠',
+        tiles: gibsRedundant(
+            gibsTileUrl('AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day', 'GoogleMapsCompatible_Level6', 'png')
+        ),
+        tileSize: 256,
+        attribution: 'NASA GIBS / Aqua AIRS',
+        opacity: 0.6,
         maxzoom: 6
     },
     {
@@ -173,9 +209,10 @@ export const EO_TILE_LAYERS = [
         description: 'Land surface soil moisture from JAXA GCOM-W1 AMSR2 (LPRM downscaled C1 band, daytime daily)',
         group: 'satellite',
         icon: '🇯🇵',
+        // Ran ~6 days behind the hardcoded 2-day date, so this returned 404 and drew
+        // nothing. `default` tracks whatever AMSR2 has actually published.
         tiles: gibsRedundant(
             gibsTileUrl('LPRM_AMSR2_Downscaled_Surface_Soil_Moisture_C1_Band_Day_Daily', 'GoogleMapsCompatible_Level6', 'png')
-                .replace('{time}', yesterday())
         ),
         tileSize: 256,
         attribution: 'JAXA GCOM-W / NASA GIBS',
@@ -230,29 +267,22 @@ export const EO_TILE_LAYERS = [
         description: 'Live precipitation radar from RainViewer',
         group: 'satellite',
         icon: '🌧️',
+        // Placeholder path; refreshRadarPath() below replaces it with a live one on load.
         tiles: [
-            'https://tilecache.rainviewer.com/v2/radar/644896ac8ee5/256/{z}/{x}/{y}/2/1_1.png'
+            'https://tilecache.rainviewer.com/v2/radar/nowcast/256/{z}/{x}/{y}/2/1_1.png'
         ],
         tileSize: 256,
         attribution: 'RainViewer',
         opacity: 0.6,
         maxzoom: 10
-    },
-    {
-        id: 'eo-wind',
-        name: 'Wind Speed',
-        description: 'Global wind patterns from Open-Meteo',
-        group: 'satellite',
-        icon: '💨',
-        tiles: [
-            'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=9de243494c0b295cca9337e1e96b00e2'
-        ],
-        tileSize: 256,
-        attribution: 'OpenWeatherMap',
-        opacity: 0.5,
-        maxzoom: 8
     }
+    // 'eo-wind' removed: it pointed at OpenWeatherMap with an API key committed in
+    // this file, and that key returns 401 — the layer had not drawn anything in a
+    // long time. Restoring wind needs a key in the environment, not in source.
 ];
+
+// Fire-and-forget: patches the radar layer as soon as the manifest answers.
+refreshRadarPath();
 
 // Dynamic COG layers registered at runtime from STAC search results
 const dynamicLayers = new Map();
