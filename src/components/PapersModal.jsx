@@ -1,7 +1,24 @@
 import React from 'react';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { X } from 'lucide-react';
-import { ORIGIN_ESSAY, FOUR_SYSTEMS, AEROSOL_NOTE, JAXA_NOTE } from '../data/originEssay';
+import {
+    ORIGIN_ESSAY, FOUR_SYSTEMS, AEROSOL_NOTE, JAXA_NOTE, CO2_NOTE,
+    CREATORS, RESEARCH_BASIS, ARCHITECTURE, LONGITUDINAL_NOTE,
+} from '../data/originEssay';
+
+const H2 = ({ children }) => (
+    <h2 style={{
+        fontSize: '14px', fontWeight: 800, margin: '32px 0 12px',
+        textTransform: 'uppercase', letterSpacing: '0.04em',
+        borderBottom: '2px solid #111', paddingBottom: '6px',
+    }}>
+        {children}
+    </h2>
+);
+
+const H3 = ({ children }) => (
+    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: '16px 0 6px' }}>{children}</h3>
+);
 
 const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
     useEscapeKey(isOpen, onClose);
@@ -44,13 +61,13 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 700, fontSize: '14px', flexShrink: 0,
                         }}>
-                            P
+                            A
                         </div>
                         <span style={{
                             fontSize: '14px', fontWeight: 700, letterSpacing: '0.05em',
                             textTransform: 'uppercase',
                         }}>
-                            Papers
+                            About
                         </span>
                     </div>
                     <button
@@ -79,12 +96,38 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                         </p>
                     ))}
 
-                    <h2 style={{
-                        fontSize: '14px', fontWeight: 800, margin: '28px 0 12px',
-                        textTransform: 'uppercase', letterSpacing: '0.04em',
+                    <H2>Who built it</H2>
+                    {CREATORS.map((person) => (
+                        <div key={person.name} style={{ marginBottom: '16px' }}>
+                            <div style={{ fontWeight: 700 }}>{person.name}</div>
+                            <div style={{ fontSize: '13px', fontStyle: 'italic', margin: '2px 0 6px' }}>{person.role}</div>
+                            <div>{person.detail}</div>
+                        </div>
+                    ))}
+
+                    <H2>The research behind it</H2>
+                    {RESEARCH_BASIS.map((s) => (
+                        <div key={s.heading} style={{ marginBottom: '14px' }}>
+                            <H3>{s.heading}</H3>
+                            <p style={{ margin: 0 }}>{s.body}</p>
+                        </div>
+                    ))}
+
+                    <H2>Architecture</H2>
+                    {ARCHITECTURE.map((s) => (
+                        <div key={s.heading} style={{ marginBottom: '14px' }}>
+                            <H3>{s.heading}</H3>
+                            <p style={{ margin: 0 }}>{s.body}</p>
+                        </div>
+                    ))}
+                    <div style={{
+                        border: '2px solid #111', padding: '12px', marginTop: '14px', background: '#d4d4d4',
                     }}>
-                        The four
-                    </h2>
+                        <H3>On keeping a history</H3>
+                        <p style={{ margin: 0 }}>{LONGITUDINAL_NOTE}</p>
+                    </div>
+
+                    <H2>The four</H2>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {FOUR_SYSTEMS.map((system) => {
                             const here = system.id === systemId;
@@ -118,13 +161,9 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                         })}
                     </ul>
 
-                    <h2 style={{
-                        fontSize: '14px', fontWeight: 800, margin: '28px 0 12px',
-                        textTransform: 'uppercase', letterSpacing: '0.04em',
-                    }}>
-                        What the map actually pulls
-                    </h2>
+                    <H2>What the map actually pulls</H2>
                     <p style={{ margin: '0 0 12px' }}>{AEROSOL_NOTE}</p>
+                    <p style={{ margin: '0 0 12px' }}>{CO2_NOTE}</p>
                     <p style={{ margin: 0 }}>{JAXA_NOTE}</p>
                 </div>
             </div>

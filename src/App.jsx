@@ -288,10 +288,10 @@ function App() {
             </button>
             <button
               onClick={() => setIsPapersOpen(true)}
-              aria-label="Open Papers"
+              aria-label="About this dashboard"
               className="header-button header-button-manual header-button-papers"
             >
-              <FileText size={11} aria-hidden="true" /> Papers
+              <FileText size={11} aria-hidden="true" /> About
             </button>
             <div
               className="header-region-tabs"

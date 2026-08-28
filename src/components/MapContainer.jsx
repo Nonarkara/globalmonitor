@@ -1771,10 +1771,12 @@ const MapContainer = ({
                             <div
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '6px',
-                                    padding: '3px 8px', borderRadius: '12px',
-                                    background: 'rgba(12, 16, 26, 0.9)',
+                                    // House style is square: radius 0 on anything that is not a
+                                    // true circle, and no outer glow — the 1.5px coloured border
+                                    // already separates the pill from the basemap.
+                                    padding: '4px 8px', borderRadius: 0,
+                                    background: 'rgba(12, 16, 26, 0.92)',
                                     border: `1.5px solid ${b.properties.color}`,
-                                    boxShadow: `0 0 16px ${b.properties.color}a0`,
                                     cursor: 'pointer', transition: 'transform 0.2s ease'
                                 }}
                                 title={`${b.properties.name} - ${b.properties.riskLevel} RISK`}
@@ -1786,7 +1788,9 @@ const MapContainer = ({
                                     background: b.properties.color,
                                     boxShadow: `0 0 8px ${b.properties.color}`
                                 }} />
-                                <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#fff', letterSpacing: '0.5px' }}>
+                                {/* 0.5rem rendered at 8px on a phone — these are the primary
+                                    labels of the default view, so they get a floor in px. */}
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '0.5px' }}>
                                     {b.properties.shortName}
                                 </span>
                             </div>

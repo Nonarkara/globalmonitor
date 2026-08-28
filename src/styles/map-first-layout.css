@@ -700,6 +700,24 @@
     min-height: 44px;
   }
 
+  /* Same specificity story as the tap targets above: index.css floors these at 9px
+     inside its own <=480px block, but this file loads later and its [data-layout]
+     rules win, so they were still rendering at 8px. Restated here to actually hold. */
+  .app-container[data-layout="map-first"] .header-subtitle,
+  .app-container[data-layout="map-first"] .clock-tz-small,
+  .app-container[data-layout="map-first"] .header-icon-label,
+  /* These two need .primary-clock-content in the selector to outrank the 0.5rem
+     rule near the top of this file — a media query adds no specificity of its own. */
+  .app-container[data-layout="map-first"] .primary-clock-content .clock-war-date,
+  .app-container[data-layout="map-first"] .primary-clock-content .clock-city {
+    font-size: 11px;
+  }
+
+  /* The legal footer renders outside .app-container, so it needs a bare selector. */
+  .legal-footer-link {
+    font-size: 11px;
+  }
+
   .app-container[data-layout="map-first"] .map-wrapper {
     min-height: 58vh;
     min-height: 58dvh;
