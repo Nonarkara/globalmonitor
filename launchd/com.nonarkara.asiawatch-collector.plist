@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Longitudinal collector for AsiaWatch.
+
+  Install on the machine that stays awake:
+    cp launchd/com.nonarkara.asiawatch-collector.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.nonarkara.asiawatch-collector.plist
+
+  Check it:   launchctl list | grep asiawatch
+  Stop it:    launchctl unload ~/Library/LaunchAgents/com.nonarkara.asiawatch-collector.plist
+  Logs:       tail -f /Users/nonarkara/Projects/conflict-tracker/v3-global/launchd/collector.log
+
+  Every 15 minutes. The historical series averaged one reading per symbol every
+  27 minutes, so this is a modest increase and still trivial load on the free tier.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nonarkara.asiawatch-collector</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/nonarkara/Projects/conflict-tracker/v3-global/scripts/collect-longitudinal.mjs</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/nonarkara/Projects/conflict-tracker/v3-global</string>
+
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <!-- Run once at load so a reboot does not leave a silent gap until the next tick. -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/nonarkara/Projects/conflict-tracker/v3-global/launchd/collector.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/nonarkara/Projects/conflict-tracker/v3-global/launchd/collector.err.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

@@ -192,9 +192,15 @@ export const upsertMarketQuotes = async (items) => {
         change_perc: String(m.changePerc || m.change || ''),
         is_positive: Boolean(m.isPositive)
     }));
+    // insert, not upsert. A quote is a reading at a moment, not an entity — the
+    // whole value of this table is one row per symbol per tick. `onConflict: symbol`
+    // was also simply broken: there is no unique constraint on symbol, so every call
+    // failed with "no unique or exclusion constraint matching the ON CONFLICT
+    // specification" and the error was swallowed by the fire-and-forget caller.
+    // If a unique index on symbol is ever added, this table stops being a time series.
     const { data, error } = await sb
         .from('gm_market_quotes')
-        .upsert(rows, { onConflict: 'symbol', ignoreDuplicates: false });
+        .insert(rows);
     await recordIngestionRun({
         loader: 'markets', status: error ? 'fail' : 'ok',
         rowsInserted: error ? 0 : data?.length || rows.length,
