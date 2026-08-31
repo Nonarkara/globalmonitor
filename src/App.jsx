@@ -26,9 +26,10 @@ import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
+import './styles/tactical-optics.css';
 
 const DASHBOARD_VERSION = 'v8.5';
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'vessels', 'flights'];
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights'];
 // Derived from the region registry rather than hardcoded, so the opening camera
 // can never drift away from the opening theater again (it was pinned to the Gulf
 // while the default tab said Southeast Asia).
@@ -38,6 +39,7 @@ function App() {
   // First paint should read as a composed war-room map. Dense live traffic stays opt-in.
   const [activeLayers, setActiveLayers] = useState(DEFAULT_MAP_LAYERS);
   const [mapStyle, setMapStyle] = useState('dark');
+  const [tacticalOptics, setTacticalOptics] = useState('standard');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'
   // Asia dashboard: open on Southeast Asia, not the Gulf.
@@ -169,6 +171,7 @@ function App() {
         id="main-content"
         role="main"
         data-layout="map-first"
+        data-optics={tacticalOptics}
         data-sidebar-open={sidebarOpen ? 'true' : 'false'}
         data-layers-open={sidebarOpen || mobileDrawer === 'layers' ? 'true' : 'false'}
         data-mobile-drawer={mobileDrawer}
@@ -419,6 +422,8 @@ function App() {
               onMapFlyTo={handleMapFlyTo}
               mapStyle={mapStyle}
               setMapStyle={setMapStyle}
+              tacticalOptics={tacticalOptics}
+              setTacticalOptics={setTacticalOptics}
               dashboardVersion={DASHBOARD_VERSION}
               onResetCoreLayers={resetCoreLayers}
             />
@@ -636,6 +641,9 @@ function App() {
               )}
             </div>
             <div className="bottom-bar">
+              <ErrorBoundary inline label="Crisis Radio">
+                <LazyPanel name="CrisisRadioPanel" viewMode={viewMode} />
+              </ErrorBoundary>
               <ErrorBoundary inline label="Market Radar">
                 <LazyPanel name="MarketRadarPanel" viewMode={viewMode} />
               </ErrorBoundary>

@@ -19,6 +19,10 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
 import { getRegion } from '../data/regions.js';
 import { THAILAND_BORDER_GEOJSON } from '../data/thailandBorders.js';
+import { SUBMARINE_CABLES_GEOJSON } from '../data/submarineCables.js';
+import { STRATEGIC_DAMS_GEOJSON } from '../data/strategicDams.js';
+import { getStrikeRangeRingsGeoJson } from '../data/strikeRangeRings.js';
+import { fetchMilitaryFlights, FALLBACK_MILITARY_FLIGHTS } from '../services/militaryFlights.js';
 import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
@@ -55,7 +59,10 @@ const formatVesselSourceLabel = (meta) => {
     return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
 };
 
-const HOVER_LAYERS = ['flights-icons', 'vessels-icons', 'airports-points', 'acled-circles', 'firms-circles'];
+const HOVER_LAYERS = [
+    'flights-icons', 'vessels-icons', 'airports-points', 'acled-circles', 'firms-circles',
+    'cables-lines', 'dams-points', 'military-flights-icons', 'range-rings-lines'
+];
 
 const formatCoord = (value, axis) => {
     const abs = Math.abs(value);
@@ -792,6 +799,13 @@ const MapContainer = ({
         maxRetries: 2,
         maxStaleMs: 20 * 60 * 1000
     });
+    const militaryFlightsResource = useLiveResource(useCallback(() => fetchMilitaryFlights(viewMode), [viewMode]), {
+        cacheKey: `map:military-flights:${viewMode}`,
+        enabled: activeLayers.includes('military'),
+        intervalMs: 30 * 1000,
+        isUsable: hasFeatureData,
+        initialData: FALLBACK_MILITARY_FLIGHTS
+    });
 
     const disastersData = disasterResource.data;
     const crisesData = conflictResource.data;
@@ -801,6 +815,8 @@ const MapContainer = ({
     const sdgData = sdgResource.data;
     const firmsData = firmsResource.data;
     const infraData = infraResource.data;
+    const militaryFlightsData = militaryFlightsResource.data ?? FALLBACK_MILITARY_FLIGHTS;
+    const rangeRingsGeoJson = useMemo(() => getStrikeRangeRingsGeoJson(), []);
     const airportsData = useMemo(
         () => sanitizePointCollection(airportsResource.data) ?? EMPTY_TRAFFIC_FC,
         [airportsResource.data]
@@ -1557,6 +1573,159 @@ const MapContainer = ({
                     </Source>
                 )}
 
+                {/* Submarine Telecom Cables Layer */}
+                {activeLayers.includes('cables') && (
+                    <Source id="cables-data" type="geojson" data={SUBMARINE_CABLES_GEOJSON}>
+                        <Layer
+                            id="cables-lines-glow"
+                            type="line"
+                            paint={{
+                                'line-color': '#06b6d4',
+                                'line-width': 4,
+                                'line-opacity': 0.28,
+                                'line-blur': 2
+                            }}
+                        />
+                        <Layer
+                            id="cables-lines"
+                            type="line"
+                            paint={{
+                                'line-color': '#22d3ee',
+                                'line-width': 1.6,
+                                'line-opacity': 0.88
+                            }}
+                        />
+                        <Layer
+                            id="cables-labels"
+                            type="symbol"
+                            minzoom={5}
+                            layout={{
+                                'text-field': ['get', 'name'],
+                                'text-size': 10,
+                                'text-font': ['Open Sans Regular'],
+                                'symbol-placement': 'line',
+                                'text-offset': [0, 1]
+                            }}
+                            paint={{
+                                'text-color': '#a5f3fc',
+                                'text-halo-color': 'rgba(0,0,0,0.85)',
+                                'text-halo-width': 1.2
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Strategic Water Dams Layer */}
+                {activeLayers.includes('dams') && (
+                    <Source id="dams-data" type="geojson" data={STRATEGIC_DAMS_GEOJSON}>
+                        <Layer
+                            id="dams-points"
+                            type="circle"
+                            paint={{
+                                'circle-color': ['get', 'color'],
+                                'circle-radius': 5.5,
+                                'circle-stroke-color': '#ffffff',
+                                'circle-stroke-width': 1.2,
+                                'circle-opacity': 0.9
+                            }}
+                        />
+                        <Layer
+                            id="dams-labels"
+                            type="symbol"
+                            minzoom={5}
+                            layout={{
+                                'text-field': ['get', 'name'],
+                                'text-size': 10,
+                                'text-font': ['Open Sans Regular'],
+                                'text-offset': [0, 1.2],
+                                'text-anchor': 'top'
+                            }}
+                            paint={{
+                                'text-color': '#e0f2fe',
+                                'text-halo-color': 'rgba(0,0,0,0.85)',
+                                'text-halo-width': 1.2
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Ballistic & Drone Strike Range Rings Layer */}
+                {activeLayers.includes('range-rings') && (
+                    <Source id="range-rings-data" type="geojson" data={rangeRingsGeoJson}>
+                        <Layer
+                            id="range-rings-lines"
+                            type="line"
+                            paint={{
+                                'line-color': ['get', 'color'],
+                                'line-width': 1.4,
+                                'line-opacity': 0.85,
+                                'line-dasharray': [3, 2]
+                            }}
+                        />
+                        <Layer
+                            id="range-rings-labels"
+                            type="symbol"
+                            minzoom={3}
+                            layout={{
+                                'text-field': ['coalesce', ['get', 'rangeKm'], ''],
+                                'text-size': 9,
+                                'text-font': ['Open Sans Regular'],
+                                'symbol-placement': 'line',
+                                'text-offset': [0, -0.8]
+                            }}
+                            paint={{
+                                'text-color': '#fca5a5',
+                                'text-halo-color': 'rgba(0,0,0,0.9)',
+                                'text-halo-width': 1.2
+                            }}
+                        />
+                        <Layer
+                            id="strike-origins-points"
+                            type="circle"
+                            filter={['==', ['get', 'kind'], 'strike-origin']}
+                            paint={{
+                                'circle-color': ['get', 'color'],
+                                'circle-radius': 6,
+                                'circle-stroke-color': '#ffffff',
+                                'circle-stroke-width': 1.5
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Military / ISR Flights Layer */}
+                {activeLayers.includes('military') && (
+                    <Source id="military-flights-data" type="geojson" data={militaryFlightsData}>
+                        <Layer
+                            id="military-flights-icons"
+                            type="circle"
+                            paint={{
+                                'circle-color': '#f59e0b',
+                                'circle-radius': 5,
+                                'circle-stroke-color': '#ffffff',
+                                'circle-stroke-width': 1.4,
+                                'circle-opacity': 0.95
+                            }}
+                        />
+                        <Layer
+                            id="military-flights-labels"
+                            type="symbol"
+                            layout={{
+                                'text-field': ['concat', ['get', 'callsign'], ' [MIL]'],
+                                'text-size': 10,
+                                'text-font': ['Open Sans Regular'],
+                                'text-offset': [0, 1.2],
+                                'text-anchor': 'top'
+                            }}
+                            paint={{
+                                'text-color': '#fcd34d',
+                                'text-halo-color': 'rgba(0,0,0,0.85)',
+                                'text-halo-width': 1.2
+                            }}
+                        />
+                    </Source>
+                )}
+
                 {hoverInfo && (() => {
                     const hoverLayerId = hoverInfo.feature.layer?.id;
                     const tooltipClass = buildPopupClassName(hoverLayerId);
@@ -1574,6 +1743,102 @@ const MapContainer = ({
                             {(() => {
                                 const p = hoverInfo.feature.properties || {};
                                 const layerId = hoverInfo.feature.layer?.id;
+                                if (layerId === 'cables-lines') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header" style={{ color: '#22d3ee' }}>
+                                                {p.name || 'Undersea Fiber Cable'}
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Length</span>
+                                                <span>{p.lengthKm ? `${Number(p.lengthKm).toLocaleString()} km` : '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Capacity</span>
+                                                <span>{p.capacityTbps ? `${p.capacityTbps} Tbps` : '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Risk Zone</span>
+                                                <span style={{ color: '#f87171' }}>{p.chokepointRisk || 'Monitored'}</span>
+                                            </div>
+                                            {p.landingPoints && (
+                                                <div className="traffic-tooltip-row">
+                                                    <span>Landings</span>
+                                                    <span style={{ fontSize: '0.45rem' }}>{p.landingPoints}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+                                if (layerId === 'dams-points') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header" style={{ color: '#38bdf8' }}>
+                                                {p.name || 'Strategic Dam'}
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>River / Basin</span>
+                                                <span>{p.river || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Location</span>
+                                                <span>{p.country || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Capacity</span>
+                                                <span>{p.capacityMw ? `${Number(p.capacityMw).toLocaleString()} MW` : '—'}</span>
+                                            </div>
+                                            {p.geopoliticalImpact && (
+                                                <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                                                    <span style={{ color: '#94a3b8' }}>Geopolitical Impact:</span>
+                                                    <span style={{ fontSize: '0.48rem', color: '#e2e8f0' }}>{p.geopoliticalImpact}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+                                if (layerId === 'range-rings-lines') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header" style={{ color: '#f87171' }}>
+                                                Strike Range Envelope
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Origin Sector</span>
+                                                <span>{p.originName || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Radius</span>
+                                                <span style={{ color: '#fca5a5', fontWeight: 700 }}>{p.rangeKm || '—'}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (layerId === 'military-flights-icons') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header" style={{ color: '#f59e0b' }}>
+                                                {p.callsign || 'MILITARY CONTACT'}
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Type</span>
+                                                <span>{p.type || 'Military Aircraft'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Role</span>
+                                                <span>{p.role || 'ISR / Transport'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Operator</span>
+                                                <span>{p.operator || 'Military'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Altitude</span>
+                                                <span>{p.altitude ? `${p.altitude} ft` : '—'}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
                                 if (layerId === 'acled-circles') {
                                     return (
                                         <div className="traffic-tooltip-content">

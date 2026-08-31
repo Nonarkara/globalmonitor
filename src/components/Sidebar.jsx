@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2,
     Plane, Ship, MapPin, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
+    Network, Droplet, ShieldAlert, Target
 } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import AlphaEarthPanel from './AlphaEarthPanel';
@@ -35,6 +36,30 @@ const CORE_LAYERS = {
         desc: 'Critical sites, chokepoints, infrastructure status',
         icon: <Building2 size={18} />,
         group: 'operational',
+    },
+    cables: {
+        title: 'Undersea fiber cables',
+        desc: 'Global submarine telecommunications routes',
+        icon: <Network size={18} />,
+        group: 'operational',
+    },
+    dams: {
+        title: 'Strategic water dams',
+        desc: 'Mekong, Tigris, Euphrates & Nile security',
+        icon: <Droplet size={18} />,
+        group: 'operational',
+    },
+    'range-rings': {
+        title: 'Strike range rings',
+        desc: 'Concentric ballistic & drone strike envelopes',
+        icon: <Target size={18} />,
+        group: 'operational',
+    },
+    military: {
+        title: 'Military / ISR flights',
+        desc: 'ADS-B military transponders (adsb.lol)',
+        icon: <ShieldAlert size={18} />,
+        group: 'mobility',
     },
     flights: {
         title: 'Aircraft (ADS-B)',
@@ -108,14 +133,14 @@ const EO_LAYER_META = {
 // eastasia and southasia had no entry here either, so both silently fell back to the
 // middleeast list — which is why an East Asia view offered a Gulf 'infrastructure'
 // layer. Each theater now names its own core set.
-const ASIA_CORE = ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'];
+const ASIA_CORE = ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'];
 const REGION_CORE_IDS = {
-    middleeast: ['firms', 'conflicts', 'infrastructure', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
-    indopacific: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    middleeast: ['firms', 'conflicts', 'infrastructure', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    indopacific: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
     eastasia: ASIA_CORE,
     southasia: ASIA_CORE,
-    thailand: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
-    global: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    thailand: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    global: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
 };
 
 const GROUP_ORDER = [
@@ -152,7 +177,9 @@ const Sidebar = ({
     onMapFlyTo,
     mapStyle,
     setMapStyle,
-    dashboardVersion = 'v8.3',
+    tacticalOptics = 'standard',
+    setTacticalOptics,
+    dashboardVersion = 'v8.5',
     onResetCoreLayers,
 }) => {
     const flightStats = useFlightStats();
@@ -267,6 +294,48 @@ const Sidebar = ({
                         })}
                     </div>
                 </section>
+
+                {/* TACTICAL SENSOR OPTICS */}
+                {setTacticalOptics && (
+                    <section className="sidebar-section">
+                        <div className="section-title-row">
+                            <h3 className="section-title">Tactical Optics</h3>
+                            <span className={`optics-badge optics-badge--${tacticalOptics}`}>
+                                {tacticalOptics}
+                            </span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                            {[
+                                { id: 'standard', label: 'Standard', color: 'var(--ink)' },
+                                { id: 'flir', label: 'FLIR Thermal', color: '#ef4444' },
+                                { id: 'nvg', label: 'NVG Night Vision', color: '#22c55e' },
+                                { id: 'crt', label: 'CRT Scanlines', color: '#38bdf8' },
+                            ].map((opt) => {
+                                const isActive = tacticalOptics === opt.id;
+                                return (
+                                    <button
+                                        key={opt.id}
+                                        type="button"
+                                        onClick={() => setTacticalOptics(opt.id)}
+                                        style={{
+                                            padding: '4px 6px',
+                                            fontSize: '0.52rem',
+                                            fontWeight: 600,
+                                            borderRadius: '3px',
+                                            border: `1px solid ${isActive ? opt.color : 'var(--line)'}`,
+                                            background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.2)',
+                                            color: isActive ? opt.color : 'var(--ink-2)',
+                                            cursor: 'pointer',
+                                            textAlign: 'center'
+                                        }}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
 
                 {/* LAYER GROUPS */}
                 <section className="sidebar-section">
