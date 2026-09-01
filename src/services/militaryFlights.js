@@ -1,11 +1,16 @@
 import { fetchBackendJson } from './backendClient.js';
 
 const CLIENT_CACHE_PREFIX = 'tech-monitor:last-good-military-flights';
+const KNOWN_THEATERS = new Set(['global', 'worldwide', 'middleeast', 'indopacific', 'eastasia', 'southasia', 'thailand']);
 
 const hasFeatures = (payload) => (
     payload?.type === 'FeatureCollection'
     && Array.isArray(payload.features)
     && payload.features.length > 0
+);
+
+const normalizeTheater = (theater = 'global') => (
+    KNOWN_THEATERS.has(theater) ? theater : 'global'
 );
 
 /**
@@ -103,14 +108,39 @@ export const FALLBACK_MILITARY_FLIGHTS = {
     ]
 };
 
+export const filterMilitaryFlightsPayload = (payload, theater = 'global') => {
+    const resolvedTheater = normalizeTheater(theater);
+    const features = Array.isArray(payload?.features) ? payload.features : [];
+    const filtered = features.filter((feature) => {
+        const props = feature?.properties || {};
+        if (!(props.military || props.spi || props.category === 15 || props.role)) return false;
+        if (resolvedTheater === 'global' || resolvedTheater === 'worldwide') return true;
+        return props.theater === resolvedTheater;
+    });
+
+    return {
+        type: 'FeatureCollection',
+        features: filtered,
+        meta: {
+            ...(payload?.meta || {}),
+            theater: resolvedTheater,
+            count: filtered.length
+        }
+    };
+};
+
 export const fetchMilitaryFlights = async (theater = 'global') => {
+    const resolvedTheater = normalizeTheater(theater);
     try {
-        const payload = await fetchBackendJson('/api/military-flights', { theater });
+        const payload = filterMilitaryFlightsPayload(
+            await fetchBackendJson('/api/military-flights', { theater: resolvedTheater }),
+            resolvedTheater
+        );
         if (hasFeatures(payload)) {
             return payload;
         }
-        return FALLBACK_MILITARY_FLIGHTS;
+        return filterMilitaryFlightsPayload(FALLBACK_MILITARY_FLIGHTS, resolvedTheater);
     } catch {
-        return FALLBACK_MILITARY_FLIGHTS;
+        return filterMilitaryFlightsPayload(FALLBACK_MILITARY_FLIGHTS, resolvedTheater);
     }
 };

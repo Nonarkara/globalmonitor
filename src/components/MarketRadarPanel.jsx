@@ -158,7 +158,7 @@ const MarketRadarPanel = ({ viewMode = 'middleeast' }) => {
                     Outside ME, surfacing it overweights Iran/Gulf and misleads. */}
                 {viewMode === 'middleeast' && safeMarkets.length > 0 && <OilCrisisHeader items={safeMarkets} />}
                 <div className="panel-lead" style={{ marginBottom: 0, fontFamily: 'var(--font-mono)', fontSize: '0.68rem', letterSpacing: '0.3px' }}>
-                    {lastUpdated ? `Last update ${new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Waiting for first live quote...'}
+                    {lastUpdated ? `Last update ${new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Waiting for first live quote…'}
                 </div>
                 <div className="radar-groups">
                     {groups.map((group) => (
@@ -187,7 +187,7 @@ const MarketRadarPanel = ({ viewMode = 'middleeast' }) => {
                 {safeMarkets.length === 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                            {isLoading ? 'Connecting to live markets...' : 'No live market data available right now.'}
+                            {isLoading ? 'Connecting to live markets…' : 'No live market data available right now.'}
                         </span>
                     </div>
                 )}

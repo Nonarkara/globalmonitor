@@ -49,7 +49,7 @@ const LiveIntelligenceFeed = ({ activeSourceIds }) => {
                 <div className={`news-marquee ${news.length === 0 ? 'news-marquee-static' : ''}`}>
                     {/* Duplicate for infinite scroll illusion */}
                     {(news.length > 0 ? [...news, ...news] : [{
-                        title: error ? 'Live headline feeds are temporarily unavailable. Last-good data will reappear when the sources respond.' : 'Connecting to live headline feeds...',
+                        title: error ? 'Live headline feeds are temporarily unavailable. Last-good data will reappear when the sources respond.' : 'Connecting to live headline feeds…',
                         link: '',
                         source: error ? 'Feed Status' : 'Sync',
                         tags: [isStale ? 'stale' : 'loading']

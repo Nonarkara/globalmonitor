@@ -106,7 +106,7 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                 {news.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '8px 0' }}>
                         <div style={{ fontSize: '0.7rem', color: 'var(--ink-3)', marginBottom: '4px' }}>
-                            {isRefreshing ? 'Connecting to live feeds...' : 'No live items are currently available.'}
+                            {isRefreshing ? 'Connecting to live feeds…' : 'No live items are currently available.'}
                         </div>
                         <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', }}>
                             Connecting to live feeds...

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Radio, Volume2, VolumeX, Play, Square, Signal, Compass, RadioTower } from 'lucide-react';
+import { Radio, Volume2, VolumeX, Play, Square, RadioTower } from 'lucide-react';
 import { CRISIS_RADIO_STATIONS, getStationForTheater } from '../services/crisisRadio.js';
+
+const SIGNAL_BAR_HEIGHTS = [34, 52, 68, 42, 76, 58, 30, 64, 48, 72, 40, 66, 54, 78, 36, 60];
 
 /**
  * Crisis Radio Intelligence Tuner — Braun T1000CD Aesthetic
@@ -13,16 +15,6 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
     const [volume, setVolume] = useState(0.7);
     const [streamError, setStreamError] = useState(false);
     const audioRef = useRef(null);
-
-    // Sync station when theater switches
-    useEffect(() => {
-        const defaultStation = getStationForTheater(viewMode);
-        if (defaultStation && defaultStation.id !== selectedStation.id) {
-            setSelectedStation(defaultStation);
-            setIsPlaying(false);
-            setStreamError(false);
-        }
-    }, [viewMode]);
 
     useEffect(() => {
         if (!audioRef.current) return;
@@ -139,7 +131,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                             key={i}
                             style={{
                                 flex: 1,
-                                height: isPlaying ? `${Math.max(20, Math.sin((i + Date.now() / 200) * 0.5) * 50 + 50)}%` : '15%',
+                                height: isPlaying ? `${SIGNAL_BAR_HEIGHTS[i % SIGNAL_BAR_HEIGHTS.length]}%` : '15%',
                                 background: isPlaying ? '#eab308' : 'rgba(255,255,255,0.1)',
                                 borderRadius: '1px',
                                 transition: 'height 0.1s ease'

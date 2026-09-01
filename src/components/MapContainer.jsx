@@ -891,8 +891,22 @@ const MapContainer = ({
     const vesselsCapped = vesselsSnapshot.meta.capped;
     const globalFlightCount = globalFlightsData?.features?.length ?? 0;
     const globalVesselCount = globalVesselsData?.features?.length ?? 0;
+    // "session" said nothing to a reader and implied currency the data does not have:
+    // flights are served from a committed snapshot that can be days old. State the
+    // age instead, so the legend answers "how old is this?" without being asked.
+    const flightCollectedAt = globalFlightsData?.meta?.collectedAt || globalFlightsData?.meta?.fetchedAt;
+    const ageLabel = (iso) => {
+        if (!iso) return null;
+        const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+        if (!Number.isFinite(mins) || mins < 0) return null;
+        if (mins < 2) return 'just now';
+        if (mins < 60) return `${mins}m old`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return `${hrs}h old`;
+        return `${Math.floor(hrs / 24)}d old`;
+    };
     const flightSourceLabel = visibleFlightCount > 0
-        ? 'ADS-B · session'
+        ? `ADS-B · ${ageLabel(flightCollectedAt) || 'age unknown'}`
         : (flightsResource.isLoading ? 'Loading ADS-B…' : (flightsResource.isStale ? 'ADS-B stale' : 'ADS-B'));
     const vesselsNeedKey = globalVesselsData?.meta?.requiresKey;
     const vesselMeta = globalVesselsData?.meta;
@@ -2044,7 +2058,10 @@ const MapContainer = ({
                                     border: `1.5px solid ${b.properties.color}`,
                                     cursor: 'pointer', transition: 'transform 0.2s ease'
                                 }}
-                                title={`${b.properties.name} - ${b.properties.riskLevel} RISK`}
+                                // Middle dot, not a hyphen: name and risk level are two separate
+                                // facts, not a compound. The en dash inside the name
+                                // (Thailand–Myanmar) already means "between".
+                                title={`${b.properties.name} · ${b.properties.riskLevel} RISK`}
                                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                             >

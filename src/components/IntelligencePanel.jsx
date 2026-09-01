@@ -73,7 +73,7 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
             </div>
             <div className="panel-content">
                 <p className="panel-lead">
-                    {currentBriefing?.description || 'Loading structured signals...'}
+                    {currentBriefing?.description || 'Loading structured signals…'}
                 </p>
 
                 {currentBriefing && (
@@ -112,7 +112,7 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                         </div>
 
                         <div className="briefing-summary">
-                            {briefing?.summary || (isLoading ? 'Connecting to live feeds...' : 'No live items are currently available. Use the official sources above while the feed retries.')}
+                            {briefing?.summary || (isLoading ? 'Connecting to live feeds…' : 'No live items are currently available. Use the official sources above while the feed retries.')}
                         </div>
                     </>
                 )}
@@ -145,7 +145,7 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
 
                     {(!briefing || !briefing.items || briefing.items.length === 0) && (
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                            {error ? 'No live items yet. Cached data will stay visible whenever it exists.' : 'Loading live items...'}
+                            {error ? 'No live items yet. Cached data will stay visible whenever it exists.' : 'Loading live items…'}
                         </span>
                     )}
                 </div>

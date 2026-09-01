@@ -7,7 +7,9 @@
  * in the cache so the user never sees an empty panel.
  */
 import { upsertNewsItems, fetchNewsItems, recordIngestionRun, isSupabaseEnabled } from './supabase.mjs';
-import { decodeEntities } from './intelligence.mjs';
+import { decodeEntities, stripSourceSuffix } from './intelligence.mjs';
+
+
 
 const DEFAULT_LIMIT = 8;
 
@@ -109,7 +111,7 @@ const fetchGdeltArtList = async (query) => {
     return (data.articles || [])
         .slice(0, 6)
         .map((article) => ({
-            title: decodeEntities(article.title || ''),
+            title: stripSourceSuffix(decodeEntities(article.title || ''), article.source || ''),
             link: article.url,
             source: article.domain || 'GDELT',
             pubDate: parseGdeltSeen(article.seendate)
@@ -124,7 +126,7 @@ const fetchRssUrl = async (url, defaultSource) => {
         .filter((item) => item.title && item.title !== 'Google News')
         .map((item) => ({
             ...item,
-            title: decodeEntities(item.title),
+            title: stripSourceSuffix(decodeEntities(item.title), item.source || ''),
             source: decodeEntities(item.source),
             link: unwrapRedirectUrl(item.link)
         }));
@@ -139,7 +141,7 @@ const fetchBbcWorldFiltered = async (query) => {
     });
     if (!res.ok) throw new Error(`BBC RSS ${res.status}`);
     const items = parseRssItems(await res.text(), 25, 'BBC')
-        .map((item) => ({ ...item, title: decodeEntities(item.title), source: decodeEntities(item.source) }));
+        .map((item) => ({ ...item, title: stripSourceSuffix(decodeEntities(item.title), item.source || ''), source: decodeEntities(item.source) }));
     const tokens = String(query).split(/[^A-Za-z0-9]+/).filter((token) => token.length > 3);
     const hit = items.filter((item) => {
         const title = item.title.toLowerCase();

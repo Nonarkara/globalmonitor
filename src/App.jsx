@@ -29,7 +29,12 @@ import './styles/print.css';
 import './styles/tactical-optics.css';
 
 const DASHBOARD_VERSION = 'v8.5';
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights'];
+// Aerosol and nightlights are on at first paint by request — they are the two
+// layers that read as "this is a satellite picture" rather than a plotted map.
+// Both were toned down in eoTiles.js so live traffic still reads through them;
+// aerosol at its old 0.55 buried the aircraft entirely, which is why it had been
+// pulled from this list rather than dimmed.
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'eo-aerosol', 'eo-nightlights'];
 // Derived from the region registry rather than hardcoded, so the opening camera
 // can never drift away from the opening theater again (it was pinned to the Gulf
 // while the default tab said Southeast Asia).
@@ -642,7 +647,7 @@ function App() {
             </div>
             <div className="bottom-bar">
               <ErrorBoundary inline label="Crisis Radio">
-                <LazyPanel name="CrisisRadioPanel" viewMode={viewMode} />
+                <LazyPanel key={`crisis-radio:${viewMode}`} name="CrisisRadioPanel" viewMode={viewMode} />
               </ErrorBoundary>
               <ErrorBoundary inline label="Market Radar">
                 <LazyPanel name="MarketRadarPanel" viewMode={viewMode} />

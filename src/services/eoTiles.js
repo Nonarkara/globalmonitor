@@ -66,7 +66,8 @@ export const EO_TILE_LAYERS = [
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / VIIRS',
-        opacity: 0.75,
+        // Default-on, so it sits under the operational layers rather than shouting.
+        opacity: 0.5,
         maxzoom: 8
     },
     {
@@ -172,7 +173,9 @@ export const EO_TILE_LAYERS = [
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / MODIS',
-        opacity: 0.55,
+        // 0.55 buried the aircraft and vessel icons when this layer is on at first
+        // paint. 0.38 still reads as haze without competing with live traffic.
+        opacity: 0.38,
         maxzoom: 6
     },
     {

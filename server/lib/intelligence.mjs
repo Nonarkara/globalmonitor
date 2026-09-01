@@ -17,6 +17,25 @@ export const decodeEntities = (value = '') => String(value)
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
     .replace(/&([a-z]+);/gi, (m, n) => NAMED_ENTITIES[n.toLowerCase()] ?? m);
 
+/**
+ * Feeds append their own name to the headline — "Oil rises as strikes stoke
+ * supply fears - Reuters". Every surface that shows an item already prints the
+ * source on its own line, so that tail is the publisher said twice, joined by a
+ * hyphen doing a job the layout already does.
+ *
+ * Only strips the tail when it actually matches the item's source, so a headline
+ * that genuinely ends in a dash keeps its words.
+ */
+export const stripSourceSuffix = (title = '', source = '') => {
+    const name = String(source).trim();
+    if (!name) return title;
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const cleaned = String(title)
+        .replace(new RegExp(`\\s*[-\u2013\u2014|]\\s*${escaped}\\s*$`, 'i'), '')
+        .trim();
+    return cleaned || title;
+};
+
 const normalizeTitle = (value = '') => value.toLowerCase().replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 
 const resolveDate = (value) => {
@@ -116,7 +135,7 @@ const parseXmlFeed = (xml, source) => {
         if (!title || !link) continue;
         if (normalizeTitle(title) === normalizeTitle(feedTitle) || title === feedTitle) continue;
 
-        items.push({ title: decodeEntities(title), link, pubDate: resolveDate(pubDate), source: decodeEntities(itemSource) });
+        items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(itemSource)), link, pubDate: resolveDate(pubDate), source: decodeEntities(itemSource) });
     }
 
     // Try Atom <entry> if no RSS <item> found
@@ -130,7 +149,7 @@ const parseXmlFeed = (xml, source) => {
                 || block.match(/<published>([\s\S]*?)<\/published>/)?.[1] || '').trim();
 
             if (!title || !link) continue;
-            items.push({ title: decodeEntities(title), link, pubDate: resolveDate(pubDate), source: decodeEntities(feedTitle) });
+            items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(feedTitle)), link, pubDate: resolveDate(pubDate), source: decodeEntities(feedTitle) });
         }
     }
 
