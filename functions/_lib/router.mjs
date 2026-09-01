@@ -20,6 +20,7 @@ import { fetchUsgsQuakes } from '../../server/lib/usgsQuakes.mjs';
 import { fetchAcledEvents } from '../../server/lib/acled.mjs';
 import { fetchOilPriceTimeline } from '../../server/lib/eia.mjs';
 import { searchStacScenes } from '../../server/lib/stacCatalog.mjs';
+import { fetchLatestSar } from '../../server/lib/sarScenes.mjs';
 import { searchPlanetaryComputer } from '../../server/lib/planetaryComputer.mjs';
 import { listPresets as listEvalscriptPresets } from '../../server/lib/evalscripts.mjs';
 import { probeCog } from '../../server/lib/cogReader.mjs';
@@ -196,6 +197,28 @@ export async function handleApiRequest(request, env, next) {
                 (p) => p?.geojson?.type === 'FeatureCollection'
             );
             return jsonResponse(result.payload, 200, result.meta);
+        }
+
+
+        if (url.pathname === '/api/sar') {
+            const theater = url.searchParams.get('theater') || 'indopacific';
+            // Sentinel-1 repeats every 6-12 days, so a 30 minute cache is generous;
+            // the answer genuinely does not change faster than that.
+            const result = await useCached(
+                `sar:${theater}`,
+                30 * 60 * 1000,
+                () => fetchLatestSar(theater),
+                (payload) => Boolean(payload?.latest?.id)
+            );
+            recordHealth('sar', Boolean(result.payload?.latest), null);
+            if (!result.payload?.latest) {
+                // No pass in the window is a real answer, not a failure.
+                return jsonResponse({ theater, latest: null, available: 0 }, 200, { ...result.meta, status: 'stale' });
+            }
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                updatedAt: result.payload.latest.acquiredAt || result.meta.updatedAt
+            });
         }
 
         if (url.pathname === '/api/infrastructure') {

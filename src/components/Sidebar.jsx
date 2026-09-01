@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2,
     Plane, Ship, MapPin, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
-    Network, Droplet, ShieldAlert, Target
-} from 'lucide-react';
+    Network, Droplet, ShieldAlert, Target, Radar } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import AlphaEarthPanel from './AlphaEarthPanel';
 import SourceStack from './SourceStack';
@@ -91,6 +90,12 @@ const CORE_LAYERS = {
         icon: <Wind size={18} />,
         group: 'environment',
     },
+    sar: {
+        title: 'Radar (Sentinel-1)',
+        desc: 'Sees through cloud and darkness — and shows ships that AIS does not',
+        icon: <Radar size={18} />,
+        group: 'satellite',
+    },
     disasters: {
         title: 'Natural disasters',
         desc: 'Active NASA EONET events and alerts',
@@ -133,14 +138,14 @@ const EO_LAYER_META = {
 // eastasia and southasia had no entry here either, so both silently fell back to the
 // middleeast list — which is why an East Asia view offered a Gulf 'infrastructure'
 // layer. Each theater now names its own core set.
-const ASIA_CORE = ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'];
+const ASIA_CORE = ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy', 'sar'];
 const REGION_CORE_IDS = {
-    middleeast: ['firms', 'conflicts', 'infrastructure', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
-    indopacific: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    middleeast: ['firms', 'conflicts', 'infrastructure', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy', 'sar'],
+    indopacific: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'sar'],
     eastasia: ASIA_CORE,
     southasia: ASIA_CORE,
-    thailand: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
-    global: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    thailand: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'sar'],
+    global: ['firms', 'conflicts', 'cables', 'dams', 'range-rings', 'military', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy', 'sar'],
 };
 
 const GROUP_ORDER = [

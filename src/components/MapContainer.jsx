@@ -4,6 +4,7 @@ import maplibregl from 'maplibre-gl';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { fetchNaturalDisasters } from '../services/nasaEonet';
+import { fetchSar } from '../services/sar';
 import { fetchConflictsAndCrises } from '../services/reliefWeb';
 import { fetchLiveWeather } from '../services/weather';
 import { fetchMacroEconomy } from '../services/worldBank';
@@ -757,6 +758,16 @@ const MapContainer = ({
         intervalMs: 24 * 60 * 60 * 1000,
         isUsable: (d) => d?.features?.length > 0
     });
+    // Sentinel-1 radar. Only fetched when the layer is on: it is a STAC search, not
+    // a tile read, and there is no reason to spend it on a reader who never asks.
+    const sarResource = useLiveResource(useCallback(() => fetchSar(viewMode), [viewMode]), {
+        cacheKey: `map:sar:${viewMode}`,
+        enabled: activeLayers.includes('sar'),
+        intervalMs: 30 * 60 * 1000,
+        isUsable: (d) => Boolean(d?.latest?.id)
+    });
+    const sarScene = sarResource.data?.latest || null;
+
     const firmsResource = useLiveResource(useCallback(() => fetchFirmsData(viewMode), [viewMode]), {
         cacheKey: `map:firms:${viewMode}`,
         enabled: activeLayers.includes('firms'),
@@ -1214,6 +1225,23 @@ const MapContainer = ({
                 )}
 
                 {/* Earth Observation Satellite Tile Layers */}
+                {/* Sentinel-1 radar: one strip, not a mosaic. The outline is drawn with
+                    the image so the edge of what the satellite actually saw is visible —
+                    without it a reader reads the empty area around the strip as "nothing
+                    there" rather than "not looked at". */}
+                {activeLayers.includes('sar') && sarScene?.tiles?.length && (
+                    <Source id="sar-scene" type="raster" tiles={sarScene.tiles} tileSize={256} maxzoom={14}
+                        attribution="Sentinel-1 GRD · ESA / Microsoft Planetary Computer">
+                        <Layer id="sar-scene-layer" type="raster" paint={{ 'raster-opacity': 0.85 }} />
+                    </Source>
+                )}
+                {activeLayers.includes('sar') && sarScene?.geometry && (
+                    <Source id="sar-footprint" type="geojson"
+                        data={{ type: 'Feature', geometry: sarScene.geometry, properties: {} }}>
+                        <Layer id="sar-footprint-line" type="line"
+                            paint={{ 'line-color': '#38bdf8', 'line-width': 1, 'line-opacity': 0.7 }} />
+                    </Source>
+                )}
                 {EO_TILE_LAYERS.map((eoLayer) => {
                     if (!activeLayers.includes(eoLayer.id)) return null;
                     if (publicOverlayVisible && eoLayer.id === publicSentinelLayerId) return null;
