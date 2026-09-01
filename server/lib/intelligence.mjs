@@ -27,13 +27,37 @@ export const decodeEntities = (value = '') => String(value)
  * that genuinely ends in a dash keeps its words.
  */
 export const stripSourceSuffix = (title = '', source = '') => {
-    const name = String(source).trim();
-    if (!name) return title;
-    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const cleaned = String(title)
-        .replace(new RegExp(`\\s*[-\u2013\u2014|]\\s*${escaped}\\s*$`, 'i'), '')
-        .trim();
-    return cleaned || title;
+    const raw = String(source).trim();
+    if (!raw) return title;
+    // A feed's <title> is usually a masthead ("Al Jazeera \u2013 Breaking News, \u2026")
+    // while the headline is tagged with the plain name ("\u2026 - Al Jazeera"), so try
+    // the short form as well as the full one.
+    const candidates = [...new Set([raw, raw.split(/\s+[\u2013\u2014|]\s+|:\s+/)[0].trim()])]
+        .filter((c) => c.length >= 3)
+        .sort((a, b) => b.length - a.length);
+    let out = String(title);
+    for (const name of candidates) {
+        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const next = out.replace(new RegExp(`\\s*[-\u2013\u2014|]\\s*${escaped}\\s*$`, 'i'), '').trim();
+        if (next && next !== out) { out = next; break; }
+    }
+    return out || title;
+};
+
+/**
+ * RSS <title> is the feed's masthead, not its name: "Al Jazeera – Breaking News,
+ * World News and Video from Al Jazeera", "AL-MONITOR: The Pulse of The Middle
+ * East". Printed as a byline it crowds out the headline it is meant to attribute.
+ *
+ * Keep the part before the first tagline delimiter. A name with no delimiter is
+ * already a name and passes through untouched.
+ */
+export const cleanSourceName = (source = '') => {
+    const raw = String(source).trim();
+    if (!raw) return raw;
+    const cut = raw.split(/\s+[\u2013\u2014|]\s+|:\s+/)[0].trim();
+    // Only accept the trim if what remains still reads as a name.
+    return cut.length >= 3 && cut.length <= 40 ? cut : raw;
 };
 
 const normalizeTitle = (value = '') => value.toLowerCase().replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
@@ -135,7 +159,7 @@ const parseXmlFeed = (xml, source) => {
         if (!title || !link) continue;
         if (normalizeTitle(title) === normalizeTitle(feedTitle) || title === feedTitle) continue;
 
-        items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(itemSource)), link, pubDate: resolveDate(pubDate), source: decodeEntities(itemSource) });
+        items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(itemSource)), link, pubDate: resolveDate(pubDate), source: cleanSourceName(decodeEntities(itemSource)) });
     }
 
     // Try Atom <entry> if no RSS <item> found
@@ -149,7 +173,7 @@ const parseXmlFeed = (xml, source) => {
                 || block.match(/<published>([\s\S]*?)<\/published>/)?.[1] || '').trim();
 
             if (!title || !link) continue;
-            items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(feedTitle)), link, pubDate: resolveDate(pubDate), source: decodeEntities(feedTitle) });
+            items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(feedTitle)), link, pubDate: resolveDate(pubDate), source: cleanSourceName(decodeEntities(feedTitle)) });
         }
     }
 
