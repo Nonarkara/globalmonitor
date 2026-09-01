@@ -30,7 +30,10 @@ const DASHBOARD_VERSION = 'v8.3';
 
 function App() {
   // ponytail: aerosol drowns the live traffic at 0.55 opacity — keep it a toggle, not a default. Re-add 'eo-aerosol' to restore aerosol-on-load.
-  const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
+  // Aerosol and nightlights are on at first paint by request — the two layers that
+  // make this read as a satellite picture rather than a plotted map. Both are dimmed
+  // in eoTiles.js so live air and sea traffic still read through them.
+  const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels', 'eo-aerosol', 'eo-nightlights']);
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Region nav: 'middleeast' | 'indopacific' | 'thailand' | 'global'.
