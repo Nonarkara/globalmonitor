@@ -38,11 +38,13 @@ Open data is fetched, cached with an expiry, and drawn on a map. Provenance trav
 
 ```mermaid
 flowchart LR
-  A[Open feeds<br/>ACLED · NASA · AIS · ADS-B · USGS · RSS · …] --> B[Fetchers<br/>server/lib · functions/_lib]
-  B --> C[Cache + TTL<br/>live or stale, never silent]
-  C --> D["/api JSON<br/>X-Tech-* headers"]
-  D --> E[React + MapLibre<br/>panels and map]
+  feeds[Open feeds] --> fetchers[Fetchers]
+  fetchers --> cache[Cache + TTL]
+  cache --> api["/api JSON"]
+  api --> ui[Map + panels]
 ```
+
+Open feeds in this tree include ACLED, NASA FIRMS/GIBS, AIS, ADS-B, USGS, RSS, and the others listed in [`src/data/dataSources.json`](src/data/dataSources.json). Fetchers live in `server/lib` (local Node) and `functions/_lib` (Cloudflare Pages). Cache replies are live or stale, never silent; `/api` payloads carry `X-Tech-*` provenance headers into React + MapLibre.
 
 Same-origin `/api/*` in production (Cloudflare Pages Functions). Locally, Vite on port **5180** proxies `/api` to a Node cache on **4000**. Optional keys in [`.env.example`](.env.example) enrich feeds; the UI still renders public fallbacks and snapshot files when keys are missing. Only endpoints that exist in `server/` and `functions/` are documented.
 
