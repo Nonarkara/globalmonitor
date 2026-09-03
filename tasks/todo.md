@@ -191,13 +191,13 @@ Rule: no number reaches a viewer wearing a provenance it does not have.
 - [x] D7 probeCog host allowlist + 400 on both servers
 - [x] D8 Deploy collision: both workflows → asiawatch; CI audit last; ACLED_EMAIL documented
 - [x] D9 tests/data-honesty.test.mjs — the conservation law as assertions
-- [ ] D10 EscalationGauge: accept NO DATA payload, show /availableMax, age, sample band text
-- [ ] D11 MultiFrontBoard: handle fronts:[] + reason; label thermal not fires
-- [ ] D12 SourceHealthModal: DEMO state, checkedAt
-- [ ] D13 Map legend rows for FIRMS/ACLED; flights snapshot stamp (port classic); vessel snapshot source string
-- [ ] D14 Reference panels AS OF stamps (arms/nuclear/sanctions/keyFigures/refugee/intlResponse/hormuz/warCost)
-- [ ] D15 Charts: oil (source badge, axis from data, pins in range), sentiment (query+window), market (null change)
-- [ ] D16 News panels: LIVE from __meta.status; drop sliceStart; maritime triage label
-- [ ] D17 Port to middleeast + classic; OWM key removal on both; middleeast workflow → globalmonitor-me
-- [ ] D18 v1-basic: delete random tickers; v2-standalone: fronts fallback + null score
-- [ ] D19 Build, deploy all three, verify live headers; restore stashed WIP
+- [x] D10 EscalationGauge: accept NO DATA payload, show /availableMax, age, sample band text
+- [x] D11 MultiFrontBoard: handle fronts:[] + reason; label thermal not fires
+- [x] D12 SourceHealthModal: DEMO state, checkedAt
+- [x] D13 Map legend rows for FIRMS/ACLED; flights snapshot stamp (port classic); vessel snapshot source string
+- [x] D14 Reference panels AS OF stamps (arms/nuclear/sanctions/keyFigures/refugee/intlResponse/hormuz/warCost)
+- [x] D15 Charts: oil (source badge, axis from data, pins in range), sentiment (query+window), market (null change)
+- [x] D16 News panels: LIVE from __meta.status; drop sliceStart; maritime triage label
+- [x] D17 Port to middleeast + classic; OWM key removal on both; middleeast workflow → globalmonitor-me
+- [x] D18 v1-basic: delete random tickers; v2-standalone: fronts fallback + null score
+- [x] D19 Build, deploy all three, verify live headers; restore stashed WIP
