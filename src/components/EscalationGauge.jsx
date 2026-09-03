@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { fetchEscalation } from '../services/escalation';
 import { useLiveResource } from '../hooks/useLiveResource';
 
@@ -24,9 +24,9 @@ const BAND_MAX = { firms: 30, news: 25, markets: 25, briefings: 20 };
 const BAND_LABEL = { firms: 'fires', news: 'news', markets: 'markets', briefings: 'strikes' };
 const COMPONENT_KEY = { firms: 'firms', news: 'news', markets: 'market', briefings: 'strikes' };
 
-const ageLabel = (iso) => {
+const ageLabel = (iso, nowMs) => {
     if (!iso) return null;
-    const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    const mins = Math.round((nowMs - new Date(iso).getTime()) / 60000);
     if (!Number.isFinite(mins) || mins < 0) return null;
     if (mins < 1) return 'now';
     if (mins < 60) return `${mins}m`;
@@ -82,9 +82,15 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
         isUsable: (d) => Boolean(d) && typeof d === 'object' && 'score' in d
     });
 
+    // A clock that ticks in an effect, so age labels are pure during render.
+    const [nowMs, setNowMs] = useState(() => Date.now());
+    useEffect(() => {
+        const t = setInterval(() => setNowMs(Date.now()), 60_000);
+        return () => clearInterval(t);
+    }, []);
     const radius = 18;
     const circumference = Math.PI * radius;
-    const age = ageLabel(lastUpdated);
+    const age = ageLabel(lastUpdated, nowMs);
 
     // No payload yet, or the backend reported every band silent.
     if (!data || data.score === null || typeof data.score !== 'number') {

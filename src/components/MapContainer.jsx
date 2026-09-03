@@ -730,9 +730,15 @@ const MapContainer = ({
         : (vesselsData?.meta?.source?.replace('ais-snapshot', 'AIS snapshot')?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS');
     // FIRMS and ACLED sit on the same map as traffic with no provenance line of
     // their own. Same format as the traffic rows: count · source · age.
+    // A clock that ticks in an effect, so age labels are pure during render.
+    const [nowMs, setNowMs] = useState(() => Date.now());
+    useEffect(() => {
+        const t = setInterval(() => setNowMs(Date.now()), 60_000);
+        return () => clearInterval(t);
+    }, []);
     const ageLabel = (iso) => {
         if (!iso) return null;
-        const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+        const mins = Math.floor((nowMs - new Date(iso).getTime()) / 60000);
         if (!Number.isFinite(mins) || mins < 0) return null;
         if (mins < 2) return 'just now';
         if (mins < 60) return mins + 'm old';

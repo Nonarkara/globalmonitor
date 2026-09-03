@@ -6,7 +6,7 @@ It combines live map layers, flight and vessel tracking, market context, humanit
 
 ## Live Status
 
-- Current source repo: `Nonarkara/globalmonitor`
+- Current source repo: `Nonarkara/globalmonitor-v3` (branch `main`; this checkout is worktree `v3-classic`, branch `classic`, mirrored to `Nonarkara/globalmonitor` branch `classic`) — the FLAGSHIP at globalmonitor.nonarkara.org
 - Clean v3 mirror: `Nonarkara/globalmonitor-v3`
 - **Production URL**: `https://globalmonitor.pages.dev` — static frontend + API via Cloudflare Pages Functions (same origin)
 - Legacy static backup: `https://nonarkara.github.io/globalmonitor/`
