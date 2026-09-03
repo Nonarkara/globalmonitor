@@ -9,6 +9,11 @@ const STATUS_BADGES = {
     unknown: { bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)', color: '#94a3b8' }
 };
 
+// Hand-maintained reference file — stamp the header with its git date, never "now".
+const AS_OF = new Date(`${nuclearData.asOf}T00:00:00Z`)
+    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
+
 const NuclearTrackerPanel = ({ onFlyTo }) => {
     const [showTimeline, setShowTimeline] = useState(false);
 
@@ -31,7 +36,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                     </span>
                 </div>
                 <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    {nuclearData.facilities.length} SITES
+                    {nuclearData.facilities.length} SITES · AS OF {AS_OF}
                 </span>
             </div>
 
@@ -60,6 +65,9 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                             </span>
                             <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>pre-war</span>
                         </div>
+                    </div>
+                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                        ESTIMATE · UNCERTAINTY: {nuclearData.breakoutEstimate.uncertainty}
                     </div>
                 </div>
             </div>
@@ -163,6 +171,14 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                     ))}
                 </div>
             )}
+
+            {/* Source note */}
+            <div style={{
+                fontSize: '0.32rem', color: 'var(--ink-3)',
+                marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
+            }}>
+                {nuclearData.sources}
+            </div>
         </div>
     );
 };

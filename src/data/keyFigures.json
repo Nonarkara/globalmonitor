@@ -1,102 +1,106 @@
-[
-  {
-    "id": "khamenei",
-    "name": "Ayatollah Khamenei",
-    "role": "Supreme Leader of Iran",
-    "faction": "iran",
-    "status": "active",
-    "statusColor": "#ef4444",
-    "significance": "Ultimate decision authority. Authorized retaliatory strikes. Controls IRGC directly.",
-    "lastKnown": "Tehran (secure location)"
-  },
-  {
-    "id": "qaani",
-    "name": "Esmail Qaani",
-    "role": "IRGC Quds Force Commander",
-    "faction": "iran",
-    "status": "unknown",
-    "statusColor": "#f59e0b",
-    "significance": "Commands Iran's external operations and proxy networks. Location unknown since strikes began.",
-    "lastKnown": "Unknown since Feb 28"
-  },
-  {
-    "id": "salami",
-    "name": "Hossein Salami",
-    "role": "IRGC Commander-in-Chief",
-    "faction": "iran",
-    "status": "active",
-    "statusColor": "#ef4444",
-    "significance": "Overall IRGC military commander. Directing missile and drone operations.",
-    "lastKnown": "Mobile command"
-  },
-  {
-    "id": "netanyahu",
-    "name": "Benjamin Netanyahu",
-    "role": "Prime Minister of Israel",
-    "faction": "israel",
-    "status": "active",
-    "statusColor": "#3b82f6",
-    "significance": "War cabinet chair. Authorized joint strikes with US. Managing multi-front defense.",
-    "lastKnown": "Tel Aviv / Jerusalem"
-  },
-  {
-    "id": "gallant",
-    "name": "Yoav Gallant",
-    "role": "Minister of Defense (Israel)",
-    "faction": "israel",
-    "status": "active",
-    "statusColor": "#3b82f6",
-    "significance": "Directing IDF operations across all fronts. Key liaison with US CENTCOM.",
-    "lastKnown": "IDF HQ, Tel Aviv"
-  },
-  {
-    "id": "austin",
-    "name": "Lloyd Austin",
-    "role": "US Secretary of Defense",
-    "faction": "usa",
-    "status": "active",
-    "statusColor": "#3b82f6",
-    "significance": "Directing US military operations. Managing carrier strike group deployments in Gulf and Red Sea.",
-    "lastKnown": "Pentagon"
-  },
-  {
-    "id": "nasrallah_successor",
-    "name": "Naim Qassem",
-    "role": "Hezbollah Secretary-General",
-    "faction": "hezbollah",
-    "status": "active",
-    "statusColor": "#ef4444",
-    "significance": "Directing Hezbollah rocket campaign against northern Israel. Coordinating with IRGC Quds Force.",
-    "lastKnown": "Beirut (underground)"
-  },
-  {
-    "id": "houthi_leader",
-    "name": "Abdul-Malik al-Houthi",
-    "role": "Ansar Allah Leader",
-    "faction": "houthis",
-    "status": "active",
-    "statusColor": "#ef4444",
-    "significance": "Directing anti-ship operations in Red Sea and Bab el-Mandeb. Coordinating with Iran.",
-    "lastKnown": "Saada, Yemen"
-  },
-  {
-    "id": "mbs",
-    "name": "Mohammed bin Salman",
-    "role": "Crown Prince of Saudi Arabia",
-    "faction": "saudi",
-    "status": "active",
-    "statusColor": "#22c55e",
-    "significance": "Managing Saudi security posture. Balancing defense of oil infrastructure with diplomatic channels.",
-    "lastKnown": "Riyadh"
-  },
-  {
-    "id": "grossi",
-    "name": "Rafael Grossi",
-    "role": "IAEA Director General",
-    "faction": "international",
-    "status": "active",
-    "statusColor": "#38bdf8",
-    "significance": "Leading international nuclear monitoring efforts. Seeking restored access to Iranian sites.",
-    "lastKnown": "Vienna / traveling"
-  }
-]
+{
+  "asOf": "2026-03-31",
+  "sources": "Profiles compiled from official government and organisation statements and press reporting.",
+  "items": [
+    {
+      "id": "khamenei",
+      "name": "Ayatollah Khamenei",
+      "role": "Supreme Leader of Iran",
+      "faction": "iran",
+      "status": "active",
+      "statusColor": "#ef4444",
+      "significance": "Ultimate decision authority. Authorized retaliatory strikes. Controls IRGC directly.",
+      "lastKnown": "Tehran (secure location)"
+    },
+    {
+      "id": "qaani",
+      "name": "Esmail Qaani",
+      "role": "IRGC Quds Force Commander",
+      "faction": "iran",
+      "status": "unknown",
+      "statusColor": "#f59e0b",
+      "significance": "Commands Iran's external operations and proxy networks. Location unknown since strikes began.",
+      "lastKnown": "Unknown since Feb 28"
+    },
+    {
+      "id": "salami",
+      "name": "Hossein Salami",
+      "role": "IRGC Commander-in-Chief",
+      "faction": "iran",
+      "status": "active",
+      "statusColor": "#ef4444",
+      "significance": "Overall IRGC military commander. Directing missile and drone operations.",
+      "lastKnown": "Mobile command"
+    },
+    {
+      "id": "netanyahu",
+      "name": "Benjamin Netanyahu",
+      "role": "Prime Minister of Israel",
+      "faction": "israel",
+      "status": "active",
+      "statusColor": "#3b82f6",
+      "significance": "War cabinet chair. Authorized joint strikes with US. Managing multi-front defense.",
+      "lastKnown": "Tel Aviv / Jerusalem"
+    },
+    {
+      "id": "gallant",
+      "name": "Yoav Gallant",
+      "role": "Minister of Defense (Israel)",
+      "faction": "israel",
+      "status": "active",
+      "statusColor": "#3b82f6",
+      "significance": "Directing IDF operations across all fronts. Key liaison with US CENTCOM.",
+      "lastKnown": "IDF HQ, Tel Aviv"
+    },
+    {
+      "id": "austin",
+      "name": "Lloyd Austin",
+      "role": "US Secretary of Defense",
+      "faction": "usa",
+      "status": "active",
+      "statusColor": "#3b82f6",
+      "significance": "Directing US military operations. Managing carrier strike group deployments in Gulf and Red Sea.",
+      "lastKnown": "Pentagon"
+    },
+    {
+      "id": "nasrallah_successor",
+      "name": "Naim Qassem",
+      "role": "Hezbollah Secretary-General",
+      "faction": "hezbollah",
+      "status": "active",
+      "statusColor": "#ef4444",
+      "significance": "Directing Hezbollah rocket campaign against northern Israel. Coordinating with IRGC Quds Force.",
+      "lastKnown": "Beirut (underground)"
+    },
+    {
+      "id": "houthi_leader",
+      "name": "Abdul-Malik al-Houthi",
+      "role": "Ansar Allah Leader",
+      "faction": "houthis",
+      "status": "active",
+      "statusColor": "#ef4444",
+      "significance": "Directing anti-ship operations in Red Sea and Bab el-Mandeb. Coordinating with Iran.",
+      "lastKnown": "Saada, Yemen"
+    },
+    {
+      "id": "mbs",
+      "name": "Mohammed bin Salman",
+      "role": "Crown Prince of Saudi Arabia",
+      "faction": "saudi",
+      "status": "active",
+      "statusColor": "#22c55e",
+      "significance": "Managing Saudi security posture. Balancing defense of oil infrastructure with diplomatic channels.",
+      "lastKnown": "Riyadh"
+    },
+    {
+      "id": "grossi",
+      "name": "Rafael Grossi",
+      "role": "IAEA Director General",
+      "faction": "international",
+      "status": "active",
+      "statusColor": "#38bdf8",
+      "significance": "Leading international nuclear monitoring efforts. Seeking restored access to Iranian sites.",
+      "lastKnown": "Vienna / traveling"
+    }
+  ]
+}

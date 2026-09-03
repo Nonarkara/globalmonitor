@@ -1,18 +1,20 @@
 import React from 'react';
 
 const AGENCIES = [
-    { id: 'nasa', label: 'NASA', flag: '🇺🇸', status: 'live', source: 'GIBS / FIRMS / EONET' },
-    { id: 'esa', label: 'ESA', flag: '🇪🇺', status: 'live', source: 'Sentinel-2 / Copernicus' },
-    { id: 'jaxa', label: 'JAXA', flag: '🇯🇵', status: 'live', source: 'Himawari / ALOS' },
+    { id: 'nasa', label: 'NASA', flag: '🇺🇸', status: 'integrated', source: 'GIBS / FIRMS / EONET' },
+    { id: 'esa', label: 'ESA', flag: '🇪🇺', status: 'integrated', source: 'Sentinel-2 / Copernicus' },
+    { id: 'jaxa', label: 'JAXA', flag: '🇯🇵', status: 'integrated', source: 'Himawari / ALOS' },
     { id: 'isro', label: 'ISRO', flag: '🇮🇳', status: 'catalog', source: 'Bhuvan WMS' },
     { id: 'roscosmos', label: 'Roscosmos', flag: '🇷🇺', status: 'catalog', source: 'Meteor-M / Elektro-L' },
-    { id: 'noaa', label: 'NOAA', flag: '🇺🇸', status: 'live', source: 'VIIRS / IMERG' },
-    { id: 'eox', label: 'EOX', flag: '🇦🇹', status: 'live', source: 'S2 Cloudless Mosaic' },
-    { id: 'jrc', label: 'JRC', flag: '🇪🇺', status: 'live', source: 'Surface Water' },
+    { id: 'noaa', label: 'NOAA', flag: '🇺🇸', status: 'integrated', source: 'VIIRS / IMERG' },
+    { id: 'eox', label: 'EOX', flag: '🇦🇹', status: 'integrated', source: 'S2 Cloudless Mosaic' },
+    { id: 'jrc', label: 'JRC', flag: '🇪🇺', status: 'integrated', source: 'Surface Water' },
 ];
 
+// No health check backs these entries — "integrated" means wired into the app, not verified up.
+// Never green for an unchecked source.
 const statusColor = (s) => {
-    if (s === 'live') return 'rgba(34, 197, 94, 0.8)';
+    if (s === 'integrated') return 'var(--ink-3)';
     if (s === 'catalog') return 'rgba(59, 130, 246, 0.6)';
     return 'var(--ink-3)';
 };
@@ -32,7 +34,7 @@ const SourceStack = () => (
             ))}
         </div>
         <div className="source-stack-legend">
-            <span><span className="source-stack-dot" style={{ background: 'rgba(34, 197, 94, 0.8)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Live</span>
+            <span><span className="source-stack-dot" style={{ background: 'var(--ink-3)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Integrated</span>
             <span><span className="source-stack-dot" style={{ background: 'rgba(59, 130, 246, 0.6)', position: 'relative', display: 'inline-block', width: 6, height: 6, borderRadius: '50%', marginRight: 4 }} />Catalog</span>
         </div>
     </div>
