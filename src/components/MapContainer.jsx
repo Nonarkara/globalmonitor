@@ -62,7 +62,7 @@ const formatVesselSourceLabel = (meta) => {
 
 const HOVER_LAYERS = [
     'flights-icons', 'vessels-icons', 'airports-points', 'airports-labels', 'acled-circles', 'firms-circles',
-    'cables-lines', 'dams-points', 'military-flights-icons', 'range-rings-lines'
+    'cables-lines', 'dams-points', 'military-flights-icons', 'range-rings-lines', 'strike-origins-points'
 ];
 
 const formatCoord = (value, axis) => {
@@ -683,6 +683,10 @@ const MapContainer = ({
         if (airportsLayerActive) layers.push('airports-points', 'airports-labels');
         if (activeLayers.includes('conflicts')) layers.push('acled-circles');
         if (activeLayers.includes('firms')) layers.push('firms-circles');
+        if (activeLayers.includes('cables')) layers.push('cables-lines');
+        if (activeLayers.includes('dams')) layers.push('dams-points');
+        if (activeLayers.includes('military')) layers.push('military-flights-icons');
+        if (activeLayers.includes('range-rings')) layers.push('range-rings-lines', 'strike-origins-points');
         return layers;
     }, [activeLayers, airportsLayerActive, flightsLayerActive, vesselsLayerActive]);
 
@@ -699,7 +703,11 @@ const MapContainer = ({
             (f) => HOVER_LAYERS.includes(f.layer?.id)
         );
         if (feature) {
-            const [longitude, latitude] = feature.geometry?.coordinates || [];
+            const isPoint = feature.geometry?.type === 'Point';
+            const [longitude, latitude] = isPoint
+                ? (feature.geometry?.coordinates || [])
+                : [event.lngLat.lng, event.lngLat.lat];
+
             if (isValidLngLat(longitude, latitude)) {
                 setHoverInfo((current) => {
                     const next = { longitude, latitude, feature };
@@ -1871,6 +1879,23 @@ const MapContainer = ({
                                             <div className="traffic-tooltip-row">
                                                 <span>Radius</span>
                                                 <span style={{ color: '#fca5a5', fontWeight: 700 }}>{p.rangeKm || '—'}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (layerId === 'strike-origins-points') {
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header" style={{ color: '#ef4444' }}>
+                                                {p.name || 'Strike Launch Origin'}
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Region</span>
+                                                <span>{p.country || '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Max Envelope</span>
+                                                <span style={{ color: '#fca5a5', fontWeight: 700 }}>{p.maxRangeKm ? `${p.maxRangeKm} km` : '—'}</span>
                                             </div>
                                         </div>
                                     );

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { normalizeAirLabsFlights } from '../server/lib/airLabs.mjs';
 import { airportsCsvToFeatureCollection } from '../scripts/refresh-airports.mjs';
+import { filterMilitaryFlightsPayload } from '../src/services/militaryFlights.js';
 import { sanitizePointCollection } from '../src/utils/geojsonValidate.js';
 import { buildPopupClassName } from '../src/utils/mapPopup.js';
 import { fetchFlightSnapshot } from '../functions/_lib/router.mjs';
@@ -84,4 +85,27 @@ test('flight fallback reads the Pages static asset through context.next', async 
     assert.equal(result.features.length, 50);
     assert.equal(result.meta.stale, true);
     assert.equal(result.meta.liveError, 'throttled');
+});
+
+test('military fallback stays within the selected theater', () => {
+    const thailand = filterMilitaryFlightsPayload({
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [98.2, 16.9] },
+                properties: { theater: 'thailand', role: 'Patrol' },
+            },
+            {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [52.12, 26.85] },
+                properties: { theater: 'middleeast', role: 'AWACS' },
+            },
+        ],
+        meta: { source: 'fallback' },
+    }, 'thailand');
+
+    assert.equal(thailand.features.length, 1);
+    assert.equal(thailand.features[0].properties.theater, 'thailand');
+    assert.equal(thailand.meta.theater, 'thailand');
 });

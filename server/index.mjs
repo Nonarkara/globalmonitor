@@ -17,6 +17,7 @@ import { fetchHumanitarianPayload } from './lib/humanitarian.mjs';
 import { computeInfrastructureStatus } from './lib/infrastructure.mjs';
 import { fetchGdeltSentiment } from './lib/gdelt.mjs';
 import { fetchFlightsPayload } from './lib/flights.mjs';
+import { fetchLiveMilitaryFlights, MIL_CACHE_TTL_MS } from './lib/militaryFlights.mjs';
 import { FLIGHTS_CACHE_TTL_MS } from './lib/airplanesLive.mjs';
 import { computeFrontStatus } from './lib/frontStatus.mjs';
 import { fetchNgaWarnings } from './lib/ngaWarnings.mjs';
@@ -393,6 +394,38 @@ const server = http.createServer(async (request, response) => {
                 `flights:v3:${theater}`,
                 FLIGHTS_CACHE_TTL_MS,
                 () => fetchFlightsPayload(theater),
+                (p) => p?.type === 'FeatureCollection'
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/military-flights') {
+            const theater = url.searchParams.get('theater') || 'global';
+            const result = await useCached(
+                `military-flights:${theater}`,
+                MIL_CACHE_TTL_MS,
+                async () => {
+                    const liveMil = await fetchLiveMilitaryFlights(theater);
+                    if (liveMil && liveMil.features?.length > 0) {
+                        return liveMil;
+                    }
+                    const payload = await fetchFlightsPayload(theater);
+                    const features = (payload.features || []).filter((feature) => {
+                        const props = feature?.properties || {};
+                        return Boolean(props.military || props.spi || props.category === 15);
+                    });
+                    return {
+                        type: 'FeatureCollection',
+                        features,
+                        meta: {
+                            ...(payload.meta || {}),
+                            theater,
+                            count: features.length,
+                            source: payload.meta?.source || 'flights-mil-filter'
+                        }
+                    };
+                },
                 (p) => p?.type === 'FeatureCollection'
             );
             json(response, 200, result.payload, result.meta);

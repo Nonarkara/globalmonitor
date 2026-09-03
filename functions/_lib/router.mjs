@@ -13,6 +13,7 @@ import { fetchHumanitarianPayload } from '../../server/lib/humanitarian.mjs';
 import { computeInfrastructureStatus } from '../../server/lib/infrastructure.mjs';
 import { fetchGdeltSentiment } from '../../server/lib/gdelt.mjs';
 import { fetchFlightsPayload } from '../../server/lib/flights.mjs';
+import { fetchLiveMilitaryFlights, MIL_CACHE_TTL_MS } from '../../server/lib/militaryFlights.mjs';
 import { FLIGHTS_CACHE_TTL_MS } from '../../server/lib/airplanesLive.mjs';
 import { computeFrontStatus } from '../../server/lib/frontStatus.mjs';
 import { fetchNgaWarnings } from '../../server/lib/ngaWarnings.mjs';
@@ -316,6 +317,37 @@ export async function handleApiRequest(request, env, next) {
                 ...result.meta,
                 status: result.payload?.meta?.stale ? 'stale' : (result.meta?.status || 'live')
             });
+        }
+
+        if (url.pathname === '/api/military-flights') {
+            const theater = url.searchParams.get('theater') || 'global';
+            const result = await useCached(
+                `military-flights:${theater}`,
+                MIL_CACHE_TTL_MS,
+                async () => {
+                    const liveMil = await fetchLiveMilitaryFlights(theater);
+                    if (liveMil && liveMil.features?.length > 0) {
+                        return liveMil;
+                    }
+                    const payload = await fetchFlightsPayload(theater);
+                    const features = (payload.features || []).filter((feature) => {
+                        const props = feature?.properties || {};
+                        return Boolean(props.military || props.spi || props.category === 15);
+                    });
+                    return {
+                        type: 'FeatureCollection',
+                        features,
+                        meta: {
+                            ...(payload.meta || {}),
+                            theater,
+                            count: features.length,
+                            source: payload.meta?.source || 'flights-mil-filter'
+                        }
+                    };
+                },
+                (p) => p?.type === 'FeatureCollection'
+            );
+            return jsonResponse(result.payload, 200, result.meta);
         }
 
         if (url.pathname === '/api/vessels') {

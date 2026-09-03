@@ -1,8 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Radio, Volume2, VolumeX, Play, Square, RadioTower } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Radio, Volume2, VolumeX, Play, Square, RadioTower, Globe2 } from 'lucide-react';
 import { CRISIS_RADIO_STATIONS, getStationForTheater } from '../services/crisisRadio.js';
 
 const SIGNAL_BAR_HEIGHTS = [34, 52, 68, 42, 76, 58, 30, 64, 48, 72, 40, 66, 54, 78, 36, 60];
+
+const REGION_FILTERS = [
+    { id: 'all', label: 'ALL THEATERS' },
+    { id: 'middleeast', label: 'MIDDLE EAST' },
+    { id: 'thailand', label: 'THAILAND / MEKONG' },
+    { id: 'indopacific', label: 'INDO-PACIFIC' },
+];
 
 /**
  * Crisis Radio Intelligence Tuner — Braun T1000CD Aesthetic
@@ -10,16 +17,57 @@ const SIGNAL_BAR_HEIGHTS = [34, 52, 68, 42, 76, 58, 30, 64, 48, 72, 40, 66, 54, 
  */
 const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
     const [selectedStation, setSelectedStation] = useState(() => getStationForTheater(viewMode));
+    const [regionFilter, setRegionFilter] = useState('all');
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
-    const [volume, setVolume] = useState(0.7);
+    const [usingBackup, setUsingBackup] = useState(false);
+    const [isMuted, setIsMuted] = useState(() => {
+        try {
+            return localStorage.getItem('tech-monitor:radio-muted') === 'true';
+        } catch {
+            return false;
+        }
+    });
+    const [volume, setVolume] = useState(() => {
+        try {
+            const saved = localStorage.getItem('tech-monitor:radio-volume');
+            return saved ? Number(saved) : 0.7;
+        } catch {
+            return 0.7;
+        }
+    });
     const [streamError, setStreamError] = useState(false);
     const audioRef = useRef(null);
+
+    // Sync station when theater switches
+    useEffect(() => {
+        const defaultStation = getStationForTheater(viewMode);
+        if (defaultStation && defaultStation.id !== selectedStation.id) {
+            setSelectedStation(defaultStation);
+            setIsPlaying(false);
+            setStreamError(false);
+            setUsingBackup(false);
+        }
+    }, [viewMode]);
 
     useEffect(() => {
         if (!audioRef.current) return;
         audioRef.current.volume = isMuted ? 0 : volume;
     }, [volume, isMuted]);
+
+    const handleVolumeChange = (newVol) => {
+        setVolume(newVol);
+        try {
+            localStorage.setItem('tech-monitor:radio-volume', String(newVol));
+        } catch {}
+    };
+
+    const handleToggleMute = () => {
+        const next = !isMuted;
+        setIsMuted(next);
+        try {
+            localStorage.setItem('tech-monitor:radio-muted', String(next));
+        } catch {}
+    };
 
     const handleTogglePlay = () => {
         if (!audioRef.current) return;
@@ -31,20 +79,18 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
                 .catch(() => {
-                    setStreamError(true);
-                    setIsPlaying(false);
+                    handleStreamError();
                 });
         }
     };
 
-    const handleSelectStation = (station) => {
-        setSelectedStation(station);
-        setStreamError(false);
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.src = station.streamUrl;
-            audioRef.current.load();
-            if (isPlaying) {
+    const handleStreamError = () => {
+        if (!usingBackup && selectedStation.backupUrl) {
+            setUsingBackup(true);
+            setStreamError(false);
+            if (audioRef.current) {
+                audioRef.current.src = selectedStation.backupUrl;
+                audioRef.current.load();
                 audioRef.current.play()
                     .then(() => setIsPlaying(true))
                     .catch(() => {
@@ -52,19 +98,40 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                         setIsPlaying(false);
                     });
             }
+        } else {
+            setStreamError(true);
+            setIsPlaying(false);
         }
     };
+
+    const handleSelectStation = (station) => {
+        setSelectedStation(station);
+        setStreamError(false);
+        setUsingBackup(false);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = station.streamUrl;
+            audioRef.current.load();
+            if (isPlaying) {
+                audioRef.current.play()
+                    .then(() => setIsPlaying(true))
+                    .catch(() => handleStreamError());
+            }
+        }
+    };
+
+    const filteredStations = useMemo(() => {
+        if (regionFilter === 'all') return CRISIS_RADIO_STATIONS;
+        return CRISIS_RADIO_STATIONS.filter(s => s.region === regionFilter);
+    }, [regionFilter]);
 
     return (
         <div className="bottom-card" style={{ padding: '12px 14px', background: 'rgba(12, 16, 26, 0.88)', backdropFilter: 'blur(20px)' }}>
             <audio
                 ref={audioRef}
-                src={selectedStation.streamUrl}
+                src={usingBackup ? selectedStation.backupUrl : selectedStation.streamUrl}
                 preload="none"
-                onError={() => {
-                    setStreamError(true);
-                    setIsPlaying(false);
-                }}
+                onError={handleStreamError}
             />
 
             {/* Header */}
@@ -84,7 +151,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                         Crisis Radio Monitor · Braun T-1000
                     </div>
                     <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
-                        Local Shortwave &amp; News Broadcasts · Open Audio Stream
+                        Local Shortwave &amp; News Broadcasts · Open Audio Stream {usingBackup && '· [BACKUP STREAM]'}
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -161,7 +228,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                         type="button"
-                        onClick={() => setIsMuted(!isMuted)}
+                        onClick={handleToggleMute}
                         style={{
                             background: 'transparent', border: 'none',
                             color: 'var(--ink-2)', cursor: 'pointer'
@@ -175,18 +242,40 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                         max="1"
                         step="0.05"
                         value={volume}
-                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
                         style={{ width: '60px', height: '4px', accentColor: '#eab308' }}
                     />
                 </div>
             </div>
 
-            {/* Station Preset Switcher */}
-            <div style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                Crisis Broadcaster Dial Presets:
+            {/* Region Filter Chips */}
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+                {REGION_FILTERS.map(f => (
+                    <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setRegionFilter(f.id)}
+                        style={{
+                            padding: '2px 6px',
+                            background: regionFilter === f.id ? 'rgba(234, 179, 8, 0.2)' : 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${regionFilter === f.id ? '#eab308' : 'var(--line)'}`,
+                            borderRadius: '3px',
+                            color: regionFilter === f.id ? '#eab308' : 'var(--ink-3)',
+                            fontSize: '0.45rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.4px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        {f.label}
+                    </button>
+                ))}
             </div>
+
+            {/* Station Preset Switcher */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-                {CRISIS_RADIO_STATIONS.map((station) => {
+                {filteredStations.map((station) => {
                     const isCurrent = station.id === selectedStation.id;
                     return (
                         <button
@@ -218,7 +307,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
 
             {streamError && (
                 <div style={{ fontSize: '0.48rem', color: '#ef4444', marginTop: '6px', textAlign: 'center' }}>
-                    Broadcaster stream momentarily unreachable or blocked by CORS. Try another station.
+                    Station stream unreachable or network restricted. Select an alternate station.
                 </div>
             )}
         </div>

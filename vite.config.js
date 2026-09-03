@@ -16,12 +16,11 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 2500,
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-map': ['maplibre-gl'],
-          'vendor-d3': ['d3'],
+          'vendor-map': ['maplibre-gl', 'react-map-gl/maplibre'],
           'vendor-lucide': ['lucide-react'],
         },
       },
