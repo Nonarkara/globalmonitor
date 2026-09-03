@@ -72,9 +72,9 @@ test('FIRMS without a key returns an empty, labelled layer — no invented hotsp
 });
 
 test('FIRMS refuses to substitute another region for an unknown theater', async () => {
-    const payload = await fetchFirmsPayload('global');
+    const payload = await fetchFirmsPayload('atlantis');
     assert.equal(payload.features.length, 0);
-    assert.equal(payload.meta.theater, 'global');
+    assert.equal(payload.meta.theater, 'atlantis');
     assert.equal(payload.meta.source, 'no_coverage_for_theater');
 });
 
@@ -93,7 +93,8 @@ test('ACLED without credentials serves curated events labelled DEMO on the colle
 });
 
 test('ACLED never bridges two geographies: an unknown theater gets an empty labelled payload, not Middle East strikes', async () => {
-    for (const theater of ['eastasia', 'southasia', 'global']) {
+    // 'atlantis' is unknown on every branch; 'global' has no curated set anywhere.
+    for (const theater of ['atlantis', 'global']) {
         const payload = await fetchAcledEvents({ theater });
         assert.equal(payload.features.length, 0, theater);
         assert.equal(payload.theater, theater);
@@ -102,7 +103,7 @@ test('ACLED never bridges two geographies: an unknown theater gets an empty labe
 });
 
 test('humanitarian: unknown theater is labelled, never given Syria\'s numbers', async () => {
-    const payload = await fetchHumanitarianPayload('global');
+    const payload = await fetchHumanitarianPayload('atlantis');
     assert.equal(payload.totalDisplaced, null);
     assert.equal(payload.source, 'no_coverage_for_theater');
     const src = readFileSync(new URL('../server/lib/humanitarian.mjs', import.meta.url), 'utf8');
