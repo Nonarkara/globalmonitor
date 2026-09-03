@@ -8,7 +8,7 @@ It combines live map layers, flight and vessel tracking, market context, humanit
 
 - Current source repo: `Nonarkara/globalmonitor`
 - Clean v3 mirror: `Nonarkara/globalmonitor-v3`
-- **Production URL**: `https://globalmonitor.pages.dev` — static frontend + API via Cloudflare Pages Functions (same origin)
+- **Production URL**: `https://asia.nonarkara.org` (Cloudflare Pages project `asiawatch`) — static frontend + API via Pages Functions (same origin). This branch is the Asia build; the flagship globalmonitor.nonarkara.org is branch `classic`.
 - Legacy static backup: `https://nonarkara.github.io/globalmonitor/`
 
 ## Design / Human Walkthrough
@@ -76,7 +76,7 @@ Or manually:
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name=globalmonitor --branch=main --commit-dirty=true
+npx wrangler pages deploy dist --project-name=asiawatch --branch=main --commit-dirty=true
 ```
 
 The build uses same-origin `/api/*` (empty `VITE_API_BASE_URL`). Pages Functions in `functions/` serve the API layer.
@@ -119,7 +119,7 @@ Notes:
 ## Current Architecture Notes
 
 - Key live panels prefer the backend API at `/api/*`, which adds caching and returns live or stale payloads explicitly.
-- Production: Cloudflare Pages serves static assets from `dist/` and API routes from `functions/` (same origin at `globalmonitor.pages.dev`).
+- Production: Cloudflare Pages serves static assets from `dist/` and API routes from `functions/` (same origin at `asiawatch.pages.dev` / `asia.nonarkara.org`).
 - Local dev: Node server on port 4000 with full AIS WebSocket support; Vite proxies `/api` on port 5180.
 - The frontend still has browser-side fallbacks, so the dashboard keeps working while the backend is unavailable.
 - Flight traffic uses a conservative cache-first strategy to protect free API quotas. aviationstack is Middle-East bounded and cached server-side.
