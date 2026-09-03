@@ -889,6 +889,25 @@ const MapContainer = ({
     const vesselSourceLabel = formatVesselSourceLabel(vesselMeta);
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
+    // FIRMS and ACLED sit on the same map as traffic with no provenance line of
+    // their own. Same format as the traffic rows: count · source · age.
+    const firmsMeta = firmsData?.meta;
+    const firmsLive = firmsMeta?.source === 'nasa-firms-live';
+    const firmsCount = firmsData?.features?.length ?? 0;
+    const firmsSourceLabel = firmsLive
+        ? firmsCount + ' thermal · VIIRS · ' + (ageLabel(firmsMeta?.fetchedAt) || 'age unknown')
+        : firmsMeta?.source === 'no_firms_key' ? 'Thermal: no FIRMS key — nothing shown'
+            : firmsResource.isLoading ? 'Loading thermal…'
+                : firmsMeta?.source ? 'Thermal: ' + String(firmsMeta.source).replace(/_/g, ' ') : 'Thermal: no data';
+    const acledRaw = acledResource.data;
+    const acledLive = acledRaw?.source === 'acled';
+    const acledCount = acledRaw?.features?.length ?? 0;
+    const acledSourceLabel = acledLive
+        ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
+        : acledCount > 0 ? acledCount + ' events · DEMO — not ACLED'
+            : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
+    const legendVisible = flightsLayerActive || vesselsLayerActive
+        || activeLayers.includes('firms') || activeLayers.includes('conflicts');
     const prevFlightStatsRef = useRef(null);
     useEffect(() => {
         const next = {
@@ -1602,6 +1621,13 @@ const MapContainer = ({
                                                     <span>{p.date}</span>
                                                 </div>
                                             )}
+                                            {/* Provenance on every dot: a demo event must say so where it is clicked. */}
+                                            <div className="traffic-tooltip-row">
+                                                <span>Source</span>
+                                                <span style={/^demo|sample|fallback|curated/i.test(p.source || '') ? { color: 'var(--red)' } : undefined}>
+                                                    {/^demo|sample|fallback|curated/i.test(p.source || '') ? 'DEMO — not ACLED' : (p.source || 'ACLED')}
+                                                </span>
+                                            </div>
                                         </div>
                                     );
                                 }
@@ -1788,13 +1814,14 @@ const MapContainer = ({
             <div
                 className="map-legend map-legend--traffic"
                 style={{
-                    visibility: (flightsLayerActive || vesselsLayerActive) ? 'visible' : 'hidden',
-                    pointerEvents: (flightsLayerActive || vesselsLayerActive) ? 'auto' : 'none'
+                    visibility: legendVisible ? 'visible' : 'hidden',
+                    pointerEvents: legendVisible ? 'auto' : 'none'
                 }}
                 aria-live="polite"
-                aria-hidden={!(flightsLayerActive || vesselsLayerActive)}
+                aria-hidden={!legendVisible}
             >
-                <div className="map-legend-title">LIVE TRAFFIC</div>
+                {/* "SOURCES", not "LIVE TRAFFIC" — an item below may read "3d old". */}
+                <div className="map-legend-title">SOURCES</div>
                 <div
                     className="map-legend-item"
                     style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
@@ -1829,6 +1856,18 @@ const MapContainer = ({
                 {axiomOverwatchActive && vesselsLayerActive && (
                     <div className="map-legend-item map-legend-item--attribution">
                         <span>Ships via Axiom Overwatch · CC-BY 4.0</span>
+                    </div>
+                )}
+                {activeLayers.includes('firms') && (
+                    <div className="map-legend-item">
+                        <span className="map-legend-line" style={{ background: firmsLive ? '#ff3b30' : 'rgba(245,158,11,0.35)' }} />
+                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>{firmsSourceLabel}</span>
+                    </div>
+                )}
+                {activeLayers.includes('conflicts') && (
+                    <div className="map-legend-item">
+                        <span className="map-legend-line" style={{ background: acledLive ? '#f97316' : 'var(--red)' }} />
+                        <span style={{ fontVariantNumeric: 'tabular-nums', color: acledLive ? undefined : 'var(--red)' }}>{acledSourceLabel}</span>
                     </div>
                 )}
             </div>

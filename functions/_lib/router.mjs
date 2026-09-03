@@ -22,7 +22,7 @@ import { fetchOilPriceTimeline } from '../../server/lib/eia.mjs';
 import { searchStacScenes } from '../../server/lib/stacCatalog.mjs';
 import { searchPlanetaryComputer } from '../../server/lib/planetaryComputer.mjs';
 import { listPresets as listEvalscriptPresets } from '../../server/lib/evalscripts.mjs';
-import { probeCog } from '../../server/lib/cogReader.mjs';
+import { probeCog, isAllowedCogUrl } from '../../server/lib/cogReader.mjs';
 import { ingestRegionalNews, fetchArbitraryRssQuery } from '../../server/lib/regionalNewsIngest.mjs';
 import { getRainviewerRadarTilesWorker as getRainviewerRadarTiles } from './rainviewerWorker.mjs';
 import {
@@ -172,18 +172,33 @@ export async function handleApiRequest(request, env, next) {
                 () => fetchFirmsPayload(theater),
                 (payload) => payload?.type === 'FeatureCollection'
             );
-            if (result.meta.cache !== 'hit') upsertFirmsHotspots(result.payload, theater).catch(() => {});
+            if (result.meta.cache !== 'hit' && result.payload?.meta?.source === 'nasa-firms-live') upsertFirmsHotspots(result.payload, theater).catch(() => {});
             return jsonResponse(result.payload, 200, result.meta);
         }
 
         if (url.pathname === '/api/escalation') {
-            const payload = computeEscalation(cache);
-            return jsonResponse(payload, 200, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            // The FIRMS band follows the theater on screen; it used to be pinned
+            // to the Middle East regardless of what the client asked for.
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const payload = computeEscalation(cache, theater);
+            // A null score means every upstream was silent — don't stamp that 'live'.
+            return jsonResponse(payload, 200, {
+                status: payload.score === null ? 'stale' : 'live',
+                source: 'composite_index',
+                updatedAt: payload.updatedAt,
+                cache: 'miss'
+            });
         }
 
         if (url.pathname === '/api/strike-stats') {
             const payload = computeStrikeStats(cache);
-            return jsonResponse(payload, 200, { status: 'live', updatedAt: new Date().toISOString(), cache: 'miss' });
+            // Zero headlines in cache is silence, not a week with zero strikes.
+            return jsonResponse(payload, 200, {
+                status: payload.headlineCount > 0 ? 'live' : 'stale',
+                source: payload.source,
+                updatedAt: new Date().toISOString(),
+                cache: 'miss'
+            });
         }
 
         if (url.pathname === '/api/humanitarian') {
@@ -203,8 +218,15 @@ export async function handleApiRequest(request, env, next) {
         }
 
         if (url.pathname === '/api/fronts') {
-            const payload = computeFrontStatus(cache);
-            return jsonResponse(payload, 200, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            const theater = url.searchParams.get('theater') || 'middleeast';
+            const payload = computeFrontStatus(cache, theater);
+            // An empty cache is silence, not seven STABLE fronts.
+            return jsonResponse(payload, 200, {
+                status: payload.fronts?.length ? 'live' : 'stale',
+                source: payload.reason || 'composite_index',
+                updatedAt: payload.updatedAt,
+                cache: 'miss'
+            });
         }
 
         if (url.pathname === '/api/nga-warnings') {
@@ -264,7 +286,13 @@ export async function handleApiRequest(request, env, next) {
                 },
                 (p) => p?.type === 'FeatureCollection' && (p.features?.length ?? 0) >= minCount
             );
-            return jsonResponse(result.payload, 200, result.meta);
+            // A committed snapshot served in place of live ADS-B is stale by
+            // definition — never stamp it live with a fresh timestamp (ported
+            // from the classic branch, which already refused to).
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                status: result.payload?.meta?.stale ? 'stale' : (result.meta?.status || 'live')
+            });
         }
 
         if (url.pathname === '/api/vessels') {
@@ -277,9 +305,11 @@ export async function handleApiRequest(request, env, next) {
                 recordHealth(cacheKey, true, null);
                 const payload = cached.payload;
                 return jsonResponse(payload, 200, {
-                    status: payload.meta?.connected ? 'live' : (payload.meta?.requiresKey ? 'unconfigured' : 'stale'),
+                    // A committed snapshot is stale by definition; its age is the file's, not the cache's.
+                    status: payload.meta?.connected ? 'live' : (payload.meta?.requiresKey && !payload.meta?.staticSnapshot ? 'unconfigured' : 'stale'),
+                    source: payload.meta?.source,
                     cache: 'hit',
-                    updatedAt: cached.updatedAt,
+                    updatedAt: payload.meta?.staticSnapshot ? (payload.meta?.staticSnapshotAt || cached.updatedAt) : cached.updatedAt,
                 });
             }
 
@@ -306,9 +336,10 @@ export async function handleApiRequest(request, env, next) {
             }
 
             return jsonResponse(payload, 200, {
-                status: payload.meta?.connected ? 'live' : (payload.meta?.requiresKey ? 'unconfigured' : 'stale'),
+                status: payload.meta?.connected ? 'live' : (payload.meta?.requiresKey && !payload.meta?.staticSnapshot ? 'unconfigured' : 'stale'),
+                source: payload.meta?.source,
                 cache: usable ? 'miss' : 'bypass',
-                updatedAt: payload.meta?.fetchedAt,
+                updatedAt: payload.meta?.staticSnapshot ? (payload.meta?.staticSnapshotAt || payload.meta?.fetchedAt) : payload.meta?.fetchedAt,
             });
         }
 
@@ -332,7 +363,7 @@ export async function handleApiRequest(request, env, next) {
                 () => fetchAcledEvents(since ? { since, theater } : { theater }),
                 (p) => p?.type === 'FeatureCollection'
             );
-            if (result.meta.cache !== 'hit') upsertAcledEvents(result.payload).catch(() => {});
+            if (result.meta.cache !== 'hit' && result.payload?.source === 'acled') upsertAcledEvents(result.payload).catch(() => {});
             return jsonResponse(result.payload, 200, result.meta);
         }
 
@@ -392,6 +423,9 @@ export async function handleApiRequest(request, env, next) {
             const cogUrl = url.searchParams.get('url');
             if (!cogUrl) {
                 return jsonResponse({ error: 'url parameter required' }, 400);
+            }
+            if (!isAllowedCogUrl(cogUrl)) {
+                return jsonResponse({ error: 'url host not allowed' }, 400);
             }
             const probeResult = await probeCog(cogUrl);
             return jsonResponse(probeResult);
