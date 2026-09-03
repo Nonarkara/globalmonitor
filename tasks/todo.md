@@ -179,3 +179,25 @@ screenshot of the live instrument panel, and says four theaters (EN/TH/ZH).
   OpenSky would be a second live source on the edge. Only Dr Non can fetch it.
 - The wrangler OAuth token still can't write DNS or purge cache. Every DNS
   edit today went through the dashboard with the one-shot in-page routine.
+
+## D. Data-honesty remediation (2026-09-03, from the two audits)
+Rule: no number reaches a viewer wearing a provenance it does not have.
+- [x] D1 Envelope: useCached derives X-Tech-Status 'sample' from payload source; X-Tech-Source header; hook exposes source/status/isSample; DataStatus isDemo badge
+- [x] D2 ACLED: demo source label on collection + features; no theater bridging; upsert guard (no demo rows in Supabase); popup Source row
+- [x] D3 FIRMS: sample generator deleted (fake satellite + Math.random brightness); empty labelled layer; outage throws → STALE
+- [x] D4 Humanitarian: invented displacement literals deleted; year on payload; pagination; panel uses service layer, no ×12000 estimator, window-based rate
+- [x] D5 Escalation: theater passthrough; empty-array = offline; availableMax; oil not double-counted; null → stale stamp on both servers
+- [x] D6 Fronts + strike stats: no-signal instead of 7 STABLE; sample fires excluded; strike stats pure + deduped; 24h window enforced
+- [x] D7 probeCog host allowlist + 400 on both servers
+- [x] D8 Deploy collision: both workflows → asiawatch; CI audit last; ACLED_EMAIL documented
+- [x] D9 tests/data-honesty.test.mjs — the conservation law as assertions
+- [ ] D10 EscalationGauge: accept NO DATA payload, show /availableMax, age, sample band text
+- [ ] D11 MultiFrontBoard: handle fronts:[] + reason; label thermal not fires
+- [ ] D12 SourceHealthModal: DEMO state, checkedAt
+- [ ] D13 Map legend rows for FIRMS/ACLED; flights snapshot stamp (port classic); vessel snapshot source string
+- [ ] D14 Reference panels AS OF stamps (arms/nuclear/sanctions/keyFigures/refugee/intlResponse/hormuz/warCost)
+- [ ] D15 Charts: oil (source badge, axis from data, pins in range), sentiment (query+window), market (null change)
+- [ ] D16 News panels: LIVE from __meta.status; drop sliceStart; maritime triage label
+- [ ] D17 Port to middleeast + classic; OWM key removal on both; middleeast workflow → globalmonitor-me
+- [ ] D18 v1-basic: delete random tickers; v2-standalone: fronts fallback + null score
+- [ ] D19 Build, deploy all three, verify live headers; restore stashed WIP
