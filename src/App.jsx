@@ -29,11 +29,9 @@ import './styles/print.css';
 const DASHBOARD_VERSION = 'v8.3';
 
 function App() {
-  // ponytail: aerosol drowns the live traffic at 0.55 opacity — keep it a toggle, not a default. Re-add 'eo-aerosol' to restore aerosol-on-load.
-  // Aerosol and nightlights are on at first paint by request — the two layers that
-  // make this read as a satellite picture rather than a plotted map. Both are dimmed
-  // in eoTiles.js so live air and sea traffic still read through them.
-  const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels', 'eo-aerosol', 'eo-nightlights']);
+  // Map is the hero: operational traffic + conflict/heat only at first paint.
+  // EO overlays (aerosol, nightlights, …) stay opt-in — they bury ships/planes when default-on.
+  const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Region nav: 'middleeast' | 'indopacific' | 'thailand' | 'global'.

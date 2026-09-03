@@ -94,34 +94,26 @@ const Sidebar = ({
 
     const renderEoLayer = (layer) => {
         const isActive = activeLayers.includes(layer.id);
+        const mono = SAT_MONO_LABEL[layer.id] || layer.id.replace('eo-', '').slice(0, 4).toUpperCase();
         return (
             <button
                 type="button"
                 key={layer.id}
-                className={`layer-card ${isActive ? 'active' : ''}`}
+                className={`layer-card layer-card--eo ${isActive ? 'active' : ''}`}
                 onClick={() => toggleLayer(layer.id)}
                 aria-pressed={isActive}
                 aria-label={`${isActive ? 'Hide' : 'Show'} ${layer.name} satellite layer`}
-                style={{ padding: '10px 14px', gap: '10px' }}
             >
-                <span style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.62rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.5px',
-                    minWidth: '46px',
-                    padding: '4px 6px',
-                    textAlign: 'center',
-                    border: '1px solid var(--line)',
-                    color: 'var(--ink-2)',
-                    borderRadius: 0
-                }}>
-                    {SAT_MONO_LABEL[layer.id] || layer.id.replace('eo-', '').slice(0, 5).toUpperCase()}
-                </span>
+                <span className="layer-mono-badge" aria-hidden="true">{mono}</span>
                 <span className="layer-info">
-                    <span className="layer-title" style={{ fontSize: '0.85rem' }}>{layer.name}</span>
-                    <span className="layer-desc" style={{ fontSize: '0.72rem' }}>{layer.description}</span>
+                    <span className="layer-title">{layer.name}</span>
+                    <span className="layer-desc">{layer.description}</span>
                 </span>
+                {isActive && (
+                    <span className="layer-card-check" aria-hidden="true">
+                        <Check size={14} />
+                    </span>
+                )}
             </button>
         );
     };

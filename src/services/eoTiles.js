@@ -35,8 +35,8 @@ const gibsRedundant = (url) => [
 export const EO_TILE_LAYERS = [
     {
         id: 'eo-nightlights',
-        name: 'Nightlights (VIIRS)',
-        description: 'City lights observed by the Suomi-NPP satellite',
+        name: 'Nightlights',
+        description: 'City lights from Suomi-NPP VIIRS',
         group: 'satellite',
         icon: '🌃',
         tiles: gibsRedundant(
@@ -44,8 +44,8 @@ export const EO_TILE_LAYERS = [
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / VIIRS',
-        // Default-on, so it sits under the operational layers rather than shouting.
-        opacity: 0.5,
+        // Dim — when toggled on it must not bury live traffic or the basemap.
+        opacity: 0.32,
         maxzoom: 8
     },
     {
@@ -92,8 +92,8 @@ export const EO_TILE_LAYERS = [
     },
     {
         id: 'eo-fires',
-        name: 'Active Fires (VIIRS)',
-        description: 'Thermal anomalies detected by VIIRS satellite',
+        name: 'Active Fires',
+        description: 'Thermal anomalies from VIIRS',
         group: 'satellite',
         icon: '🔥',
         tiles: gibsRedundant(
@@ -106,8 +106,8 @@ export const EO_TILE_LAYERS = [
     },
     {
         id: 'eo-precipitation',
-        name: 'Precipitation (IMERG)',
-        description: 'Global rainfall estimates from GPM satellite',
+        name: 'Precipitation',
+        description: 'Rainfall estimates from GPM IMERG',
         group: 'satellite',
         icon: '🌧️',
         tiles: gibsRedundant(
@@ -120,8 +120,8 @@ export const EO_TILE_LAYERS = [
     },
     {
         id: 'eo-snow-cover',
-        name: 'Snow Cover (MODIS)',
-        description: 'Global snow coverage from MODIS',
+        name: 'Snow Cover',
+        description: 'Snow coverage from MODIS',
         group: 'satellite',
         icon: '❄️',
         tiles: gibsRedundant(
@@ -134,7 +134,7 @@ export const EO_TILE_LAYERS = [
     },
     {
         id: 'eo-aerosol',
-        name: 'Aerosol (MODIS)',
+        name: 'Aerosol',
         description: 'Atmospheric aerosol optical depth',
         group: 'satellite',
         icon: '💨',
@@ -143,8 +143,8 @@ export const EO_TILE_LAYERS = [
         ),
         tileSize: 256,
         attribution: 'NASA GIBS / MODIS',
-        // 0.55 buried the aircraft and vessel icons when on at first paint.
-        opacity: 0.38,
+        // Stay translucent — AOD wash must not erase aircraft/ship icons.
+        opacity: 0.28,
         maxzoom: 6
     },
     {

@@ -17,7 +17,7 @@ import { fetchAcledEvents } from '../services/acled.js';
 import { fetchFloodOps } from '../services/flood.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
-import { getRegion } from '../data/regions.js';
+import { getRegion, REGION_MAX_BOUNDS, REGION_MIN_ZOOM, REGION_MAX_ZOOM } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
 import { useTrafficAnimator, EMPTY_TRAFFIC } from '../hooks/useInterpolatedTraffic.js';
@@ -136,8 +136,11 @@ const formatCoord = (value, axis) => {
     const dir = axis === 'lat' ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
     return `${abs.toFixed(4)}°${dir}`;
 };
-const MAP_MIN_ZOOM = 3; // §11.9 — regional dashboard floor, prevents world-copy repetition
-const MAP_MAX_ZOOM = 18;
+const FALLBACK_MIN_ZOOM = 3; // §11.9 — regional floor when theater unknown
+const FALLBACK_MAX_ZOOM = 14;
+
+const clampZoom = (zoom, minZoom, maxZoom) =>
+    Math.min(Math.max(zoom ?? minZoom, minZoom), maxZoom);
 
 const buildTargetViewState = (viewTarget, fallbackTransitionDuration = 1500) => ({
     ...viewTarget,
@@ -145,15 +148,22 @@ const buildTargetViewState = (viewTarget, fallbackTransitionDuration = 1500) => 
 });
 
 const mapViewReducer = (state, action) => {
+    const minZoom = action.minZoom ?? FALLBACK_MIN_ZOOM;
+    const maxZoom = action.maxZoom ?? FALLBACK_MAX_ZOOM;
     switch (action.type) {
     case 'move':
         return {
             ...action.viewState,
-            zoom: Math.min(Math.max(action.viewState.zoom, MAP_MIN_ZOOM), MAP_MAX_ZOOM),
+            zoom: clampZoom(action.viewState.zoom, minZoom, maxZoom),
             transitionDuration: 0,
         };
-    case 'target':
-        return buildTargetViewState(action.viewTarget, state.transitionDuration);
+    case 'target': {
+        const next = buildTargetViewState(action.viewTarget, state.transitionDuration);
+        return {
+            ...next,
+            zoom: clampZoom(next.zoom, minZoom, maxZoom),
+        };
+    }
     default:
         return state;
     }
@@ -510,6 +520,9 @@ const MapContainer = ({
 }) => {
     const region = getRegion(viewMode);
     const regionDots = region.dots;
+    const minZoom = REGION_MIN_ZOOM[viewMode] ?? FALLBACK_MIN_ZOOM;
+    const maxZoom = REGION_MAX_ZOOM[viewMode] ?? FALLBACK_MAX_ZOOM;
+    const maxBounds = REGION_MAX_BOUNDS[viewMode];
     const [viewState, dispatchViewState] = useReducer(
         mapViewReducer,
         viewTarget,
@@ -527,16 +540,16 @@ const MapContainer = ({
     const [cursorCoords, setCursorCoords] = useState(null);
 
     const handleMove = useCallback((event) => {
-        dispatchViewState({ type: 'move', viewState: event.viewState });
-    }, []);
+        dispatchViewState({ type: 'move', viewState: event.viewState, minZoom, maxZoom });
+    }, [minZoom, maxZoom]);
 
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
     const weatherLayerActive = activeLayers.includes('weather');
 
     useEffect(() => {
-        dispatchViewState({ type: 'target', viewTarget });
-    }, [viewTarget]);
+        dispatchViewState({ type: 'target', viewTarget, minZoom, maxZoom });
+    }, [viewTarget, minZoom, maxZoom]);
 
     useEffect(() => {
         if (!weatherLayerActive) return undefined;
@@ -825,10 +838,11 @@ const MapContainer = ({
             <Map
                 ref={mapRef}
                 mapLib={maplibregl}
-                minZoom={MAP_MIN_ZOOM}
-                maxZoom={MAP_MAX_ZOOM}
+                minZoom={minZoom}
+                maxZoom={maxZoom}
+                maxBounds={maxBounds}
                 renderWorldCopies={false}
-                maxPitch={60}
+                maxPitch={55}
                 pitchWithRotate
                 dragRotate
                 touchZoomRotate
@@ -1261,15 +1275,17 @@ const MapContainer = ({
                                 type="symbol"
                                 layout={{
                                     'icon-image': FLIGHT_ICON_IMAGE,
-                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.1, 3, 1.4, 5, 1.7, 7, 1.7, 10, 1.6],
+                                    // Small at theater zoom so clusters read as density, not a black smear.
+                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 0.55, 4.5, 0.72, 6, 1.0, 8, 1.2, 11, 1.15],
                                     'icon-rotate': ['get', 'heading'],
                                     'icon-rotation-alignment': 'map',
                                     'icon-allow-overlap': true,
                                     'icon-ignore-placement': true,
+                                    'icon-padding': 1,
                                     'icon-pitch-alignment': 'map',
                                 }}
                                 paint={{
-                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.88, 6, 0.95, 10, 1]
+                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.72, 5, 0.9, 8, 1]
                                 }}
                             />
                         )}
@@ -1394,7 +1410,7 @@ const MapContainer = ({
                                 type="symbol"
                                 layout={{
                                     'icon-image': VESSEL_ICON_IMAGE,
-                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2, 1.15, 3, 1.35, 5, 1.55, 7, 1.55, 10, 1.3],
+                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 4.5, 0.68, 6, 0.95, 8, 1.15, 11, 1.1],
                                     // Rotate along course (matches the look-ahead path vector); fall
                                     // back to heading. Moored/drifting vessels (<1kt) point north so
                                     // a stale gyro heading doesn't spin them randomly.
@@ -1407,6 +1423,7 @@ const MapContainer = ({
                                     'icon-rotation-alignment': 'map',
                                     'icon-allow-overlap': true,
                                     'icon-ignore-placement': true,
+                                    'icon-padding': 1,
                                     'icon-pitch-alignment': 'map',
                                     'text-field': ['step', ['zoom'], '', 8, ['get', 'name']],
                                     'text-size': 9,
@@ -1415,7 +1432,7 @@ const MapContainer = ({
                                     'text-allow-overlap': false,
                                 }}
                                 paint={{
-                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.86, 6, 0.93, 10, 0.98],
+                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.75, 5, 0.92, 8, 0.98],
                                     'text-color': '#191712',
                                     'text-halo-color': 'rgba(255,255,255,0.85)',
                                     'text-halo-width': 1,

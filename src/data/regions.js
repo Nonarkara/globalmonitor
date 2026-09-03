@@ -18,7 +18,31 @@ export const REGION_VIEW_STATES = {
     middleeast: { longitude: 53, latitude: 30, zoom: 4.5, pitch: 25, bearing: -8 },
     indopacific: { longitude: 110, latitude: 5, zoom: 3.6, pitch: 0, bearing: 0 },
     thailand: { longitude: 100.9925, latitude: 14.5, zoom: 5.6, pitch: 20, bearing: 0 },
-    global: { longitude: 0, latitude: 20, zoom: 1.7, pitch: 20, bearing: -10 }
+    // Floor ≥2.2 — world-copy + empty limb space appear below that.
+    global: { longitude: 20, latitude: 18, zoom: 2.4, pitch: 0, bearing: 0 }
+};
+
+/** MapLibre maxBounds: [[west, south], [east, north]] — keeps pan inside the theater. */
+export const REGION_MAX_BOUNDS = {
+    middleeast: [[22, 8], [78, 48]],
+    indopacific: [[88, -12], [145, 28]],
+    thailand: [[96.5, 5.2], [106.5, 21]],
+    global: [[-170, -55], [190, 72]]
+};
+
+/** Per-theater zoom floor. Thailand is city-scale; global is the only sub-3. */
+export const REGION_MIN_ZOOM = {
+    middleeast: 3.4,
+    indopacific: 3.2,
+    thailand: 5.2,
+    global: 2.2
+};
+
+export const REGION_MAX_ZOOM = {
+    middleeast: 14,
+    indopacific: 14,
+    thailand: 16,
+    global: 12
 };
 
 // ---------------------------------------------------------------------------

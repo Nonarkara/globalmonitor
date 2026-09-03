@@ -66,7 +66,7 @@ const NasaGibsPreview = ({ viewMode, preset }) => {
                     height: '100%',
                     objectFit: 'cover',
                     opacity: 0.85,
-                    borderRadius: '6px',
+                    borderRadius: 0,
                 }}
                 onError={(e) => { e.target.style.display = 'none'; }}
             />
@@ -78,7 +78,7 @@ const NasaGibsPreview = ({ viewMode, preset }) => {
                 color: '#94a3b8',
                 fontSize: '0.6rem',
                 padding: '2px 6px',
-                borderRadius: '4px',
+                borderRadius: 0,
                 letterSpacing: '0.5px',
             }}>
                 NASA GIBS · {label}
