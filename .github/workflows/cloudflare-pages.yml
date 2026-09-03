@@ -2,7 +2,9 @@ name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: [main]
+    # This branch is the World Console (global.nonarkara.org). It deploys on
+    # pushes to ITSELF, to its own Pages project — never to the flagship's.
+    branches: [middleeast]
   workflow_dispatch:
 
 permissions:
@@ -33,4 +35,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=globalmonitor --branch=main
+          # Must match wrangler.toml (globalmonitor-me) and package.json. The
+          # Pages project's production branch is `middleeast`, not main.
+          command: pages deploy dist --project-name=globalmonitor-me --branch=middleeast
