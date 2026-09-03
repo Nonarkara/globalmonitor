@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { AlertTriangle, Shield, Anchor, Globe, Flame, Droplets, RefreshCw } from 'lucide-react';
-import { BRIEFING_DEFINITIONS, fetchBriefing } from '../services/liveNews';
+import { BRIEFING_DEFINITIONS } from '../services/liveNews';
+import { fetchBackendJson } from '../services/backendClient';
 import { useLiveResource } from '../hooks/useLiveResource';
 
 const ICONS = {
@@ -32,7 +33,12 @@ const formatAge = (value) => {
 };
 
 const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
-    const fetcher = useCallback(() => fetchBriefing(briefingId, activeSourceIds), [briefingId, activeSourceIds]);
+    // Straight to the backend so __meta provenance survives and no
+    // placeholder fallbackItems ever land in the headline rows — an empty
+    // pull renders the empty state below.
+    const fetcher = useCallback(() => fetchBackendJson(`/api/briefings/${briefingId}`, {
+        sourceIds: Array.isArray(activeSourceIds) && activeSourceIds.length ? activeSourceIds.join(',') : undefined
+    }), [briefingId, activeSourceIds]);
     const cacheKey = `briefing:${briefingId}:${Array.isArray(activeSourceIds) && activeSourceIds.length ? activeSourceIds.join(',') : 'default'}`;
     const {
         data: briefing,
@@ -40,18 +46,25 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
         isRefreshing,
         isLoading,
         isStale,
+        status,
+        isSample,
         error,
         refresh
     } = useLiveResource(fetcher, {
         cacheKey,
         intervalMs: 4 * 60 * 1000,
-        isUsable: (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+        isUsable: (payload) => Array.isArray(payload?.items)
     });
     const staticBriefing = BRIEFING_DEFINITIONS[briefingId];
 
     const Icon = ICONS[briefingId] || AlertTriangle;
     const currentBriefing = briefing || staticBriefing;
-    const statusLabel = isStale ? 'STALE' : (error && !briefing ? 'OFFLINE' : 'LIVE');
+    const isDemo = isSample || status === 'demo';
+    const statusLabel = isDemo
+        ? 'DEMO'
+        : isStale
+            ? 'STALE'
+            : (error && !briefing ? 'OFFLINE' : (status === 'cached' ? 'CACHED' : 'LIVE'));
 
     return (
         <div className="bottom-card flex-column intelligence-panel">
@@ -68,7 +81,13 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                     >
                         <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
                     </button>
-                    <span className={`live-pill ${statusLabel !== 'LIVE' ? 'live-pill-muted' : ''}`}>{statusLabel}</span>
+                    <span
+                        className={`live-pill ${statusLabel !== 'LIVE' ? 'live-pill-muted' : ''}`}
+                        style={isDemo ? { color: 'var(--red)', borderColor: 'var(--red)' } : undefined}
+                        title={isDemo ? 'Demo or fallback content — not a live observation.' : undefined}
+                    >
+                        {statusLabel}
+                    </span>
                 </div>
             </div>
             <div className="panel-content">
@@ -80,16 +99,16 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                     <>
                         {briefing?.stats && (
                             <div className="signal-chip-row">
-                                <span className="signal-chip signal-chip-strong">
-                                    {briefing.stats.highPriority || briefing.stats.total} elevated
-                                </span>
-                                <span className="signal-chip">
-                                    {briefing.stats.total} tracked
+                                <span
+                                    className="signal-chip signal-chip-strong"
+                                    title="elevated = score ≥ 36 (source trust + freshness decaying over 24h + keyword weight)"
+                                >
+                                    {briefing.stats.highPriority} elevated of {briefing.stats.total} pulled · 24h
                                 </span>
                                 <span className="signal-chip">
                                     {lastUpdated ? `updated ${formatAge(lastUpdated)}` : 'syncing'}
                                 </span>
-                                {briefing.stats.dominantTags.map((tag) => (
+                                {(briefing.stats.dominantTags || []).map((tag) => (
                                     <span key={tag} className="signal-chip">
                                         {tag}
                                     </span>
