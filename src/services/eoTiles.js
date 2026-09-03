@@ -216,21 +216,12 @@ export const EO_TILE_LAYERS = [
         attribution: 'RainViewer',
         opacity: 0.6,
         maxzoom: 10
-    },
-    {
-        id: 'eo-wind',
-        name: 'Wind Speed',
-        description: 'Global wind patterns from Open-Meteo',
-        group: 'satellite',
-        icon: '💨',
-        tiles: [
-            'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=9de243494c0b295cca9337e1e96b00e2'
-        ],
-        tileSize: 256,
-        attribution: 'OpenWeatherMap',
-        opacity: 0.5,
-        maxzoom: 8
     }
+    // 'eo-wind' removed: it pointed at OpenWeatherMap with an API key committed in
+    // this file and shipped in the public bundle. The key has been in git history
+    // since March and must be ROTATED at openweathermap.org — deleting the line
+    // does not revoke it. Restoring wind needs a key in the environment behind a
+    // /api tile proxy, never in source. (Same removal as main, commit bb1854e.)
 ];
 
 // Dynamic COG layers registered at runtime from STAC search results
