@@ -205,7 +205,7 @@ function App() {
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
-              <EscalationGauge />
+              <EscalationGauge viewMode={viewMode} />
             </ErrorBoundary>
           </div>
           {/* Right: Controls */}
@@ -300,7 +300,7 @@ function App() {
         {viewMode === 'middleeast' && (
           <div className="multi-front-row">
             <ErrorBoundary inline label="Multi-Front Board">
-              <LazyPanel name="MultiFrontBoard" />
+              <LazyPanel name="MultiFrontBoard" viewMode={viewMode} />
             </ErrorBoundary>
           </div>
         )}
