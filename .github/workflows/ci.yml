@@ -24,10 +24,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit dependencies
-        run: npm audit --audit-level=moderate
-
-      - name: Test traffic data and map safety helpers
+      - name: Test data honesty, traffic data and map safety helpers
         run: npm test
 
       - name: Lint
@@ -35,3 +32,7 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Last, so a dependency advisory cannot hide a real test or build failure.
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
