@@ -61,7 +61,7 @@ const formatVesselSourceLabel = (meta) => {
 };
 
 const HOVER_LAYERS = [
-    'flights-icons', 'vessels-icons', 'airports-points', 'acled-circles', 'firms-circles',
+    'flights-icons', 'vessels-icons', 'airports-points', 'airports-labels', 'acled-circles', 'firms-circles',
     'cables-lines', 'dams-points', 'military-flights-icons', 'range-rings-lines'
 ];
 
@@ -680,7 +680,7 @@ const MapContainer = ({
         const layers = [];
         if (flightsLayerActive) layers.push('flights-icons');
         if (vesselsLayerActive) layers.push('vessels-icons');
-        if (airportsLayerActive) layers.push('airports-points');
+        if (airportsLayerActive) layers.push('airports-points', 'airports-labels');
         if (activeLayers.includes('conflicts')) layers.push('acled-circles');
         if (activeLayers.includes('firms')) layers.push('firms-circles');
         return layers;
