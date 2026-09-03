@@ -90,10 +90,15 @@ function buildFallbackOilPrices() {
         { date: '2026-03-29', brent: 112.5, wti: 99.7 }
     ];
 
+    // A hand-typed series is only as fresh as its last row. Stamp the payload
+    // with that date — never now() — so no consumer can present it as current.
+    const asOf = `${prices[prices.length - 1].date}T00:00:00.000Z`;
+
     return {
         brent: prices.map(p => ({ date: p.date, price: p.brent })),
         wti: prices.map(p => ({ date: p.date, price: p.wti })),
         source: 'curated_fallback',
-        updatedAt: new Date().toISOString()
+        updatedAt: asOf,
+        fetchedAt: asOf
     };
 }

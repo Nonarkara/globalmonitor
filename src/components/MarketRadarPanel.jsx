@@ -21,6 +21,18 @@ const categorize = (items) => {
     return groups.filter((g) => g.items.length > 0);
 };
 
+/** A quote with no baseline (changePerc null) shows "—" with no arrow and no
+ *  colour. Exactly 0 is neutral — no arrow, muted. Otherwise signed + coloured. */
+const describeChange = (item) => {
+    if (item.changePerc == null) return { state: 'none', text: '—' };
+    const n = parseFloat(String(item.changePerc).replace('%', ''));
+    if (Number.isNaN(n)) return { state: 'none', text: '—' };
+    if (n === 0) return { state: 'neutral', text: item.changePerc };
+    return { state: n < 0 || item.isPositive === false ? 'negative' : 'positive', text: item.changePerc };
+};
+
+const WINDOW_STYLE = { fontSize: '0.44rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.3px' };
+
 const OIL_THRESHOLDS = [
     { price: 200, label: '$200', level: 'EXTREME', color: '#dc2626' },
     { price: 150, label: '$150', level: 'CRITICAL', color: '#ef4444' },
@@ -38,9 +50,7 @@ const OilCrisisHeader = ({ items }) => {
     const currentThreshold = OIL_THRESHOLDS.find(t => price >= t.price) || OIL_THRESHOLDS[OIL_THRESHOLDS.length - 1];
     const maxPrice = 220;
     const pctPosition = Math.min(100, (price / maxPrice) * 100);
-
-    // Estimate supply disruption based on price level
-    const disruption = price >= 150 ? 20 : price >= 100 ? 12 : price >= 80 ? 5 : 0;
+    const oilChange = describeChange(oilItem);
 
     return (
         <div style={{
@@ -60,12 +70,6 @@ const OilCrisisHeader = ({ items }) => {
                         OIL CRISIS — {currentThreshold.level}
                     </span>
                 </div>
-                <span style={{
-                    fontSize: '0.44rem', color: 'var(--ink-3)',
-                    fontFamily: 'var(--font-mono)'
-                }}>
-                    ~{disruption}% supply disrupted
-                </span>
             </div>
 
             {/* Price threshold bar */}
@@ -111,7 +115,7 @@ const OilCrisisHeader = ({ items }) => {
                 fontSize: '0.44rem', color: 'var(--ink-3)',
                 marginTop: '4px', fontFamily: 'var(--font-mono)', textAlign: 'right'
             }}>
-                {oilItem.symbol}: ${price.toFixed(2)} ({oilItem.changePerc})
+                {oilItem.symbol}: ${price.toFixed(2)} ({oilChange.text}{oilItem.window ? ` ${oilItem.window}` : ''})
             </div>
         </div>
     );
@@ -165,20 +169,30 @@ const MarketRadarPanel = ({ viewMode = 'middleeast' }) => {
                         <div key={group.label} className="radar-group">
                             <div className="radar-group-label">{group.label}</div>
                             <ul className="radar-list">
-                                {group.items.map((item, index) => (
-                                    <li key={index} className="radar-item">
-                                        <div className="radar-token">
-                                            <strong>{item.symbol}</strong>
-                                        </div>
-                                        <div className="radar-price">
-                                            <span>{item.price}</span>
-                                            <span className={`change ${item.isPositive ? 'positive' : 'negative'}`}>
-                                                {item.isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                                {item.changePerc}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
+                                {group.items.map((item, index) => {
+                                    const change = describeChange(item);
+                                    const signed = change.state === 'positive' || change.state === 'negative';
+                                    return (
+                                        <li key={index} className="radar-item">
+                                            <div className="radar-token">
+                                                <strong>{item.symbol}</strong>
+                                            </div>
+                                            <div className="radar-price">
+                                                <span>{item.price}</span>
+                                                <span
+                                                    className={`change ${signed ? change.state : ''}`}
+                                                    style={change.state === 'neutral' ? { color: 'var(--ink-3)' } : undefined}
+                                                    title={item.window ? `Change window: ${item.window}` : 'No baseline yet'}
+                                                >
+                                                    {change.state === 'positive' && <TrendingUp size={12} />}
+                                                    {change.state === 'negative' && <TrendingDown size={12} />}
+                                                    {change.text}
+                                                </span>
+                                                {item.window && <span style={WINDOW_STYLE}>{item.window}</span>}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     ))}
