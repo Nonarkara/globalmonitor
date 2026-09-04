@@ -111,6 +111,8 @@ export const fetchLiveMilitaryFlights = async (theater = 'global') => {
                 hex: ac.hex || '',
                 callsign: (ac.flight || '').trim() || ac.r || ac.hex || 'MIL',
                 registration: ac.r || '',
+                theater,
+                military: true,
                 type: ac.t || ac.desc || 'Military Airframe',
                 role,
                 color,
