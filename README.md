@@ -133,3 +133,7 @@ Notes:
 - **Flight resilience**: `npm run refresh:flights` writes a geographically spread OpenSky snapshot. The existing 15-minute scheduled deployment refreshes it alongside AIS, preventing Cloudflare upstream throttling from blanking or crashing the aircraft layer.
 - **Airport refresh**: run `npm run refresh:airports` to regenerate the public-domain worldwide airport GeoJSON from OurAirports.
 - **Secrets**: bind env vars in Cloudflare Pages project settings (AirLabs, OpenSky, Supabase, Copernicus, VesselFinder, etc.). Never expose them as `VITE_*` variables.
+
+## License
+
+This project is licensed under the MIT License; see [LICENSE](LICENSE).
