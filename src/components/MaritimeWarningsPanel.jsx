@@ -30,14 +30,14 @@ const WarningItem = ({ warning, expanded, onToggle }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
                     <span style={{
-                        fontSize: '0.38rem', fontWeight: 700, letterSpacing: '0.5px',
+                        fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.5px',
                         color, padding: '1px 4px', background: '#f2f0ea',
                         borderRadius: 0, flexShrink: 0
                     }}>
                         {warning.threat}
                     </span>
                     <span style={{
-                        fontSize: '0.48rem', color: 'var(--ink-2)',
+                        fontSize: '0.5rem', color: 'var(--ink-2)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                     }}>
                         NAVAREA {warning.navArea}/{warning.subregion}
@@ -47,7 +47,7 @@ const WarningItem = ({ warning, expanded, onToggle }) => {
             </div>
             {expanded && (
                 <div style={{
-                    fontSize: '0.46rem', color: 'var(--ink-2)',
+                    fontSize: '0.5rem', color: 'var(--ink-2)',
                     marginTop: '4px', lineHeight: 1.4,
                     whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                     maxHeight: '80px', overflow: 'auto'
@@ -81,7 +81,7 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {highCount > 0 && (
                         <span style={{
-                            fontSize: '0.42rem', fontWeight: 700, color: 'var(--red)',
+                            fontSize: '0.5rem', fontWeight: 700, color: 'var(--red)',
                             display: 'flex', alignItems: 'center', gap: '3px'
                         }}>
                             <AlertTriangle size={10} /> {highCount} HIGH
@@ -119,7 +119,7 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
             <div style={{
                 padding: '4px 8px',
                 borderTop: '1px solid var(--line)',
-                fontSize: '0.4rem',
+                fontSize: '0.5rem',
                 color: 'var(--ink-3)',
                 textAlign: 'right'
             }}>

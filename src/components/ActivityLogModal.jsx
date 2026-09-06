@@ -70,7 +70,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
                             Session Activity Log
                         </span>
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                             {entries.length} entries
                         </span>
                     </div>
@@ -79,7 +79,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                             background: '#f2f0ea', border: '1px solid var(--line)',
                             borderRadius: 0, padding: '4px 8px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                            fontSize: '0.45rem', fontFamily: 'inherit'
+                            fontSize: '0.5rem', fontFamily: 'inherit'
                         }}>
                             <Download size={10} /> Export
                         </button>
@@ -87,7 +87,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                             background: '#f2f0ea', border: '1px solid var(--line-2)',
                             borderRadius: 0, padding: '4px 8px', color: 'var(--red)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                            fontSize: '0.45rem', fontFamily: 'inherit'
+                            fontSize: '0.5rem', fontFamily: 'inherit'
                         }}>
                             <Trash2 size={10} /> Clear
                         </button>
@@ -109,7 +109,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 }}>
                     {['all', LOG_TYPES.DATA_FETCH, LOG_TYPES.ERROR, LOG_TYPES.USER_ACTION, LOG_TYPES.SYSTEM].map(f => (
                         <button key={f} onClick={() => setFilter(f)} style={{
-                            padding: '3px 8px', borderRadius: 0, fontSize: '0.4rem',
+                            padding: '3px 8px', borderRadius: 0, fontSize: '0.5rem',
                             fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase',
                             cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
                             background: filter === f ? '#f2f0ea' : 'transparent',
@@ -136,14 +136,14 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                                     borderBottom: '1px solid var(--line)'
                                 }}>
                                     <span style={{
-                                        fontSize: '0.38rem', color: 'var(--ink-3)',
+                                        fontSize: '0.5rem', color: 'var(--ink-3)',
                                         fontFamily: 'var(--font-mono)', width: '55px', flexShrink: 0,
                                         marginTop: '1px'
                                     }}>
                                         {formatTime(entry.timestamp)}
                                     </span>
                                     <span style={{
-                                        fontSize: '0.34rem', fontWeight: 700,
+                                        fontSize: '0.5rem', fontWeight: 700,
                                         color: TYPE_COLORS[entry.type] || '#a9a59a',
                                         padding: '1px 4px', borderRadius: 0,
                                         background: '#f2f0ea',
@@ -151,7 +151,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                                     }}>
                                         {TYPE_LABELS[entry.type] || entry.type}
                                     </span>
-                                    <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
+                                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
                                         {entry.message}
                                     </span>
                                 </div>

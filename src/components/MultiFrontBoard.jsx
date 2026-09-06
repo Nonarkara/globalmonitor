@@ -130,7 +130,7 @@ const MultiFrontBoard = ({ viewMode = 'middleeast' }) => {
                 </span>
                 <div style={{ display: 'flex', gap: '10px', minWidth: '12ch', justifyContent: 'flex-end' }}>
                     <span style={{
-                        fontSize: '0.42rem',
+                        fontSize: '0.5rem',
                         fontWeight: 700,
                         color: 'var(--red)',
                         letterSpacing: '0.5px',
@@ -141,7 +141,7 @@ const MultiFrontBoard = ({ viewMode = 'middleeast' }) => {
                         {criticalCount} CRITICAL
                     </span>
                     <span style={{
-                        fontSize: '0.42rem',
+                        fontSize: '0.5rem',
                         fontWeight: 700,
                         color: 'var(--ink-2)',
                         letterSpacing: '0.5px',

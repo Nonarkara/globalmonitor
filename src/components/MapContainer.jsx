@@ -1844,7 +1844,7 @@ const MapContainer = ({
                             }}>
                                 <span style={{ fontSize: '0.7rem' }}>{layer.icon}</span>
                                 <span style={{
-                                    fontSize: '0.46rem',
+                                    fontSize: '0.5rem',
                                     fontWeight: 700,
                                     color: 'var(--ink)',
                                     letterSpacing: '0.5px'
@@ -1852,7 +1852,7 @@ const MapContainer = ({
                                     {layer.name}
                                 </span>
                                 <span style={{
-                                    fontSize: '0.38rem',
+                                    fontSize: '0.5rem',
                                     color: 'var(--ink-3)',
                                     letterSpacing: '0.3px'
                                 }}>

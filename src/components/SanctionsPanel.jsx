@@ -48,7 +48,7 @@ const SanctionsPanel = () => {
                         Sanctions Tracker
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {totalCount} ACTIVE
                 </span>
             </div>
@@ -60,21 +60,21 @@ const SanctionsPanel = () => {
                     background: '#f2f0ea', borderRadius: 0
                 }}>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
+                    <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: '#f2f0ea', borderRadius: 0
                 }}>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
+                    <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: '#f2f0ea', borderRadius: 0
                 }}>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{uniqueTargets}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Targets</div>
+                    <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Targets</div>
                 </div>
             </div>
 
@@ -82,7 +82,7 @@ const SanctionsPanel = () => {
             <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
                 {Object.entries(byImposer).sort((a, b) => b[1] - a[1]).map(([who, count]) => (
                     <span key={who} style={{
-                        fontSize: '0.4rem', fontWeight: 600,
+                        fontSize: '0.5rem', fontWeight: 600,
                         padding: '2px 6px', borderRadius: 0,
                         background: '#f2f0ea',
                         border: '1px solid var(--line)',
@@ -107,12 +107,12 @@ const SanctionsPanel = () => {
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
-                                fontSize: '0.46rem', color: 'var(--ink-2)',
+                                fontSize: '0.5rem', color: 'var(--ink-2)',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }}>
                                 {s.target}
                             </div>
-                            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
+                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>
                                 {s.imposedBy} · {s.date}
                             </div>
                         </div>
@@ -134,7 +134,7 @@ const SanctionsPanel = () => {
                         padding: '3px', background: '#f2f0ea',
                         border: '1px solid var(--line)',
                         borderRadius: 0, color: 'var(--ink-2)',
-                        fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit',
+                        fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit',
                         transition: 'all 0.2s'
                     }}
                 >

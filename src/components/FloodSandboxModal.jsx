@@ -385,7 +385,7 @@ const FloodSandboxModal = ({ isOpen, onClose, city = 'ayutthaya' }) => {
                                 </div>
                             )}
                         </div>
-                        <div style={{ fontSize: '0.42rem', color: 'var(--ink-3)', lineHeight: 1.5, marginTop: '6px' }}>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', lineHeight: 1.5, marginTop: '6px' }}>
                             Connected-bathtub inundation on SRTM terrain (Terrarium tiles, ~19 m/px). Water spreads from the river
                             wherever ground sits below the simulated surface; isolated depressions stay dry. Stage change is applied
                             relative to the river&apos;s own SRTM surface (datum-safe). Stage-driven screening model — not hydrodynamic
@@ -414,7 +414,7 @@ const FloodSandboxModal = ({ isOpen, onClose, city = 'ayutthaya' }) => {
                             <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
                                 {SCENARIOS.map((s) => (
                                     <button key={s.label} type="button" onClick={() => setDeltaM(s.delta)} style={{
-                                        flex: 1, fontSize: '0.4rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                                        flex: 1, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
                                         padding: '5px 4px', cursor: 'pointer', fontFamily: 'inherit',
                                         background: Math.abs(deltaM - s.delta) < 0.05 ? 'var(--ink)' : 'var(--paper)',
                                         color: Math.abs(deltaM - s.delta) < 0.05 ? '#fff' : 'var(--ink-2)',
@@ -437,20 +437,20 @@ const FloodSandboxModal = ({ isOpen, onClose, city = 'ayutthaya' }) => {
                                     <div style={{ fontSize: '0.78rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: k.hot ? 'var(--red)' : 'var(--ink)' }}>
                                         {k.value}
                                     </div>
-                                    <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>{k.label}</div>
+                                    <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>{k.label}</div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Critical sites */}
                         <div style={{ marginBottom: '12px' }}>
-                            <div style={{ fontSize: '0.44rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: '4px' }}>
                                 Critical sites
                             </div>
                             {(result?.pois || []).map((p) => (
                                 <div key={p.name} style={{
                                     display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '3px 6px',
-                                    borderBottom: '1px solid var(--line)', fontSize: '0.48rem',
+                                    borderBottom: '1px solid var(--line)', fontSize: '0.5rem',
                                     fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums'
                                 }}>
                                     <span style={{ color: p.flooded ? 'var(--red)' : 'var(--ink)', fontWeight: p.flooded ? 700 : 400 }}>
@@ -481,7 +481,7 @@ const FloodSandboxModal = ({ isOpen, onClose, city = 'ayutthaya' }) => {
 
                         {directive && (
                             <div style={{ marginTop: '10px', border: '1px solid var(--line-2)', padding: '10px 12px' }}>
-                                <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
                                     Mayor&apos;s directive · {directive.engine}
                                 </div>
                                 <div style={{ fontSize: '0.55rem', color: 'var(--ink)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>

@@ -37,7 +37,7 @@ const MiddleEastOilDependency = () => {
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.42rem', color: 'var(--ink-3)',
+                    fontSize: '0.5rem', color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     IEA {MIDDLE_EAST_OIL_DEPENDENCY.year} · MOST RELIANT
@@ -59,7 +59,7 @@ const MiddleEastOilDependency = () => {
                     return (
                         <div key={country.code} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{
-                                fontSize: '0.42rem', color: 'var(--ink-2)',
+                                fontSize: '0.5rem', color: 'var(--ink-2)',
                                 width: '72px', textAlign: 'right', flexShrink: 0,
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }}>
@@ -79,7 +79,7 @@ const MiddleEastOilDependency = () => {
                                 }} />
                             </div>
                             <span style={{
-                                fontSize: '0.42rem', color: 'var(--ink-2)',
+                                fontSize: '0.5rem', color: 'var(--ink-2)',
                                 fontFamily: 'var(--font-mono)', width: '28px', flexShrink: 0
                             }}>
                                 {country.pct}%
@@ -92,7 +92,7 @@ const MiddleEastOilDependency = () => {
             <div style={{
                 marginTop: '6px', paddingTop: '5px', flexShrink: 0,
                 borderTop: '1px solid var(--line)',
-                fontSize: '0.34rem', color: 'var(--ink-3)', lineHeight: 1.35,
+                fontSize: '0.5rem', color: 'var(--ink-3)', lineHeight: 1.35,
                 padding: '5px 10px 7px'
             }}>
                 {MIDDLE_EAST_OIL_DEPENDENCY.metric}. Data:{' '}

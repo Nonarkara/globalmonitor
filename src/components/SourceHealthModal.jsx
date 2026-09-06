@@ -71,7 +71,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                             {dataSources.length} sources · Backend: {healthData ? 'CONNECTED' : 'UNREACHABLE'}
                         </span>
                         <button onClick={onClose} aria-label="Close source health modal" style={{
@@ -87,7 +87,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
 
                 {/* Source list */}
                 <div style={{ overflowY: 'auto', padding: '12px 20px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.48rem' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.5rem' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--line-2)' }}>
                                 {['Source', 'Type', 'Reliability', 'Update Freq', 'Cache TTL', 'Status', 'Methodology'].map(h => (
@@ -95,7 +95,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                         padding: '6px 8px', textAlign: 'left',
                                         color: 'var(--ink-3)', fontWeight: 600,
                                         letterSpacing: '0.8px', textTransform: 'uppercase',
-                                        fontSize: '0.38rem'
+                                        fontSize: '0.5rem'
                                     }}>{h}</th>
                                 ))}
                             </tr>
@@ -109,7 +109,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                             <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '0.5rem' }}>
                                                 {src.name}
                                             </div>
-                                            <div style={{ color: 'var(--ink-3)', fontSize: '0.38rem' }}>
+                                            <div style={{ color: 'var(--ink-3)', fontSize: '0.5rem' }}>
                                                 {src.fullName}
                                             </div>
                                         </td>
@@ -154,7 +154,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                                 )}
                                                 <span style={{
                                                     color: health.color, fontWeight: 600,
-                                                    fontSize: '0.4rem', textTransform: 'uppercase'
+                                                    fontSize: '0.5rem', textTransform: 'uppercase'
                                                 }}>
                                                     {health.status}
                                                 </span>
@@ -176,7 +176,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                     <div style={{
                         display: 'flex', gap: '16px', marginTop: '14px', padding: '8px 0',
                         borderTop: '1px solid var(--line)',
-                        fontSize: '0.4rem', color: 'var(--ink-3)'
+                        fontSize: '0.5rem', color: 'var(--ink-3)'
                     }}>
                         <span>Reliability: <strong style={{ color: 'var(--green)' }}>9-10</strong> Government/Scientific · <strong style={{ color: 'var(--ink-2)' }}>7-8</strong> Vetted OSINT · <strong style={{ color: 'var(--red)' }}>&lt;7</strong> Variable</span>
                         <span>All data is cached server-side with stale fallback. Client caches via localStorage.</span>

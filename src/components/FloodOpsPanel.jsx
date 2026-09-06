@@ -63,7 +63,7 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                             onClick={() => setCity(c.id)}
                             aria-pressed={city === c.id}
                             style={{
-                                fontSize: '0.4rem', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase',
+                                fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase',
                                 padding: '2px 6px', cursor: 'pointer', fontFamily: 'inherit',
                                 background: city === c.id ? 'var(--ink)' : 'transparent',
                                 color: city === c.id ? '#fff' : 'var(--ink-3)',
@@ -95,7 +95,7 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                                 <div style={{ fontSize: '0.86rem', fontWeight: 700, color: RATING_COLOR[ops.rating] || 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
                                     {ops.riskScore}
                                 </div>
-                                <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                                     Risk · {ops.rating}
                                 </div>
                             </div>
@@ -103,7 +103,7 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                                 <div style={{ fontSize: '0.86rem', fontWeight: 700, color: (gauge?.pct ?? 0) >= 80 ? 'var(--red)' : 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
                                     {gauge?.pct != null ? `${Math.round(gauge.pct)}%` : '—'}
                                 </div>
-                                <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                                     Bank · {gauge?.code || '—'}
                                 </div>
                             </div>
@@ -111,7 +111,7 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                                 <div style={{ fontSize: '0.86rem', fontWeight: 700, color: rising ? 'var(--red)' : 'var(--green)', fontFamily: 'var(--font-mono)' }}>
                                     {gauge?.trendCmH != null ? `${gauge.trendCmH > 0 ? '+' : ''}${gauge.trendCmH}` : '—'}
                                 </div>
-                                <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                                     cm/h {rising ? 'rising' : 'falling'}
                                 </div>
                             </div>
@@ -120,14 +120,14 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                         {/* Upstream cascade — what is coming, when */}
                         {inbound.length > 0 && (
                             <div style={{ marginBottom: '6px' }}>
-                                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '3px' }}>
                                     <ArrowDown size={8} style={{ verticalAlign: '-1px' }} /> Upstream cascade → {ops.city.label.split(' ').pop()}
                                 </div>
                                 {inbound.map((s) => (
                                     <div key={s.code} style={{
                                         display: 'flex', alignItems: 'center', gap: '6px',
                                         padding: '3px 6px', borderBottom: '1px solid var(--line)',
-                                        fontSize: '0.46rem', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums'
+                                        fontSize: '0.5rem', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums'
                                     }}>
                                         <span style={{
                                             width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
@@ -151,13 +151,13 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                         {/* Basin rain loading */}
                         {wetBasins.length > 0 && (
                             <div style={{ marginBottom: '6px' }}>
-                                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '3px' }}>
                                     <CloudRain size={8} style={{ verticalAlign: '-1px' }} /> Basin rain · 24h
                                 </div>
                                 {wetBasins.slice(0, 3).map((b) => (
                                     <div key={b.id} style={{
                                         display: 'flex', justifyContent: 'space-between', gap: '6px',
-                                        padding: '2px 6px', fontSize: '0.44rem',
+                                        padding: '2px 6px', fontSize: '0.5rem',
                                         fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums'
                                     }}>
                                         <span style={{ color: 'var(--ink-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.label}</span>
@@ -171,7 +171,7 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
 
                         {/* National alert strip + God's Mode */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', paddingTop: '4px', borderTop: '1px solid var(--line)' }}>
-                            <span style={{ fontSize: '0.4rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                                 <Radio size={8} style={{ verticalAlign: '-1px', color: (ops.national?.level5 ?? 0) > 0 ? 'var(--red)' : 'var(--ink-3)' }} />
                                 {' '}{ops.national?.level5 ?? 0} overbank · {ops.national?.level4 ?? 0} lvl-4 · {ops.meta?.stations} stations
                             </span>
@@ -180,7 +180,7 @@ const FloodOpsPanel = ({ onOpenSandbox }) => {
                                 onClick={() => onOpenSandbox?.(city)}
                                 aria-label="Open flood simulation planning mode"
                                 style={{
-                                    fontSize: '0.42rem', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase',
+                                    fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase',
                                     padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit',
                                     background: 'var(--green)', color: '#fff', border: 'none'
                                 }}

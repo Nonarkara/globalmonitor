@@ -14,8 +14,8 @@ const KPI = ({ icon, label, value, color, sub }) => (
     }}>
         {React.createElement(icon, { size: 10, style: { color, marginBottom: '2px' } })}
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{value}</div>
-        <div style={{ fontSize: '0.42rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
-        {sub && <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
+        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
+        {sub && <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
     </div>
 );
 
@@ -141,7 +141,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                         Humanitarian Impact
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {acledLabel} + {unhcrLabel} · {viewMode.toUpperCase()}
                 </span>
             </div>
@@ -180,7 +180,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                 {/* Cumulative fatalities sparkline — never drawn from a demo set */}
                 {!isDemo && cumulativeData.length > 1 && (
                     <div style={{ marginBottom: '6px' }}>
-                        <div style={{ fontSize: '0.42rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
                             Cumulative Fatalities · running total, always rises
                         </div>
                         <div style={{
@@ -196,7 +196,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>
                                     {totalFatalities.toLocaleString()}
                                 </div>
-                                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)' }}>total · {windowDays}d</div>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>total · {windowDays}d</div>
                             </div>
                         </div>
                     </div>
@@ -211,7 +211,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                     border: '1px solid var(--line)'
                 }}>
                     <TrendingUp size={10} style={{ color: 'var(--red)' }} />
-                    <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)' }}>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)' }}>
                         {isDemo
                             ? 'Demo events — no live ACLED feed configured'
                             : fatalitiesPerDay != null

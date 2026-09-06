@@ -303,7 +303,7 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                             {Object.entries(EDGE_COLORS).map(([type, color]) => (
                                 <span key={type} style={{
                                     display: 'flex', alignItems: 'center', gap: '4px',
-                                    fontSize: '0.42rem', color: 'var(--ink-2)'
+                                    fontSize: '0.5rem', color: 'var(--ink-2)'
                                 }}>
                                     <span style={{
                                         width: '12px', height: '2px', background: color,
@@ -364,21 +364,21 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                                     <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--ink)' }}>
                                         {selectedNode.label}
                                     </div>
-                                    <div style={{ fontSize: '0.4rem', color: selectedNode.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    <div style={{ fontSize: '0.5rem', color: selectedNode.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                         {NODE_TYPE_LABELS[selectedNode.type] || selectedNode.type}
                                     </div>
                                 </div>
                             </div>
 
                             <div style={{
-                                fontSize: '0.45rem', color: 'var(--ink-2)',
+                                fontSize: '0.5rem', color: 'var(--ink-2)',
                                 lineHeight: 1.5, marginBottom: '14px'
                             }}>
                                 {selectedNode.description}
                             </div>
 
                             <div style={{
-                                fontSize: '0.42rem', fontWeight: 600,
+                                fontSize: '0.5rem', fontWeight: 600,
                                 letterSpacing: '1px', color: 'var(--ink-3)',
                                 textTransform: 'uppercase', marginBottom: '6px'
                             }}>
@@ -400,10 +400,10 @@ const ActorNetworkModal = ({ isOpen, onClose }) => {
                                             background: EDGE_COLORS[e.type] || '#8f8b80'
                                         }} />
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: '0.45rem', color: 'var(--ink-2)' }}>
+                                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-2)' }}>
                                                 {otherNode?.label || other}
                                             </div>
-                                            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
+                                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>
                                                 {e.label} · {e.type}
                                             </div>
                                         </div>

@@ -172,7 +172,7 @@ const OracleSandboxModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
                                         <div style={{ fontSize: '0.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
                                             <Zap size={10} style={{ color: active ? 'var(--ink)' : 'var(--ink-3)' }} /> {s.label}
                                         </div>
-                                        <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', marginTop: '2px', lineHeight: 1.4 }}>{s.note}</div>
+                                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '2px', lineHeight: 1.4 }}>{s.note}</div>
                                     </button>
                                 );
                             })}
@@ -212,7 +212,7 @@ const OracleSandboxModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
 
                                 {/* Trajectory */}
                                 <div style={{ background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, padding: '8px 10px', marginBottom: '12px' }}>
-                                    <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                                    <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                                         Escalation trajectory · 8 weeks · mean + 10–90% band
                                     </div>
                                     <OracleTrajectory trajectory={fc.trajectory} height={88} color={head.color} />
@@ -244,13 +244,13 @@ const OracleSandboxModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
 
                                 {/* Report */}
                                 <div style={{ background: '#f2f0ea', border: '1px solid var(--line-2)', borderRadius: 0, padding: '10px 12px' }}>
-                                    <div style={{ fontSize: '0.46rem', color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <div style={{ fontSize: '0.5rem', color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <Cpu size={10} /> Analyst brief {result?.meta?.aiPowered ? `· ${result.report.model || 'LLM'}` : '· model-generated'}
                                     </div>
                                     <div style={{ fontSize: '0.62rem', color: 'var(--ink-2)', lineHeight: 1.6 }}>{result.report.text}</div>
                                 </div>
 
-                                <div style={{ fontSize: '0.44rem', color: 'var(--ink-3)', marginTop: '10px', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '10px', lineHeight: 1.5 }}>
                                     Simulation forecast from an agent-based Monte-Carlo model ({fc.params.rollouts} rollouts × {fc.params.periods} periods) seeded from live signals.
                                     Exploratory, not a prediction of fact. Postures are model parameters, not asserted intentions.
                                 </div>

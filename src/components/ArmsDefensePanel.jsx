@@ -18,12 +18,12 @@ const STATUS_COLORS = {
 
 const FlowRow = ({ flow }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
-        <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '38px', flexShrink: 0 }}>{flow.from}</span>
-        <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>&rarr;</span>
-        <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '42px', flexShrink: 0 }}>{flow.to}</span>
-        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
+        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', width: '38px', flexShrink: 0 }}>{flow.from}</span>
+        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>&rarr;</span>
+        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', width: '42px', flexShrink: 0 }}>{flow.to}</span>
+        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
         <span style={{
-            fontSize: '0.3rem', fontWeight: 700,
+            fontSize: '0.5rem', fontWeight: 700,
             color: STATUS_COLORS[flow.status] || 'var(--ink-3)',
             letterSpacing: '0.3px', textTransform: 'uppercase'
         }}>{flow.status}</span>
@@ -44,13 +44,13 @@ const MiddleEastView = () => {
                 ].map(k => (
                     <div key={k.label} style={{ textAlign: 'center', padding: '4px', background: '#f2f0ea', borderRadius: 0 }}>
                         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.value}</div>
-                        <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
                     </div>
                 ))}
             </div>
             <div style={{ padding: '4px 8px', marginBottom: '6px', background: 'var(--panel)', borderRadius: 0, border: '1px solid var(--line)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Overall Interception Rate</span>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Overall Interception Rate</span>
                     <span style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{arsenalUsage.interceptionRate}</span>
                 </div>
                 <div style={{ height: '4px', background: '#f2f0ea', borderRadius: 0, overflow: 'hidden' }}>
@@ -61,13 +61,13 @@ const MiddleEastView = () => {
                 {armsData.defenseSystems.map((sys, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
                         <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: STATUS_COLORS[sys.status] || 'var(--ink-3)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
-                        <span style={{ fontSize: '0.34rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: STATUS_COLORS[sys.status] || 'var(--ink-3)' }}>{sys.interceptRate}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
+                        <span style={{ fontSize: '0.5rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: STATUS_COLORS[sys.status] || 'var(--ink-3)' }}>{sys.interceptRate}</span>
                     </div>
                 ))}
             </div>
-            <button onClick={() => setShowFlows(!showFlows)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', marginTop: '2px', padding: '3px', background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink-2)', fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => setShowFlows(!showFlows)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', marginTop: '2px', padding: '3px', background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink-2)', fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                 {showFlows ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
                 Arms Flows ({armsData.armsFlows.length} routes)
             </button>
@@ -86,13 +86,13 @@ const IndoPacificView = () => {
 
     return (
         <>
-            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                 ASEAN Defense Budgets (USD bn)
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '6px' }}>
                 {aseanDefenseBudgets.map((d, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.4rem', color: 'var(--ink-2)', width: '52px', flexShrink: 0 }}>{d.country}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', width: '52px', flexShrink: 0 }}>{d.country}</span>
                         <div style={{ flex: 1, height: '4px', background: '#f2f0ea', borderRadius: 0, overflow: 'hidden' }}>
                             <div style={{
                                 width: `${Math.min(100, (d.budget_usd_bn / 14) * 100)}%`,
@@ -100,27 +100,27 @@ const IndoPacificView = () => {
                                 background: d.trend === 'up' ? 'var(--green)' : 'var(--ink-2)'
                             }} />
                         </div>
-                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '22px', textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '22px', textAlign: 'right' }}>
                             ${d.budget_usd_bn}B
                         </span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', width: '28px' }}>{d.gdp_pct} GDP</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', width: '28px' }}>{d.gdp_pct} GDP</span>
                     </div>
                 ))}
             </div>
-            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                 Key Defense Systems
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '4px' }}>
                 {defenseSystems.slice(0, 4).map((sys, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '1px 0' }}>
                         <Shield size={8} style={{ color: STATUS_COLORS[sys.status] || 'var(--ink-3)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
-                        <span style={{ fontSize: '0.34rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: STATUS_COLORS[sys.status] || 'var(--ink-3)', textTransform: 'uppercase' }}>{sys.status}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
+                        <span style={{ fontSize: '0.5rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: STATUS_COLORS[sys.status] || 'var(--ink-3)', textTransform: 'uppercase' }}>{sys.status}</span>
                     </div>
                 ))}
             </div>
-            <button onClick={() => setShowFlows(!showFlows)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', marginTop: '2px', padding: '3px', background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink-2)', fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => setShowFlows(!showFlows)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', marginTop: '2px', padding: '3px', background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink-2)', fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                 {showFlows ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
                 Regional Arms Flows ({armsFlows.length} routes)
             </button>
@@ -157,24 +157,24 @@ const ThailandView = () => {
                 ].map(k => (
                     <div key={k.label} style={{ textAlign: 'center', padding: '4px', background: '#f2f0ea', borderRadius: 0 }}>
                         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.value}</div>
-                        <div style={{ fontSize: '0.3rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase', lineHeight: 1.3 }}>{k.label}</div>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase', lineHeight: 1.3 }}>{k.label}</div>
                     </div>
                 ))}
             </div>
-            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                 Royal Thai Armed Forces — Key Assets
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '4px' }}>
                 {thSystems.map((sys, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '1px 0' }}>
                         <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: STATUS_COLORS[sys.status] || 'var(--ink-3)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', fontStyle: 'italic' }}>{sys.note}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontStyle: 'italic' }}>{sys.note}</span>
                     </div>
                 ))}
             </div>
-            <button onClick={() => setShowFlows(!showFlows)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', marginTop: '2px', padding: '3px', background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink-2)', fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => setShowFlows(!showFlows)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', marginTop: '2px', padding: '3px', background: 'transparent', border: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink-2)', fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                 {showFlows ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
                 Myanmar Arms Flows ({allFlows.length} routes tracked)
             </button>
@@ -213,7 +213,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => (
                     Arms & Defense
                 </span>
             </div>
-            <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                 {THEATER_SOURCES[viewMode] || 'SIPRI + OSINT'} · {THEATER_LABELS[viewMode] || viewMode.toUpperCase()}
             </span>
         </div>

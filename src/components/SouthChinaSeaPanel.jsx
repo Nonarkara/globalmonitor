@@ -18,9 +18,9 @@ const SubFront = ({ label, value, color, note }) => (
             width: '6px', height: '6px', borderRadius: '50%',
             background: color, flexShrink: 0
         }} />
-        <span style={{ fontSize: '0.48rem', color: 'var(--ink-2)', flex: 1 }}>{label}</span>
-        {note && <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>{note}</span>}
-        <span style={{ fontSize: '0.42rem', fontWeight: 700, color, letterSpacing: '0.5px', fontFamily: 'var(--font-mono)' }}>
+        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{label}</span>
+        {note && <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{note}</span>}
+        <span style={{ fontSize: '0.5rem', fontWeight: 700, color, letterSpacing: '0.5px', fontFamily: 'var(--font-mono)' }}>
             {value}
         </span>
     </div>
@@ -52,14 +52,14 @@ const SouthChinaSeaPanel = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
-                        fontSize: '0.38rem', fontWeight: 700, letterSpacing: '1px',
+                        fontSize: '0.5rem', fontWeight: 700, letterSpacing: '1px',
                         color: scsStatus.overallColor, textTransform: 'uppercase',
                         padding: '1px 5px', background: '#f2f0ea', borderRadius: 0,
                         border: '1px solid var(--line)'
                     }}>
                         {scsStatus.overallLevel}
                     </span>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                         AMTI · INDOPACOM
                     </span>
                 </div>
@@ -73,7 +73,7 @@ const SouthChinaSeaPanel = () => {
                         background: '#f2f0ea', borderRadius: 0
                     }}>
                         <div style={{ fontSize: '0.78rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.value}</div>
-                        <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase', lineHeight: 1.3 }}>{k.label}</div>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase', lineHeight: 1.3 }}>{k.label}</div>
                     </div>
                 ))}
             </div>
@@ -85,7 +85,7 @@ const SouthChinaSeaPanel = () => {
                 border: '1px solid var(--line)'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                         Taiwan Strait — PLAAF Median Line Crossings (30d)
                     </span>
                     <span style={{ fontSize: '0.52rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>
@@ -109,7 +109,7 @@ const SouthChinaSeaPanel = () => {
             </div>
 
             {/* Militarized features */}
-            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                 SCS Militarized Features
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '5px' }}>
@@ -119,10 +119,10 @@ const SouthChinaSeaPanel = () => {
                             width: '5px', height: '5px', borderRadius: '50%',
                             background: STATUS_COLORS[f.status] || 'var(--ink-3)', flexShrink: 0
                         }} />
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>{f.feature}</span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>{f.operator}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{f.feature}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{f.operator}</span>
                         <span style={{
-                            fontSize: '0.34rem', fontWeight: 700, fontFamily: 'var(--font-mono)',
+                            fontSize: '0.5rem', fontWeight: 700, fontFamily: 'var(--font-mono)',
                             color: STATUS_COLORS[f.status] || 'var(--ink-3)', textTransform: 'uppercase'
                         }}>{f.status}</span>
                     </div>
@@ -134,10 +134,10 @@ const SouthChinaSeaPanel = () => {
                 {defenseSystems.slice(0, 3).map((sys, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '1px 0' }}>
                         <Shield size={8} style={{ color: STATUS_COLORS[sys.status] || 'var(--ink-3)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{sys.name}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{sys.operator}</span>
                         <span style={{
-                            fontSize: '0.34rem', fontWeight: 700, fontFamily: 'var(--font-mono)',
+                            fontSize: '0.5rem', fontWeight: 700, fontFamily: 'var(--font-mono)',
                             color: STATUS_COLORS[sys.status] || 'var(--ink-3)', textTransform: 'uppercase'
                         }}>{sys.status}</span>
                     </div>
@@ -153,7 +153,7 @@ const SouthChinaSeaPanel = () => {
                     padding: '3px', background: 'transparent',
                     border: '1px solid var(--line)',
                     borderRadius: 0, color: 'var(--ink-2)',
-                    fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit'
+                    fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit'
                 }}
             >
                 {showFlows ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
@@ -164,12 +164,12 @@ const SouthChinaSeaPanel = () => {
                 <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     {armsFlows.map((flow, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '38px', flexShrink: 0 }}>{flow.from}</span>
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>&rarr;</span>
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '42px', flexShrink: 0 }}>{flow.to}</span>
-                            <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', width: '38px', flexShrink: 0 }}>{flow.from}</span>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>&rarr;</span>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', width: '42px', flexShrink: 0 }}>{flow.to}</span>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
                             <span style={{
-                                fontSize: '0.3rem', fontWeight: 700,
+                                fontSize: '0.5rem', fontWeight: 700,
                                 color: flow.color || 'var(--ink-3)',
                                 letterSpacing: '0.3px', textTransform: 'uppercase'
                             }}>{flow.status}</span>

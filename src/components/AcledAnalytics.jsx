@@ -15,8 +15,8 @@ const KPI = ({ icon, label, value, color, sub }) => (
     }}>
         {React.createElement(icon, { size: 10, style: { color, marginBottom: '2px' } })}
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{value}</div>
-        <div style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
-        {sub && <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
+        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
+        {sub && <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
     </div>
 );
 
@@ -24,7 +24,7 @@ const MiniBar = ({ items, maxVal }) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {items.map(({ label, count, color }, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', width: '55px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', width: '55px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
                 <div style={{ flex: 1, height: '6px', background: '#f2f0ea', borderRadius: 0, overflow: 'hidden' }}>
                     <div style={{
                         width: `${Math.max((count / maxVal) * 100, 3)}%`,
@@ -32,7 +32,7 @@ const MiniBar = ({ items, maxVal }) => (
                         background: color
                     }} />
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '14px' }}>{count}</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '14px' }}>{count}</span>
             </div>
         ))}
     </div>
@@ -146,7 +146,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                         Conflict Analytics
                     </span>
                 </div>
-                <span style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {isDemo ? 'DEMO — NOT ACLED' : 'ACLED · LIVE'} · {viewMode.toUpperCase()}
                 </span>
             </div>
@@ -181,29 +181,29 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                                 marginBottom: '8px', padding: '6px 8px',
                                 background: '#f2f0ea', borderRadius: 0
                             }}>
-                                <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
                                     Cumulative Trend
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <div style={{ flex: 1 }}>
                                         <CumulativeChart data={analysis.cumulativeEvents} color="var(--ink-2)" />
-                                        <div style={{ fontSize: '0.35rem', color: 'var(--ink-3)', marginTop: '2px' }}>Events</div>
+                                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '2px' }}>Events</div>
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <CumulativeChart data={analysis.cumulativeFatalities} color="var(--red)" />
-                                        <div style={{ fontSize: '0.35rem', color: 'var(--ink-3)', marginTop: '2px' }}>Fatalities</div>
+                                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '2px' }}>Fatalities</div>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         <div style={{ marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Type</div>
+                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Type</div>
                             <MiniBar items={analysis.typeItems} maxVal={analysis.maxType} />
                         </div>
 
                         <div style={{ marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Country</div>
+                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Country</div>
                             <MiniBar items={analysis.countryItems} maxVal={analysis.maxCountry} />
                         </div>
 
@@ -214,7 +214,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '4px',
                                     background: 'none', border: 'none', cursor: 'pointer',
-                                    color: 'var(--ink-3)', fontSize: '0.45rem',
+                                    color: 'var(--ink-3)', fontSize: '0.5rem',
                                     letterSpacing: '0.8px', textTransform: 'uppercase',
                                     padding: 0, marginBottom: '3px', fontFamily: 'inherit'
                                 }}

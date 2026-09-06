@@ -95,7 +95,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
+                    fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.8px',
                     color: labelColor,
                     padding: '2px 6px', borderRadius: 0,
                     background: 'var(--panel)', border: '1px solid var(--line)'
@@ -126,8 +126,8 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
             </svg>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
             </div>
         </div>
     );

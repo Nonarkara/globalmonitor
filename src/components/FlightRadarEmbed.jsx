@@ -17,7 +17,7 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
                 Live Airspace
             </span>
             <span style={{
-                fontSize: '0.4rem', fontWeight: 700, letterSpacing: '0.5px',
+                fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.5px',
                 color: flightsActive ? 'var(--green)' : 'var(--ink-3)',
                 padding: '1px 5px', borderRadius: 0,
                 background: flightsActive ? '#f2f0ea' : 'transparent',
@@ -63,7 +63,7 @@ const FlightRadarEmbed = ({ flightsActive, onToggleFlights }) => {
             aria-label="Open ADS-B Exchange globe in new tab"
             style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                marginTop: '6px', fontSize: '0.48rem', color: 'var(--ink-3)',
+                marginTop: '6px', fontSize: '0.5rem', color: 'var(--ink-3)',
                 fontFamily: 'var(--font-mono)', letterSpacing: '0.4px', textDecoration: 'none'
             }}
         >

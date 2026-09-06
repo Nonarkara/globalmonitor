@@ -43,7 +43,7 @@ const KeyFiguresPanel = () => {
                         Key Figures
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {keyFigures.length} TRACKED
                 </span>
             </div>
@@ -67,7 +67,7 @@ const KeyFiguresPanel = () => {
                                 background: 'transparent',
                                 border: `1.5px solid var(--line-2)`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '0.42rem', fontWeight: 700, color: factionColor,
+                                fontSize: '0.5rem', fontWeight: 700, color: factionColor,
                                 fontFamily: 'var(--font-mono)', flexShrink: 0
                             }}>
                                 {fig.name.split(' ').pop().substring(0, 2).toUpperCase()}
@@ -75,14 +75,14 @@ const KeyFiguresPanel = () => {
 
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
-                                    fontSize: '0.48rem', fontWeight: 600,
+                                    fontSize: '0.5rem', fontWeight: 600,
                                     color: 'var(--ink)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.name}
                                 </div>
                                 <div style={{
-                                    fontSize: '0.38rem', color: 'var(--ink-3)',
+                                    fontSize: '0.5rem', color: 'var(--ink-3)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.role}
@@ -90,7 +90,7 @@ const KeyFiguresPanel = () => {
                             </div>
 
                             <span style={{
-                                fontSize: '0.34rem', fontWeight: 700,
+                                fontSize: '0.5rem', fontWeight: 700,
                                 color: statusStyle.color,
                                 padding: '1px 4px',
                                 background: 'transparent',
@@ -115,7 +115,7 @@ const KeyFiguresPanel = () => {
                         padding: '3px', background: 'transparent',
                         border: '1px solid var(--line)',
                         borderRadius: 0, color: 'var(--ink-3)',
-                        fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
+                        fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit'
                     }}
                 >
                     {expanded ? <ChevronUp size={8} /> : <ChevronDown size={8} />}

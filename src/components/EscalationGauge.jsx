@@ -108,7 +108,7 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minHeight: '26px' }}>
-                    <span style={{ fontSize: '0.48rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>
                         {silent ? 'NO DATA' : 'ESCALATION'}
                     </span>
                     <div style={{ width: 48, height: 14, marginTop: 2 }} aria-hidden="true" />
@@ -171,14 +171,14 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
                 }}>
                     {score}
                     {partial && (
-                        <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', marginLeft: 1 }}>/{availableMax}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginLeft: 1 }}>/{availableMax}</span>
                     )}
                 </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minHeight: '26px' }}>
                 <span style={{
-                    fontSize: '0.48rem',
+                    fontSize: '0.5rem',
                     fontWeight: 600,
                     letterSpacing: '1.5px',
                     color: isStale ? 'var(--ink-3)' : color,
@@ -197,7 +197,7 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
                     <HealthDots sourceHealth={sourceHealth} />
                     {(nonLive.length > 0 || age) && (
                         <span style={{
-                            fontSize: '0.38rem', fontFamily: 'var(--font-mono)',
+                            fontSize: '0.5rem', fontFamily: 'var(--font-mono)',
                             color: nonLive.length ? 'var(--ink-2)' : 'var(--ink-3)',
                             letterSpacing: '0.3px', whiteSpace: 'nowrap', maxWidth: '26ch',
                             overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2

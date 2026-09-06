@@ -125,7 +125,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
                 pointerEvents: 'none',
               }}>
                 <span style={{
-                  fontSize: '0.48rem',
+                  fontSize: '0.5rem',
                   fontWeight: 600,
                   color: 'var(--ink)',
                   letterSpacing: '0.2px',

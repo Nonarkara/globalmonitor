@@ -99,7 +99,7 @@ const OilPriceChart = () => {
                 {y100 > PAD && y100 < H - PAD && (
                     <>
                         <line x1={PAD} y1={y100} x2={W - PAD} y2={y100} stroke="var(--red)" strokeWidth="0.5" strokeDasharray="3,3" opacity="0.4" />
-                        <text x={W - PAD - 1} y={y100 - 2} textAnchor="end" fill="var(--red)" fontSize="5" fontFamily="var(--font-mono)">$100</text>
+                        <text x={W - PAD - 1} y={y100 - 2} textAnchor="end" fill="var(--red)" fontSize="10" fontFamily="var(--font-mono)">$100</text>
                     </>
                 )}
 
@@ -118,7 +118,7 @@ const OilPriceChart = () => {
                         <g key={ei}>
                             <line x1={x} y1={y} x2={x} y2={H} stroke={evt.color} strokeWidth="0.4" strokeDasharray="2,2" opacity="0.5" />
                             <circle cx={x} cy={y} r="2.5" fill={evt.color} stroke="var(--paper)" strokeWidth="0.5" />
-                            <text x={x} y={H - 2} textAnchor="middle" fill={evt.color} fontSize="3.5" fontFamily="var(--font-mono)" opacity="0.8">
+                            <text x={x} y={H - 2} textAnchor="middle" fill={evt.color} fontSize="9" fontFamily="var(--font-mono)" opacity="0.8">
                                 {evt.label}
                             </text>
                         </g>
@@ -132,9 +132,9 @@ const OilPriceChart = () => {
             </svg>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Feb 27</span>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>War premium: $14-18/bbl</span>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Mar 29</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Feb 27</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>War premium: $14-18/bbl</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>Mar 29</span>
             </div>
         </div>
     );

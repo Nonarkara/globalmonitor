@@ -33,7 +33,7 @@ const ThailandStatusPanel = () => {
                         Thailand Status
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     depa · NESDC · PATSOUTH
                 </span>
             </div>
@@ -50,9 +50,9 @@ const ThailandStatusPanel = () => {
                         background: '#f2f0ea', borderRadius: 0
                     }}>
                         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>
-                            {k.value}{k.suffix && <span style={{ fontSize: '0.48rem', opacity: 0.6 }}>{k.suffix}</span>}
+                            {k.value}{k.suffix && <span style={{ fontSize: '0.5rem', opacity: 0.6 }}>{k.suffix}</span>}
                         </div>
-                        <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
                     </div>
                 ))}
             </div>
@@ -64,10 +64,10 @@ const ThailandStatusPanel = () => {
                 border: '1px solid var(--line)'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                         Eastern Economic Corridor — Investment Target
                     </span>
-                    <span style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
                         ${eecZone.actualInvestment_usd_bn}B / ${eecZone.totalInvestmentTarget_usd_bn}B
                     </span>
                 </div>
@@ -80,7 +80,7 @@ const ThailandStatusPanel = () => {
             </div>
 
             {/* depa Smart City domains */}
-            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '3px' }}>
+            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '3px' }}>
                 depa Smart City Domains ({depaSmartCities.operational} cities active)
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '6px' }}>
@@ -90,8 +90,8 @@ const ThailandStatusPanel = () => {
                         padding: '2px 5px', borderRadius: 0,
                         background: '#f2f0ea', border: '1px solid var(--line)'
                     }}>
-                        <span style={{ fontSize: '0.34rem', color: 'var(--ink-2)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{d.cities}</span>
-                        <span style={{ fontSize: '0.32rem', color: 'var(--ink-2)' }}>{d.name.replace('Smart ', '')}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{d.cities}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)' }}>{d.name.replace('Smart ', '')}</span>
                     </div>
                 ))}
             </div>
@@ -100,10 +100,10 @@ const ThailandStatusPanel = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '5px' }}>
                 {macroIndicators.slice(0, 4).map((ind, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '1px 0' }}>
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>{ind.label}</span>
-                        <span style={{ fontSize: '0.46rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{ind.value}</span>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{ind.label}</span>
+                        <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{ind.value}</span>
                         <span style={{
-                            fontSize: '0.38rem', fontWeight: 700,
+                            fontSize: '0.5rem', fontWeight: 700,
                             color: ind.isPositive ? 'var(--green)' : 'var(--red)',
                             display: 'flex', alignItems: 'center', gap: '2px'
                         }}>
@@ -122,7 +122,7 @@ const ThailandStatusPanel = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
                     <AlertTriangle size={10} style={{ color: 'var(--red)', flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.44rem', fontWeight: 700, color: 'var(--red)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--red)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                         Southern Border — PATSOUTH Insurgency
                     </span>
                 </div>
@@ -134,25 +134,25 @@ const ThailandStatusPanel = () => {
                     ].map(k => (
                         <div key={k.label} style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>{k.value}</div>
-                            <div style={{ fontSize: '0.3rem', color: 'var(--ink-3)', textTransform: 'uppercase' }}>{k.label}</div>
+                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase' }}>{k.label}</div>
                         </div>
                     ))}
                 </div>
-                <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', marginTop: '3px', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '3px', lineHeight: 1.4 }}>
                     {southernBorder.peaceDialogueStatus}
                 </div>
             </div>
 
             {/* Myanmar border */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3px 0' }}>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)' }}>Myanmar refugees in TH</span>
-                <span style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)' }}>Myanmar refugees in TH</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
                     {myanmar.refugeesInThailand.toLocaleString()}
                 </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3px 0', marginBottom: '4px' }}>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)' }}>TH–MM trade impact</span>
-                <span style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)' }}>TH–MM trade impact</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>
                     {myanmar.tradeDropPct}% YoY
                 </span>
             </div>
@@ -166,7 +166,7 @@ const ThailandStatusPanel = () => {
                     padding: '3px', background: 'transparent',
                     border: '1px solid var(--line)',
                     borderRadius: 0, color: 'var(--ink-2)',
-                    fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit'
+                    fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'inherit'
                 }}
             >
                 {showActs ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
@@ -181,10 +181,10 @@ const ThailandStatusPanel = () => {
                                 width: '5px', height: '5px', borderRadius: '50%',
                                 background: STATUS_COLORS[act.status] || 'var(--ink-3)', flexShrink: 0
                             }} />
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', flex: 1 }}>{act.name}</span>
-                            <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>{act.agency}</span>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', flex: 1 }}>{act.name}</span>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>{act.agency}</span>
                             <span style={{
-                                fontSize: '0.32rem', fontWeight: 700,
+                                fontSize: '0.5rem', fontWeight: 700,
                                 color: STATUS_COLORS[act.status] || 'var(--ink-3)',
                                 textTransform: 'uppercase', letterSpacing: '0.3px'
                             }}>{act.status}</span>

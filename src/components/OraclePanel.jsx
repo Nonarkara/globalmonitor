@@ -14,13 +14,13 @@ const OutcomeBar = ({ outcome, max }) => {
     const pct = max > 0 ? (outcome.prob / max) * 100 : 0;
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '1.5px 0' }}>
-            <span style={{ fontSize: '0.4rem', color: 'var(--ink-2)', width: '74px', flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+            <span style={{ fontSize: '0.5rem', color: 'var(--ink-2)', width: '74px', flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
                 {outcome.label}
             </span>
             <div style={{ flex: 1, height: '7px', background: '#f2f0ea', borderRadius: 0, overflow: 'hidden' }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: outcome.color, borderRadius: 0, transition: 'width 0.5s ease' }} />
             </div>
-            <span style={{ fontSize: '0.46rem', fontWeight: 700, color: outcome.color, fontFamily: 'var(--font-mono)', width: '30px', textAlign: 'right' }}>
+            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: outcome.color, fontFamily: 'var(--font-mono)', width: '30px', textAlign: 'right' }}>
                 {outcome.prob}%
             </span>
         </div>
@@ -55,7 +55,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
                     </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.36rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '3px' }}>
                         <Cpu size={9} /> {data?.meta?.aiPowered ? 'ABM+LLM' : 'ABM·MC'}
                     </span>
                     <span className={`live-pill ${statusLabel !== 'LIVE' ? 'live-pill-muted' : ''}`}>{statusLabel}</span>
@@ -73,7 +73,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
                     {/* Headline forecast */}
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '5px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                            <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                 8-week forecast
                             </span>
                             <span style={{ fontSize: '0.66rem', fontWeight: 700, color: head.color, letterSpacing: '0.2px' }}>
@@ -92,7 +92,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
 
                     {/* Live escalation → expected, with trajectory band */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
                             ESC <span style={{ color: 'var(--ink)', fontWeight: 700 }}>{data.live.escalation}</span>
                             <span style={{ opacity: 0.4 }}> → </span>
                             <span style={{ color: head.color, fontWeight: 700 }}>{fc.expectedFinal}</span>
@@ -100,7 +100,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
                         <div style={{ flex: 1 }}>
                             <OracleTrajectory trajectory={fc.trajectory} height={34} color={head.color} />
                         </div>
-                        <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
                             P<sub>crit</sub> <span style={{ color: fc.probCritical >= 40 ? 'var(--red)' : 'var(--ink-2)', fontWeight: 700 }}>{fc.probCritical}%</span>
                         </div>
                     </div>
@@ -112,12 +112,12 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
 
                     {/* Top drivers */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '7px' }}>
-                        <span style={{ fontSize: '0.36rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', alignSelf: 'center' }}>
+                        <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px', alignSelf: 'center' }}>
                             Drivers
                         </span>
                         {fc.drivers.slice(0, 3).map((d) => (
                             <span key={d.id} style={{
-                                fontSize: '0.36rem', padding: '1px 5px', borderRadius: 0,
+                                fontSize: '0.5rem', padding: '1px 5px', borderRadius: 0,
                                 background: `${d.color}18`, border: `1px solid ${d.color}30`, color: 'var(--ink-2)',
                                 fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '3px'
                             }}>
@@ -137,7 +137,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
                             width: '100%', padding: '6px', cursor: 'pointer',
                             background: 'var(--green)',
                             border: '1px solid var(--green)', borderRadius: 0,
-                            color: '#fff', fontSize: '0.46rem', fontWeight: 700, letterSpacing: '1px',
+                            color: '#fff', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '1px',
                             textTransform: 'uppercase', fontFamily: 'inherit'
                         }}
                     >

@@ -60,7 +60,7 @@ const OilCrisisHeader = ({ items }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
-                        fontSize: '0.42rem', fontWeight: 700, letterSpacing: '1px',
+                        fontSize: '0.5rem', fontWeight: 700, letterSpacing: '1px',
                         color: currentThreshold.color, textTransform: 'uppercase',
                         padding: '1px 5px', background: '#f2f0ea', borderRadius: 0
                     }}>
@@ -68,7 +68,7 @@ const OilCrisisHeader = ({ items }) => {
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.44rem', color: 'var(--ink-3)',
+                    fontSize: '0.5rem', color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
                     ~{disruption}% supply disrupted
@@ -95,7 +95,7 @@ const OilCrisisHeader = ({ items }) => {
                     }}>
                         <span style={{
                             position: 'absolute', top: '-11px', transform: 'translateX(-50%)',
-                            fontSize: '0.36rem', color: 'var(--ink-3)',
+                            fontSize: '0.5rem', color: 'var(--ink-3)',
                             fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap'
                         }}>
                             {t.label}
@@ -114,7 +114,7 @@ const OilCrisisHeader = ({ items }) => {
                 }} />
             </div>
             <div style={{
-                fontSize: '0.44rem', color: 'var(--ink-3)',
+                fontSize: '0.5rem', color: 'var(--ink-3)',
                 marginTop: '4px', fontFamily: 'var(--font-mono)', textAlign: 'right'
             }}>
                 {oilItem.symbol}: ${price.toFixed(2)} ({oilItem.changePerc})

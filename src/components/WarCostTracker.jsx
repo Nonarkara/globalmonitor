@@ -43,7 +43,7 @@ const WarCostTracker = () => {
                         War Cost Estimate
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     DAY {dayCount}
                 </span>
             </div>
@@ -67,10 +67,10 @@ const WarCostTracker = () => {
                 }}>
                     {formatCost(liveCost)}
                 </div>
-                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginTop: '3px', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '3px', letterSpacing: '1px', textTransform: 'uppercase' }}>
                     Estimated Total Cost
                 </div>
-                <div style={{ fontSize: '0.42rem', color: 'var(--ink-2)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '0.5rem', color: 'var(--ink-2)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                     ~${warEconomy.dailyCostEstimate}M / day
                 </div>
             </div>
@@ -80,7 +80,7 @@ const WarCostTracker = () => {
                 {warEconomy.categories.map(cat => (
                     <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{
-                            fontSize: '0.4rem', color: 'var(--ink-2)',
+                            fontSize: '0.5rem', color: 'var(--ink-2)',
                             width: '60px', textAlign: 'right', flexShrink: 0
                         }}>
                             {cat.label}
@@ -98,7 +98,7 @@ const WarCostTracker = () => {
                             }} />
                         </div>
                         <span style={{
-                            fontSize: '0.4rem', color: 'var(--ink-2)',
+                            fontSize: '0.5rem', color: 'var(--ink-2)',
                             fontFamily: 'var(--font-mono)', width: '32px'
                         }}>
                             ${(cat.estimateTotal / 1000).toFixed(1)}B
@@ -126,7 +126,7 @@ const WarCostTracker = () => {
                             {pct}%
                         </div>
                         <div style={{
-                            fontSize: '0.35rem', color: 'var(--ink-3)',
+                            fontSize: '0.5rem', color: 'var(--ink-3)',
                             textTransform: 'capitalize', letterSpacing: '0.3px'
                         }}>
                             {country} GDP
@@ -137,7 +137,7 @@ const WarCostTracker = () => {
 
             {/* Source note */}
             <div style={{
-                fontSize: '0.32rem', color: 'var(--ink-3)',
+                fontSize: '0.5rem', color: 'var(--ink-3)',
                 marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
             }}>
                 {warEconomy.sources}

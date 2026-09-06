@@ -20,14 +20,14 @@ const SubFront = ({ front }) => (
             background: front.color
         }} />
         <span style={{
-            fontSize: '0.48rem',
+            fontSize: '0.5rem',
             color: 'var(--ink-2)',
             flex: 1
         }}>
             {front.name}
         </span>
         <span style={{
-            fontSize: '0.4rem',
+            fontSize: '0.5rem',
             fontWeight: 700,
             color: front.color,
             letterSpacing: '0.5px'
@@ -109,7 +109,7 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.missiles || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             MISSILES
                         </div>
                     </div>
@@ -123,7 +123,7 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.drones || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             DRONES
                         </div>
                     </div>
@@ -137,7 +137,7 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.interceptions || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             INTERCEPT
                         </div>
                     </div>
@@ -151,7 +151,7 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.casualties || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.5rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             CASUALTIES
                         </div>
                     </div>
@@ -159,7 +159,7 @@ const IranWarPanel = () => {
 
                 {/* Sub-front status indicators */}
                 <div style={{
-                    fontSize: '0.42rem',
+                    fontSize: '0.5rem',
                     fontWeight: 600,
                     letterSpacing: '1.2px',
                     color: 'var(--text-muted)',
