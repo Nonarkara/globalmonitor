@@ -1,5 +1,7 @@
 # Global Monitor
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 ![Manga-style illustration of an analyst in a darkened command center, watching a holographic globe centred on Southeast Asia. HUD panels show conflict, weather, flood, and drought scores.](docs/hero-banner.png)
 
 **Illustration only.** Scores and figures drawn in this artwork — conflict intensity 8.7, extreme weather 6.2, flood risk 7.1, drought risk 5.6, population 668.45 M, displaced 2.37 M, temperature anomaly +1.32 °C, sea level +24.6 cm — are **not live telemetry**. They belong to the picture, not to the dashboard.
@@ -85,10 +87,16 @@ Cloudflare Pages is the documented host. GitHub Actions (`.github/workflows/clou
 
 Sister public maps (separate repos, not this tree): [GlobeWatch](https://globalmonitor.nonarkara.org/), [MEM by NON](https://nonarkara.github.io/mem-by-non), [War Monitor](https://middleeast-monitor.pages.dev).
 
+Patches and forks: [CONTRIBUTING.md](CONTRIBUTING.md). Vulnerability reports: [SECURITY.md](SECURITY.md).
+
 ## 6. License
 
-This repository does **not** currently ship a `LICENSE` file; GitHub lists it as unlicensed.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-In-product legal copy (`src/data/legalCopy.js`) states that the dashboard’s design, source architecture, and visual identity are the work of Dr Non Arkaraprasertkul and Associate Professor Dr Poon Thiengburanathum. Contact for permissions: [non@nonarkara.org](mailto:non@nonarkara.org).
+The software in this repository is released under the [MIT License](LICENSE). Copyright © 2026 **Non Arkaraprasertkul / Axiom X Co., Ltd.**
 
-Third-party datasets remain under their upstream licences. Attribute them when you republish. Forking the **method** (open feeds, visible provenance, measured vs modelled) is the invitation; do not treat this README as a grant of rights the repository has not declared.
+This project is an independent digital-economy and geopolitical OSINT map. It is **not** a depa product, not a ministry product, and not official government intelligence.
+
+Third-party datasets keep their upstream licences (ACLED, NASA FIRMS/GIBS, AIS, ADS-B, and the rest listed in [`src/data/dataSources.json`](src/data/dataSources.json)). MIT covers the code and docs in this tree, not those feeds. Attribute upstream data when you republish.
+
+Authorship of the method and the live dashboard remains with Dr Non Arkaraprasertkul and Associate Professor Dr Poon Thiengburanathum. Contact: [non@nonarkara.org](mailto:non@nonarkara.org).
