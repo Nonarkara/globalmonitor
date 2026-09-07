@@ -36,18 +36,22 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
         }
     });
     const [streamError, setStreamError] = useState(false);
+    const [stationTheater, setStationTheater] = useState(viewMode);
     const audioRef = useRef(null);
 
-    // Sync station when theater switches
-    useEffect(() => {
+    // When the map theater changes, retune to that theater's default station
+    // during render (React's recommended "adjust state when props change" path)
+    // instead of setState inside an effect.
+    if (stationTheater !== viewMode) {
         const defaultStation = getStationForTheater(viewMode);
-        if (defaultStation && defaultStation.id !== selectedStation.id) {
+        setStationTheater(viewMode);
+        if (defaultStation) {
             setSelectedStation(defaultStation);
             setIsPlaying(false);
             setStreamError(false);
             setUsingBackup(false);
         }
-    }, [viewMode]);
+    }
 
     useEffect(() => {
         if (!audioRef.current) return;
@@ -58,7 +62,9 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
         setVolume(newVol);
         try {
             localStorage.setItem('tech-monitor:radio-volume', String(newVol));
-        } catch {}
+        } catch {
+            // Ignore quota / private-mode failures; volume still applies in-session.
+        }
     };
 
     const handleToggleMute = () => {
@@ -66,7 +72,9 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
         setIsMuted(next);
         try {
             localStorage.setItem('tech-monitor:radio-muted', String(next));
-        } catch {}
+        } catch {
+            // Ignore quota / private-mode failures; mute still applies in-session.
+        }
     };
 
     const handleTogglePlay = () => {
