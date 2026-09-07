@@ -29,7 +29,7 @@ const WarningItem = ({ warning, expanded, onToggle }) => {
         >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
-                    <span style={{
+                    <span title="auto-triage: keyword classifier, not an NGA rating" style={{
                         fontSize: '0.38rem', fontWeight: 700, letterSpacing: '0.5px',
                         color, padding: '1px 4px', background: `${color}15`,
                         borderRadius: '2px', flexShrink: 0
@@ -62,7 +62,7 @@ const WarningItem = ({ warning, expanded, onToggle }) => {
 const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
     const [expandedId, setExpandedId] = useState(null);
     const fetcher = useCallback(() => fetchNgaWarnings(), []);
-    const { data, isLoading, isRefreshing, isStale, error, retryCount, refresh } = useLiveResource(fetcher, {
+    const { data, isLoading, isRefreshing, isStale, isSample, error, retryCount, refresh } = useLiveResource(fetcher, {
         cacheKey: 'nga-warnings',
         intervalMs: 30 * 60 * 1000,
         isUsable: (d) => Array.isArray(d?.warnings)
@@ -76,7 +76,7 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
         <div className="bottom-card flex-column">
             <div className="panel-header">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Anchor size={14} /> MARITIME WARNINGS
+                    <Anchor size={14} /> MARITIME WARNINGS · GULF &amp; RED SEA
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {highCount > 0 && (
@@ -84,21 +84,22 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
                             fontSize: '0.42rem', fontWeight: 700, color: '#ef4444',
                             display: 'flex', alignItems: 'center', gap: '3px'
                         }}>
-                            <AlertTriangle size={10} /> {highCount} HIGH
+                            <AlertTriangle size={10} /> {highCount} keyword-flagged
                         </span>
                     )}
-                    <span className="live-pill">{total} NGA</span>
+                    <span className={`live-pill ${isStale || error || isSample ? 'live-pill-muted' : ''}`}>{total} NGA</span>
                 </div>
             </div>
             <DataStatus
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 isStale={isStale}
+                isDemo={isSample}
                 error={error}
                 retryCount={retryCount}
                 data={data}
                 isEmpty={data && warnings.length === 0}
-                emptyMessage={`No active maritime warnings for ${getRegion(viewMode).label}`}
+                emptyMessage={`NGA warnings are filtered for the Gulf & Red Sea only — not scoped to ${getRegion(viewMode).label}`}
                 refresh={refresh}
             >
                 <div className="panel-content" style={{
@@ -106,6 +107,14 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
                     padding: '6px',
                     display: 'flex', flexDirection: 'column'
                 }}>
+                    <div style={{
+                        display: 'flex', justifyContent: 'space-between',
+                        padding: '0 8px 4px', fontSize: '0.38rem', letterSpacing: '0.5px',
+                        fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', textTransform: 'uppercase'
+                    }}>
+                        <span>auto-triage · area</span>
+                        <span>{warnings.length} shown</span>
+                    </div>
                     {warnings.slice(0, 15).map((w) => (
                         <WarningItem
                             key={w.id}
@@ -123,7 +132,7 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
                 color: 'var(--ink-3)',
                 textAlign: 'right'
             }}>
-                Source: US National Geospatial-Intelligence Agency (NGA)
+                Warnings: NGA · Triage: keyword classifier, not NGA
             </div>
         </div>
     );

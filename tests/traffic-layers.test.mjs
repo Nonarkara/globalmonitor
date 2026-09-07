@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { normalizeAirLabsFlights } from '../server/lib/airLabs.mjs';
+import { fetchLiveMilitaryFlights } from '../server/lib/militaryFlights.mjs';
 import { airportsCsvToFeatureCollection } from '../scripts/refresh-airports.mjs';
+import { filterMilitaryFlightsPayload } from '../src/services/militaryFlights.js';
 import { sanitizePointCollection } from '../src/utils/geojsonValidate.js';
 import { buildPopupClassName } from '../src/utils/mapPopup.js';
 import { fetchFlightSnapshot } from '../functions/_lib/router.mjs';
@@ -84,4 +86,56 @@ test('flight fallback reads the Pages static asset through context.next', async 
     assert.equal(result.features.length, 50);
     assert.equal(result.meta.stale, true);
     assert.equal(result.meta.liveError, 'throttled');
+});
+
+test('military fallback stays within the selected theater', () => {
+    const thailand = filterMilitaryFlightsPayload({
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [98.2, 16.9] },
+                properties: { theater: 'thailand', role: 'Patrol' },
+            },
+            {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [52.12, 26.85] },
+                properties: { theater: 'middleeast', role: 'AWACS' },
+            },
+        ],
+        meta: { source: 'fallback' },
+    }, 'thailand');
+
+    assert.equal(thailand.features.length, 1);
+    assert.equal(thailand.features[0].properties.theater, 'thailand');
+    assert.equal(thailand.meta.theater, 'thailand');
+});
+
+test('live military ingestion tags features with the selected theater', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async () => new Response(JSON.stringify({
+        ac: [
+            {
+                hex: 'abc123',
+                lat: 16.9,
+                lon: 98.2,
+                t: 'JAS39',
+                flight: 'RTAF101',
+                r: 'HS-ABC',
+                gs: 410,
+                track: 270,
+            },
+        ],
+    }), {
+        headers: { 'content-type': 'application/json' },
+    });
+
+    try {
+        const payload = await fetchLiveMilitaryFlights('thailand');
+        assert.equal(payload.features.length, 1);
+        assert.equal(payload.features[0].properties.theater, 'thailand');
+        assert.equal(payload.features[0].properties.military, true);
+    } finally {
+        global.fetch = originalFetch;
+    }
 });

@@ -3,8 +3,22 @@
  * Free API: https://acleddata.com/acled-api-documentation/
  * Returns battles, explosions/remote violence, violence against civilians
  * with exact lat/lon, fatalities, actors, and dates.
+ *
+ * SINGLE SOURCE OF TRUTH: production (Cloudflare Pages Functions) routes
+ * /api/acled through functions/_lib/router.mjs, which imports fetchAcledEvents
+ * from THIS file. Dev (Express, server/index.mjs) uses it too. There is no
+ * separate prod copy — a fix here applies to both. Do not fork this fetcher.
  */
 import axios from 'axios';
+
+// Source label for offline/demo fallback events. Deliberately distinct from
+// 'acled' so the frontend (DataStatus/AcledAnalytics) can badge it as DEMO
+// data and never present curated events with the same weight as a live feed.
+// The old labels (a "curated" tag on the collection and a "verified reporting"
+// claim on each feature) described a verification process that does not exist
+// and rendered indistinguishably from real ACLED rows. tests/data-honesty
+// asserts neither string ever returns to this file.
+const DEMO_SOURCE = 'demo_offline_no_acled_key';
 
 const ACLED_BASE = 'https://api.acleddata.com/acled/read';
 
@@ -47,8 +61,12 @@ export const fetchAcledEvents = async (options = {}) => {
 
     const countries = THEATER_COUNTRIES[theater] || THEATER_COUNTRIES.middleeast;
 
-    // If no API key, return theater-curated fallback events
+    // ACLED requires BOTH a key and the registered email. If either is missing
+    // the feed can never go live, so say which one — a misconfiguration must
+    // announce itself instead of silently degrading to demo data.
     if (!key || !email) {
+        const missing = [!key && 'ACLED_API_KEY', !email && 'ACLED_EMAIL'].filter(Boolean).join(' + ');
+        console.warn(`[ACLED] ${missing} not set — serving labelled demo events, not live intelligence`);
         return buildFallbackEvents(theater);
     }
 
@@ -91,18 +109,26 @@ export const fetchAcledEvents = async (options = {}) => {
                 }
             })),
             total: events.length,
+            // limit=500 with no pagination: a full page means the count is a
+            // floor, not a total. Consumers render "500+" when this is set.
+            truncated: events.length >= 500,
             since,
+            theater,
             source: 'acled'
         };
     } catch (err) {
         console.warn('[ACLED] API fetch failed, using fallback:', err.message);
-        return buildFallbackEvents();
+        return buildFallbackEvents(theater);
     }
 };
 
 /**
- * Curated fallback events from verified war reporting (Day 1-29 of Iran conflict).
- * These represent major verified strikes/incidents from open-source intelligence.
+ * Curated fallback events from open-source war reporting (Day 1-29 of the
+ * Iran conflict). Kept as DEMO/OFFLINE content so the shell has something to
+ * render without a key — but it is hand-typed, not a feed, and must never be
+ * rendered with the same visual treatment as a real ACLED response. See
+ * DEMO_SOURCE above and the AcledAnalytics.jsx / HumanitarianPanel.jsx
+ * consumers that key off it.
  */
 const FALLBACK_EVENTS = {
     middleeast: [
@@ -141,7 +167,22 @@ const FALLBACK_EVENTS = {
 };
 
 function buildFallbackEvents(theater = 'middleeast') {
-    const events = FALLBACK_EVENTS[theater] || FALLBACK_EVENTS.middleeast;
+    // No curated demo set exists for this theater — return an empty,
+    // explicitly-labelled payload rather than substituting another region's
+    // events. `||` must never bridge two geographies: East Asia showing Iran
+    // strikes under its own name is a worse lie than an empty panel.
+    if (!FALLBACK_EVENTS[theater]) {
+        return {
+            type: 'FeatureCollection',
+            features: [],
+            total: 0,
+            truncated: false,
+            since: null,
+            theater,
+            source: DEMO_SOURCE
+        };
+    }
+    const events = FALLBACK_EVENTS[theater];
 
     return {
         type: 'FeatureCollection',
@@ -157,11 +198,13 @@ function buildFallbackEvents(theater = 'middleeast') {
                 region: e.region,
                 fatalities: e.fatalities,
                 notes: e.notes,
-                source: 'OSINT verified reporting'
+                source: DEMO_SOURCE
             }
         })),
         total: events.length,
+        truncated: false,
         since: '2026-02-28',
-        source: 'curated_fallback'
+        theater,
+        source: DEMO_SOURCE
     };
 }

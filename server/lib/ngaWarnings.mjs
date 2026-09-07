@@ -9,13 +9,14 @@ const NGA_URL = 'https://msi.nga.mil/api/publications/broadcast-warn?output=json
 // NAVAREA 9 = Indian Ocean / Persian Gulf / Red Sea / Arabian Sea
 // Subregions relevant to Middle East:
 const ME_NAVAREAS = ['9', '3'];
+// Geographic terms only. Generic hazard words ('naval', 'firing',
+// 'exercise', 'danger', …) matched warnings from every ocean and defeated the
+// Gulf & Red Sea scope this filter exists to enforce.
 const ME_KEYWORDS = [
     'hormuz', 'persian gulf', 'gulf of oman', 'arabian sea', 'red sea',
     'bab el', 'bab al', 'mandeb', 'aden', 'yemen', 'oman', 'iran',
     'saudi', 'qatar', 'bahrain', 'kuwait', 'uae', 'emirates',
-    'suez', 'egypt', 'israel', 'lebanon', 'syria', 'iraq',
-    'naval', 'missile', 'mine', 'attack', 'military', 'danger',
-    'unexploded', 'firing', 'exercise', 'restricted', 'prohibited'
+    'suez', 'egypt', 'israel', 'lebanon', 'syria', 'iraq'
 ];
 
 const isMiddleEastRelevant = (warning) => {
@@ -51,6 +52,7 @@ export const fetchNgaWarnings = async () => {
             issueDate: w.issueDate || null,
             cancelDate: w.cancelDate || null,
             authority: w.authority || null,
+            // Keyword classifier over the warning text — our triage, not NGA's.
             threat: classifyThreat(w.text)
         }))
         .sort((a, b) => {
@@ -66,6 +68,7 @@ export const fetchNgaWarnings = async () => {
         total: meWarnings.length,
         highThreat: highCount,
         elevatedThreat: elevatedCount,
+        triage: 'keyword classifier over NGA text; threat levels are not NGA ratings',
         updatedAt: new Date().toISOString()
     };
 };

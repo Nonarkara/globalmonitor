@@ -32,7 +32,12 @@ const S = {
 const DataStatus = ({
     isLoading, isRefreshing, isStale, error, retryCount,
     data, isEmpty, emptyMessage = 'No data available',
-    refresh, children
+    refresh, children,
+    // Demo / sample / fallback content must wear a badge at the same visual
+    // weight as STALE — never render curated or invented data with the same
+    // treatment as a live feed. Callers pass isDemo from useLiveResource's
+    // isSample, or derive it from the payload's own source field.
+    isDemo = false, demoLabel = 'DEMO DATA'
 }) => {
     // First load — skeleton placeholder (fixed slot height)
     if (!data && isLoading) {
@@ -86,6 +91,19 @@ const DataStatus = ({
                 }}
                 aria-live="polite"
             >
+                {isDemo && (
+                    <span
+                        style={{
+                            ...S.staleBadge,
+                            color: 'var(--red)',
+                            background: 'rgba(220,38,38,0.12)'
+                        }}
+                        role="status"
+                        title="Demo or fallback content — not a live observation."
+                    >
+                        {demoLabel}
+                    </span>
+                )}
                 <span
                     style={{
                         ...S.staleBadge,

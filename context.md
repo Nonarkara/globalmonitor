@@ -12,8 +12,8 @@ Cursor rule: [.cursor/rules/verify-before-recommend.mdc](.cursor/rules/verify-be
 
 ## Live URL
 
-- **Production URL**: https://globalmonitor.pages.dev/ — Cloudflare Pages (static frontend + API via Pages Functions, same origin).
-- **Custom domain (pending DNS)**: https://globalmonitor.nonarkara.org — attached to Pages project `globalmonitor` (2026-07-05) but **CNAME not set**; still serves stale bundle `index-ilcENpxt.js` until DNS points to Pages. Required record in zone `nonarkara.org` (`8809ee955a8edb681c34f45ed8f5b765`): **CNAME** `globalmonitor` → `globalmonitor.pages.dev`, proxied. Wrangler OAuth on this machine has `pages:write` but not `dns:write` — DNS edit needs a scoped API token or dashboard one-click after domain attach.
+- **Production URL**: https://asia.nonarkara.org/ — Cloudflare Pages project `asiawatch` (asiawatch.pages.dev): static frontend + API via Pages Functions, same origin. **This branch (`main`) is the ASIA build.** The flagship at globalmonitor.nonarkara.org is branch `classic` → project `globalmonitor`; the World Console at global.nonarkara.org is branch `middleeast` → project `globalmonitor-me`. Full table under "Deployment map" at the end of this file.
+- **Custom domain**: asia.nonarkara.org is attached to project `asiawatch` and live.
 - **Current source repo**: https://github.com/Nonarkara/globalmonitor
 - **Clean v3 mirror repo**: https://github.com/Nonarkara/globalmonitor-v3
 - **Legacy static backup**: https://nonarkara.github.io/globalmonitor/
@@ -28,10 +28,9 @@ Cursor rule: [.cursor/rules/verify-before-recommend.mdc](.cursor/rules/verify-be
 - Ports in repo: **5180** (Vite) + **4000** (API) — not Codex 5183/4010 unless overridden by env
 
 - **Primary eval (laptop)**: http://localhost:5180 — `npm run dev:stack` (Vite + API proxy). API direct: http://127.0.0.1:4000
-- **Production**: https://globalmonitor.pages.dev/ (Cloudflare Pages project `globalmonitor` — frontend + API)
+- **Production**: https://asia.nonarkara.org/ (Cloudflare Pages project `asiawatch` — frontend + API)
 - **Legacy static backup**: https://nonarkara.github.io/globalmonitor/ (GitHub Pages)
-- Fallback config: `render.yaml` (vercel.json removed from repo)
-- **Fly.io**: retired as primary host (`fly.toml` kept for reference only)
+- No fallback host. `fly.toml`, `render.yaml` and `Dockerfile` were removed 2026-09-03 — dead since the Cloudflare move, and a stale deploy config is a trap for the next deploy.
 
 ## Local dev (one command)
 ```bash
@@ -43,13 +42,13 @@ Starts `node server/index.mjs` on **4000** and Vite on **5180** (`/api` proxied 
 When reporting whether work is shipped, agents MUST state one of:
 - **Committed on localhost** — `git commit` exists locally; not necessarily pushed or running on laptop.
 - **Running on localhost: http://localhost:5180** — change is visible in local dev (`npm run dev:stack`); not on production.
-- **Committed on URL: https://globalmonitor.pages.dev/** — change is live at that URL (repeat the full URL every time).
+- **Committed on URL: https://asia.nonarkara.org/** — change is live at that URL (repeat the full URL every time).
 
 GitHub Pages backup deploys separately; if only gh-pages has the change, use `Committed on URL: https://nonarkara.github.io/globalmonitor/`. Never imply production live until push + deploy are verified (`git status` vs `origin/main`, deploy logs).
 
 ## Deploy status (2026-06-21)
-- **Primary host**: Cloudflare Pages at `https://globalmonitor.pages.dev/` — static `dist/` + API via `functions/`.
-- **Deploy command**: `npm run deploy:pages` (or `npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true`).
+- **Primary host**: Cloudflare Pages project `asiawatch` at `https://asia.nonarkara.org/` (asiawatch.pages.dev) — static `dist/` + API via `functions/`.
+- **Deploy command**: `npm run deploy:pages` (or `npx wrangler pages deploy dist --project-name asiawatch --branch=main --commit-dirty=true`). Never `--project-name globalmonitor` from this branch — that is the flagship's slot.
 - **Build**: same-origin API — `VITE_API_BASE_URL` empty at build time; `/api/*` served by Pages Functions.
 - **Local eval**: `npm run dev:stack` — full Node API with AIS WebSocket on port 4000.
 - **Pages API caveat**: global AIS WebSocket (aisstream.io) needs long-running Node; Pages serves VesselFinder fleet overlay when `VESSELFINDER_FLEET_KEY` is bound in Cloudflare env.
@@ -163,7 +162,7 @@ Pattern: extend [server/lib/supabase.mjs](server/lib/supabase.mjs) with an `upse
   - `npm audit --audit-level=moderate`
   - `npm run lint`
   - `npm run build`
-- `.github/workflows/cloudflare-pages.yml` deploys `dist` + `functions/` to Cloudflare Pages project `globalmonitor` (same-origin API, empty `VITE_API_BASE_URL`).
+- `.github/workflows/cloudflare-pages.yml` and `refresh-ais-snapshot.yml` deploy `dist` + `functions/` to Cloudflare Pages project `asiawatch` (same-origin API, empty `VITE_API_BASE_URL`). The project name in both workflows must match `wrangler.toml` — an explicit flag beats the config file.
 - GitHub Actions may be disabled on the account; if so, deploy Cloudflare manually with Wrangler.
 
 ## Ship tracking (AIS)
@@ -211,3 +210,18 @@ Read [CLAUDE.md](CLAUDE.md) before editing this project. Hard rules:
 - Tactical color palette only (amber/obsidian/cyan). Zero pastels, gradients, round corners.
 - `[EVENT_ID]` mono incident tags + monospaced coordinate readouts preserved.
 - Global scope — do not regress to Middle East only. V1 and V2 exist for that.
+
+
+## Deployment map (all four sites) — 2026-09-03
+
+Five worktrees share one git database (`v3-global/.git`). Three branches deploy. Get the branch ↔ project pairing wrong and one site silently overwrites another.
+
+| Branch (worktree) | Cloudflare Pages project | Live domain | Deploy |
+|---|---|---|---|
+| `main` (`v3-global`) | `asiawatch` | asia.nonarkara.org | `npm run deploy:pages`; GitHub Actions on push + */15 cron |
+| `classic` (`v3-classic`, tracks `v3/main` = repo globalmonitor-v3) | `globalmonitor` | globalmonitor.nonarkara.org — **the flagship** | `npm run deploy:pages` by hand |
+| `middleeast` (`v3-middleeast`) | `globalmonitor-me` | global.nonarkara.org — the World Console | `npm run deploy:pages` (`--branch=middleeast`) |
+| MEM (`v2-standalone`, separate repo mem-by-non) | `mem-by-non` | mem.nonarkara.org (API base is global.nonarkara.org/api) | see that repo |
+| v1 (`v1-basic/v1-basic`, separate repo middleeast-monitor) | GitHub Pages | nonarkara.github.io/middleeast-monitor | push to main |
+
+Data-honesty envelope (2026-09-03): every API response carries `X-Tech-Status` (`live` | `stale` | `sample`) and `X-Tech-Source`. `sample` means the payload's own source is demo/fallback/curated; `useLiveResource` exposes it as `isSample` and `DataStatus` renders a red badge. `tests/data-honesty.test.mjs` is the conservation law.

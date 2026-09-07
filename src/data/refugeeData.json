@@ -1,4 +1,5 @@
 {
+  "asOf": "2026-03-31",
   "totalDisplaced": 2850000,
   "internallyDisplaced": 1900000,
   "crossBorderRefugees": 950000,
@@ -24,5 +25,5 @@
     "corridorsBlocked": 5,
     "campCapacity": "78% full"
   },
-  "sources": "Estimates based on UNHCR, IOM, and OCHA displacement models. Updated weekly."
+  "sources": "Estimates based on UNHCR, IOM, and OCHA displacement models."
 }

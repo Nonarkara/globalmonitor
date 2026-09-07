@@ -1,32 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { DollarSign, TrendingUp } from 'lucide-react';
 import warEconomy from '../data/warEconomy.json';
 import { WAR_START, getDayCount } from '../data/warConstants';
 
-const getCurrentTime = () => Date.now();
+// Hand-maintained model inputs — stamp the header with the file's git date, never "now".
+const AS_OF = new Date(`${warEconomy.asOf}T00:00:00Z`)
+    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
 
 const WarCostTracker = () => {
-    const [now, setNow] = useState(getCurrentTime);
-
-    // Tick every 5 seconds for live cost counter
-    useEffect(() => {
-        const t = setInterval(() => setNow(getCurrentTime()), 5000);
-        return () => clearInterval(t);
-    }, []);
+    // One constant × elapsed time is a model output, not a live figure: compute once on mount,
+    // no ticking interval, and round to the input's own precision (~$480M/day → whole $B).
+    const [now] = useState(() => Date.now());
 
     const dayCount = getDayCount();
     const maxCat = Math.max(...warEconomy.categories.map(c => c.estimateTotal));
 
-    // Animated cost with millisecond precision
-    const elapsedMs = now - WAR_START.getTime();
-    const costPerMs = (warEconomy.dailyCostEstimate * 1e6) / 86400000;
-    const liveCost = Math.floor(elapsedMs * costPerMs);
+    const elapsedDays = (now - WAR_START.getTime()) / 86400000;
+    const modelCost = elapsedDays * warEconomy.dailyCostEstimate * 1e6;
 
     const formatCost = (n) => {
-        if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-        if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-        if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-        return `$${n.toLocaleString()}`;
+        if (n >= 1e12) return `~$${(n / 1e12).toFixed(1)}T`;
+        if (n >= 1e9) return `~$${Math.round(n / 1e9)}B`;
+        return `~$${Math.round(n / 1e6)}M`;
     };
 
     return (
@@ -44,7 +40,7 @@ const WarCostTracker = () => {
                     </span>
                 </div>
                 <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    DAY {dayCount}
+                    MODEL · DAY {dayCount} · AS OF {AS_OF}
                 </span>
             </div>
 
@@ -65,13 +61,13 @@ const WarCostTracker = () => {
                     lineHeight: 1,
                     letterSpacing: '-0.5px'
                 }}>
-                    {formatCost(liveCost)}
+                    {formatCost(modelCost)}
                 </div>
                 <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginTop: '3px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                    Estimated Total Cost
+                    Modelled Cumulative Cost
                 </div>
                 <div style={{ fontSize: '0.42rem', color: 'rgba(245,158,11,0.6)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
-                    ~${warEconomy.dailyCostEstimate}M / day
+                    ~${warEconomy.dailyCostEstimate}M / day × {dayCount} days
                 </div>
             </div>
 

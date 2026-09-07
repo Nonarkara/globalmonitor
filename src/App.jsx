@@ -162,6 +162,36 @@ function App() {
   });
   const alphaEarthLayer = alphaEarthResource.data?.primary || null;
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) {
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const key = e.key.toLowerCase();
+      if (key === 'o') {
+        const OPTICS_MODES = ['standard', 'flir', 'nvg', 'crt'];
+        setTacticalOptics((prev) => {
+          const idx = OPTICS_MODES.indexOf(prev);
+          return OPTICS_MODES[(idx + 1) % OPTICS_MODES.length];
+        });
+      } else if (key === 'm') {
+        toggleLayer('military');
+      } else if (key === 'c') {
+        toggleLayer('cables');
+      } else if (key === 'd') {
+        toggleLayer('dams');
+      } else if (key === 'r') {
+        toggleLayer('range-rings');
+      } else if (e.key === '?') {
+        setIsManualOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleLayer]);
+
   return (
     <>
       {/* Alert Banner — fixed position at top */}
@@ -242,7 +272,7 @@ function App() {
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
-              <EscalationGauge />
+              <EscalationGauge viewMode={viewMode} />
             </ErrorBoundary>
           </div>
           {/* Right: Controls */}
@@ -377,7 +407,7 @@ function App() {
         {viewMode === 'middleeast' && (
           <div className="multi-front-row">
             <ErrorBoundary inline label="Multi-Front Board">
-              <LazyPanel name="MultiFrontBoard" />
+              <LazyPanel name="MultiFrontBoard" viewMode={viewMode} />
             </ErrorBoundary>
           </div>
         )}

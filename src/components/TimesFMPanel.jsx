@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { TrendingUp, Activity } from 'lucide-react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 import { fetchTimesFmForRegion } from '../services/timefm';
@@ -7,12 +7,30 @@ import { fetchTimesFmForRegion } from '../services/timefm';
 const W = 260;
 const H = 110;
 const PAD = 4;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const formatDate = (value) => {
     if (!value) return '—';
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return value;
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    // Date-only stamps (YYYY-MM-DD) parse as UTC midnight; label them in UTC
+    // so they never slip a day in negative-offset timezones.
+    const opts = { month: 'short', day: 'numeric' };
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) opts.timeZone = 'UTC';
+    return d.toLocaleDateString([], opts);
+};
+
+const wholeEvents = (value) => (typeof value === 'number' && !Number.isNaN(value) ? Math.round(value) : '—');
+
+const EXPIRED_PILL = {
+    fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.3px',
+    fontFamily: 'var(--font-mono)', color: 'var(--amber)',
+    background: 'rgba(245,158,11,0.1)', padding: '2px 6px'
+};
+
+const UNIT_STYLE = {
+    fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)',
+    textTransform: 'none', letterSpacing: 0
 };
 
 const TimesFMPanel = ({ viewMode = 'middleeast' }) => {
@@ -27,6 +45,9 @@ const TimesFMPanel = ({ viewMode = 'middleeast' }) => {
         freezeAfterLoad: true,
         isUsable: (payload) => Boolean(payload?.primary?.payload?.forecast?.point?.length),
     });
+
+    // Reference clock taken once at mount — render must stay pure.
+    const [mountedAt] = useState(() => Date.now());
 
     const forecast = data?.primary;
     const payload = forecast?.payload;
@@ -107,19 +128,25 @@ const TimesFMPanel = ({ viewMode = 'middleeast' }) => {
     const delta = chart.lastPoint != null && inputMean != null
         ? ((chart.lastPoint - inputMean) / inputMean * 100)
         : null;
+    // The forecast covers its last horizon day in full; it expires once that day has passed.
+    const horizonEndMs = Date.parse(chart.horizonEnd);
+    const isExpired = !Number.isNaN(horizonEndMs) && horizonEndMs + DAY_MS < mountedAt;
+    const headlineColor = isExpired ? 'var(--ink-3)' : 'var(--accent-amber)';
 
     return (
         <div className="bottom-card timesfm-card">
             <div className="panel-header timesfm-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Activity size={12} style={{ color: 'var(--accent-amber)' }} />
+                    <Activity size={12} style={{ color: headlineColor }} />
                     <span>TimesFM · {forecast.label || 'event-count'}</span>
+                    {isExpired && <span style={EXPIRED_PILL} role="status">EXPIRED FORECAST</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span className="timesfm-value">{chart.lastPoint.toFixed(1)}</span>
+                    <span className="timesfm-value" style={{ color: headlineColor }}>{wholeEvents(chart.lastPoint)}</span>
+                    <span style={UNIT_STYLE}>events/day</span>
                     {delta != null && (
                         <span className={`timesfm-delta ${delta >= 0 ? 'up' : 'down'}`}>
-                            <TrendingUp size={8} />
+                            {delta < 0 ? <TrendingDown size={8} /> : <TrendingUp size={8} />}
                             {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                         </span>
                     )}
@@ -145,13 +172,13 @@ const TimesFMPanel = ({ viewMode = 'middleeast' }) => {
             </svg>
 
             <div className="timesfm-meta">
-                <span>{forecast.aoi} · {payload.forecast.horizon}d horizon</span>
+                <span>{forecast.aoi} · {payload.forecast.horizon}d horizon · {formatDate(chart.horizonStart)}–{formatDate(chart.horizonEnd)}</span>
                 <span>Last obs {formatDate(payload.input?.last_observed)}</span>
             </div>
 
             <div className="timesfm-bands">
-                <span>Q10 worst-case floor: <strong>{chart.lastQ10?.toFixed(1) ?? '—'}</strong></span>
-                <span>Q90 stress ceiling: <strong>{chart.lastQ90?.toFixed(1) ?? '—'}</strong></span>
+                <span>Q10 worst-case floor: <strong>{wholeEvents(chart.lastQ10)}</strong> events/day</span>
+                <span>Q90 stress ceiling: <strong>{wholeEvents(chart.lastQ90)}</strong> events/day</span>
             </div>
 
             <div className="timesfm-footnote">

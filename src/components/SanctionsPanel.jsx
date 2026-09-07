@@ -22,17 +22,23 @@ const TYPE_ICONS = {
     Cyber: '💻'
 };
 
+// Hand-maintained log — stamp the header with its git date, never "now".
+const { items: sanctions } = sanctionsData;
+const AS_OF = new Date(`${sanctionsData.asOf}T00:00:00Z`)
+    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
+
 const SanctionsPanel = () => {
     const [expanded, setExpanded] = useState(false);
-    const sorted = [...sanctionsData].sort((a, b) => b.date.localeCompare(a.date));
+    const sorted = [...sanctions].sort((a, b) => b.date.localeCompare(a.date));
     const displayed = expanded ? sorted : sorted.slice(0, 4);
 
-    const severeCount = sanctionsData.filter(s => s.impact === 'severe').length;
-    const totalCount = sanctionsData.length;
-    const uniqueTargets = new Set(sanctionsData.map(s => s.target)).size;
+    const severeCount = sanctions.filter(s => s.impact === 'severe').length;
+    const totalCount = sanctions.length;
+    const uniqueTargets = new Set(sanctions.map(s => s.target)).size;
 
     const byImposer = {};
-    sanctionsData.forEach(s => { byImposer[s.imposedBy] = (byImposer[s.imposedBy] || 0) + 1; });
+    sanctions.forEach(s => { byImposer[s.imposedBy] = (byImposer[s.imposedBy] || 0) + 1; });
 
     return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
@@ -49,7 +55,7 @@ const SanctionsPanel = () => {
                     </span>
                 </div>
                 <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    {totalCount} ACTIVE
+                    {totalCount} LOGGED · AS OF {AS_OF}
                 </span>
             </div>
 
@@ -142,6 +148,14 @@ const SanctionsPanel = () => {
                     {expanded ? 'Show less' : `Show all ${sorted.length}`}
                 </button>
             )}
+
+            {/* Source note */}
+            <div style={{
+                fontSize: '0.32rem', color: 'var(--ink-3)',
+                marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
+            }}>
+                {sanctionsData.sources}
+            </div>
         </div>
     );
 };

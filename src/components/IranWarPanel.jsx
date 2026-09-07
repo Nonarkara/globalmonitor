@@ -42,7 +42,15 @@ const IranWarPanel = () => {
     const strikeFetcher = useCallback(() => fetchStrikeStats(), []);
     const frontFetcher = useCallback(() => fetchFrontStatus(), []);
 
-    const { data: strikeData, isLoading: strikeLoading, error: strikeError, retryCount: strikeRetry, refresh: strikeRefresh } = useLiveResource(strikeFetcher, {
+    const {
+        data: strikeData,
+        isLoading: strikeLoading,
+        isStale: strikeStale,
+        isSample: strikeSample,
+        error: strikeError,
+        retryCount: strikeRetry,
+        refresh: strikeRefresh
+    } = useLiveResource(strikeFetcher, {
         cacheKey: 'strike-stats',
         intervalMs: 5 * 60 * 1000,
         isUsable: (d) => d?.weekTotal != null
@@ -59,6 +67,8 @@ const IranWarPanel = () => {
     const dayCount = getDayCount();
     const weekTotal = strikeData?.weekTotal || {};
     const fronts = frontData?.fronts || [];
+    const outlets = Array.isArray(strikeData?.sources) ? strikeData.sources : [];
+    const headlineCount = strikeData?.headlineCount ?? 0;
 
     return (
         <div className="bottom-card flex-column">
@@ -80,12 +90,14 @@ const IranWarPanel = () => {
                     }}>
                         DAY {dayCount}
                     </span>
-                    <span className="live-pill">LIVE</span>
+                    {!strikeError && !strikeStale && !strikeSample && <span className="live-pill">LIVE</span>}
                 </div>
             </div>
 
             <DataStatus
                 isLoading={strikeLoading && !hasAnyData}
+                isStale={strikeStale}
+                isDemo={strikeSample}
                 error={strikeError}
                 retryCount={strikeRetry}
                 data={hasAnyData}
@@ -99,7 +111,7 @@ const IranWarPanel = () => {
                     marginBottom: '10px',
                     paddingBottom: '8px',
                     borderBottom: '1px solid var(--line)'
-                }}>
+                }} title={strikeData?.method || undefined}>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{
                             fontSize: '1.1rem',
@@ -111,7 +123,7 @@ const IranWarPanel = () => {
                             {weekTotal.missiles || 0}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            MISSILES
+                            MISSILE MENTIONS
                         </div>
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
@@ -125,7 +137,7 @@ const IranWarPanel = () => {
                             {weekTotal.drones || 0}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            DRONES
+                            DRONE MENTIONS
                         </div>
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
@@ -139,7 +151,7 @@ const IranWarPanel = () => {
                             {weekTotal.interceptions || 0}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            INTERCEPT
+                            INTERCEPT MENTIONS
                         </div>
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
@@ -153,9 +165,25 @@ const IranWarPanel = () => {
                             {weekTotal.casualties || 0}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            CASUALTIES
+                            CASUALTY MENTIONS
                         </div>
                     </div>
+                </div>
+
+                {/* Provenance: these are regex sums over headlines, not verified counts */}
+                <div
+                    title={strikeData?.method || undefined}
+                    style={{
+                        fontSize: '0.4rem',
+                        fontFamily: 'var(--font-mono)',
+                        letterSpacing: '0.5px',
+                        color: 'var(--ink-3)',
+                        textAlign: 'right',
+                        marginTop: '-6px',
+                        marginBottom: '8px'
+                    }}
+                >
+                    derived from {headlineCount} headlines · {outlets.length} outlets · 7d
                 </div>
 
                 {/* Sub-front status indicators */}

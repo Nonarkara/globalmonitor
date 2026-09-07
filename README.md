@@ -4,13 +4,15 @@
 
 **Illustration only.** Scores and figures drawn in this artwork — conflict intensity 8.7, extreme weather 6.2, flood risk 7.1, drought risk 5.6, population 668.45 M, displaced 2.37 M, temperature anomaly +1.32 °C, sea level +24.6 cm — are **not live telemetry**. They belong to the picture, not to the dashboard.
 
-Public map: [globalmonitor.pages.dev](https://globalmonitor.pages.dev/) · static backup: [nonarkara.github.io/globalmonitor](https://nonarkara.github.io/globalmonitor/)
+This tree (`Nonarkara/globalmonitor`, branch `main`) is the **AsiaWatch** build: [asia.nonarkara.org](https://asia.nonarkara.org/) (Cloudflare Pages project `asiawatch`). The GlobeWatch flagship is a separate tree / branch `classic` at [globalmonitor.nonarkara.org](https://globalmonitor.nonarkara.org/). Static backup: [nonarkara.github.io/globalmonitor](https://nonarkara.github.io/globalmonitor/).
 
 ---
 
 ## 1. What this is
 
-Global Monitor is an independent, open-source-intelligence map for reading conflict, climate, mobility, and policy signals as one operating picture. It is the flagship of a small civic suite built by Dr Non Arkaraprasertkul (architect, anthropologist, smart-city practitioner at Thailand’s depa) with Associate Professor Dr Poon Thiengburanathum (public ranking and urban-performance methodology). The live surface is a React + Vite + MapLibre dashboard with a thin cache API; it is funded for public research by PMUA, with supporting organisations depa / MDES / Smart City Thailand and execution by Axiom and ReTL. It is **not** a ministry product.
+Global Monitor is an independent, open-source-intelligence map for reading conflict, climate, mobility, and policy signals as one operating picture. **This checkout** is the Asia / Indo-Pacific (AsiaWatch) camera of that suite — not the GlobeWatch flagship. It is built by Dr Non Arkaraprasertkul (architect, anthropologist, smart-city practitioner at Thailand’s depa) with Associate Professor Dr Poon Thiengburanathum (public ranking and urban-performance methodology). The live surface is a React + Vite + MapLibre dashboard with a thin cache API; it is funded for public research by PMUA, with supporting organisations depa / MDES / Smart City Thailand and execution by Axiom and ReTL. It is **not** a ministry product.
+
+Sister flagship: [`Nonarkara/globalmonitor-v3`](https://github.com/Nonarkara/globalmonitor-v3) (GlobeWatch at [globalmonitor.nonarkara.org](https://globalmonitor.nonarkara.org/)).
 
 ## 2. Philosophy / invitation
 
@@ -29,7 +31,7 @@ Use this for lawful research, education, and situational awareness. Do not prese
 
 - **Measured vs modelled.** FIRMS thermal detections, AIS ship reports, ADS-B aircraft, USGS quakes, and NASA GIBS tiles are *observations* (with their own biases and gaps). Escalation composites, TimesFM event-count forecasts, AlphaEarth year-to-year change, and bundled JSON briefings are *modelled or compiled*. Label them that way when you republish.
 - **Not an official government product.** GitHub describes this repo as an independent digital-economy and geopolitical OSINT map — not a depa product. No file in this repository documents a government endorsement. Do not add one in a fork unless that endorsement actually exists and is recorded here.
-- **Attribute upstream data.** Conflict events, satellite detections, market prices, flights, and vessels come from third parties listed in [`src/data/dataSources.json`](src/data/dataSources.json). Each keeps its own licence, latency, and limits. Axiom Overwatch AIS is documented in-repo as CC-BY 4.0. Open [Data Provenance](https://globalmonitor.pages.dev/) from Tools → Data health on the live map, or read [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md).
+- **Attribute upstream data.** Conflict events, satellite detections, market prices, flights, and vessels come from third parties listed in [`src/data/dataSources.json`](src/data/dataSources.json). Each keeps its own licence, latency, and limits. Axiom Overwatch AIS is documented in-repo as CC-BY 4.0. Open [Data Provenance](https://asia.nonarkara.org/) from Tools → Data health on the live map, or read [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md).
 - **Do not operationalise a cache.** Feeds fail silently; stale values are served on purpose; absence of signal is not absence of danger. Cross-check primary sources before any decision that requires verified official information.
 
 ## 4. How the system works
@@ -46,7 +48,7 @@ flowchart LR
 
 Open feeds in this tree include ACLED, NASA FIRMS/GIBS, AIS, ADS-B, USGS, RSS, and the others listed in [`src/data/dataSources.json`](src/data/dataSources.json). Fetchers live in `server/lib` (local Node) and `functions/_lib` (Cloudflare Pages). Cache replies are live or stale, never silent; `/api` payloads carry `X-Tech-*` provenance headers into React + MapLibre.
 
-Same-origin `/api/*` in production (Cloudflare Pages Functions). Locally, Vite on port **5180** proxies `/api` to a Node cache on **4000**. Optional keys in [`.env.example`](.env.example) enrich feeds; the UI still renders public fallbacks and snapshot files when keys are missing. Only endpoints that exist in `server/` and `functions/` are documented.
+Same-origin `/api/*` in production (Cloudflare Pages Functions, project **`asiawatch`**, [asia.nonarkara.org](https://asia.nonarkara.org/)). Locally, Vite on port **5180** proxies `/api` to a Node cache on **4000**. Optional keys in [`.env.example`](.env.example) enrich feeds; the UI still renders public fallbacks and snapshot files when keys are missing. Only endpoints that exist in `server/` and `functions/` are documented.
 
 Longer architecture, source list, and Cloudflare caveats: [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md).
 
@@ -79,9 +81,9 @@ Useful commands that actually exist in `package.json`:
 | `npm run refresh:flights` | Rewrite the public-domain OpenSky safety snapshot |
 | `npm run refresh:airports` | Rebuild OurAirports GeoJSON |
 
-Cloudflare Pages is the documented host. GitHub Actions deploys `dist/` to project **`globalmonitor`** (`.github/workflows/cloudflare-pages.yml`). The npm script `deploy:pages` currently passes `--project-name asiawatch` — that is what the file says; a fork should point wrangler at **your** Pages project. Bind optional secrets in the host dashboard, never as `VITE_*` variables.
+Cloudflare Pages is the documented host. GitHub Actions (`.github/workflows/cloudflare-pages.yml`) and `npm run deploy:pages` both deploy `dist/` to project **`asiawatch`**. This workflow must not deploy over Pages project `globalmonitor` (the flagship on branch `classic`). A fork should point wrangler at **your** Pages project. Bind optional secrets in the host dashboard, never as `VITE_*` variables.
 
-Sister public maps (separate repos, not this tree): [MEM by NON](https://nonarkara.github.io/mem-by-non), [War Monitor](https://middleeast-monitor.pages.dev).
+Sister public maps (separate repos, not this tree): [GlobeWatch](https://globalmonitor.nonarkara.org/), [MEM by NON](https://nonarkara.github.io/mem-by-non), [War Monitor](https://middleeast-monitor.pages.dev).
 
 ## 6. License
 

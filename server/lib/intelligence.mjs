@@ -60,6 +60,24 @@ export const cleanSourceName = (source = '') => {
     return cut.length >= 3 && cut.length <= 40 ? cut : raw;
 };
 
+// Aggregators and proxies are not publishers. When a feed only tells us
+// "Google News" / "Bing" / rss2json, credit the item link's host — or nothing.
+const AGGREGATOR_NAME = /rss2json|google news|news\.google|bing|gdelt|allorigins|codetabs|corsproxy/i;
+const AGGREGATOR_HOST = /(^|\.)(google|bing|rss2json|gdeltproject|allorigins|codetabs|corsproxy)\./i;
+const hostnameOf = (link) => {
+    try {
+        const host = new URL(link).hostname.replace(/^www\./, '');
+        return AGGREGATOR_HOST.test(host) ? '' : host;
+    } catch {
+        return '';
+    }
+};
+export const resolvePublisher = (name = '', link = '') => {
+    const cleaned = cleanSourceName(decodeEntities(name));
+    if (cleaned && !AGGREGATOR_NAME.test(cleaned)) return cleaned;
+    return hostnameOf(link);
+};
+
 const normalizeTitle = (value = '') => value.toLowerCase().replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 
 const resolveDate = (value) => {
@@ -124,12 +142,17 @@ const parseJsonFallback = (payload, source) => {
 
     const feedTitle = payload.feed?.title || source.name;
 
-    return payload.items.map((item) => ({
-        title: decodeEntities(item.title),
-        link: item.link,
-        pubDate: resolveDate(item.pubDate),
-        source: decodeEntities(item.author || feedTitle)
-    })).filter((item) => {
+    // item.author is a journalist's byline, not the publisher — the feed
+    // title (cleaned the same way as the primary path) is the source.
+    return payload.items.map((item) => {
+        const publisher = resolvePublisher(feedTitle, item.link);
+        return {
+            title: stripSourceSuffix(decodeEntities(item.title), publisher),
+            link: item.link,
+            pubDate: resolveDate(item.pubDate),
+            source: publisher
+        };
+    }).filter((item) => {
         if (!item.title || !item.link) return false;
         const normalizedItemTitle = normalizeTitle(item.title);
         const normalizedFeedTitle = normalizeTitle(feedTitle);
@@ -159,7 +182,8 @@ const parseXmlFeed = (xml, source) => {
         if (!title || !link) continue;
         if (normalizeTitle(title) === normalizeTitle(feedTitle) || title === feedTitle) continue;
 
-        items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(itemSource)), link, pubDate: resolveDate(pubDate), source: cleanSourceName(decodeEntities(itemSource)) });
+        const publisher = resolvePublisher(itemSource, link);
+        items.push({ title: stripSourceSuffix(decodeEntities(title), publisher), link, pubDate: resolveDate(pubDate), source: publisher });
     }
 
     // Try Atom <entry> if no RSS <item> found
@@ -173,7 +197,8 @@ const parseXmlFeed = (xml, source) => {
                 || block.match(/<published>([\s\S]*?)<\/published>/)?.[1] || '').trim();
 
             if (!title || !link) continue;
-            items.push({ title: stripSourceSuffix(decodeEntities(title), decodeEntities(feedTitle)), link, pubDate: resolveDate(pubDate), source: cleanSourceName(decodeEntities(feedTitle)) });
+            const publisher = resolvePublisher(feedTitle, link);
+            items.push({ title: stripSourceSuffix(decodeEntities(title), publisher), link, pubDate: resolveDate(pubDate), source: publisher });
         }
     }
 
@@ -299,7 +324,7 @@ export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) =
         items,
         stats,
         summary: stats.total > 0
-            ? `${stats.highPriority || stats.total} elevated signals across ${stats.dominantTags.length || 1} dominant themes.`
+            ? `${stats.highPriority} elevated of ${stats.total} pulled across ${stats.dominantTags.length || 1} dominant themes.`
             : 'No live items were returned on the latest pull. Use the official source links while the feed refreshes.'
     };
 };

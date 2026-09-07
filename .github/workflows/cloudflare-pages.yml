@@ -33,4 +33,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=globalmonitor --branch=main
+          # Must match wrangler.toml / package.json. This branch is the Asia
+          # build (asia.nonarkara.org); the flagship lives on branch `classic`
+          # and Pages project `globalmonitor`, which this workflow must never
+          # deploy over.
+          command: pages deploy dist --project-name=asiawatch --branch=main

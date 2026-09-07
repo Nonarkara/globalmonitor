@@ -2,6 +2,8 @@
 
 Companion to the public [README](../README.md). This page is the longer architecture note so the README can stay civic, not a dump of endpoints. Only fetchers and routes that exist in `server/` and `functions/` are listed.
 
+This tree (`Nonarkara/globalmonitor` on `main`) is the **AsiaWatch** build: production is Cloudflare Pages project **`asiawatch`** at `asia.nonarkara.org` / `asiawatch.pages.dev`. The GlobeWatch flagship lives on branch `classic` / [`Nonarkara/globalmonitor-v3`](https://github.com/Nonarkara/globalmonitor-v3) and must not be overwritten by this workflow.
+
 ## Shape
 
 ```
@@ -29,7 +31,7 @@ MapLibre map + React panels
   DataStatus shells stay visible when a feed is down
 ```
 
-Production: Cloudflare Pages serves `dist/` and `functions/`. Local: `npm run dev:stack` (Vite **5180**, API **4000**, `/api` proxied). The frontend keeps browser-side fallbacks so the layout does not punch holes when the API is away.
+Production: Cloudflare Pages serves `dist/` and `functions/` for project **`asiawatch`** (`asia.nonarkara.org`). Local: `npm run dev:stack` (Vite **5180**, API **4000**, `/api` proxied). The frontend keeps browser-side fallbacks so the layout does not punch holes when the API is away.
 
 ## What is measured, what is modelled
 
@@ -66,7 +68,7 @@ Copernicus preview query params that exist in code: `theater` (`middleeast` or `
 - **Airports** are public-domain OurAirports data, regenerated with `npm run refresh:airports`.
 - Isolate memory on Pages is empty on a cold start. Heavy layers therefore also ship snapshot files under `public/data/`.
 
-Deploy: GitHub Actions (`.github/workflows/cloudflare-pages.yml`) builds with empty `VITE_API_BASE_URL` and deploys to Pages project **`globalmonitor`**. The npm script `deploy:pages` currently names project **`asiawatch`** — keep those two facts straight when you fork.
+Deploy: GitHub Actions (`.github/workflows/cloudflare-pages.yml`) and `npm run deploy:pages` both build with empty `VITE_API_BASE_URL` and deploy to Pages project **`asiawatch`**. Do not point this branch at project `globalmonitor`.
 
 ## Related notes in this tree
 

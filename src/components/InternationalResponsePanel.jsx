@@ -8,6 +8,18 @@ const RESULT_STYLES = {
     pending: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', label: 'PENDING' }
 };
 
+// Hand-maintained record — stamp the header with its git date, never "now".
+const fmtDate = (iso, opts) => new Date(`${iso}T00:00:00Z`)
+    .toLocaleDateString('en-GB', { timeZone: 'UTC', ...opts });
+const AS_OF = fmtDate(responseData.asOf, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+
+// The KPI states its window: the month span the logged votes fall in.
+const voteDates = responseData.unscVotes.map(v => v.date).sort();
+const monthOf = (iso) => fmtDate(iso, { month: 'short', year: 'numeric' });
+const VOTE_WINDOW = monthOf(voteDates[0]) === monthOf(voteDates[voteDates.length - 1])
+    ? monthOf(voteDates[0])
+    : `${monthOf(voteDates[0])} – ${monthOf(voteDates[voteDates.length - 1])}`;
+
 const InternationalResponsePanel = () => {
     const [showPositions, setShowPositions] = useState(false);
 
@@ -29,7 +41,7 @@ const InternationalResponsePanel = () => {
                     </span>
                 </div>
                 <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    UNSC + UNGA
+                    UNSC + UNGA · AS OF {AS_OF}
                 </span>
             </div>
 
@@ -42,7 +54,7 @@ const InternationalResponsePanel = () => {
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0ea5e9', fontFamily: 'var(--font-mono)' }}>
                         {responseData.unscVotes.length}
                     </div>
-                    <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>UNSC Votes</div>
+                    <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>UNSC votes, {VOTE_WINDOW}</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
@@ -86,6 +98,9 @@ const InternationalResponsePanel = () => {
                 <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginTop: '2px' }}>
                     {responseData.generalAssembly.resolution}
                 </div>
+                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                    {responseData.generalAssembly.date}
+                </div>
             </div>
 
             {/* UNSC votes list */}
@@ -100,9 +115,9 @@ const InternationalResponsePanel = () => {
                         }}>
                             <span style={{
                                 fontSize: '0.36rem', color: 'var(--ink-3)',
-                                fontFamily: 'var(--font-mono)', width: '30px', flexShrink: 0
+                                fontFamily: 'var(--font-mono)', width: '48px', flexShrink: 0
                             }}>
-                                {vote.date.slice(5)}
+                                {vote.date}
                             </span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
@@ -171,6 +186,14 @@ const InternationalResponsePanel = () => {
                     ))}
                 </div>
             )}
+
+            {/* Provenance — the vote record could not be independently verified at audit. */}
+            <div style={{
+                fontSize: '0.32rem', color: 'var(--ink-3)',
+                marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
+            }}>
+                Record as compiled — verify against UN Digital Library. {responseData.sources}
+            </div>
         </div>
     );
 };

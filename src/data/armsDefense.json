@@ -1,4 +1,5 @@
 {
+  "asOf": "2026-03-31",
   "defenseSystems": [
     { "name": "Iron Dome", "operator": "Israel", "status": "active", "interceptRate": "92%", "color": "#3b82f6" },
     { "name": "Arrow-3", "operator": "Israel", "status": "active", "interceptRate": "95%", "color": "#3b82f6" },
@@ -23,5 +24,5 @@
     { "from": "US", "to": "Israel", "type": "Interceptors, munitions", "status": "surge", "color": "#3b82f6" },
     { "from": "US", "to": "Gulf States", "type": "Patriot reloads, ISR", "status": "active", "color": "#3b82f6" }
   ],
-  "sources": "SIPRI, CSIS Missile Defense Project, open-source intelligence."
+  "sources": "Arms transfers: SIPRI Arms Transfers Database. Launch, drone and interception counts: OSINT compilation (CSIS Missile Defense Project, press reporting)."
 }

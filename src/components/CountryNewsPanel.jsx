@@ -1,30 +1,41 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Rss, RefreshCw, Zap, Cpu } from 'lucide-react';
 import { ASEAN_COUNTRIES, THAILAND_REGIONS } from '../data/regions.js';
-import { fetchAseanCountryNews, fetchThaiRegionNews } from '../services/regionalCountryNews.js';
+import { fetchBackendJson } from '../services/backendClient.js';
+import { useLiveResource } from '../hooks/useLiveResource';
 
-const safeTime = (d) => {
-    if (!(d instanceof Date) || isNaN(d.getTime())) return '--:--';
+const safeTime = (value) => {
+    const d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return '--:--';
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-// Per-country localStorage cache so switching to a previously-visited country
-// shows items instantly (zero-latency feel) while a fresh fetch kicks off in
-// the background. Cache TTL is informational — we always show the cache, then
-// overwrite on success.
-const CACHE_PREFIX = 'cnp:';
-const cacheGet = (key) => {
-    try {
-        const raw = localStorage.getItem(CACHE_PREFIX + key);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return parsed.items?.map((it) => ({ ...it, pubDate: new Date(it.pubDate) })) || null;
-    } catch { return null; }
+// A row from the Supabase archive may carry only fetched_at. That is when we
+// archived it, not when it was published — say so instead of dressing it as
+// a publication time.
+const itemTime = (item) => {
+    const pub = item.pubDate ?? item.pub_date;
+    if (pub) return safeTime(pub);
+    const fetched = item.fetchedAt ?? item.fetched_at;
+    return fetched ? `archived ${safeTime(fetched)}` : '--:--';
 };
-const cacheSet = (key, items) => {
-    try {
-        localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), items }));
-    } catch { /* quota or disabled */ }
+
+const BADGE_STYLES = {
+    LIVE:        { color: 'var(--bg-dark)', background: 'var(--accent-blue)', border: '1px solid var(--accent-blue)' },
+    STALE:       { color: 'var(--amber)', background: 'transparent', border: '1px solid var(--amber)' },
+    CACHED:      { color: 'var(--ink-3)', background: 'transparent', border: '1px solid var(--line)' },
+    DEMO:        { color: 'var(--red)', background: 'transparent', border: '1px solid var(--red)' },
+    'NO SIGNAL': { color: 'var(--ink-3)', background: 'transparent', border: '1px solid var(--line)' },
+};
+
+const resolveBadge = ({ data, status, isStale, isSample, error }) => {
+    if (isSample) return 'DEMO';
+    if (!data) return 'NO SIGNAL';
+    // The ingest route falls back to the Supabase archive and marks the
+    // payload itself 'stale' when the live pull came back empty.
+    if (isStale || error || data.status === 'stale') return 'STALE';
+    if (status === 'cached') return 'CACHED';
+    return 'LIVE';
 };
 
 /**
@@ -38,52 +49,53 @@ const cacheSet = (key, items) => {
  */
 const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
     const items = mode === 'thailand' ? THAILAND_REGIONS : ASEAN_COUNTRIES;
-    const labelKey = mode === 'thailand' ? 'name' : 'name';
     const codeKey = 'code';
-    const fetcher = mode === 'thailand' ? fetchThaiRegionNews : fetchAseanCountryNews;
-    const title = mode === 'thailand' ? 'Thailand Regions' : 'ASEAN Countries';
 
     const fallbackCode = items[0]?.[codeKey];
     const [localCode, setLocalCode] = useState(selectedCode || fallbackCode);
     const activeCode = selectedCode || (items.some((item) => item[codeKey] === localCode) ? localCode : fallbackCode);
-    const [news, setNews] = useState([]);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const mounted = useRef(true);
-
-    useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-
-    const load = useCallback(() => {
-        if (!activeCode) return;
-        const cacheKey = `${mode}:${activeCode}`;
-        // Show cache instantly so the panel never looks empty when you click around.
-        const cached = cacheGet(cacheKey);
-        if (cached?.length) setNews(cached);
-        setIsRefreshing(true);
-        fetcher(activeCode)
-            .then((r) => {
-                if (!mounted.current) return;
-                const items = r.items || [];
-                if (items.length) {
-                    setNews(items);
-                    cacheSet(cacheKey, items);
-                } else if (!cached?.length) {
-                    setNews([]);
-                }
-            })
-            .catch(() => { if (mounted.current && !cached?.length) setNews([]); })
-            .finally(() => { if (mounted.current) setIsRefreshing(false); });
-    }, [activeCode, fetcher, mode]);
-
-    useEffect(() => {
-        const t = setTimeout(load, 0);
-        const i = setInterval(load, 5 * 60 * 1000);
-        return () => { clearTimeout(t); clearInterval(i); };
-    }, [load]);
 
     const handleSelect = (code) => {
         setLocalCode(code);
         onSelect?.(code);
     };
+
+    // Keyed per selection so useLiveResource re-reads its own localStorage
+    // cache for the new code instead of showing the previous country's list.
+    return (
+        <CountryFeed
+            key={`${mode}:${activeCode}`}
+            mode={mode}
+            items={items}
+            activeCode={activeCode}
+            onSelect={handleSelect}
+        />
+    );
+};
+
+const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
+    const labelKey = 'name';
+    const codeKey = 'code';
+    const title = mode === 'thailand' ? 'Thailand Regions' : 'ASEAN Countries';
+    const activeChipRef = useRef(null);
+
+    const fetcher = useCallback(
+        () => fetchBackendJson('/api/regional-news', { region: mode, code: activeCode }),
+        [mode, activeCode]
+    );
+    const { data, status, isStale, isSample, isRefreshing, isLoading, error, refresh } = useLiveResource(fetcher, {
+        cacheKey: `regional-news:${mode}:${activeCode}`,
+        enabled: Boolean(activeCode),
+        intervalMs: 5 * 60 * 1000,
+        isUsable: (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+    });
+
+    useEffect(() => {
+        activeChipRef.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    }, []);
+
+    const news = data?.items || [];
+    const badge = resolveBadge({ data, status, isStale, isSample, error });
 
     return (
         <div className="bottom-card flex-column" style={{ minWidth: 0 }}>
@@ -93,13 +105,13 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
-                        onClick={load}
+                        onClick={refresh}
                         style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}
                         title="Refresh"
                     >
                         <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
                     </button>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--bg-dark)', fontWeight: 'bold', background: 'var(--accent-blue)', padding: '2px 6px' }}>LIVE</span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-mono)', padding: '2px 6px', ...BADGE_STYLES[badge] }}>{badge}</span>
                 </div>
             </div>
 
@@ -121,7 +133,8 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                     return (
                         <button
                             key={code}
-                            onClick={() => handleSelect(code)}
+                            ref={isActive ? activeChipRef : null}
+                            onClick={() => onSelect(code)}
                             style={{
                                 flexShrink: 0,
                                 minHeight: 28,
@@ -146,7 +159,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
                 {news.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.7rem', color: 'var(--ink-3)' }}>
-                        {isRefreshing ? 'Connecting to live feeds…' : 'No live items right now.'}
+                        {isLoading || isRefreshing ? 'Connecting to live feeds…' : 'No live items right now.'}
                     </div>
                 )}
                 {news.map((item, i) => (
@@ -168,7 +181,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
                                 {item.tag === 'urgent' ? <Zap size={9} style={{ color: '#ef4444' }} /> : <Cpu size={9} style={{ color: '#38bdf8' }} />}
                                 <span style={{ fontWeight: 'bold' }}>{item.source}</span>
                             </span>
-                            <span>{safeTime(item.pubDate)}</span>
+                            <span>{itemTime(item)}</span>
                         </div>
                         <div style={{ fontSize: '0.78rem', lineHeight: 1.35 }}>{item.title}</div>
                     </a>

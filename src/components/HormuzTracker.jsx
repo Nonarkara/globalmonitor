@@ -1,11 +1,11 @@
 import React from 'react';
 import { Ship, AlertTriangle, DollarSign, Anchor } from 'lucide-react';
 import { getDayCount } from '../data/warConstants';
-import { useVesselStats } from '../hooks/useVesselCount';
 
 /**
  * Strait of Hormuz Crisis Tracker — curated war-time status panel.
- * Combines curated intelligence with real-time AIS vessel stream counts.
+ * Data is manually curated from verified sources (updated periodically).
+ * Every figure here is stamped with HORMUZ_STATUS.lastUpdate — nothing is live.
  */
 
 const warDay = getDayCount();
@@ -30,6 +30,10 @@ const HORMUZ_STATUS = {
     ]
 };
 
+const CURATED_DATE = new Date(`${HORMUZ_STATUS.lastUpdate}T00:00:00Z`)
+    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
+
 const Stat = ({ icon, label, value, color }) => (
     <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
@@ -51,9 +55,6 @@ const Stat = ({ icon, label, value, color }) => (
 );
 
 const HormuzTracker = () => {
-    const vesselStats = useVesselStats();
-    const liveVesselCount = vesselStats?.total ? vesselStats.total.toLocaleString() : HORMUZ_STATUS.vesselsAnchored;
-
     return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
             <div className="panel-header" style={{
@@ -68,7 +69,7 @@ const HormuzTracker = () => {
                         Strait of Hormuz Naval &amp; Tanker Tracker
                     </div>
                     <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', marginTop: '1px' }}>
-                        Day {warDay} of conflict · Live AIS Vessels: {liveVesselCount}
+                        Day {warDay} of conflict · <span style={{ fontFamily: 'var(--font-mono)' }}>CURATED · {CURATED_DATE}</span>
                     </div>
                 </div>
                 <span style={{
@@ -85,7 +86,7 @@ const HormuzTracker = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '8px' }}>
                 <Stat icon={Ship} label="Transits since Feb 28" value={HORMUZ_STATUS.tankersSinceWarStart} color="#ef4444" />
-                <Stat icon={Anchor} label="Vessels anchored" value={liveVesselCount} color="#f59e0b" />
+                <Stat icon={Anchor} label="Vessels anchored" value={HORMUZ_STATUS.vesselsAnchored} color="#f59e0b" />
                 <Stat icon={DollarSign} label="IRGC toll" value={HORMUZ_STATUS.irgcToll} color="#f59e0b" />
                 <Stat icon={AlertTriangle} label="Attacks on ships" value={HORMUZ_STATUS.attacks} color="#ef4444" />
             </div>

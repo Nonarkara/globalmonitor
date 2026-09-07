@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, ChevronDown, ChevronUp } from 'lucide-react';
-import keyFigures from '../data/keyFigures.json';
+import keyFiguresData from '../data/keyFigures.json';
 
 const FACTION_COLORS = {
     iran: '#ef4444',
@@ -18,6 +18,12 @@ const STATUS_STYLES = {
     neutralized: { color: '#ef4444', label: 'KIA' },
     detained: { color: '#f97316', label: 'DETAINED' }
 };
+
+// Hand-maintained profiles — stamp the header with its git date, never "now".
+const { items: keyFigures } = keyFiguresData;
+const AS_OF = new Date(`${keyFiguresData.asOf}T00:00:00Z`)
+    .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .toUpperCase();
 
 const KeyFiguresPanel = () => {
     const [expanded, setExpanded] = useState(false);
@@ -44,7 +50,7 @@ const KeyFiguresPanel = () => {
                     </span>
                 </div>
                 <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
-                    {keyFigures.length} TRACKED
+                    {keyFigures.length} PROFILED · AS OF {AS_OF}
                 </span>
             </div>
 
@@ -121,6 +127,14 @@ const KeyFiguresPanel = () => {
                     {expanded ? 'Show fewer' : `Show all ${keyFigures.length}`}
                 </button>
             )}
+
+            {/* Source note */}
+            <div style={{
+                fontSize: '0.32rem', color: 'var(--ink-3)',
+                marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
+            }}>
+                {keyFiguresData.sources}
+            </div>
         </div>
     );
 };

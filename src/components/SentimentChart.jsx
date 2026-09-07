@@ -1,25 +1,55 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
+import { fetchBackendJson } from '../services/backendClient.js';
 import DataStatus from './DataStatus';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
 const EMPTY_TIMELINE = [];
 const CHART_WIDTH = 200;
 const CHART_HEIGHT = 60;
 const CHART_PAD = 2;
+// A localStorage restore older than this is a reading, not a current picture.
+const MAX_RESTORE_AGE_MS = 24 * 60 * 60 * 1000;
+
+// GDELT timeline dates arrive as 20260301T000000Z; ISO strings also accepted.
+const parseGdeltDate = (value) => {
+    if (!value) return null;
+    const s = String(value);
+    const m = s.match(/^(\d{4})(\d{2})(\d{2})/);
+    const t = m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : Date.parse(s);
+    return Number.isNaN(t) ? null : t;
+};
+
+const formatDay = (value) => {
+    const t = parseGdeltDate(value);
+    if (t == null) return String(value ?? '—');
+    return new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'UTC' });
+};
+
+const formatStamp = (value) => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value ?? '—');
+    return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const CAPTION_STYLE = { fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' };
 
 const SentimentChart = ({ viewMode = 'middleeast' }) => {
-    const fetcher = useCallback(() =>
-        fetch(`${API_BASE}/api/sentiment?theater=${encodeURIComponent(viewMode)}`).then(r => r.json()), [viewMode]);
+    const fetcher = useCallback(() => fetchBackendJson('/api/sentiment', { theater: viewMode }), [viewMode]);
 
-    const { data, isLoading, isRefreshing, isStale, error, retryCount, refresh } = useLiveResource(fetcher, {
+    const { data, lastUpdated, isLoading, isRefreshing, isStale, isSample, error, retryCount, refresh } = useLiveResource(fetcher, {
         cacheKey: `gdelt-sentiment:${viewMode}`,
         intervalMs: 30 * 60 * 1000,
         isUsable: (d) => d?.timeline?.length >= 3
     });
 
+    // Reference clock taken once at mount — render must stay pure.
+    const [mountedAt] = useState(() => Date.now());
+
     const timeline = data?.timeline || EMPTY_TIMELINE;
+    const lastUpdatedMs = lastUpdated ? new Date(lastUpdated).getTime() : NaN;
+    const isExpired = !Number.isNaN(lastUpdatedMs) && mountedAt - lastUpdatedMs > MAX_RESTORE_AGE_MS;
+
     const computed = useMemo(() => {
         if (timeline.length < 3) return null;
 
@@ -58,7 +88,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
         };
     }, [timeline]);
 
-    if (!computed) return (
+    if (!computed || isExpired) return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
@@ -71,7 +101,8 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isRefreshing={isRefreshing} isStale={isStale}
-                isEmpty={!isLoading && timeline.length < 3} emptyMessage="Awaiting GDELT data" />
+                isEmpty={isExpired || (!isLoading && timeline.length < 3)}
+                emptyMessage={isExpired ? `last reading: ${formatStamp(lastUpdated)}` : 'Awaiting GDELT data'} />
         </div>
     );
 
@@ -79,6 +110,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
     const latest = tones[tones.length - 1];
     const label = trend < -3 ? 'VERY NEGATIVE' : trend < -1 ? 'NEGATIVE' : trend < 1 ? 'NEUTRAL' : 'IMPROVING';
     const labelColor = trend < -3 ? '#ef4444' : trend < -1 ? '#f59e0b' : trend < 1 ? 'var(--ink-2)' : '#22c55e';
+    const windowCaption = `${formatDay(timeline[0].date)} – ${formatDay(timeline[timeline.length - 1].date)} · ${timeline.length} points`;
 
     return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
@@ -104,42 +136,62 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                 </span>
             </div>
 
-            <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '70px' }}>
-                <defs>
-                    <linearGradient id="posGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="negGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity="0.25" />
-                    </linearGradient>
-                </defs>
+            <DataStatus
+                isLoading={isLoading}
+                isRefreshing={isRefreshing}
+                isStale={isStale}
+                error={error}
+                retryCount={retryCount}
+                data={data}
+                refresh={refresh}
+                isDemo={isSample}
+                demoLabel="SAMPLE"
+            >
+                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '70px' }}>
+                    <defs>
+                        <linearGradient id="posGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                        </linearGradient>
+                        <linearGradient id="negGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
+                            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.25" />
+                        </linearGradient>
+                    </defs>
 
-                {/* Zero line */}
-                <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="var(--line-2)" strokeWidth="0.5" />
+                    {/* Zero line */}
+                    <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="var(--line-2)" strokeWidth="0.5" />
 
-                {/* Positive/Negative fills */}
-                <path d={posArea} fill="url(#posGrad)" />
-                <path d={negArea} fill="url(#negGrad)" />
+                    {/* Positive/Negative fills */}
+                    <path d={posArea} fill="url(#posGrad)" />
+                    <path d={negArea} fill="url(#negGrad)" />
 
-                {/* Tone line */}
-                <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    {/* Tone line */}
+                    <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
 
-                {/* Latest dot */}
-                <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#ef4444' : '#22c55e'} stroke="var(--ink-3)" strokeWidth="0.5">
-                    <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
-                </circle>
+                    {/* Latest dot */}
+                    <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#ef4444' : '#22c55e'} stroke="var(--ink-3)" strokeWidth="0.5">
+                        {!isSample && <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />}
+                    </circle>
 
-                {/* Labels */}
-                <text x={W - PAD} y={PAD + 5} textAnchor="end" fill="rgba(34,197,94,0.4)" fontSize="4" fontFamily="var(--font-mono)">+positive</text>
-                <text x={W - PAD} y={H - PAD} textAnchor="end" fill="rgba(239,68,68,0.4)" fontSize="4" fontFamily="var(--font-mono)">-negative</text>
-            </svg>
+                    {/* Labels */}
+                    <text x={W - PAD} y={PAD + 5} textAnchor="end" fill="rgba(34,197,94,0.4)" fontSize="4" fontFamily="var(--font-mono)">+positive</text>
+                    <text x={W - PAD} y={H - PAD} textAnchor="end" fill="rgba(239,68,68,0.4)" fontSize="4" fontFamily="var(--font-mono)">-negative</text>
+                </svg>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>7-day GDELT tone</span>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>avg: {avg.toFixed(1)}</span>
-            </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', marginTop: '3px' }}>
+                    <span style={CAPTION_STYLE}>GDELT tone · {windowCaption}</span>
+                    <span style={CAPTION_STYLE}>avg: {avg.toFixed(1)}</span>
+                </div>
+                {data?.query && (
+                    <div
+                        title={data.query}
+                        style={{ ...CAPTION_STYLE, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
+                        query: {data.query}
+                    </div>
+                )}
+            </DataStatus>
         </div>
     );
 };

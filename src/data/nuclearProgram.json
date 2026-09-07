@@ -1,4 +1,6 @@
 {
+  "asOf": "2026-03-31",
+  "sources": "IAEA Board of Governors reports and press reporting; facility status from open-source satellite imagery analysis. Breakout figures are estimates.",
   "facilities": [
     {
       "id": "natanz",

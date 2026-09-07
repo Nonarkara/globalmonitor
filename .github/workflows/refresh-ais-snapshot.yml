@@ -35,4 +35,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=globalmonitor --branch=main
+          # Runs every 15 min from the default branch (main = Asia build).
+          # Project name must match wrangler.toml, or this cron overwrites
+          # the flagship at globalmonitor.nonarkara.org 96 times a day.
+          command: pages deploy dist --project-name=asiawatch --branch=main

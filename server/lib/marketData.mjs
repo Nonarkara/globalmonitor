@@ -28,15 +28,25 @@ const FX_PAIRS = [
 
 const previousQuotes = new Map();
 
+/** Every quote carries `window` — the baseline its % change is measured
+ *  against. No baseline means changePerc: null / isPositive: null, never a
+ *  fabricated '0.00%'. */
+const describeChange = (delta, window) => {
+    if (typeof delta !== 'number' || !Number.isFinite(delta)) {
+        return { changePerc: null, isPositive: null, window };
+    }
+    return {
+        changePerc: `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}%`,
+        isPositive: delta >= 0,
+        window
+    };
+};
+
 const getDelta = (key, value) => {
     const previous = previousQuotes.get(key);
     previousQuotes.set(key, value);
-    if (!previous || previous === 0) return { changePerc: '0.00%', isPositive: true };
-    const delta = ((value - previous) / previous) * 100;
-    return {
-        changePerc: `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}%`,
-        isPositive: delta >= 0
-    };
+    if (!previous || previous === 0) return describeChange(null, 'since last poll');
+    return describeChange(((value - previous) / previous) * 100, 'since last poll');
 };
 
 const formatPrice = (price) => {
@@ -61,7 +71,11 @@ const fetchYahooQuote = async (symbolEncoded) => {
     }
 
     const meta = inner.chart.result[0].meta;
-    return { price: meta.regularMarketPrice, previousClose: meta.chartPreviousClose || meta.regularMarketPrice };
+    const previousClose = meta.chartPreviousClose ?? meta.previousClose ?? null;
+    return {
+        price: meta.regularMarketPrice,
+        previousClose: typeof previousClose === 'number' && previousClose > 0 ? previousClose : null
+    };
 };
 
 const fetchCurrencyRates = async () => {
@@ -107,8 +121,7 @@ export const fetchMarketPayload = async () => {
             results.push({
                 symbol: data.symbol.replace('USDT', ''),
                 price: parseFloat(data.lastPrice).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
-                changePerc: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
-                isPositive: change >= 0
+                ...describeChange(change, '24h')
             });
         });
     } catch (e) { console.warn('Crypto failed', e.message); }
@@ -117,14 +130,13 @@ export const fetchMarketPayload = async () => {
     const yahooResults = await Promise.all(YAHOO_SYMBOLS.map(async ({ symbol, label }) => {
         try {
             const q = await fetchYahooQuote(symbol);
-            const change = ((q.price - q.previousClose) / q.previousClose) * 100;
+            const change = q.previousClose ? ((q.price - q.previousClose) / q.previousClose) * 100 : null;
             return {
                 symbol: label,
                 price: label.includes('Oil') || label.includes('Crude')
                     ? q.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
                     : formatPrice(q.price),
-                changePerc: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
-                isPositive: change >= 0
+                ...describeChange(change, 'prev close')
             };
         } catch (e) { console.warn(`Yahoo ${label} failed`, e.message); return null; }
     }));
