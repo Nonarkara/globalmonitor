@@ -61,6 +61,7 @@ const Sidebar = ({
             title: 'Environment',
             layers: [
                 { id: 'weather', title: 'Rain radar', desc: 'Precipitation forecasts', icon: <CloudRain size={18} /> },
+                { id: 'jaxa-aerosol', title: 'JAXA Aerosol', desc: 'Himawari-9 optical thickness, 10-min refresh', icon: <Satellite size={18} /> },
                 { id: 'aqi', title: 'Air quality', desc: 'PM2.5 and AQI', icon: <Wind size={18} /> },
                 { id: 'disasters', title: 'Natural disasters', desc: 'Active events and alerts', icon: <AlertTriangle size={18} /> },
                 { id: 'economy', title: 'Economic baseline', desc: 'Macro indicators', icon: <Activity size={18} /> },

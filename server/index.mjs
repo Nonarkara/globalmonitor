@@ -35,6 +35,7 @@ import { recordToSheets, recordEscalation, getRecordingHealth } from './lib/shee
 import { ingestRegionalNews } from './lib/regionalNewsIngest.mjs';
 import { startAisStream, startVesselFinderRefresh, getVesselsGeoJson, getVesselsGeoJsonForTheater } from './lib/aisVessels.mjs';
 import { getRainviewerRadarTiles } from './lib/rainviewer.mjs';
+import { getJaxaAerosolTiles, getJaxaAerosolTilePng } from './lib/jaxaAerosol.mjs';
 import { buildForecast as buildOracleForecast } from './lib/oracle/index.mjs';
 import { buildFloodOps, FLOOD_CITIES } from './lib/floodOps.mjs';
 import { buildFloodDirective } from './lib/floodDirective.mjs';
@@ -544,6 +545,38 @@ const server = http.createServer(async (request, response) => {
                 (p) => Array.isArray(p?.tiles) && p.tiles.length > 0
             );
             json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/jaxa-aerosol') {
+            const result = await useCached(
+                'jaxa:aerosol',
+                10 * 60 * 1000,
+                () => getJaxaAerosolTiles(),
+                (p) => Array.isArray(p?.tiles) && p.tiles.length > 0
+            );
+            json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname.startsWith('/api/jaxa-aerosol-tile/')) {
+            const [z, x, y] = url.pathname.replace('/api/jaxa-aerosol-tile/', '').split('/').map(Number);
+            if (![z, x, y].every(Number.isInteger)) {
+                json(response, 400, { error: 'z/x/y must be integers' }, { status: 'offline' });
+                return;
+            }
+            try {
+                const buf = await getJaxaAerosolTilePng(z, x, y);
+                response.writeHead(200, {
+                    'Content-Type': 'image/png',
+                    'Content-Length': buf.length,
+                    'Cache-Control': 'public, max-age=600',
+                    'Access-Control-Allow-Origin': '*',
+                });
+                response.end(buf);
+            } catch (error) {
+                json(response, 502, { error: error.message }, { status: 'offline' });
+            }
             return;
         }
 

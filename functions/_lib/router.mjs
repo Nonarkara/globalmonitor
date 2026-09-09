@@ -32,6 +32,7 @@ import { buildForecast as buildOracleForecast } from '../../server/lib/oracle/in
 import { buildFloodOps, FLOOD_CITIES } from '../../server/lib/floodOps.mjs';
 import { buildFloodDirective } from '../../server/lib/floodDirective.mjs';
 import { getRainviewerRadarTilesWorker as getRainviewerRadarTiles } from './rainviewerWorker.mjs';
+import { getJaxaAerosolTilesWorker as getJaxaAerosolTiles, getJaxaAerosolTilePngWorker as getJaxaAerosolTilePng } from './jaxaAerosolWorker.mjs';
 import {
     isSupabaseEnabled,
     getSupabaseStatusMessage,
@@ -444,6 +445,28 @@ export async function handleApiRequest(request, env, next) {
                 (p) => Array.isArray(p?.tiles) && p.tiles.length > 0
             );
             return jsonResponse(result.payload, 200, result.meta);
+        }
+
+        if (url.pathname === '/api/jaxa-aerosol') {
+            const result = await useCached(
+                'jaxa:aerosol',
+                10 * 60 * 1000,
+                () => getJaxaAerosolTiles(),
+                (p) => Array.isArray(p?.tiles) && p.tiles.length > 0
+            );
+            return jsonResponse(result.payload, 200, result.meta);
+        }
+
+        if (url.pathname.startsWith('/api/jaxa-aerosol-tile/')) {
+            const [z, x, y] = url.pathname.replace('/api/jaxa-aerosol-tile/', '').split('/').map(Number);
+            if (![z, x, y].every(Number.isInteger)) {
+                return jsonResponse({ error: 'z/x/y must be integers' }, 400);
+            }
+            try {
+                return await getJaxaAerosolTilePng(z, x, y);
+            } catch (error) {
+                return jsonResponse({ error: error.message }, 502);
+            }
         }
 
         if (url.pathname === '/api/acled') {

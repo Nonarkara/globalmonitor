@@ -13,6 +13,7 @@ import { fetchInfrastructure } from '../services/infrastructure';
 import { fetchFlights } from '../services/flights.js';
 import { fetchVessels } from '../services/vessels.js';
 import { fetchRainviewerTiles } from '../services/rainviewer.js';
+import { fetchJaxaAerosolTiles } from '../services/jaxaAerosol.js';
 import { fetchAcledEvents } from '../services/acled.js';
 import { fetchFloodOps } from '../services/flood.js';
 import { useLiveResource } from '../hooks/useLiveResource';
@@ -536,6 +537,7 @@ const MapContainer = ({
     const [mapIconsReady, setMapIconsReady] = useState(false);
     const [mapReady, setMapReady] = useState(false);
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
+    const [jaxaAerosolTiles, setJaxaAerosolTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
     const [cursorCoords, setCursorCoords] = useState(null);
 
@@ -546,6 +548,7 @@ const MapContainer = ({
     const flightsLayerActive = activeLayers.includes('flights');
     const vesselsLayerActive = activeLayers.includes('vessels');
     const weatherLayerActive = activeLayers.includes('weather');
+    const jaxaAerosolLayerActive = activeLayers.includes('jaxa-aerosol');
 
     useEffect(() => {
         dispatchViewState({ type: 'target', viewTarget, minZoom, maxZoom });
@@ -561,6 +564,17 @@ const MapContainer = ({
             .catch(() => { /* radar overlay optional */ });
         return () => { cancelled = true; };
     }, [weatherLayerActive]);
+
+    useEffect(() => {
+        if (!jaxaAerosolLayerActive) return undefined;
+        let cancelled = false;
+        fetchJaxaAerosolTiles()
+            .then((payload) => {
+                if (!cancelled && payload?.tiles?.length) setJaxaAerosolTiles(payload);
+            })
+            .catch(() => { /* aerosol overlay optional */ });
+        return () => { cancelled = true; };
+    }, [jaxaAerosolLayerActive]);
 
     // Wire MapLibre's runtime error events. react-map-gl's <Map onError> only
     // surfaces some errors; the underlying map.on('error') is the canonical hook
@@ -1022,6 +1036,25 @@ const MapContainer = ({
                             type="raster"
                             maxzoom={rainviewerTiles.maxzoom || 12}
                             paint={{ 'raster-opacity': 0.42 }}
+                        />
+                    </Source>
+                )}
+
+                {activeLayers.includes('jaxa-aerosol') && jaxaAerosolTiles?.tiles?.length > 0 && (
+                    <Source
+                        id="jaxa-aerosol"
+                        type="raster"
+                        tiles={jaxaAerosolTiles.tiles}
+                        tileSize={256}
+                        maxzoom={jaxaAerosolTiles.maxzoom || 6}
+                    >
+                        <Layer
+                            id="jaxa-aerosol-layer"
+                            type="raster"
+                            maxzoom={jaxaAerosolTiles.maxzoom || 6}
+                            // Same reasoning as the MODIS aerosol wash — stay translucent
+                            // so it reads as haze without erasing aircraft/ship icons.
+                            paint={{ 'raster-opacity': 0.4 }}
                         />
                     </Source>
                 )}
