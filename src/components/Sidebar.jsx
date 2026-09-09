@@ -164,12 +164,6 @@ const Sidebar = ({
                         <button type="button" onClick={onResetCoreLayers} className="sidebar-mini-action">
                             Reset defaults
                         </button>
-                        <button type="button" onClick={() => toggleLayer('flights')} className={`sidebar-mini-action ${activeLayers.includes('flights') ? 'active' : ''}`} aria-pressed={activeLayers.includes('flights')}>
-                            Flights
-                        </button>
-                        <button type="button" onClick={() => toggleLayer('vessels')} className={`sidebar-mini-action ${activeLayers.includes('vessels') ? 'active' : ''}`} aria-pressed={activeLayers.includes('vessels')}>
-                            Ships
-                        </button>
                     </div>
                     <div className="layer-group-stack">
                         {layerGroups.map((group) => (

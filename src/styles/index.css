@@ -1079,9 +1079,7 @@ body {
 }
 
 .layer-toolbar {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 5px;
+  display: flex;
   margin-bottom: 10px;
 }
 
