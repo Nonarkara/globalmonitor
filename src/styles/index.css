@@ -1304,21 +1304,6 @@ body {
   align-items: center;
 }
 
-.sidebar-provenance {
-  margin-top: auto;
-  padding-top: var(--sp-phi-3);
-  border-top: 1px solid var(--border-color);
-  font-size: var(--text-xs);
-  color: var(--text-dim);
-  line-height: 1.5;
-}
-
-.sidebar-provenance a {
-  color: var(--green);
-  text-decoration: none;
-  margin-left: 6px;
-}
-
 .eo-preview-card {
   position: relative;
   border: 1px solid var(--line);

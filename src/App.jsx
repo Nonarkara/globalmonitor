@@ -324,15 +324,6 @@ function App() {
               onResetCoreLayers={resetCoreLayers}
             />
           </ErrorBoundary>
-          {viewMode === 'middleeast' && (
-            <ErrorBoundary inline label="Flight Radar">
-              <LazyPanel
-                name="FlightRadarEmbed"
-                flightsActive={activeLayers.includes('flights')}
-                onToggleFlights={() => toggleLayer('flights')}
-              />
-            </ErrorBoundary>
-          )}
           {/* Live TV is always present so switching regions just swaps channels
               instead of unmounting the iframe — keeps panel stable across nav. */}
           <ErrorBoundary inline label="Live TV">

@@ -120,6 +120,16 @@ const BraunManualModal = ({ isOpen, onClose, theaters = 'Middle East, Indo-Pacif
                             </div>
                         </div>
                     </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+                            3. Data Sources
+                        </h2>
+                        <div style={{ fontSize: '14px', lineHeight: 1.5, color: '#333' }}>
+                            Data from NASA, ESA, JAXA, World Bank, ReliefWeb, Open-Meteo, and Binance.{' '}
+                            <a href="mailto:non.ar@depa.or.th" style={{ color: '#111', fontWeight: 700 }}>Contact</a>
+                        </div>
+                    </div>
                 </div>
 
                 <div style={{ padding: '20px 30px', borderTop: '2px solid #aaa', background: '#ccc', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: '#555', textTransform: 'uppercase' }}>

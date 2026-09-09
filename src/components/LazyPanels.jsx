@@ -71,7 +71,6 @@ const PANELS = {
     OraclePanel: lazyWithReload(() => import('./OraclePanel')),
     LiveTVPanel: lazyWithReload(() => import('./LiveTVPanel')),
     MultiFrontBoard: lazyWithReload(() => import('./MultiFrontBoard')),
-    FlightRadarEmbed: lazyWithReload(() => import('./FlightRadarEmbed')),
     EventDetailsPanel: lazyWithReload(() => import('./EventDetailsPanel')),
 };
 

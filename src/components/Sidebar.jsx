@@ -286,11 +286,6 @@ const Sidebar = ({
                     </button>
                     {sourceAgenciesOpen && <SourceStack />}
                 </div>
-
-                <div className="sidebar-provenance">
-                    Data from NASA, ESA, JAXA, World Bank, ReliefWeb, Open-Meteo, and Binance.
-                    <a href="mailto:non.ar@depa.or.th">Contact</a>
-                </div>
             </div>
         </aside>
     );
