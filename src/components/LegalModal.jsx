@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import SourceStack from './SourceStack';
 import {
   LEGAL_TABS,
   LEGAL_CONTACT,
@@ -99,6 +100,12 @@ function AboutSection() {
           Their work sits at the intersection of urban design, data, and human behavior, bringing a distinctly people-centered perspective to how cities are measured and experienced.
         </p>
       </div>
+
+      <h3 style={sectionHeading}>Source Agencies</h3>
+      <p style={{ ...bodyText, fontSize: '11px', color: 'var(--ink-3)', marginBottom: '10px' }}>
+        Where each layer's data is pulled from. Status reflects integration, not live health — a green check means the source is wired and rendering, not that the feed is currently responding.
+      </p>
+      <SourceStack />
     </>
   );
 }

@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2,
+    Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2,
     Plane, Ship, MapPin, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
     Network, Droplet, ShieldAlert, Target, Radar } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import AlphaEarthPanel from './AlphaEarthPanel';
-import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
 import { useFlightStats } from '../hooks/useFlightCount';
 import { useVesselStats } from '../hooks/useVesselCount';
@@ -173,8 +172,6 @@ const Sidebar = ({
     copernicusRuntimeSource,
     showCopernicusOverlay,
     setShowCopernicusOverlay,
-    showStrategicContext,
-    setShowStrategicContext,
     copernicusResource,
     alphaEarthLayer,
     showAlphaEarthOverlay,
@@ -190,7 +187,6 @@ const Sidebar = ({
     const flightStats = useFlightStats();
     const vesselStats = useVesselStats();
     const contentRef = useRef(null);
-    const [sourceAgenciesOpen, setSourceAgenciesOpen] = useState(false);
     const [satelliteLayersOpen, setSatelliteLayersOpen] = useState(false);
 
     useEffect(() => {
@@ -450,44 +446,13 @@ const Sidebar = ({
                     </div>
                 </section>
 
-                {/* MAP FRAMING */}
-                <section className="sidebar-section">
-                    <h3 className="section-title">Map Framing</h3>
-                    <button
-                        type="button"
-                        className={`layer-card ${showStrategicContext ? 'active' : ''}`}
-                        onClick={() => setShowStrategicContext((v) => !v)}
-                        aria-pressed={showStrategicContext}
-                        aria-label={`${showStrategicContext ? 'Hide' : 'Show'} strategic context layer`}
-                    >
-                        <span className="layer-icon-wrapper"><Layers size={20} /></span>
-                        <span className="layer-info">
-                            <span className="layer-title">Strategic Context</span>
-                            <span className="layer-desc">Reference corridors, zones, and city anchors</span>
-                        </span>
-                    </button>
-                </section>
-
-                {/* SOURCE AGENCIES */}
-                <div className="sidebar-disclosure">
-                    <button
-                        type="button"
-                        className="sidebar-disclosure-toggle"
-                        onClick={() => setSourceAgenciesOpen((v) => !v)}
-                        aria-expanded={sourceAgenciesOpen}
-                    >
-                        <span>Source Agencies</span>
-                        <span className="sidebar-disclosure-chevron" aria-hidden="true">
-                            {sourceAgenciesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                        </span>
-                    </button>
-                    {sourceAgenciesOpen && <SourceStack />}
-                </div>
-
-                <div className="sidebar-provenance">
-                    Data from NASA, ESA, Google DeepMind AlphaEarth, TimesFM, World Bank, ReliefWeb, Open-Meteo, and Binance.
-                    <a href="mailto:non.ar@depa.or.th">Contact</a>
-                </div>
+                {/* Map Framing (Strategic Context overlay) and Source Agencies
+                    disclosure were removed — the rectangle-only reference overlay
+                    took vertical space without changing the operator's decisions,
+                    and the source list now lives in the About tab inside the legal
+                    modal. State for `showStrategicContext` is still kept in App.jsx
+                    so the overlay code in MapContainer can be retired cleanly later
+                    without a re-wire. */}
             </div>
         </aside>
     );
