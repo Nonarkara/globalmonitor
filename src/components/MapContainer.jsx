@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { fetchNaturalDisasters } from '../services/nasaEonet';
@@ -1041,7 +1040,6 @@ const MapContainer = ({
         <div className="map-wrapper" ref={wrapperRef}>
             <Map
                 ref={mapRef}
-                mapLib={maplibregl}
                 minZoom={viewMode === 'global' ? 1.5 : MAP_MIN_ZOOM}
                 maxZoom={MAP_MAX_ZOOM}
                 renderWorldCopies={false}
