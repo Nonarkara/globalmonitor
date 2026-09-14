@@ -56,18 +56,24 @@ const refreshRadarPath = async () => {
 export const EO_TILE_LAYERS = [
     {
         id: 'eo-nightlights',
-        name: 'Nightlights (VIIRS)',
-        description: 'City lights observed by the Suomi-NPP satellite',
+        name: 'Nightlights (BRDF)',
+        description: 'Cloud-free, BRDF-corrected city lights from VIIRS — replaces the raw DayNightBand product whose scan swaths painted as stacked rectangles',
         group: 'satellite',
         icon: '🌃',
-        // GIBS serves this one as JPEG at Level8; the old Level9 PNG request was a 400.
+        // Switched from `VIIRS_SNPP_DayNightBand_AtSensor_M15` to the gap-filled,
+        // BRDF-corrected composite. The AtSensor variant is raw per-orbit
+        // radiance: each swath shows up as a horizontal rectangle, and the
+        // seams between orbits read as overlapping patchwork tiles. The
+        // GapFilled + BRDF product tiles evenly — 84% of pixels are pure
+        // black (ocean + dark land), with light concentrated in the cities
+        // that actually emit. Same 256px Level8 maxzoom as before.
         tiles: gibsRedundant(
-            gibsTileUrl('VIIRS_SNPP_DayNightBand_AtSensor_M15', 'GoogleMapsCompatible_Level8', 'jpg')
+            gibsTileUrl('VIIRS_SNPP_GapFilled_BRDF_Corrected_DayNightBand_Radiance', 'GoogleMapsCompatible_Level8', 'png')
         ),
         tileSize: 256,
-        attribution: 'NASA GIBS / VIIRS',
+        attribution: 'NASA Black Marble / GIBS',
         // Default-on, so it sits under the operational layers rather than shouting.
-        opacity: 0.5,
+        opacity: 0.55,
         maxzoom: 8
     },
     {
