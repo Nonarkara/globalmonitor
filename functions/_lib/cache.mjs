@@ -1,5 +1,10 @@
 const cache = new Map();
 const loaderHealth = new Map();
+const inflight = new Map();
+const MAX_ENTRIES = 400;
+const trimMap = (map) => {
+    while (map.size > MAX_ENTRIES) map.delete(map.keys().next().value);
+};
 
 /**
  * Any payload whose own `source` says it is not a live observation — a curated
@@ -30,6 +35,7 @@ export const recordHealth = (key, ok, message = null, source = null) => {
         checkedAt: new Date().toISOString(),
         message
     });
+    trimMap(loaderHealth);
 };
 
 export const getLoaderHealth = () => loaderHealth;
@@ -40,7 +46,7 @@ export const getCacheEntries = () =>
         expiresInMs: Math.max(0, value.expiresAt - Date.now())
     }));
 
-export const useCached = async (key, ttlMs, loader, isUsable) => {
+const loadCached = async (key, ttlMs, loader, isUsable) => {
     const now = Date.now();
     const current = cache.get(key);
 
@@ -70,6 +76,7 @@ export const useCached = async (key, ttlMs, loader, isUsable) => {
             updatedAt,
             expiresAt: now + ttlMs
         });
+        trimMap(cache);
         recordHealth(key, true, null, describeSource(payload));
 
         return {
@@ -98,6 +105,16 @@ export const useCached = async (key, ttlMs, loader, isUsable) => {
 
         throw error;
     }
+};
+
+// Coalesce simultaneous cold-cache requests instead of spending upstream quota
+// once per visitor. This is per isolate, not a distributed monthly budget.
+export const useCached = async (key, ttlMs, loader, isUsable) => {
+    if (inflight.has(key)) return inflight.get(key);
+    const pending = loadCached(key, ttlMs, loader, isUsable);
+    inflight.set(key, pending);
+    try { return await pending; }
+    finally { inflight.delete(key); }
 };
 
 export const getSharedCache = () => cache;

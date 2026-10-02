@@ -65,14 +65,14 @@ export const buildForecast = async (cache, theater, injection = null, opts = {})
     return {
         theater: safeTheater,
         generatedAt: new Date().toISOString(),
-        live: { escalation: live.escalation, level: live.level, signals: live.signals },
+        live: { escalation: live.escalation, level: live.level, signals: live.signals, hasObservedInputs: live.hasObservedInputs },
         actors: actors.map(slimActor),
         forecast: fc,
         baseline,
         applied,
         scenarios: listScenarios(safeTheater),
         report,
-        meta: { engine: 'abm-montecarlo-v1', aiPowered: report.aiPowered },
+        meta: { engine: 'abm-montecarlo-v1', aiPowered: report.aiPowered, source: live.hasObservedInputs ? 'oracle-model' : 'baseline_model_sample' },
     };
 };
 

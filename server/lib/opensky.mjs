@@ -103,11 +103,11 @@ const stateToFeature = (state) => {
     };
 };
 
-export const fetchOpenSkyPayload = async (theater = 'global') => {
+export const fetchOpenSkyPayload = async (theater = 'global', { allowAnonymous = false } = {}) => {
     const resolved = resolveTheater(theater);
     const bounds = THEATER_BOUNDS[resolved];
 
-    if (!isOpenSkyConfigured()) {
+    if (!isOpenSkyConfigured() && !allowAnonymous) {
         return {
             type: 'FeatureCollection',
             features: [],
@@ -130,10 +130,10 @@ export const fetchOpenSkyPayload = async (theater = 'global') => {
     }
 
     try {
-        const token = await getAccessToken();
+        const token = isOpenSkyConfigured() ? await getAccessToken() : null;
         const res = await fetch(`${STATES_URL}?${query}`, {
-            headers: { Authorization: `Bearer ${token}` },
-            signal: AbortSignal.timeout(15000)
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            signal: AbortSignal.timeout(5000)
         });
 
         if (res.status === 401) {
@@ -162,7 +162,8 @@ export const fetchOpenSkyPayload = async (theater = 'global') => {
                 count: features.length,
                 fetchedAt: new Date().toISOString(),
                 source: 'opensky',
-                configured: true,
+                configured: Boolean(token),
+                observationAt: data.time ? new Date(data.time * 1000).toISOString() : null,
                 coverage: resolved === 'global' ? 'worldwide' : resolved
             }
         };

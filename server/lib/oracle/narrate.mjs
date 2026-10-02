@@ -21,7 +21,7 @@ const deterministicReport = ({ theater, live, fc, applied }) => {
         : ' ';
 
     return [
-        `Across ${fc.params.rollouts} Monte-Carlo rollouts seeded from live signals ` +
+        `Across ${fc.params.rollouts} Monte-Carlo rollouts seeded from ${live.hasObservedInputs ? 'observed signals' : 'baseline model assumptions (not live intelligence)'} ` +
         `(escalation index ${start}, ${live.signals.acled} conflict events, ${live.signals.firms} thermal hotspots), ` +
         `the most probable ${fc.params.periods}-week outcome is ${top.outcome} at ${top.confidence}%.`,
         `${scenarioLine}the expected escalation path ${trendVerb(top.trend)} from ${start} toward ${end} ` +

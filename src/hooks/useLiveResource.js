@@ -85,7 +85,6 @@ export const useLiveResource = (fetcher, {
 } = {}) => {
     const [cached] = useState(() => readCachedState(cacheKey));
     const dataRef = useRef(cached.data);
-    const cachedDataRef = useRef(cached.data);
     const isUsableRef = useRef(isUsable);
     const lastUpdatedRef = useRef(cached.lastUpdated);
 
@@ -101,6 +100,21 @@ export const useLiveResource = (fetcher, {
     const [status, setStatus] = useState(() => (cached.data ? (cached.status || 'cached') : null));
     const [error, setError] = useState(null);
     const [retryCount, setRetryCount] = useState(0);
+    const generationRef = useRef(0);
+    const [ownerKey, setOwnerKey] = useState(cacheKey);
+    if (ownerKey !== cacheKey) {
+        const next = readCachedState(cacheKey);
+        setOwnerKey(cacheKey);
+        setData(next.data);
+        setLastUpdated(next.lastUpdated);
+        setSource(next.source);
+        setStatus(next.data ? (next.status || 'cached') : null);
+        setIsStale(Boolean(next.data));
+        setIsLoading(enabled && !next.data);
+        setIsRefreshing(false);
+        setError(null);
+        setRetryCount(0);
+    }
 
     useEffect(() => {
         isUsableRef.current = isUsable;
@@ -116,6 +130,7 @@ export const useLiveResource = (fetcher, {
 
     const load = useCallback(async ({ manual = false } = {}) => {
         if (!enabled) return;
+        const generation = generationRef.current;
 
         // Background polls must not toggle isRefreshing — DataStatus badge insertion
         // was shifting Multi-Front / Iran theater bar height every interval tick.
@@ -136,6 +151,7 @@ export const useLiveResource = (fetcher, {
                 }
 
                 const result = await fetcher();
+                if (generation !== generationRef.current) return;
                 const responseMeta = result && typeof result === 'object' ? result.__meta : null;
 
                 if (!isUsableRef.current(result)) {
@@ -159,6 +175,7 @@ export const useLiveResource = (fetcher, {
                 setIsRefreshing(false);
                 return;
             } catch (caughtError) {
+                if (generation !== generationRef.current) return;
                 lastError = caughtError;
             }
         }
@@ -168,7 +185,7 @@ export const useLiveResource = (fetcher, {
         setRetryCount((prev) => prev + 1);
 
         // Check if existing data is too old
-        const hasData = Boolean(dataRef.current || cachedDataRef.current);
+        const hasData = Boolean(dataRef.current);
         const stamp = lastUpdatedRef.current;
         if (hasData && stamp) {
             const age = Date.now() - new Date(stamp).getTime();
@@ -220,6 +237,7 @@ export const useLiveResource = (fetcher, {
         window.addEventListener('gm:refresh-all', handleGlobalRefresh);
 
         return () => {
+            generationRef.current += 1;
             window.clearTimeout(kickoff);
             window.clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibility);

@@ -33,3 +33,4 @@ dist-ssr
 # local secrets / platform state — never commit
 .dev.vars
 .netlify/
+.qa/globewatch/

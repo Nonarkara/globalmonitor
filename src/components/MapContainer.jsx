@@ -1,6 +1,8 @@
 import React, { useCallback, useState, useRef, useEffect, useMemo, useReducer } from 'react';
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+import { fetchAirportLocations } from '../services/airports.js';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { fetchNaturalDisasters } from '../services/nasaEonet';
@@ -23,6 +25,10 @@ import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
 import { useTrafficAnimator, EMPTY_TRAFFIC } from '../hooks/useInterpolatedTraffic.js';
 import { loadTrafficIcons, FLIGHT_ICON_IMAGE, VESSEL_ICON_IMAGE } from '../services/mapTrafficIcons.js';
+
+// MapLibre 6 uses an ES-module worker. Vite must bundle its shared imports;
+// otherwise the deployed worker resolves relative to the wrong vendor chunk.
+maplibregl.setWorkerUrl(mapWorkerUrl);
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
 // only), so a "flight path" is a short heading projection — not a route spiderweb.
@@ -54,6 +60,8 @@ const isRenderablePoint = (f) => (
     && Array.isArray(f.geometry.coordinates)
     && Number.isFinite(f.geometry.coordinates[0])
     && Number.isFinite(f.geometry.coordinates[1])
+    && Math.abs(f.geometry.coordinates[0]) <= 180
+    && Math.abs(f.geometry.coordinates[1]) <= 90
 );
 
 const buildFlightPaths = (flights) => {
@@ -533,6 +541,7 @@ const MapContainer = ({
     // Track which raster sources have failed (auth / 404 / CORS / 5xx) so the
     // user sees what is missing instead of a silently-empty map.
     const [failedSources, setFailedSources] = useState(() => new Set());
+    const failedSourcesRef = useRef(new Set());
 
     const [mapIconsReady, setMapIconsReady] = useState(false);
     const [mapReady, setMapReady] = useState(false);
@@ -584,7 +593,10 @@ const MapContainer = ({
         if (!map) return undefined;
         const handler = (e) => {
             const sourceId = e?.sourceId || e?.source?.id || e?.error?.sourceId;
-            if (sourceId) {
+            // Guard before dispatch. Returning the same Set inside the updater
+            // still queues React work on a burst of tile errors.
+            if (sourceId && !failedSourcesRef.current.has(sourceId)) {
+                failedSourcesRef.current.add(sourceId);
                 setFailedSources((prev) => {
                     if (prev.has(sourceId)) return prev;
                     const next = new Set(prev);
@@ -595,7 +607,7 @@ const MapContainer = ({
         };
         map.on('error', handler);
         return () => { map.off('error', handler); };
-    }, [mapStyle]);
+    }, [mapStyle, mapReady]);
 
     // Load custom SVG icons into the MapLibre sprite; re-run on style change
     // because setStyle() wipes all user-added images.
@@ -606,6 +618,7 @@ const MapContainer = ({
     }, []);
 
     const handleMapLoad = useCallback(() => {
+        window.__GM_MAP__ = mapRef.current?.getMap?.();
         setMapReady(true);
         loadMapIcons();
     }, [loadMapIcons]);
@@ -623,7 +636,7 @@ const MapContainer = ({
     const handleMouseMove = useCallback((event) => {
         setCursorCoords({ lng: event.lngLat.lng, lat: event.lngLat.lat });
         const feature = event.features?.find(
-            (f) => f.layer?.id === 'flights-icons' || f.layer?.id === 'vessels-icons'
+            (f) => f.layer?.id === 'flights-icons' || f.layer?.id === 'vessels-icons' || f.layer?.id === 'airports-points'
                 || f.layer?.id === 'flood-stations-alert' || f.layer?.id === 'flood-stations-all'
         );
         if (feature) {
@@ -693,6 +706,10 @@ const MapContainer = ({
         intervalMs: 60 * 60 * 1000,
         isUsable: hasFeatureData
     });
+    const airportsResource = useLiveResource(useCallback(() => fetchAirportLocations(), []), {
+        cacheKey: 'map:airports:v1', enabled: activeLayers.includes('airports'),
+        intervalMs: 24 * 60 * 60 * 1000, isUsable: hasFeatureData, maxRetries: 0
+    });
     const vesselsResource = useLiveResource(useCallback(() => fetchVessels(viewMode), [viewMode]), {
         cacheKey: `map:vessels:${viewMode}`,
         enabled: activeLayers.includes('vessels'),
@@ -741,8 +758,8 @@ const MapContainer = ({
 
     // Imperative animators write straight into the MapLibre sources — React never
     // re-renders on the animation path (the old setState tween froze the page).
-    useTrafficAnimator(mapRef, 'flights-data', flightsData, { idKey: 'hex', durationMs: 30_000, frameMs: 900, enabled: flightsLayerActive });
-    useTrafficAnimator(mapRef, 'vessels-data', vesselsData, { idKey: 'mmsi', durationMs: 30_000, frameMs: 1300, enabled: vesselsLayerActive });
+    useTrafficAnimator(mapRef, 'flights-data', flightsData, { idKey: 'hex', durationMs: 30_000, frameMs: 900, enabled: flightsLayerActive, stale: flightsResource.isStale || flightsData?.meta?.stale });
+    useTrafficAnimator(mapRef, 'vessels-data', vesselsData, { idKey: 'mmsi', durationMs: 30_000, frameMs: 1300, enabled: vesselsLayerActive, stale: vesselsResource.isStale || vesselsData?.meta?.staticSnapshot });
     // Heading look-ahead trails update on the 30s poll, not per animation frame.
     const flightPaths = useMemo(() => buildFlightPaths(flightsData), [flightsData]);
     const vesselPaths = useMemo(() => buildVesselPaths(vesselsData), [vesselsData]);
@@ -865,10 +882,18 @@ const MapContainer = ({
                 onLoad={handleMapLoad}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                interactiveLayerIds={['flights-icons', 'vessels-icons', 'flood-stations-alert', 'flood-stations-all']}
+                interactiveLayerIds={['flights-icons', 'vessels-icons', 'airports-points', 'flood-stations-alert', 'flood-stations-all']}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle={MAP_STYLES[mapStyle] || MAP_STYLES.dark}
             >
+                {activeLayers.includes('airports') && airportsResource.data && (
+                    <Source id="airports-data" type="geojson" data={airportsResource.data}>
+                        <Layer id="airports-points" type="circle" paint={{
+                            'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2, 8, 5],
+                            'circle-color': '#faf9f7', 'circle-stroke-color': '#191712', 'circle-stroke-width': 1.5
+                        }} />
+                    </Source>
+                )}
                 {showStrategicContext && (
                     <>
                         <Source id="strategic-zones" type="geojson" data={STRATEGIC_ZONES}>
@@ -1571,6 +1596,13 @@ const MapContainer = ({
                     >
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
+                            if (hoverInfo.feature.layer?.id === 'airports-points') {
+                                return <div className="traffic-tooltip-content">
+                                    <div className="traffic-tooltip-header">{p.name}</div>
+                                    <div>{p.iata || p.icao} · {p.municipality} · {p.country}</div>
+                                    <div>OurAirports · airport locations, not live traffic</div>
+                                </div>;
+                            }
                             const isFloodGauge = String(hoverInfo.feature.layer?.id || '').startsWith('flood-stations');
                             if (isFloodGauge) {
                                 return (
@@ -1777,7 +1809,7 @@ const MapContainer = ({
                 >
                     <span className="map-legend-line" style={{ background: '#191712' }} />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
-                        {flightCount > 0 ? `${flightCount.toLocaleString()} aircraft · ${flightSourceLabel}` : '… aircraft · ADS-B'}
+                        {flightCount > 0 ? `${flightCount.toLocaleString()} aircraft · ${flightSourceLabel} · ${ageLabel(flightsData?.meta?.collectedAt || flightsData?.meta?.observationAt || flightsResource.lastUpdated) || 'age unknown'}` : flightsResource.isLoading ? 'Loading aircraft…' : 'Aircraft: no data'}
                     </span>
                 </div>
                 <div
@@ -1790,8 +1822,8 @@ const MapContainer = ({
                     />
                     <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
                         {vesselCount > 0
-                            ? `${vesselCount.toLocaleString()} vessels · ${vesselSourceLabel}`
-                            : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
+                            ? `${vesselCount.toLocaleString()} vessels · ${vesselSourceLabel} · ${ageLabel(vesselsData?.meta?.staticSnapshotAt || vesselsResource.lastUpdated) || 'age unknown'}`
+                            : vesselsNeedKey ? 'AIS key required' : vesselsResource.isLoading ? 'Loading ships…' : 'Ships: feed unavailable'}
                     </span>
                 </div>
                 <div

@@ -65,11 +65,8 @@ const mergeFeatures = (primary, supplement) => {
     return [...byMmsi.values()];
 };
 
-const resolveSnapshotAisSource = (staticMeta, features) => {
-    const metaSource = staticMeta?.source || '';
-    if (metaSource.includes('axiom-overwatch')) return 'axiom-overwatch';
-    const featureSource = features?.[0]?.properties?.source || '';
-    if (featureSource.includes('axiom-overwatch')) return 'axiom-overwatch';
+const resolveSnapshotAisSource = () => {
+    // Provider attribution inside a file does not turn a deployed file into live AIS.
     return 'static-snapshot';
 };
 
@@ -80,7 +77,7 @@ async function loadStaticAisSnapshot(origin, next) {
     const cache = getSharedCache();
     const staticKey = 'vessels:ais:static:v1';
     const cached = cache.get(staticKey);
-    if (cached?.features?.length > 0) {
+    if (cached?.features?.length > 0 && Date.now() - cached.loadedAt < AIS_CACHE_TTL_MS) {
         return { features: cached.features, meta: cached.meta || null, cache: 'static-hit' };
     }
 
@@ -146,7 +143,8 @@ async function getGlobalAisFeatures(apiKey, origin, next) {
     const staticResult = await loadStaticAisSnapshot(origin, next);
     staticCache = staticResult.cache;
     staticMeta = staticResult.meta;
-    if (staticResult.features.length > 0) {
+    const staticAge = now - Date.parse(staticResult.meta?.collectedAt || '');
+    if (staticResult.features.length > 0 && staticAge >= 0 && staticAge < AIS_CACHE_TTL_MS) {
         features = staticResult.features;
         aisSource = resolveSnapshotAisSource(staticMeta, features);
     } else if (staticResult.error) {
@@ -173,7 +171,7 @@ async function getGlobalAisFeatures(apiKey, origin, next) {
     }
 
     if (features.length === 0) {
-        const axiomResult = await fetchAxiomGlobalSnapshot();
+        const axiomResult = await fetchAxiomGlobalSnapshot({ timeoutMs: 8000 });
         if (axiomResult.features?.length > 0) {
             features = axiomResult.features;
             aisSource = 'axiom-overwatch';
@@ -187,6 +185,13 @@ async function getGlobalAisFeatures(apiKey, origin, next) {
         } else if (!error) {
             error = axiomResult.error || 'empty_ais_snapshot';
         }
+    }
+
+    // An old deployed file is a last resort, never ahead of a fresh REST fetch.
+    if (features.length === 0 && staticResult.features.length > 0) {
+        features = staticResult.features;
+        aisSource = 'static-snapshot';
+        staticMeta = staticResult.meta;
     }
 
     if (features.length > 0) {
@@ -239,7 +244,7 @@ export async function fetchVesselsPayload(theater = 'global', { origin, next } =
     let aisAttempt = null;
     let aisSource = null;
     let staticMeta = null;
-    if (hasAisKey) {
+    {
         try {
             const aisResult = await getGlobalAisFeatures(aisKey, origin, next);
             aisFeatures = aisResult.features;
@@ -250,28 +255,6 @@ export async function fetchVesselsPayload(theater = 'global', { origin, next } =
             staticMeta = aisResult.staticMeta ?? null;
         } catch (err) {
             aisError = err.message;
-        }
-    } else {
-        const staticResult = await loadStaticAisSnapshot(origin, next);
-        if (staticResult.features.length > 0) {
-            aisFeatures = staticResult.features;
-            staticMeta = staticResult.meta;
-            aisSource = resolveSnapshotAisSource(staticMeta, aisFeatures);
-            aisCache = staticResult.cache;
-        } else {
-            const axiomResult = await fetchAxiomGlobalSnapshot();
-            if (axiomResult.features?.length > 0) {
-                aisFeatures = axiomResult.features;
-                aisSource = 'axiom-overwatch';
-                staticMeta = {
-                    collectedAt: axiomResult.meta?.updated_at ?? new Date().toISOString(),
-                    vesselCount: axiomResult.features.length,
-                    source: 'axiom-overwatch.io',
-                    truncated: axiomResult.truncated ?? false,
-                };
-            } else {
-                aisError = axiomResult.error || staticResult.error || 'empty_ais_snapshot';
-            }
         }
     }
 
@@ -302,7 +285,7 @@ export async function fetchVesselsPayload(theater = 'global', { origin, next } =
             sources,
             // `connected` means a live feed answered. A snapshot off disk is not
             // connected — the route stamps it STALE and the legend shows its age.
-            connected: ((hasAisKey && !fromStaticSnapshot) || aisSource === 'axiom-overwatch') && theaterAisCount > 0 || (vfConfig.fleetKey && !fleetResult.error),
+            connected: !fromStaticSnapshot && (((hasAisKey || aisSource === 'axiom-overwatch') && theaterAisCount > 0) || (vfConfig.fleetKey && !fleetResult.error)),
             staticSnapshot: fromStaticSnapshot,
             coverage: (hasAisKey || aisSource === 'static-snapshot' || aisSource === 'axiom-overwatch')
                 ? (vfConfig.fleetKey ? 'ais-snapshot+fleet' : 'ais-snapshot')

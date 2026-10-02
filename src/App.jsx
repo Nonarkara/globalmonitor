@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import WorldClock from './components/WorldClock';
 import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
 import SettingsModal from './components/SettingsModal';
+import WebAppInstall from './components/WebAppInstall';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
 import { REGIONS, getRegion, DEFAULT_THEATER } from './data/regions';
@@ -51,6 +52,7 @@ function App() {
   const [isPapersOpen, setIsPapersOpen] = useState(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isInstallOpen, setIsInstallOpen] = useState(false);
   useEscapeKey(isAboutOpen, () => setIsAboutOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
   const toolsRef = useRef(null);
@@ -194,13 +196,18 @@ function App() {
 
           {/* Center: Title + Escalation */}
           <div className="header-status">
+            <div className="gw-header-identity">
+              <img className="gw-header-mark" src={`${import.meta.env.BASE_URL}brand/globewatch-mark.png`} width="40" height="40" alt="" />
+              <img className="gw-print-mark" src={`${import.meta.env.BASE_URL}brand/globewatch-monochrome.png`} width="40" height="40" alt="" />
             <div className="header-title-lockup">
               <span className="header-title">
-                Global Political Dashboard
+                GlobeWatch
               </span>
               <span className="header-subtitle">
-                {getRegion(viewMode).label}
+                Global Political Dashboard · {getRegion(viewMode).label}
               </span>
+              <button className="gw-availability" onClick={() => setIsInstallOpen(true)}>Android &amp; iPhone web app</button>
+            </div>
             </div>
             <ErrorBoundary inline label="Escalation">
               <EscalationGauge viewMode={viewMode} />
@@ -283,6 +290,9 @@ function App() {
                   </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsAboutOpen(true); }}>
                     <Info size={12} aria-hidden="true" /> About
+                  </button>
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); setIsInstallOpen(true); }}>
+                    <Info size={12} aria-hidden="true" /> Install web app
                   </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); handleRefreshAll(); }} disabled={isRefreshingAll}>
                     <RefreshCw size={12} aria-hidden="true" className={isRefreshingAll ? 'spin-anim' : ''} /> Refresh data
@@ -650,6 +660,8 @@ function App() {
           onClose={() => setIsActivityLogOpen(false)}
         />
 
+        <WebAppInstall open={isInstallOpen} onClose={() => setIsInstallOpen(false)} />
+
         {/* Modal: About */}
         {isAboutOpen && (
           <div className="modal-overlay" style={{
@@ -663,6 +675,7 @@ function App() {
               border: '1px solid var(--line-2)',
               overflow: 'auto', padding: '28px 32px'
             }} onClick={e => e.stopPropagation()}>
+              <img className="gw-about-lockup" src={`${import.meta.env.BASE_URL}brand/globewatch-lockup.png`} alt="GlobeWatch — Global Political Dashboard" width="180" height="184" />
               {/* Primary funder */}
               <div style={{ textAlign: 'center', marginBottom: '14px' }}>
                 <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontWeight: 700, letterSpacing: '0.16em', marginBottom: '8px' }}>FUNDED BY</div>

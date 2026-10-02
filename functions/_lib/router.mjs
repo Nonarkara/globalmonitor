@@ -321,7 +321,10 @@ export async function handleApiRequest(request, env, next) {
             // from the classic branch, which already refused to).
             return jsonResponse(result.payload, 200, {
                 ...result.meta,
-                status: result.payload?.meta?.stale ? 'stale' : (result.meta?.status || 'live')
+                status: result.payload?.meta?.stale ? 'stale' : (result.meta?.status || 'live'),
+                updatedAt: result.payload?.meta?.stale
+                    ? (result.payload.meta.collectedAt || result.payload.meta.fetchedAt || '')
+                    : result.meta.updatedAt
             });
         }
 

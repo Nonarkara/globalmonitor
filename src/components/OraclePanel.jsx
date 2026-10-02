@@ -38,7 +38,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
     const fc = data?.forecast;
     const head = fc?.headline;
     const maxProb = fc ? Math.max(...fc.outcomes.map((o) => o.prob)) : 0;
-    const statusLabel = isStale ? 'STALE' : (error && !data ? 'OFFLINE' : 'LIVE');
+    const statusLabel = isStale ? 'STALE MODEL' : (error && !data ? 'OFFLINE' : data ? 'SIMULATION' : 'LOADING');
 
     return (
         <div className="bottom-card flex-column" style={{ padding: '10px 12px' }}>
@@ -70,6 +70,9 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
 
             {fc && (
                 <>
+                    <p style={{ fontSize: '.6rem', color: 'var(--ink-2)', margin: '0 0 6px' }}>
+                        {data.live?.hasObservedInputs ? 'Model estimates, not observed outcomes.' : 'Baseline assumptions — no observed input signals.'}
+                    </p>
                     {/* Headline forecast */}
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '5px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>

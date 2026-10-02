@@ -1,18 +1,26 @@
 {
-  "name": "Global Political Dashboard",
-  "short_name": "GPD",
+  "id": "/",
+  "name": "GlobeWatch — Global Political Dashboard",
+  "short_name": "GlobeWatch",
   "description": "Real-time geopolitical intelligence monitoring — ACLED, FIRMS, markets, nuclear tracking",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#141a24",
-  "theme_color": "#141a24",
-  "orientation": "landscape",
+  "background_color": "#faf9f7",
+  "theme_color": "#faf9f7",
+  "orientation": "any",
   "categories": ["news", "politics", "productivity"],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

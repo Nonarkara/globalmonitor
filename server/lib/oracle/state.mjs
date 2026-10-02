@@ -13,6 +13,8 @@ const STRIKE_TAGS = new Set(['strikes', 'conflict', 'nuclear', 'airspace', 'nava
 
 const featureCount = (cache, key) => {
     const entry = cache.get(key);
+    const source = entry?.payload?.meta?.source || entry?.payload?.source || '';
+    if (/sample|fallback|curated|mock|demo|unconfigured|no_[a-z_]*key/i.test(source)) return 0;
     const feats = entry?.payload?.features;
     return Array.isArray(feats) ? feats.length : 0;
 };
@@ -54,6 +56,7 @@ export const readLiveState = (cache, theater) => {
     const acled = featureCount(cache, `acled:${theater}`);
     const quakes = featureCount(cache, `quakes:${theater}`);
     const news = newsSignal(cache);
+    const hasObservedInputs = firms + acled + quakes + news > 0;
 
     // Middle East has a purpose-built escalation index; reuse it directly. Other
     // theaters synthesize a comparable 0-100 from their live signal mix.
@@ -77,5 +80,5 @@ export const readLiveState = (cache, theater) => {
         escalation >= 50 ? 'ELEVATED' :
         escalation >= 30 ? 'WATCH' : 'LOW';
 
-    return { escalation, signals, seed, level };
+    return { escalation, signals, seed, level, hasObservedInputs };
 };

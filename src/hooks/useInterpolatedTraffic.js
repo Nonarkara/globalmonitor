@@ -43,6 +43,8 @@ const isRenderablePoint = (f) => (
     && Array.isArray(f.geometry.coordinates)
     && Number.isFinite(f.geometry.coordinates[0])
     && Number.isFinite(f.geometry.coordinates[1])
+    && Math.abs(f.geometry.coordinates[0]) <= 180
+    && Math.abs(f.geometry.coordinates[1]) <= 90
 );
 
 // Snapshot where each feature visually sits right now, keyed by stable id, so a
@@ -94,6 +96,7 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
     durationMs = 30000,
     frameMs = 1000,
     enabled = true,
+    stale = false,
 } = {}) => {
     const displayRef = useRef(null);        // mutable FC currently on the map
     const frameRef = useRef(null);
@@ -137,11 +140,11 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
         const tick = () => {
             const now = performance.now();
             const elapsed = now - start;
-            const t = Math.min(1, elapsed / durationMs);
+            const t = stale ? 1 : Math.min(1, elapsed / durationMs);
             const overdueMs = elapsed - durationMs; // > 0 once tween is done
             // Animate through the tween plus one extra interval of dead reckoning,
             // then stop scheduling so a stalled feed doesn't spin rAF forever.
-            const stillAnimating = t < 1 || overdueMs <= durationMs;
+            const stillAnimating = !stale && (t < 1 || overdueMs <= durationMs);
 
             // Throttle mutation + worker traffic; keep retrying until the source
             // exists (react-map-gl adds it asynchronously after style load).
@@ -166,7 +169,7 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
                     coords[1] = lerp(old.lat, tLat, t);
                     df.properties.heading = lerpAngle(old.heading, tHeading, t);
                     df.properties.course = lerpAngle(old.course, tCourse, t);
-                } else if (overdueMs > 0) {
+                } else if (!stale && overdueMs > 0) {
                     // Stage 2: dead-reckon forward from the target so a late poll
                     // doesn't freeze traffic. Recompute from target each frame —
                     // no accumulation drift; distance capped so a long feed stall
@@ -195,7 +198,7 @@ export const useTrafficAnimator = (mapRef, sourceId, geojson, {
         return () => {
             if (frameRef.current) cancelAnimationFrame(frameRef.current);
         };
-    }, [mapRef, sourceId, geojson, idKey, durationMs, frameMs, enabled]);
+    }, [mapRef, sourceId, geojson, idKey, durationMs, frameMs, enabled, stale]);
 };
 
 // Stable empty collection for <Source data={...}> — the React prop never changes,

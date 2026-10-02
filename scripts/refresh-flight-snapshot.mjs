@@ -8,12 +8,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchAirplanesLivePayload } from '../server/lib/airplanesLive.mjs';
+import { fetchOpenSkyPayload } from '../server/lib/opensky.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputPath = path.join(root, 'public', 'data', 'flights', 'adsb-snapshot.geojson');
 
 try {
-    const payload = await fetchAirplanesLivePayload('global');
+    let payload = await fetchOpenSkyPayload('global', { allowAnonymous: true });
+    if (!payload.features?.length) payload = await fetchAirplanesLivePayload('global');
     if (!payload.features?.length) throw new Error(payload.meta?.error || 'ADS-B returned no aircraft');
 
     const snapshot = {
@@ -21,6 +23,7 @@ try {
         meta: {
             ...payload.meta,
             source: 'adsb-snapshot',
+            provider: payload.meta?.source,
             collectedAt: new Date().toISOString(),
             count: payload.features.length,
             refreshHint: 'npm run refresh:flights (runs before every deploy)'

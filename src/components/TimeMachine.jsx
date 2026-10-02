@@ -83,11 +83,11 @@ const TimeMachine = ({ onDateChange }) => {
             borderRadius: 0,
             background: 'var(--panel)',
             border: '1px solid var(--line-2)',
-            minWidth: '380px'
+            width: 'min(380px, calc(100vw - 24px))', minWidth: 0, flexWrap: 'wrap'
         }}>
             <Clock size={13} style={{ color: 'var(--ink-2)', flexShrink: 0 }} />
 
-            <button onClick={togglePlay} style={{
+            <button onClick={togglePlay} aria-label={playing ? 'Pause timeline' : 'Play timeline'} style={{
                 background: '#f2f0ea',
                 border: '1px solid var(--line)',
                 borderRadius: 0,
@@ -100,7 +100,7 @@ const TimeMachine = ({ onDateChange }) => {
                 {playing ? <Pause size={11} /> : <Play size={11} />}
             </button>
 
-            <button onClick={resetToNow} style={{
+            <button onClick={resetToNow} aria-label="Reset timeline to now" style={{
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -114,6 +114,7 @@ const TimeMachine = ({ onDateChange }) => {
 
             <input
                 type="range"
+                aria-label="Timeline date"
                 min={0}
                 max={totalDays}
                 value={currentDay}

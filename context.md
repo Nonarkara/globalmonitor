@@ -1,6 +1,13 @@
 # Globalmonitor (v3-global) — Live Context
 
-Last updated: 2026-06-21 (Cloudflare Pages primary — Fly.io retired).
+Last updated: 2026-10-02 (GlobeWatch identity and flagship audit).
+
+## Identity and task boundary — 2026-10-02
+
+Design Read: GlobeWatch identifies the working map; its compact mark does not compete with theater controls or the primary funder's logo.
+Named reference: Dr Non's “GlobeWatch Global Identity Board.png”; the map remains the dominant element. Brand art retains its supplied blue/red colors as a named, load-bearing identity exception, not a new UI accent palette. Transparent logos use light ground; the home-screen icon has an intentional navy ground. No CSS filters or blend modes. The header has one sponsor strip; the About panel retains all credits.
+Invariant: displayed observations keep their source and observation age, including cached and snapshot traffic. Existing maps, controls, live panels and edited AsiaWatch work remain intact.
+This checkout deploys only Cloudflare Pages project `globalmonitor` at `https://globalmonitor.nonarkara.org/`. The sibling `v3-global/main` serves AsiaWatch and must not overwrite this slot.
 
 ## VERIFY BEFORE RECOMMEND (mandatory for all agents)
 

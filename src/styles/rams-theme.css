@@ -13,6 +13,8 @@
 .header-bar {
   background: var(--panel);
   border: 1px solid var(--line);
+  /* The tools menu must clear sibling panels' stacking contexts. */
+  z-index: 60;
 }
 
 .header-title {

@@ -74,8 +74,8 @@ const mergeFlightPayloads = (primary, supplement) => {
 export const fetchFlightsPayload = async (theater = 'global') => {
     let payload = await fetchAirplanesLivePayload(theater);
 
-    if (isOpenSkyConfigured()) {
-        const opensky = await fetchOpenSkyPayload(theater);
+    if (isOpenSkyConfigured() || !payload.features?.length) {
+        const opensky = await fetchOpenSkyPayload(theater, { allowAnonymous: true });
         if (opensky.features?.length > 0) {
             if (payload.features?.length > 0) {
                 payload = mergeFlightPayloads(payload, opensky);

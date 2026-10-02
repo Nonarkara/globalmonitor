@@ -9,6 +9,8 @@ const isRenderableFeature = (f) => (
     && Array.isArray(f.geometry.coordinates)
     && Number.isFinite(f.geometry.coordinates[0])
     && Number.isFinite(f.geometry.coordinates[1])
+    && Math.abs(f.geometry.coordinates[0]) <= 180
+    && Math.abs(f.geometry.coordinates[1]) <= 90
 );
 
 const hasFlightFeatures = (payload) => (

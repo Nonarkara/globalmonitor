@@ -54,6 +54,7 @@ const Sidebar = ({
             title: 'Mobility',
             layers: [
                 { id: 'flights', title: 'Aircraft', desc: 'Live aircraft positions', icon: <Plane size={18} /> },
+                { id: 'airports', title: 'Airports', desc: 'Worldwide scheduled-service and large airports · OurAirports', icon: <Plane size={18} /> },
                 { id: 'vessels', title: 'Ships', desc: 'Live ship positions', icon: <Ship size={18} /> },
             ],
         },
