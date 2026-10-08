@@ -1,0 +1,113 @@
+name: Security
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Monday 06:00 UTC
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Semgrep and Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Semgrep OSS
+        id: semgrep
+        env:
+          SEMGREP_SEND_METRICS: "off"
+        run: |
+          set +e
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/src" \
+            -w /src \
+            -e HOME=/tmp \
+            -e SEMGREP_SEND_METRICS=off \
+            --entrypoint semgrep \
+            semgrep/semgrep:1.180.0@sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3 \
+            scan \
+              --metrics=off \
+              --disable-version-check \
+              --no-error \
+              --config p/javascript \
+              --config p/react \
+              --config p/nodejs \
+              --config p/sql-injection \
+              --config p/command-injection \
+              --config p/secrets \
+              --config p/github-actions \
+              --sarif \
+              --output /dev/stdout \
+              /src \
+            > /tmp/semgrep.sarif \
+            2> /tmp/semgrep.stderr
+          code=$?
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          if [ -s /tmp/semgrep.sarif ]; then
+            echo "semgrep_sarif_bytes=$(wc -c < /tmp/semgrep.sarif)"
+          else
+            echo "semgrep_sarif_missing"
+          fi
+          exit 0
+
+      - name: Trivy filesystem
+        id: trivy
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_INCLUDE_DEV_DEPS: "true"
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          format: sarif
+          output: /tmp/trivy.sarif
+          exit-code: "0"
+          cache: "false"
+          hide-progress: true
+          skip-dirs: .git
+          version: v0.70.0
+
+      - name: Write job summary
+        id: summary
+        if: always()
+        env:
+          SEMGREP_SARIF: /tmp/semgrep.sarif
+          TRIVY_SARIF: /tmp/trivy.sarif
+          SEMGREP_STATUS: ${{ steps.semgrep.outputs.exit_code }}
+          TRIVY_STATUS: ${{ steps.trivy.outcome }}
+          SEMGREP_VERSION: "1.180.0"
+          TRIVY_VERSION: "0.70.0"
+        run: python3 .github/security_summary.py
+
+      - name: Upload Semgrep SARIF
+        if: always() && steps.summary.outputs.semgrep_sarif == 'true'
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: security-results/semgrep.sarif
+          category: semgrep
+          wait-for-processing: false
+
+      - name: Upload Trivy SARIF
+        if: always() && steps.summary.outputs.trivy_sarif == 'true'
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: security-results/trivy.sarif
+          category: trivy
+          wait-for-processing: false
