@@ -25,7 +25,7 @@ export const REGION_VIEW_STATES = {
 /** MapLibre maxBounds: [[west, south], [east, north]] — keeps pan inside the theater. */
 export const REGION_MAX_BOUNDS = {
     middleeast: [[22, 8], [78, 48]],
-    indopacific: [[88, -12], [145, 28]],
+    indopacific: [[84, -16], [148, 30]],
     thailand: [[96.5, 5.2], [106.5, 21]],
     global: [[-170, -55], [190, 72]]
 };
@@ -33,9 +33,22 @@ export const REGION_MAX_BOUNDS = {
 /** Per-theater zoom floor. Thailand is city-scale; global is the only sub-3. */
 export const REGION_MIN_ZOOM = {
     middleeast: 3.4,
-    indopacific: 3.2,
+    // 2.3, not 3.2: on a 390px phone, all of Indonesia (Aceh 95E to Papua 141E)
+    // only fits at about zoom 2.4. The old floor clamped the camera tighter, so
+    // the phone view simply never reached Papua.
+    indopacific: 2.3,
     thailand: 5.2,
     global: 2.2
+};
+
+/**
+ * Theaters whose opening camera is fitted to a box rather than a fixed zoom.
+ * A fixed zoom frames the region correctly on exactly one screen width; a box
+ * is fitted by MapLibre to whatever screen it lands on.
+ * Indo-Pacific: Aceh to Papua, Timor to the top of Myanmar.
+ */
+export const REGION_FIT_BOUNDS = {
+    indopacific: [[92, -11.5], [141.5, 24]],
 };
 
 export const REGION_MAX_ZOOM = {

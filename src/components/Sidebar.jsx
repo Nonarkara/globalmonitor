@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2, Plane, Ship, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2, Plane, Ship, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight, Navigation } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
@@ -63,6 +63,7 @@ const Sidebar = ({
             layers: [
                 { id: 'weather', title: 'Rain radar', desc: 'Precipitation forecasts', icon: <CloudRain size={18} /> },
                 { id: 'jaxa-aerosol', title: 'JAXA Aerosol', desc: 'Himawari-9 optical thickness, 10-min refresh', icon: <Satellite size={18} /> },
+                { id: 'wind', title: 'Surface wind', desc: 'Arrows point downwind — where haze drifts · Open-Meteo', icon: <Navigation size={18} /> },
                 { id: 'aqi', title: 'Air quality', desc: 'PM2.5 and AQI', icon: <Wind size={18} /> },
                 { id: 'disasters', title: 'Natural disasters', desc: 'Active events and alerts', icon: <AlertTriangle size={18} /> },
                 { id: 'economy', title: 'Economic baseline', desc: 'Macro indicators', icon: <Activity size={18} /> },

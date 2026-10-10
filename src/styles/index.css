@@ -3715,6 +3715,12 @@ body {
   line-height: 1.4;
 }
 
+/* A cursor readout on a device with no cursor is a box that says "move cursor
+   over map" forever, over the map. Touch screens never get it. */
+@media (hover: none) {
+  .map-coord-readout { display: none; }
+}
+
 .map-coord-readout__label {
   display: block;
   font-size: 0.5625rem;
@@ -3910,7 +3916,11 @@ input[type="text"], input[type="search"], select, textarea {
   .mobile-theater-nav {
     display: flex;
     position: fixed;
-    bottom: 0;
+    /* Sits on the 18px classification banner, not under it. At bottom:0 the
+       banner (fixed, z 99999) covered the bar's last 18px — exactly the second
+       line of the wrapped labels, so "MIDDLE EAST" read as "MIDDLE". The 80px
+       content clearance above already counted both heights. */
+    bottom: 18px;
     left: 0;
     right: 0;
     z-index: 200;

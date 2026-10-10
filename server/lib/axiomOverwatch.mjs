@@ -57,12 +57,16 @@ function axiomFeatureToGeoJson(feature) {
 }
 
 /** Fetch global vessel positions via REST — works on Cloudflare Pages (no WebSocket). */
-export async function fetchAxiomGlobalSnapshot({ timeoutMs = 45_000 } = {}) {
+export async function fetchAxiomGlobalSnapshot({ timeoutMs = 45_000, bbox = GLOBAL_BBOX } = {}) {
+    // Pass a theater box whenever possible. Measured 2026-10-10: the whole planet
+    // is 64,110 ships / 28 MB / 24 s; the Indo-Pacific viewport alone is 13,754
+    // ships / 6 MB / 5.5 s. Inside one Worker request the global pull is the
+    // difference between a map and a timeout.
     const params = new URLSearchParams({
-        west: String(GLOBAL_BBOX.west),
-        south: String(GLOBAL_BBOX.south),
-        east: String(GLOBAL_BBOX.east),
-        north: String(GLOBAL_BBOX.north),
+        west: String(bbox.west),
+        south: String(bbox.south),
+        east: String(bbox.east),
+        north: String(bbox.north),
     });
 
     try {

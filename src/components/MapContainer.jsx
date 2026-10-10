@@ -20,7 +20,9 @@ import { fetchAcledEvents } from '../services/acled.js';
 import { fetchFloodOps } from '../services/flood.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
-import { getRegion, REGION_MAX_BOUNDS, REGION_MIN_ZOOM, REGION_MAX_ZOOM } from '../data/regions.js';
+import { fetchWind } from '../services/wind';
+import { windArrows } from '../utils/windArrows';
+import { getRegion, REGION_MAX_BOUNDS, REGION_MIN_ZOOM, REGION_MAX_ZOOM, REGION_FIT_BOUNDS } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
 import { useTrafficAnimator, EMPTY_TRAFFIC } from '../hooks/useInterpolatedTraffic.js';
@@ -560,8 +562,17 @@ const MapContainer = ({
     const jaxaAerosolLayerActive = activeLayers.includes('jaxa-aerosol');
 
     useEffect(() => {
-        dispatchViewState({ type: 'target', viewTarget, minZoom, maxZoom });
-    }, [viewTarget, minZoom, maxZoom]);
+        // Fitted theaters: let MapLibre solve centre + zoom for the actual
+        // container, so the same box frames correctly on a phone and a wall.
+        // Falls back to the fixed view until the map has loaded.
+        const fitBox = REGION_FIT_BOUNDS[viewMode];
+        const map = mapReady ? mapRef.current?.getMap?.() : null;
+        const camera = fitBox && map ? map.cameraForBounds(fitBox, { padding: 16 }) : null;
+        const target = camera
+            ? { ...viewTarget, longitude: camera.center.lng, latitude: camera.center.lat, zoom: camera.zoom }
+            : viewTarget;
+        dispatchViewState({ type: 'target', viewTarget: target, minZoom, maxZoom });
+    }, [viewTarget, viewMode, mapReady, minZoom, maxZoom]);
 
     useEffect(() => {
         if (!weatherLayerActive) return undefined;
@@ -619,6 +630,14 @@ const MapContainer = ({
 
     const handleMapLoad = useCallback(() => {
         window.__GM_MAP__ = mapRef.current?.getMap?.();
+        // Compact attribution still opens expanded until the first drag. On a
+        // phone that open panel was 92px of a 338px map — sitting on Java and
+        // Nusa Tenggara, where the fires are. Start it closed; the (i) opens it.
+        const attrib = mapRef.current?.getMap?.()?.getContainer()?.querySelector('.maplibregl-ctrl-attrib');
+        if (attrib) {
+            attrib.removeAttribute('open');
+            attrib.classList.remove('maplibregl-compact-show');
+        }
         setMapReady(true);
         loadMapIcons();
     }, [loadMapIcons]);
@@ -687,6 +706,13 @@ const MapContainer = ({
         intervalMs: 10 * 60 * 1000,
         isUsable: hasFeatureData
     });
+    const windResource = useLiveResource(useCallback(() => fetchWind(viewMode), [viewMode]), {
+        cacheKey: `map:wind:${viewMode}`,
+        enabled: activeLayers.includes('wind'),
+        intervalMs: 15 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
+    const windArrowData = useMemo(() => windArrows(windResource.data), [windResource.data]);
     const infraResource = useLiveResource(useCallback(() => fetchInfrastructure(), []), {
         cacheKey: 'map:infrastructure',
         enabled: activeLayers.includes('infrastructure'),
@@ -791,12 +817,17 @@ const MapContainer = ({
         return Math.floor(hrs / 24) + 'd old';
     };
     const firmsMeta = firmsData?.meta;
-    const firmsLive = firmsMeta?.source === 'nasa-firms-live';
+    const firmsPublic = firmsMeta?.source === 'nasa-firms-public-24h';
+    const firmsLive = firmsMeta?.source === 'nasa-firms-live' || firmsPublic;
     const firmsCount = firmsData?.features?.length ?? 0;
     const firmsCoverage = firmsMeta?.coverage === 'partial'
         ? ' · partial ' + firmsMeta.requestsAnswered + '/' + firmsMeta.requestsAttempted + ' regions'
         : '';
-    const firmsSourceLabel = firmsLive
+    const firmsSourceLabel = firmsPublic
+        ? (firmsMeta?.capped
+            ? `${firmsCount.toLocaleString()} strongest of ${Number(firmsMeta.detectedInBox).toLocaleString()} fires · VIIRS · past 24 h`
+            : `${firmsCount.toLocaleString()} fires · VIIRS · past 24 h`)
+        : firmsLive
         ? firmsCount + ' thermal · VIIRS · ' + (ageLabel(firmsMeta?.fetchedAt) || 'age unknown') + firmsCoverage
         : firmsMeta?.source === 'no_firms_key' ? 'Thermal: no FIRMS key — nothing shown'
             : firmsResource.isLoading ? 'Loading thermal…'
@@ -1172,6 +1203,25 @@ const MapContainer = ({
                 )}
 
                 {/* FIRMS Fire/Strike Layer */}
+                {/* Surface wind, drawn downwind so each arrow shows where smoke goes.
+                    Ink follows the basemap: dark on the light paper, pale on dark
+                    and satellite — the same arrows in one fixed colour vanish on
+                    one of the two. */}
+                {activeLayers.includes('wind') && windArrowData.features.length > 0 && (
+                    <Source id="wind-arrows" type="geojson" data={windArrowData}>
+                        <Layer
+                            id="wind-arrows-line"
+                            type="line"
+                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+                            paint={{
+                                'line-color': mapStyle === 'light' ? '#2b2924' : '#e6edf3',
+                                'line-width': ['interpolate', ['linear'], ['get', 'speedKmh'], 0, 0.7, 15, 1.2, 35, 1.9],
+                                'line-opacity': 0.7,
+                            }}
+                        />
+                    </Source>
+                )}
+
                 {activeLayers.includes('firms') && firmsData?.features?.length > 0 && (
                     <Source id="firms-data" type="geojson" data={firmsData}>
                         <Layer
@@ -1197,7 +1247,12 @@ const MapContainer = ({
                         <Layer
                             id="firms-circles"
                             type="circle"
-                            minzoom={5}
+                            // Dots from the overview zoom, not just from 5. The heatmap weights
+                            // by fire radiative power, so the many low-intensity peat fires on
+                            // Borneo and Sumatra — the actual haze source — never built enough
+                            // density to show; only hot savanna fires lit up. One dot per
+                            // detection is the honest picture at every zoom.
+                            minzoom={2}
                             paint={{
                                 'circle-color': [
                                     'case',
@@ -1205,8 +1260,8 @@ const MapContainer = ({
                                     ['==', ['get', 'confidence'], 'h'], '#ff3b30',
                                     '#ff8c42'
                                 ],
-                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 8, 4, 12, 8],
-                                'circle-opacity': 0.8,
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 1.2, 5, 2, 8, 4, 12, 8],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.7, 5, 0.8],
                                 'circle-blur': 0.3,
                                 'circle-stroke-width': 0.5,
                                 'circle-stroke-color': 'rgba(255,255,255,0.2)'
@@ -1334,7 +1389,9 @@ const MapContainer = ({
                                 layout={{
                                     'icon-image': FLIGHT_ICON_IMAGE,
                                     // Small at theater zoom so clusters read as density, not a black smear.
-                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 0.55, 4.5, 0.72, 6, 1.0, 8, 1.2, 11, 1.15],
+                                    // Keeps shrinking below 3: Indo-Pacific now opens at ~2.3 on a phone
+                                    // to fit all of Indonesia, a zoom these icons were never sized for.
+                                    'icon-size': ['interpolate', ['linear'], ['zoom'], 2.3, 0.36, 3, 0.55, 4.5, 0.72, 6, 1.0, 8, 1.2, 11, 1.15],
                                     'icon-rotate': ['get', 'heading'],
                                     'icon-rotation-alignment': 'map',
                                     'icon-allow-overlap': true,
@@ -1343,7 +1400,7 @@ const MapContainer = ({
                                     'icon-pitch-alignment': 'map',
                                 }}
                                 paint={{
-                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.72, 5, 0.9, 8, 1]
+                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2.3, 0.55, 3, 0.72, 5, 0.9, 8, 1]
                                 }}
                             />
                         )}
@@ -1414,7 +1471,7 @@ const MapContainer = ({
                                     '#a9a59a'
                                 ],
                                 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 6, 0.9, 10, 1.5],
-                                'line-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.32, 6, 0.48, 10, 0.68]
+                                'line-opacity': ['interpolate', ['linear'], ['zoom'], 3.3, 0, 4, 0.32, 6, 0.48, 10, 0.68]
                             }}
                         />
                     </Source>
@@ -1458,7 +1515,7 @@ const MapContainer = ({
                                     '#a9a59a'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 4, 4, 6, 7, 6],
-                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.3, 5, 0.26, 7, 0.14],
+                                'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2.7, 0, 3.4, 0.3, 5, 0.26, 7, 0.14],
                                 'circle-blur': 0.7,
                             }}
                         />
@@ -1490,7 +1547,11 @@ const MapContainer = ({
                                     'text-allow-overlap': false,
                                 }}
                                 paint={{
-                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 3, 0.75, 5, 0.92, 8, 0.98],
+                                    // Ships fade in as the camera nears a strait. At the region
+                                    // overview (Indo-Pacific fits at ~2.3 on a phone) 1,200 hulls
+                                    // merge into black smudges; the density wash below carries the
+                                    // shipping lanes there instead.
+                                    'icon-opacity': ['interpolate', ['linear'], ['zoom'], 2.7, 0, 3.4, 0.75, 5, 0.92, 8, 0.98],
                                     'text-color': '#191712',
                                     'text-halo-color': 'rgba(255,255,255,0.85)',
                                     'text-halo-width': 1,
@@ -1837,6 +1898,16 @@ const MapContainer = ({
                     <div className="map-legend-item">
                         <span className="map-legend-line" style={{ background: firmsLive ? 'var(--red)' : '#d2cfc5' }} />
                         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{firmsSourceLabel}</span>
+                    </div>
+                )}
+                {activeLayers.includes('wind') && (
+                    <div className="map-legend-item">
+                        <span className="map-legend-line" style={{ background: mapStyle === 'light' ? '#2b2924' : '#e6edf3' }} />
+                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                            {windResource.data?.meta?.observedAt
+                                ? `Surface wind · arrows point downwind · ${ageLabel(windResource.data.meta.observedAt) || 'age unknown'}`
+                                : windResource.isLoading ? 'Loading wind…' : 'Wind: no data'}
+                        </span>
                     </div>
                 )}
                 {activeLayers.includes('conflicts') && (

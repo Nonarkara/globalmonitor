@@ -27,12 +27,14 @@ const sampleForClient = (features, max = MAX_CLIENT_VESSELS) => {
 const STATIC_SNAPSHOT_PATH = '/data/ais/ais-snapshot.json';
 const AIS_CACHE_TTL_MS = 15 * 60 * 1000;
 const AIS_STALE_HOLD_MS = 30 * 60 * 1000;
-/** CF Pages Workers open AIS WebSocket but receive zero frames — static snapshot only. */
-const IS_CF_WORKER = typeof navigator === 'undefined' && typeof globalThis.WebSocket !== 'undefined';
+/** CF Pages Workers open AIS WebSocket but receive zero frames — static snapshot only.
+ *  Workers do define `navigator` (userAgent 'Cloudflare-Workers'), so the older
+ *  `typeof navigator === 'undefined'` test never matched and the socket ran anyway. */
+const IS_CF_WORKER = globalThis.navigator?.userAgent === 'Cloudflare-Workers';
 
 const THEATER_BBOXES = {
     thailand: [95, 0.5, 108, 22],
-    indopacific: [90, -10, 135, 25],
+    indopacific: [90, -12, 142, 25], // matches server/lib/theaters.mjs
     eastasia: [100, 18, 148, 47],
     southasia: [60, 5, 92, 37],
     middleeast: [24, 10, 65, 42],
@@ -151,6 +153,31 @@ async function getGlobalAisFeatures(apiKey, origin, next) {
         error = staticResult.error;
     }
 
+    // Axiom before the live socket. aisstream's free feed follows terrestrial
+    // receiver density, not the map: on 2026-10-10 it filled this cache with 320
+    // ships spanning lon -88..33 — zero east of 90E — so every Asian theater
+    // filtered down to an empty map while the response said "live". Axiom is a
+    // keyless global REST pull (60k ships, ~19k in Asia when measured), so it goes
+    // first. No 8s cap: the full pull measured ~31s, and an 8s abort meant Axiom
+    // was effectively never consulted. Awaiting I/O does not count against a
+    // Pages Function's CPU budget.
+    if (features.length === 0) {
+        const axiomResult = await fetchAxiomGlobalSnapshot();
+        if (axiomResult.features?.length > 0) {
+            features = axiomResult.features;
+            aisSource = 'axiom-overwatch';
+            staticMeta = {
+                collectedAt: axiomResult.meta?.updated_at ?? new Date().toISOString(),
+                vesselCount: axiomResult.features.length,
+                source: 'axiom-overwatch.io',
+                truncated: axiomResult.truncated ?? false,
+            };
+            error = null;
+        } else if (!error) {
+            error = axiomResult.error || 'empty_ais_snapshot';
+        }
+    }
+
     if (features.length === 0 && !IS_CF_WORKER && apiKey) {
         const aisResult = await fetchAisSnapshotWithRetry(apiKey, {
             boundingBoxes: AIS_BOXES_BY_THEATER.global,
@@ -168,23 +195,6 @@ async function getGlobalAisFeatures(apiKey, origin, next) {
         }
     } else if (features.length === 0 && IS_CF_WORKER && !error) {
         error = 'empty_ais_snapshot';
-    }
-
-    if (features.length === 0) {
-        const axiomResult = await fetchAxiomGlobalSnapshot({ timeoutMs: 8000 });
-        if (axiomResult.features?.length > 0) {
-            features = axiomResult.features;
-            aisSource = 'axiom-overwatch';
-            staticMeta = {
-                collectedAt: axiomResult.meta?.updated_at ?? new Date().toISOString(),
-                vesselCount: axiomResult.features.length,
-                source: 'axiom-overwatch.io',
-                truncated: axiomResult.truncated ?? false,
-            };
-            error = null;
-        } else if (!error) {
-            error = axiomResult.error || 'empty_ais_snapshot';
-        }
     }
 
     // An old deployed file is a last resort, never ahead of a fresh REST fetch.
@@ -229,6 +239,33 @@ async function getGlobalAisFeatures(apiKey, origin, next) {
     };
 }
 
+const AXIOM_THEATER_TTL_MS = 5 * 60 * 1000; // Axiom's own cache_ttl is 300 s
+
+/** One Axiom viewport pull per regional theater, cached. null = fall through. */
+async function getTheaterAxiomFeatures(theater) {
+    const box = THEATER_BBOXES[theater];
+    if (!box || theater === 'global') return null;
+    const cache = getSharedCache();
+    const key = `vessels:axiom:${theater}`;
+    const hit = cache.get(key);
+    if (hit && hit.expiresAt > Date.now()) return { ...hit.value, cache: 'hit' };
+
+    const [west, south, east, north] = box;
+    const result = await fetchAxiomGlobalSnapshot({ timeoutMs: 20_000, bbox: { west, south, east, north } });
+    if (!result.features?.length) return null;
+    const value = {
+        features: result.features,
+        meta: {
+            collectedAt: result.meta?.updated_at ?? new Date().toISOString(),
+            vesselCount: result.features.length,
+            source: 'axiom-overwatch.io',
+            truncated: result.truncated ?? false,
+        },
+    };
+    cache.set(key, { value, expiresAt: Date.now() + AXIOM_THEATER_TTL_MS });
+    return { ...value, cache: 'miss' };
+}
+
 /** Worker-safe vessel feed — AIS one-shot snapshot + VesselFinder fleet REST. */
 export async function fetchVesselsPayload(theater = 'global', { origin, next } = {}) {
     const vfConfig = getVesselFinderConfig();
@@ -244,7 +281,15 @@ export async function fetchVesselsPayload(theater = 'global', { origin, next } =
     let aisAttempt = null;
     let aisSource = null;
     let staticMeta = null;
-    {
+    // Regional theaters ask Axiom for their own box first (see axiomOverwatch.mjs
+    // for the measurements). Only if that fails does the global path run.
+    const theaterAxiom = await getTheaterAxiomFeatures(theater);
+    if (theaterAxiom) {
+        aisFeatures = theaterAxiom.features;
+        aisSource = 'axiom-overwatch';
+        aisCache = theaterAxiom.cache;
+        staticMeta = theaterAxiom.meta;
+    } else {
         try {
             const aisResult = await getGlobalAisFeatures(aisKey, origin, next);
             aisFeatures = aisResult.features;

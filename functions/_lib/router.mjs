@@ -21,6 +21,7 @@ import { fetchFlightsPayload } from '../../server/lib/flights.mjs';
 import { computeFrontStatus } from '../../server/lib/frontStatus.mjs';
 import { fetchNgaWarnings } from '../../server/lib/ngaWarnings.mjs';
 import { fetchUsgsQuakes } from '../../server/lib/usgsQuakes.mjs';
+import { fetchWindField } from '../../server/lib/windField.mjs';
 import { fetchAcledEvents } from '../../server/lib/acled.mjs';
 import { fetchOilPriceTimeline } from '../../server/lib/eia.mjs';
 import { searchStacScenes } from '../../server/lib/stacCatalog.mjs';
@@ -275,6 +276,23 @@ export async function handleApiRequest(request, env, next) {
                     { status: 'error', updatedAt: new Date().toISOString(), cache: 'miss' }
                 );
             }
+        }
+
+        if (url.pathname === '/api/wind') {
+            const theater = url.searchParams.get('theater') || 'indopacific';
+            // An hour: a regional 10 m wind field barely moves in that time, the
+            // legend states the observation age, and Open-Meteo bills per grid point.
+            const result = await useCached(
+                `wind:${theater}`,
+                60 * 60 * 1000,
+                () => fetchWindField(theater),
+                (p) => Array.isArray(p?.features) && p.features.length > 0
+            );
+            recordHealth('wind', Boolean(result.payload?.features?.length), null);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+            });
         }
 
         if (url.pathname === '/api/quakes') {

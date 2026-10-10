@@ -73,14 +73,17 @@ export const THEATERS = {
     indopacific: {
         id: 'indopacific',
         label: 'Indo-Pacific',
-        bbox: [90, -10, 135, 25],
-        bboxCsv: '90,-10,135,25',
-        bounds: { lamin: -10, lomin: 90, lamax: 25, lomax: 135 },
+        // East edge 142 and south edge -12, not 135 / -10: the old box stopped
+        // west of Papua and north of Timor, so a third of Indonesia — exactly the
+        // peat and forest country the haze comes from — fell outside every layer.
+        bbox: [90, -12, 142, 25],
+        bboxCsv: '90,-12,142,25',
+        bounds: { lamin: -12, lomin: 90, lamax: 25, lomax: 142 },
         // Old airlabs value was '-10,95,30,135' — lomin 95 cut Myanmar's
         // western border and Bangladesh; aligned to canonical bbox.
-        airlabsBbox: '-10,90,25,135',
-        usgsParams: { minlatitude: -10, maxlatitude: 25, minlongitude: 90, maxlongitude: 135 },
-        center: { lat: 5, lon: 110 },
+        airlabsBbox: '-12,90,25,142',
+        usgsParams: { minlatitude: -12, maxlatitude: 25, minlongitude: 90, maxlongitude: 142 },
+        center: { lat: 5, lon: 116 },
         queryPoints: [
             { lat: 14.0, lon: 100.0 },  // Bangkok / Gulf of Thailand
             { lat: 5.0, lon: 110.0 },   // South China Sea central

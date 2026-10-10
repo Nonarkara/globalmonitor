@@ -82,6 +82,67 @@ const emptyPayload = (theater, source, note) => ({
     }
 });
 
+/**
+ * Keyless path. NASA publishes rolling 24-hour VIIRS detection files per region,
+ * no MAP_KEY required — the same detections the keyed area API returns, in the
+ * same column order, just a fixed regional cut instead of an arbitrary box.
+ * Measured 2026-10-10: NOAA-20 alone carried 16,186 detections inside the
+ * Indo-Pacific box (2,849 on Borneo, 1,037 on Sumatra) while this layer, keyless,
+ * was drawing nothing at all.
+ *
+ * Only the Southeast Asia file is wired. The Global file is 8.7MB per satellite —
+ * too much to parse inside one request — so the Gulf and world views keep the
+ * honest empty state until a key exists.
+ */
+const PUBLIC_REGION_FILE = {
+    indopacific: 'SouthEast_Asia',
+    thailand: 'SouthEast_Asia',
+};
+const PUBLIC_SENSORS = [
+    ['noaa-20-viirs-c2', 'J1_VIIRS_C2'],
+    ['suomi-npp-viirs-c2', 'SUOMI_VIIRS_C2'],
+];
+// A phone cannot usefully draw tens of thousands of points, and the strongest
+// fires are the ones that make haze. Keep the hottest, say so in meta.
+const PUBLIC_MAX_FEATURES = 6000;
+
+const fetchPublicRegionFires = async (theater, region) => {
+    const [minLon, minLat, maxLon, maxLat] = getTheater(theater).bbox;
+    const texts = await Promise.all(PUBLIC_SENSORS.map(([dir, prefix]) =>
+        fetchFireCsv(`https://firms.modaps.eosdis.nasa.gov/data/active_fire/${dir}/csv/${prefix}_${region}_24h.csv`)
+            .catch(() => null)
+    ));
+    const answered = texts.filter((t) => t !== null).length;
+    if (answered === 0) throw new Error('FIRMS public files: no satellite answered');
+
+    const parsed = [];
+    for (const text of texts) if (text) parseFireCsv(text, parsed);
+    const inBox = parsed.filter(({ geometry: { coordinates: [lon, lat] } }) =>
+        lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat);
+    inBox.sort((a, b) => b.properties.frp - a.properties.frp);
+    const features = inBox.slice(0, PUBLIC_MAX_FEATURES);
+
+    return {
+        type: 'FeatureCollection',
+        features,
+        meta: {
+            theater,
+            count: features.length,
+            detectedInBox: inBox.length,
+            capped: inBox.length > features.length,
+            requestsAttempted: PUBLIC_SENSORS.length,
+            requestsAnswered: answered,
+            windowDays: 1,
+            fetchedAt: new Date().toISOString(),
+            source: 'nasa-firms-public-24h',
+            note: inBox.length > features.length
+                ? `Strongest ${features.length.toLocaleString()} of ${inBox.length.toLocaleString()} detections by fire radiative power — NASA FIRMS public 24h file.`
+                : 'NASA FIRMS public 24h file.',
+            coverage: 'theater',
+        }
+    };
+};
+
 export const fetchFirmsPayload = async (theater = 'middleeast') => {
     // resolveTheater() maps an unknown id to the default theater. That is the
     // right behaviour for a typo in a URL, but the wrong one for a layer: an
@@ -93,6 +154,8 @@ export const fetchFirmsPayload = async (theater = 'middleeast') => {
     const resolved = resolveTheater(theater);
 
     if (!FIRMS_MAP_KEY) {
+        const publicFile = PUBLIC_REGION_FILE[resolved];
+        if (publicFile) return fetchPublicRegionFires(resolved, publicFile);
         return emptyPayload(resolved, 'no_firms_key',
             'FIRMS_MAP_KEY is not set. Live NASA VIIRS detections require a key; no sample data is substituted.');
     }

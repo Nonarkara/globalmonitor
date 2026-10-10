@@ -28,11 +28,19 @@ import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
 
 const DASHBOARD_VERSION = 'v8.3';
+// Entering Indo-Pacific adds the haze picture: Himawari-9 aerosol, VIIRS fire,
+// and the surface wind that carries smoke from Sumatra and Borneo across the
+// region. Added on top of whatever is on, never replacing it, and only for this
+// theater — everywhere else stays traffic-first, as it has been since Sept 3
+// (cb04a70 dropped EO defaults because they buried ships and planes).
+const THEATER_ENTRY_LAYERS = { indopacific: ['firms', 'jaxa-aerosol', 'wind'] };
+const withTheaterLayers = (layers, theater) =>
+  [...new Set([...layers, ...(THEATER_ENTRY_LAYERS[theater] || [])])];
 
 function App() {
   // Map is the hero: operational traffic + conflict/heat only at first paint.
   // EO overlays (aerosol, nightlights, …) stay opt-in — they bury ships/planes when default-on.
-  const [activeLayers, setActiveLayers] = useState(['conflicts', 'firms', 'flights', 'vessels']);
+  const [activeLayers, setActiveLayers] = useState(() => withTheaterLayers(['conflicts', 'firms', 'flights', 'vessels'], DEFAULT_THEATER));
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Region nav: 'middleeast' | 'indopacific' | 'thailand' | 'global'.
@@ -245,6 +253,7 @@ function App() {
                     tabIndex={isActive ? 0 : -1}
                     onClick={() => {
                       setViewMode(r.id);
+                      setActiveLayers((prev) => withTheaterLayers(prev, r.id));
                       setViewTarget({ ...r.viewState, transitionDuration: 1200 });
                       setActiveSources(getDefaultSourceIdsForRegion(r.id));
                       setSelectedCountryCode(null);
@@ -754,6 +763,7 @@ function App() {
             aria-pressed={viewMode === r.id}
             onClick={() => {
               setViewMode(r.id);
+                      setActiveLayers((prev) => withTheaterLayers(prev, r.id));
               setViewTarget({ ...r.viewState, transitionDuration: 1200 });
               setActiveSources(getDefaultSourceIdsForRegion(r.id));
               setSelectedCountryCode(null);
