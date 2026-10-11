@@ -1,16 +1,60 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { fetchLiveNews } from '../services/liveNews';
 import { RefreshCw } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
 
-const LiveIntelligenceFeed = ({ activeSourceIds }) => {
+const THEATER_WIRE = {
+    middleeast: 'Gulf',
+    indopacific: 'SE Asia',
+    eastasia: 'E Asia',
+    southasia: 'S Asia',
+    thailand: 'Thailand',
+    global: 'World',
+};
+
+const TAG_TONE = {
+    strikes: 'hot',
+    nuclear: 'hot',
+    airspace: 'warm',
+    naval: 'warm',
+    proxy: 'warm',
+};
+
+const ELEVATED_SCORE = 36;
+
+const formatAge = (value) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    const mins = Math.round((Date.now() - date.getTime()) / 60000);
+    if (!Number.isFinite(mins) || mins < 0) return null;
+    if (mins < 1) return 'now';
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.round(mins / 60);
+    if (hours < 48) return `${hours}h`;
+    return `${Math.round(hours / 24)}d`;
+};
+
+const resolveStatus = ({ news, isLoading, isStale, isSample, status, error }) => {
+    if (isSample) return 'DEMO';
+    if (!news.length && (error || (!isLoading && !isStale))) return 'NO SIGNAL';
+    if (isStale || error) return 'STALE';
+    if (status === 'cached') return 'CACHED';
+    if (isLoading && !news.length) return 'SYNC';
+    return 'LIVE';
+};
+
+const LiveIntelligenceFeed = ({ activeSourceIds, viewMode = 'middleeast' }) => {
     const cacheKey = `ticker:${Array.isArray(activeSourceIds) && activeSourceIds.length ? activeSourceIds.join(',') : 'default'}`;
     const fetcher = useCallback(() => fetchLiveNews(activeSourceIds), [activeSourceIds]);
     const {
         data: rawNews,
+        lastUpdated,
         isRefreshing,
         isLoading,
         isStale,
+        isSample,
+        status,
         error,
         refresh
     } = useLiveResource(fetcher, {
@@ -19,56 +63,121 @@ const LiveIntelligenceFeed = ({ activeSourceIds }) => {
         isUsable: (items) => Array.isArray(items) && items.length > 0
     });
 
-    const news = Array.isArray(rawNews) ? rawNews : [];
+    const news = useMemo(
+        () => (Array.isArray(rawNews) ? rawNews : []),
+        [rawNews]
+    );
 
-    if (!isLoading && news.length === 0 && !isStale && !error) {
-        return (
-            <div className="news-ticker-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>
-                    Status: Live headline feeds are temporarily unavailable. Last-good data will reappear when the sources respond.
-                </span>
-            </div>
-        );
-    }
+    const statusLabel = resolveStatus({ news, isLoading, isStale, isSample, status, error });
+    const theater = THEATER_WIRE[viewMode] || THEATER_WIRE.global;
+    const feedAge = formatAge(lastUpdated);
+    const durationSec = Math.max(80, news.length * 6);
+    const lead = news[0];
+
+    const statusMessage = !news.length
+        ? (error
+            ? 'Headline wire is offline. Last-good copy will return when a source answers.'
+            : (isLoading ? 'Connecting to the headline wire…' : 'No headlines on this pull. The wire retries on its own.'))
+        : null;
 
     return (
-        <div className="news-ticker-wrapper">
-            <div className="news-badge" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ color: 'var(--bg-dark)', fontWeight: 'bold', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: isStale ? 'var(--accent-amber)' : 'var(--accent-blue)' }}>
-                    {isStale ? 'STALE' : 'LIVE INTEL'}
+        <aside
+            className="news-ticker-wrapper"
+            data-status={statusLabel.toLowerCase().replace(' ', '-')}
+            aria-label={`Headline wire · ${theater}`}
+        >
+            <div className="news-ticker-rail">
+                <span className="news-ticker-kicker">WIRE</span>
+                <span className="news-ticker-status">{statusLabel}</span>
+                <span
+                    className="news-ticker-meta"
+                    title={news.length
+                        ? `${news.length} headline${news.length === 1 ? '' : 's'} · ${theater}${feedAge ? ` · ${feedAge === 'now' ? 'just pulled' : `pulled ${feedAge} ago`}` : ''}`
+                        : `No headlines · ${theater}`}
+                >
+                    {news.length ? `${news.length}` : '—'}
+                    <span className="news-item-sep" aria-hidden="true">·</span>
+                    {theater}
+                    {feedAge && (
+                        <>
+                            <span className="news-item-sep" aria-hidden="true">·</span>
+                            {feedAge}
+                        </>
+                    )}
                 </span>
                 <button
+                    type="button"
+                    className="news-ticker-refresh"
                     onClick={refresh}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}
-                    title="Force Refresh Data"
+                    aria-label="Refresh headline wire"
+                    title="Refresh headline wire"
                 >
-                    <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
+                    <RefreshCw size={12} className={isRefreshing ? 'spin-anim' : ''} aria-hidden="true" />
                 </button>
             </div>
+
+            {lead && (
+                <p className="sr-only" aria-live="polite">
+                    Latest · {lead.source} · {lead.title}
+                </p>
+            )}
+
             <div className="news-marquee-container">
-                <div className={`news-marquee ${news.length === 0 ? 'news-marquee-static' : ''}`}>
-                    {/* Duplicate for infinite scroll illusion */}
-                    {(news.length > 0 ? [...news, ...news] : [{
-                        title: error ? 'Live headline feeds are temporarily unavailable. Last-good data will reappear when the sources respond.' : 'Connecting to live headline feeds…',
-                        link: '',
-                        source: error ? 'Feed Status' : 'Sync',
-                        tags: [isStale ? 'stale' : 'loading']
-                    }]).map((item, index) => (
-                        <a
-                            key={index}
-                            href={item.link || undefined}
-                            target={item.link ? '_blank' : undefined}
-                            rel={item.link ? 'noopener noreferrer' : undefined}
-                            className="news-item"
-                        >
-                            <span className="source">{item.source}:</span> {item.title}
-                            {item.tags?.[0] && <span style={{ marginLeft: '8px', color: 'var(--accent-blue)', fontSize: '0.75rem' }}>#{item.tags[0]}</span>}
-                        </a>
-                    ))}
-                </div>
+                {statusMessage ? (
+                    <div className="news-marquee news-marquee-static">
+                        <span className="news-ticker-empty">{statusMessage}</span>
+                    </div>
+                ) : (
+                    <div
+                        className="news-marquee"
+                        style={{ '--ticker-duration': `${durationSec}s` }}
+                    >
+                        <TickerPass items={news} />
+                        <TickerPass items={news} copy />
+                    </div>
+                )}
             </div>
-        </div>
+        </aside>
     );
 };
+
+const TickerPass = ({ items, copy = false }) => (
+    <div className={copy ? 'news-marquee-pass news-marquee-copy' : 'news-marquee-pass'} aria-hidden={copy || undefined}>
+        {items.map((item, index) => {
+            const tag = item.tags?.[0] || null;
+            const tone = TAG_TONE[tag] || null;
+            const elevated = (typeof item.score === 'number' && item.score >= ELEVATED_SCORE) || tone === 'hot';
+            const age = formatAge(item.pubDate);
+
+            return (
+                <a
+                    key={`${copy ? 'copy' : 'live'}:${item.link || item.title}:${index}`}
+                    href={item.link || undefined}
+                    target={item.link ? '_blank' : undefined}
+                    rel={item.link ? 'noopener noreferrer' : undefined}
+                    className="news-item"
+                    data-elevated={elevated || undefined}
+                    tabIndex={copy ? -1 : undefined}
+                >
+                    <span className="news-item-source">{item.source || 'Wire'}</span>
+                    {age && (
+                        <>
+                            <span className="news-item-sep" aria-hidden="true">·</span>
+                            <span className="news-item-age">{age}</span>
+                        </>
+                    )}
+                    {tag && (
+                        <>
+                            <span className="news-item-sep" aria-hidden="true">·</span>
+                            <span className={`news-item-tag${tone ? ` news-item-tag--${tone}` : ''}`}>{tag}</span>
+                        </>
+                    )}
+                    <span className="news-item-sep" aria-hidden="true">·</span>
+                    <span className="news-item-title">{item.title}</span>
+                </a>
+            );
+        })}
+    </div>
+);
 
 export default LiveIntelligenceFeed;

@@ -336,36 +336,31 @@
   font-size: 9px;
 }
 
-/* ── News ticker ── */
+/* ── Headline wire ── */
 .news-ticker-wrapper {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 0;
 }
 
-.news-badge {
+.news-ticker-kicker {
   color: var(--ink);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.news-marquee-container {
-  mask-image: none;
-  -webkit-mask-image: none;
 }
 
 .news-item {
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.news-item:hover {
+.news-item:hover,
+.news-item:focus-visible {
   color: var(--ink);
 }
 
-.news-item .source {
+.news-item-source {
   color: var(--ink);
   font-weight: 600;
 }

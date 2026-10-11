@@ -50,7 +50,7 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
 
                 {/* Filter hint */}
                 <div style={{ padding: '12px 24px 0', color: 'var(--ink-2)', fontSize: '0.8rem' }}>
-                    Choose which news sources feed the live ticker and briefing panels.
+                    Choose which news sources feed the headline wire and briefing panels.
                 </div>
 
                 {/* Sub-Filters & Search */}
