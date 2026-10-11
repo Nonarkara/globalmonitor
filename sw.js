@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8-20260620-shellfix-2';
+const CACHE_NAME = 'gpd-v8.4-20260626-mapfirst-hotfix';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -44,9 +44,9 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip non-GET and all cross-origin requests. The static Cloudflare
-    // frontend talks to the Fly API cross-origin; the browser/CORS layer should
-    // own those requests, not this app-shell service worker.
+    // Skip non-GET and all cross-origin requests. API routes are same-origin
+    // on globalmonitor.pages.dev via Pages Functions; only third-party fetches
+    // should bypass this service worker.
     if (request.method !== 'GET') return;
     if (url.origin !== self.location.origin) return;
 
@@ -71,7 +71,17 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Static assets: cache-first with network fallback
+    // Hashed build assets (/assets/*): network-first so deploys never trap users on stale JS/CSS.
+    if (url.pathname.startsWith('/assets/')) {
+        event.respondWith(
+            fetch(request)
+                .then(response => cacheResponse(request, response))
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
+
+    // Other static assets: cache-first with network fallback
     event.respondWith(
         caches.match(request)
             .then(cached => cached || fetch(request).then(response => cacheResponse(request, response)))
