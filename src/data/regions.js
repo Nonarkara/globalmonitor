@@ -402,28 +402,28 @@ export const TV_CHANNELS_THAILAND = [
 export const REGIONS = {
     indopacific: {
         id: 'indopacific',
-        label: 'Southeast Asia',
+        label: 'Southeast Asia / Straits',
         viewState: REGION_VIEW_STATES.indopacific,
         dots: ASEAN_DOTS_GEOJSON,
         channels: TV_CHANNELS_INDOPACIFIC
     },
     eastasia: {
         id: 'eastasia',
-        label: 'East Asia',
+        label: 'East Asia / Taiwan',
         viewState: REGION_VIEW_STATES.eastasia,
         dots: EAST_ASIA_DOTS_GEOJSON,
         channels: TV_CHANNELS_EASTASIA
     },
     southasia: {
         id: 'southasia',
-        label: 'South Asia',
+        label: 'South Asia / Himalayas',
         viewState: REGION_VIEW_STATES.southasia,
         dots: SOUTH_ASIA_DOTS_GEOJSON,
         channels: TV_CHANNELS_SOUTHASIA
     },
     thailand: {
         id: 'thailand',
-        label: 'Thailand',
+        label: 'Thailand IOC',
         viewState: REGION_VIEW_STATES.thailand,
         dots: THAILAND_DOTS_GEOJSON,
         channels: TV_CHANNELS_THAILAND

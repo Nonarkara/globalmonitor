@@ -265,10 +265,10 @@ function App() {
           <div className="header-status">
             <div className="header-title-lockup">
               <span className="header-title">
-                Asia Political Dashboard
+                AsiaWatch // Pan-Asian Sentinel
               </span>
               <span className="header-subtitle">
-                {formatDayCount()}
+                Maritime Chokepoints, ADIZ & Strategic Hydropolitics · {DASHBOARD_VERSION}
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
