@@ -7,7 +7,9 @@
  * in the cache so the user never sees an empty panel.
  */
 import { upsertNewsItems, fetchNewsItems, recordIngestionRun, isSupabaseEnabled } from './supabase.mjs';
-import { decodeEntities } from './intelligence.mjs';
+import { decodeEntities, stripSourceSuffix } from './intelligence.mjs';
+
+
 
 const DEFAULT_LIMIT = 8;
 
@@ -49,9 +51,94 @@ const THAI_QUERIES = {
     UDN: { tech: 'Udon Thani tech OR rail OR Laos border trade', urgent: 'Udon Thani breaking OR flood' }
 };
 
-const queriesFor = (region, code) => {
+// Gulf / Middle East — the active war theater.  Curated to surface
+// airport-attack, missile, energy-supply, and Iran-axis headlines for the
+// Riyadh / Sanaa / Tel Aviv frontline.  SA / YE lead the list because those
+// are the codes the user clicks most during a Houthi vs. Saudi flare-up.
+const MIDDLE_EAST_QUERIES = {
+    SA: { tech: 'Saudi Arabia technology OR NEOM OR fintech OR AI OR Saudi Aramco digital', urgent: 'Saudi Arabia Riyadh airport OR Houthi missile OR Saudi defense OR Aramco' },
+    YE: { tech: 'Yemen technology OR internet OR Houthi cyber OR Sanaa digital', urgent: 'Yemen Houthi OR Saudi coalition OR Sanaa OR Bab al-Mandab' },
+    IR: { tech: 'Iran technology OR telecom OR fintech OR satellite', urgent: 'Iran breaking news OR nuclear OR IRGC OR proxy OR sanctions' },
+    IL: { tech: 'Israel technology OR startup OR cybersecurity OR AI', urgent: 'Israel breaking news OR Gaza OR Hezbollah OR Iran strike OR missile' },
+    EG: { tech: 'Egypt technology OR startup OR fintech OR Suez Canal digital', urgent: 'Egypt breaking news OR Sinai OR Suez Canal OR attack' },
+    JO: { tech: 'Jordan technology OR startup OR telecom OR digital', urgent: 'Jordan breaking news OR border OR missile OR attack' },
+    IQ: { tech: 'Iraq technology OR telecom OR startup OR digital', urgent: 'Iraq breaking news OR militia OR rocket OR Iran-backed' },
+    SY: { tech: 'Syria technology OR telecom OR internet', urgent: 'Syria breaking news OR Aleppo OR Idlib OR rebel' },
+    LB: { tech: 'Lebanon technology OR startup OR fintech', urgent: 'Lebanon breaking news OR Hezbollah OR Beirut OR Israel strike' },
+    OM: { tech: 'Oman technology OR startup OR digital OR port', urgent: 'Oman breaking news OR drone OR missile OR Gulf' },
+    AE: { tech: 'United Arab Emirates technology OR startup OR AI OR fintech', urgent: 'UAE breaking news OR Houthi OR missile OR defense' },
+    BH: { tech: 'Bahrain technology OR fintech OR digital', urgent: 'Bahrain breaking news OR Houthi OR protest' },
+    KW: { tech: 'Kuwait technology OR startup OR digital', urgent: 'Kuwait breaking news OR missile OR attack' },
+    QA: { tech: 'Qatar technology OR startup OR AI OR Al Jazeera', urgent: 'Qatar breaking news OR Hamas OR Doha OR attack' },
+    PS: { tech: 'Palestine technology OR telecom OR internet', urgent: 'Palestine breaking news OR Gaza OR West Bank' }
+};
+
+// Country-name lookup for codes not in any curated table.  Lets the regional
+// news endpoint accept any 2-letter ISO code and still return a useful feed
+// during fast-breaking events (e.g. someone wires a new country to the map
+// before the curated table is updated).  Query string is the country name plus
+// a conflict-news suffix so the feed returns real headlines, not a
+// tourism-board puff piece.
+const COUNTRY_NAMES = {
+    AF: 'Afghanistan', AL: 'Albania', DZ: 'Algeria', AD: 'Andorra', AO: 'Angola',
+    AG: 'Antigua and Barbuda', AR: 'Argentina', AM: 'Armenia', AU: 'Australia',
+    AT: 'Austria', AZ: 'Azerbaijan', BS: 'Bahamas', BD: 'Bangladesh', BB: 'Barbados',
+    BY: 'Belarus', BE: 'Belgium', BZ: 'Belize', BJ: 'Benin', BT: 'Bhutan',
+    BO: 'Bolivia', BA: 'Bosnia and Herzegovina', BW: 'Botswana', BR: 'Brazil',
+    BN: 'Brunei', BG: 'Bulgaria', BF: 'Burkina Faso', BI: 'Burundi', KH: 'Cambodia',
+    CM: 'Cameroon', CA: 'Canada', CV: 'Cape Verde', CF: 'Central African Republic',
+    TD: 'Chad', CL: 'Chile', CN: 'China', CO: 'Colombia', KM: 'Comoros',
+    CG: 'Congo', CD: 'DR Congo', CR: 'Costa Rica', CI: 'Ivory Coast', HR: 'Croatia',
+    CU: 'Cuba', CY: 'Cyprus', CZ: 'Czechia', DK: 'Denmark', DJ: 'Djibouti',
+    DM: 'Dominica', DO: 'Dominican Republic', EC: 'Ecuador', EG: 'Egypt', SV: 'El Salvador',
+    GQ: 'Equatorial Guinea', ER: 'Eritrea', EE: 'Estonia', ET: 'Ethiopia', FJ: 'Fiji',
+    FI: 'Finland', FR: 'France', GA: 'Gabon', GM: 'Gambia', GE: 'Georgia',
+    DE: 'Germany', GH: 'Ghana', GR: 'Greece', GD: 'Grenada', GT: 'Guatemala',
+    GN: 'Guinea', GW: 'Guinea-Bissau', GY: 'Guyana', HT: 'Haiti', HN: 'Honduras',
+    HU: 'Hungary', IS: 'Iceland', IN: 'India', ID: 'Indonesia', IR: 'Iran',
+    IQ: 'Iraq', IE: 'Ireland', IL: 'Israel', IT: 'Italy', JM: 'Jamaica',
+    JP: 'Japan', JO: 'Jordan', KZ: 'Kazakhstan', KE: 'Kenya', KI: 'Kiribati',
+    KP: 'North Korea', KR: 'South Korea', KW: 'Kuwait', KG: 'Kyrgyzstan',
+    LA: 'Laos', LV: 'Latvia', LB: 'Lebanon', LS: 'Lesotho', LR: 'Liberia',
+    LY: 'Libya', LI: 'Liechtenstein', LT: 'Lithuania', LU: 'Luxembourg',
+    MK: 'North Macedonia', MG: 'Madagascar', MW: 'Malawi', MY: 'Malaysia',
+    MV: 'Maldives', ML: 'Mali', MT: 'Malta', MH: 'Marshall Islands', MR: 'Mauritania',
+    MU: 'Mauritius', MX: 'Mexico', FM: 'Micronesia', MD: 'Moldova', MC: 'Monaco',
+    MN: 'Mongolia', ME: 'Montenegro', MA: 'Morocco', MZ: 'Mozambique', MM: 'Myanmar',
+    NA: 'Namibia', NR: 'Nauru', NP: 'Nepal', NL: 'Netherlands', NZ: 'New Zealand',
+    NI: 'Nicaragua', NE: 'Niger', NG: 'Nigeria', NO: 'Norway', OM: 'Oman',
+    PK: 'Pakistan', PW: 'Palau', PS: 'Palestine', PA: 'Panama', PG: 'Papua New Guinea',
+    PY: 'Paraguay', PE: 'Peru', PH: 'Philippines', PL: 'Poland', PT: 'Portugal',
+    QA: 'Qatar', RO: 'Romania', RU: 'Russia', RW: 'Rwanda', KN: 'Saint Kitts and Nevis',
+    LC: 'Saint Lucia', VC: 'Saint Vincent', WS: 'Samoa', SM: 'San Marino',
+    ST: 'Sao Tome and Principe', SA: 'Saudi Arabia', SN: 'Senegal', RS: 'Serbia',
+    SC: 'Seychelles', SL: 'Sierra Leone', SG: 'Singapore', SK: 'Slovakia',
+    SI: 'Slovenia', SB: 'Solomon Islands', SO: 'Somalia', ZA: 'South Africa',
+    SS: 'South Sudan', ES: 'Spain', LK: 'Sri Lanka', SD: 'Sudan', SR: 'Suriname',
+    SZ: 'Eswatini', SE: 'Sweden', CH: 'Switzerland', SY: 'Syria', TW: 'Taiwan',
+    TJ: 'Tajikistan', TZ: 'Tanzania', TH: 'Thailand', TL: 'Timor-Leste', TG: 'Togo',
+    TO: 'Tonga', TT: 'Trinidad and Tobago', TN: 'Tunisia', TR: 'Turkey',
+    TM: 'Turkmenistan', TV: 'Tuvalu', UG: 'Uganda', UA: 'Ukraine',
+    AE: 'United Arab Emirates', GB: 'United Kingdom', US: 'United States',
+    UY: 'Uruguay', UZ: 'Uzbekistan', VU: 'Vanuatu', VA: 'Vatican', VE: 'Venezuela',
+    VN: 'Vietnam', YE: 'Yemen', ZM: 'Zambia', ZW: 'Zimbabwe'
+};
+
+export const queriesFor = (region, code) => {
     if (region === 'thailand') return THAI_QUERIES[code];
-    return ASEAN_QUERIES[code];
+    if (region === 'middleeast' || region === 'gulf' || region === 'mideast') {
+        return MIDDLE_EAST_QUERIES[code] || genericQueriesFor(code);
+    }
+    return ASEAN_QUERIES[code] || genericQueriesFor(code);
+};
+
+const genericQueriesFor = (code) => {
+    const name = COUNTRY_NAMES[code];
+    if (!name) return null;
+    return {
+        tech: `${name} technology OR startup OR digital economy OR AI OR semiconductor`,
+        urgent: `${name} breaking news OR attack OR conflict OR sanctions OR protest`
+    };
 };
 
 // Lightweight RSS parser using regex — avoids pulling in xml2js for one route.
@@ -109,7 +196,7 @@ const fetchGdeltArtList = async (query) => {
     return (data.articles || [])
         .slice(0, 6)
         .map((article) => ({
-            title: decodeEntities(article.title || ''),
+            title: stripSourceSuffix(decodeEntities(article.title || ''), article.source || ''),
             link: article.url,
             source: article.domain || 'GDELT',
             pubDate: parseGdeltSeen(article.seendate)
@@ -124,7 +211,7 @@ const fetchRssUrl = async (url, defaultSource) => {
         .filter((item) => item.title && item.title !== 'Google News')
         .map((item) => ({
             ...item,
-            title: decodeEntities(item.title),
+            title: stripSourceSuffix(decodeEntities(item.title), item.source || ''),
             source: decodeEntities(item.source),
             link: unwrapRedirectUrl(item.link)
         }));
@@ -139,7 +226,7 @@ const fetchBbcWorldFiltered = async (query) => {
     });
     if (!res.ok) throw new Error(`BBC RSS ${res.status}`);
     const items = parseRssItems(await res.text(), 25, 'BBC')
-        .map((item) => ({ ...item, title: decodeEntities(item.title), source: decodeEntities(item.source) }));
+        .map((item) => ({ ...item, title: stripSourceSuffix(decodeEntities(item.title), item.source || ''), source: decodeEntities(item.source) }));
     const tokens = String(query).split(/[^A-Za-z0-9]+/).filter((token) => token.length > 3);
     const hit = items.filter((item) => {
         const title = item.title.toLowerCase();

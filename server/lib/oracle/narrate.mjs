@@ -41,7 +41,7 @@ const THEATER_NAME = {
 /**
  * @returns { text:string, aiPowered:boolean, model?:string }
  */
-export const buildReport = async ({ theater, live, fc, applied, actors }, { allowLlm = true } = {}) => {
+export const buildReport = async ({ theater, live, fc, applied, actors }, { allowLlm = false } = {}) => {
     const deterministic = deterministicReport({ theater, live, fc, applied });
     if (!allowLlm || !isGroqEnabled()) return { text: deterministic, aiPowered: false };
 
@@ -80,6 +80,7 @@ export const buildReport = async ({ theater, live, fc, applied, actors }, { allo
     const llm = await groqChat([{ role: 'system', content: system }, { role: 'user', content: user }], {
         temperature: 0.4,
         maxTokens: 320,
+        allowExternalAi: allowLlm === true,
     });
 
     if (!llm) return { text: deterministic, aiPowered: false };

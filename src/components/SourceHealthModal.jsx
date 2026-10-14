@@ -1,19 +1,35 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Database, CheckCircle, AlertCircle, Clock, ExternalLink } from 'lucide-react';
 import dataSources from '../data/dataSources.json';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { fetchBackendJson } from '../services/backendClient';
+import { resolveSourceHealth } from '../services/sourceHealth';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
-
-const SourceHealthModal = ({ isOpen, onClose }) => {
+const SourceHealthModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
     const [healthData, setHealthData] = useState(null);
+    const dialogRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        const previous = document.activeElement;
+        const dialog = dialogRef.current;
+        dialog?.querySelector('button')?.focus();
+        const trap = event => {
+            if (event.key !== 'Tab') return;
+            const controls = [...dialog.querySelectorAll('button, a[href]')];
+            const first = controls[0], last = controls.at(-1);
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        };
+        dialog?.addEventListener('keydown', trap);
+        return () => { dialog?.removeEventListener('keydown', trap); previous?.focus?.(); };
+    }, [isOpen]);
 
     const fetchHealth = useCallback(() => {
-        fetch(`${API_BASE}/api/health`)
-            .then(r => r.json())
+        fetchBackendJson('/api/health', { theater })
             .then(setHealthData)
             .catch(() => setHealthData(null));
-    }, []);
+    }, [theater]);
 
     useEffect(() => {
         if (isOpen) fetchHealth();
@@ -23,21 +39,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    const getStatus = (sourceId) => {
-        if (!healthData) return { status: 'unknown', color: 'var(--ink-3)' };
-        // Try to match health data keys to source IDs
-        const health = healthData.loaderHealth;
-        if (!health) return { status: 'unknown', color: 'var(--ink-3)' };
-        const key = Object.keys(health).find(k => k.toLowerCase().includes(sourceId));
-        if (!key) return { status: 'no-data', color: 'var(--ink-3)' };
-        const entry = health[key];
-        // A loader that served demo/fallback content made no observation: it is
-        // not healthy and must never render green. cache.mjs records status
-        // 'demo' plus the payload source for exactly this case.
-        if (entry.status === 'demo') return { status: 'demo', color: 'var(--ink-2)', message: entry.source, lastCheck: entry.checkedAt };
-        if (entry.ok) return { status: 'healthy', color: 'var(--green)', lastCheck: entry.checkedAt };
-        return { status: 'error', color: 'var(--red)', message: entry.message, lastCheck: entry.checkedAt };
-    };
+    const getStatus = (sourceId) => resolveSourceHealth(sourceId, healthData, theater);
 
     const reliabilityColor = (score) => {
         if (score >= 9) return 'var(--green)';
@@ -51,7 +53,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(25,23,18,0.45)', backdropFilter: 'none'
         }} onClick={onClose}>
-            <div style={{
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="source-health-title" style={{
                 width: '720px', maxWidth: '95vw', maxHeight: '85vh',
                 background: 'var(--panel)',
                 backdropFilter: 'none',
@@ -66,7 +68,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Database size={16} style={{ color: 'var(--ink)' }} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
+                        <span id="source-health-title" style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
                             Data Provenance & Source Health
                         </span>
                     </div>
@@ -78,7 +80,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                             background: '#f2f0ea', border: '1px solid var(--line)',
                             borderRadius: 0, padding: '6px 12px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                            fontSize: '0.6rem', fontFamily: 'inherit', minHeight: '32px'
+                            fontSize: '0.6rem', fontFamily: 'inherit', minHeight: '44px', minWidth: '44px'
                         }}>
                             <X size={14} /> Close
                         </button>
@@ -87,10 +89,14 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
 
                 {/* Source list */}
                 <div style={{ overflowY: 'auto', padding: '12px 20px' }}>
+                    <p style={{ fontSize: '.65rem', color: 'var(--ink-2)', lineHeight: 1.5 }}>
+                        {theater} · Evidence from this edge cache only, not global provider uptime.
+                        {' '}Editorial scores describe source class; they are not measured accuracy or validation of today’s data.
+                    </p>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.5rem' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--line-2)' }}>
-                                {['Source', 'Type', 'Reliability', 'Update Freq', 'Cache TTL', 'Status', 'Methodology'].map(h => (
+                                {['Source', 'Type', 'Editorial score', 'Update Freq', 'Cache TTL', 'Cache evidence', 'Methodology'].map(h => (
                                     <th key={h} style={{
                                         padding: '6px 8px', textAlign: 'left',
                                         color: 'var(--ink-3)', fontWeight: 600,
@@ -145,7 +151,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 {health.status === 'healthy' ? (
                                                     <CheckCircle size={10} style={{ color: 'var(--green)' }} />
-                                                ) : health.status === 'demo' ? (
+                                                ) : health.status === 'sample' ? (
                                                     <AlertCircle size={10} style={{ color: 'var(--ink-2)' }} />
                                                 ) : health.status === 'error' ? (
                                                     <AlertCircle size={10} style={{ color: 'var(--red)' }} />
@@ -158,6 +164,10 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                                 }}>
                                                     {health.status}
                                                 </span>
+                                            </div>
+                                            <div style={{ fontSize: '.55rem', color: 'var(--ink-3)', marginTop: 3, overflowWrap: 'anywhere' }}>
+                                                {health.source || 'No cache evidence for this source'}
+                                                {health.observedAt && <div>Observed/fetched: {health.observedAt}</div>}
                                             </div>
                                         </td>
                                         <td style={{
@@ -178,7 +188,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                         borderTop: '1px solid var(--line)',
                         fontSize: '0.5rem', color: 'var(--ink-3)'
                     }}>
-                        <span>Reliability: <strong style={{ color: 'var(--green)' }}>9-10</strong> Government/Scientific · <strong style={{ color: 'var(--ink-2)' }}>7-8</strong> Vetted OSINT · <strong style={{ color: 'var(--red)' }}>&lt;7</strong> Variable</span>
+                        <span>Editorial rubric: 9-10 Government/Scientific · 7-8 OSINT · &lt;7 Variable. Not an empirical accuracy score.</span>
                         <span>All data is cached server-side with stale fallback. Client caches via localStorage.</span>
                     </div>
                 </div>

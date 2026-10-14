@@ -20,6 +20,8 @@ import { fetchAcledEvents } from '../services/acled.js';
 import { fetchFloodOps } from '../services/flood.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 import { EO_TILE_LAYERS, getEoLayerById } from '../services/eoTiles';
+import { getConflictBlackoutsGeoJson } from '../data/conflictBlackouts.js';
+import { getKineticTrajectoriesGeoJson, generateKineticPulsesGeoJson } from '../data/conflictKineticAnimations.js';
 import { fetchWind } from '../services/wind';
 import { windArrows } from '../utils/windArrows';
 import { getRegion, REGION_MAX_BOUNDS, REGION_MIN_ZOOM, REGION_MAX_ZOOM, REGION_FIT_BOUNDS } from '../data/regions.js';
@@ -657,6 +659,8 @@ const MapContainer = ({
         const feature = event.features?.find(
             (f) => f.layer?.id === 'flights-icons' || f.layer?.id === 'vessels-icons' || f.layer?.id === 'airports-points'
                 || f.layer?.id === 'flood-stations-alert' || f.layer?.id === 'flood-stations-all'
+                || f.layer?.id === 'blackout-center-core' || f.layer?.id === 'blackout-zones-fill'
+                || f.layer?.id === 'kinetic-targets-core' || f.layer?.id === 'kinetic-pulses-centers' || f.layer?.id === 'kinetic-trajectories-line'
         );
         if (feature) {
             const [longitude, latitude] = feature.geometry?.coordinates || [];
@@ -761,6 +765,25 @@ const MapContainer = ({
     const infraData = infraResource.data;
     const flightsData = flightsResource.data;
     const vesselsData = vesselsResource.data;
+
+    const kineticTrajectoriesGeoJson = useMemo(() => getKineticTrajectoriesGeoJson(), []);
+    const blackoutsGeoJson = useMemo(() => getConflictBlackoutsGeoJson(viewMode), [viewMode]);
+
+    const [pulseGeoJson, setPulseGeoJson] = useState(() => generateKineticPulsesGeoJson(Date.now()));
+    useEffect(() => {
+        if (!activeLayers.includes('kinetic')) return;
+        let animId;
+        let lastUpdate = 0;
+        const animate = (time) => {
+            if (time - lastUpdate > 40) {
+                lastUpdate = time;
+                setPulseGeoJson(generateKineticPulsesGeoJson(Date.now()));
+            }
+            animId = requestAnimationFrame(animate);
+        };
+        animId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animId);
+    }, [activeLayers]);
     // Marching-ants dash cycle on the flood corridors: the dashes crawl
     // downstream, making the direction of water legible at a glance. One
     // uniform paint write per tick — no geometry upload, negligible cost.
@@ -913,7 +936,10 @@ const MapContainer = ({
                 onLoad={handleMapLoad}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                interactiveLayerIds={['flights-icons', 'vessels-icons', 'airports-points', 'flood-stations-alert', 'flood-stations-all']}
+                interactiveLayerIds={[
+                    'flights-icons', 'vessels-icons', 'airports-points', 'flood-stations-alert', 'flood-stations-all',
+                    'blackout-center-core', 'blackout-zones-fill', 'kinetic-targets-core', 'kinetic-pulses-centers', 'kinetic-trajectories-line'
+                ]}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle={MAP_STYLES[mapStyle] || MAP_STYLES.dark}
             >
@@ -1456,6 +1482,185 @@ const MapContainer = ({
                     </Source>
                 )}
 
+                {/* Conflict Power Grid Blackouts & Nightlight Loss Layer */}
+                {activeLayers.includes('blackouts') && (
+                    <Source id="blackout-zones-data" type="geojson" data={blackoutsGeoJson}>
+                        <Layer
+                            id="blackout-zones-fill"
+                            type="fill"
+                            filter={['==', ['get', 'kind'], 'blackout-polygon']}
+                            paint={{
+                                'fill-color': '#030712',
+                                'fill-opacity': 0.62
+                            }}
+                        />
+                        <Layer
+                            id="blackout-zones-line"
+                            type="line"
+                            filter={['==', ['get', 'kind'], 'blackout-polygon']}
+                            paint={{
+                                'line-color': '#ef4444',
+                                'line-width': 1.6,
+                                'line-opacity': 0.85,
+                                'line-dasharray': [3, 2]
+                            }}
+                        />
+                        <Layer
+                            id="blackout-center-glow"
+                            type="circle"
+                            filter={['==', ['get', 'kind'], 'blackout-center']}
+                            paint={{
+                                'circle-color': '#ef4444',
+                                'circle-radius': 14,
+                                'circle-opacity': 0.22,
+                                'circle-blur': 0.6
+                            }}
+                        />
+                        <Layer
+                            id="blackout-center-core"
+                            type="circle"
+                            filter={['==', ['get', 'kind'], 'blackout-center']}
+                            paint={{
+                                'circle-color': '#991b1b',
+                                'circle-radius': 6.5,
+                                'circle-stroke-color': '#fca5a5',
+                                'circle-stroke-width': 1.2
+                            }}
+                        />
+                        <Layer
+                            id="blackout-center-label"
+                            type="symbol"
+                            filter={['==', ['get', 'kind'], 'blackout-center']}
+                            layout={{
+                                'text-field': ['get', 'lossBadge'],
+                                'text-size': 10,
+                                'text-font': ['Open Sans Bold'],
+                                'text-offset': [0, 1.4],
+                                'text-anchor': 'top',
+                                'text-allow-overlap': true
+                            }}
+                            paint={{
+                                'text-color': '#fca5a5',
+                                'text-halo-color': 'rgba(0,0,0,0.9)',
+                                'text-halo-width': 1.2
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Kinetic Strike Trajectories & Shockwave Radar Pulses */}
+                {activeLayers.includes('kinetic') && (
+                    <>
+                        <Source id="kinetic-trajectories-data" type="geojson" data={kineticTrajectoriesGeoJson}>
+                            <Layer
+                                id="kinetic-trajectories-glow"
+                                type="line"
+                                filter={['==', ['get', 'kind'], 'kinetic-trajectory']}
+                                paint={{
+                                    'line-color': ['get', 'color'],
+                                    'line-width': 4.5,
+                                    'line-opacity': 0.25,
+                                    'line-blur': 1.2
+                                }}
+                            />
+                            <Layer
+                                id="kinetic-trajectories-line"
+                                type="line"
+                                filter={['==', ['get', 'kind'], 'kinetic-trajectory']}
+                                paint={{
+                                    'line-color': ['get', 'color'],
+                                    'line-width': 1.8,
+                                    'line-opacity': 0.9,
+                                    'line-dasharray': [4, 3]
+                                }}
+                            />
+                            <Layer
+                                id="kinetic-targets-glow"
+                                type="circle"
+                                filter={['==', ['get', 'kind'], 'kinetic-target']}
+                                paint={{
+                                    'circle-color': ['get', 'color'],
+                                    'circle-radius': 8,
+                                    'circle-opacity': 0.35,
+                                    'circle-blur': 0.5
+                                }}
+                            />
+                            <Layer
+                                id="kinetic-targets-core"
+                                type="circle"
+                                filter={['==', ['get', 'kind'], 'kinetic-target']}
+                                paint={{
+                                    'circle-color': ['get', 'color'],
+                                    'circle-radius': 3.5,
+                                    'circle-stroke-color': '#ffffff',
+                                    'circle-stroke-width': 1.2
+                                }}
+                            />
+                            <Layer
+                                id="kinetic-trajectories-label"
+                                type="symbol"
+                                filter={['==', ['get', 'kind'], 'kinetic-trajectory']}
+                                minzoom={4}
+                                layout={{
+                                    'text-field': ['get', 'name'],
+                                    'text-size': 9,
+                                    'text-font': ['Open Sans Regular'],
+                                    'symbol-placement': 'line',
+                                    'text-offset': [0, -0.8]
+                                }}
+                                paint={{
+                                    'text-color': '#fecaca',
+                                    'text-halo-color': 'rgba(0,0,0,0.85)',
+                                    'text-halo-width': 1.2
+                                }}
+                            />
+                        </Source>
+
+                        <Source id="kinetic-pulses-data" type="geojson" data={pulseGeoJson}>
+                            <Layer
+                                id="kinetic-pulses-rings"
+                                type="line"
+                                filter={['==', ['get', 'kind'], 'pulse-ring']}
+                                paint={{
+                                    'line-color': ['get', 'color'],
+                                    'line-width': ['get', 'width'],
+                                    'line-opacity': ['get', 'opacity']
+                                }}
+                            />
+                            <Layer
+                                id="kinetic-pulses-centers"
+                                type="circle"
+                                filter={['==', ['get', 'kind'], 'pulse-center']}
+                                paint={{
+                                    'circle-color': ['get', 'color'],
+                                    'circle-radius': 4.5,
+                                    'circle-stroke-color': '#ffffff',
+                                    'circle-stroke-width': 1.2,
+                                    'circle-opacity': 0.95
+                                }}
+                            />
+                            <Layer
+                                id="kinetic-pulses-labels"
+                                type="symbol"
+                                filter={['==', ['get', 'kind'], 'pulse-center']}
+                                minzoom={5}
+                                layout={{
+                                    'text-field': ['get', 'name'],
+                                    'text-size': 10,
+                                    'text-font': ['Open Sans Bold'],
+                                    'text-offset': [0, 1.2],
+                                    'text-anchor': 'top'
+                                }}
+                                paint={{
+                                    'text-color': '#ffffff',
+                                    'text-halo-color': 'rgba(0,0,0,0.9)',
+                                    'text-halo-width': 1.4
+                                }}
+                            />
+                        </Source>
+                    </>
+                )}
+
                 {/* Vessel path vectors — heading look-ahead, drawn under the position dots */}
                 {vesselsLayerActive && vesselPaths?.features?.length > 0 && (
                     <Source id="vessel-paths" type="geojson" data={vesselPaths}>
@@ -1657,6 +1862,84 @@ const MapContainer = ({
                     >
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
+                            const layerId = hoverInfo.feature.layer?.id;
+                            if (layerId === 'blackout-center-core' || layerId === 'blackout-zones-fill') {
+                                return (
+                                    <div className="traffic-tooltip-content">
+                                        <div className="traffic-tooltip-header" style={{ color: '#ef4444' }}>
+                                            {p.name || 'Grid Blackout Zone'}
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Nightlight Loss</span>
+                                            <span style={{ color: '#ef4444', fontWeight: 700 }}>{p.lossPercent ? `-${p.lossPercent}% COLLAPSE` : (p.lossBadge || 'SEVERE')}</span>
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Grid Status</span>
+                                            <span style={{ color: '#f59e0b' }}>{p.status || 'Offline'}</span>
+                                        </div>
+                                        {p.baselineRadiance && (
+                                            <div className="traffic-tooltip-row">
+                                                <span>Radiance Shift</span>
+                                                <span>{p.baselineRadiance} → {p.currentRadiance}</span>
+                                            </div>
+                                        )}
+                                        {p.cause && (
+                                            <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                                                <span style={{ color: '#94a3b8' }}>Cause:</span>
+                                                <span style={{ fontSize: '0.52rem', lineHeight: 1.25 }}>{p.cause}</span>
+                                            </div>
+                                        )}
+                                        {p.civilianImpact && (
+                                            <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                                                <span style={{ color: '#94a3b8' }}>Impact:</span>
+                                                <span style={{ fontSize: '0.52rem', lineHeight: 1.25, color: '#fca5a5' }}>{p.civilianImpact}</span>
+                                            </div>
+                                        )}
+                                        <div className="traffic-tooltip-row">
+                                            <span>Sensor</span>
+                                            <span style={{ color: '#38bdf8' }}>{p.sensor || 'VIIRS Day/Night Band'}</span>
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (layerId === 'kinetic-trajectories-line' || layerId === 'kinetic-targets-core') {
+                                return (
+                                    <div className="traffic-tooltip-content">
+                                        <div className="traffic-tooltip-header" style={{ color: '#ef4444' }}>
+                                            {p.name || 'Kinetic Strike Corridor'}
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Origin</span>
+                                            <span>{p.origin || 'Active Sector'}</span>
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Target</span>
+                                            <span style={{ color: '#f87171' }}>{p.target || 'Monitored'}</span>
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Status</span>
+                                            <span style={{ color: '#ef4444', fontWeight: 600 }}>Active Kinetic Vector</span>
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (layerId === 'kinetic-pulses-centers') {
+                                return (
+                                    <div className="traffic-tooltip-content">
+                                        <div className="traffic-tooltip-header" style={{ color: '#f97316' }}>
+                                            {p.name || 'Kinetic Engagement Centroid'}
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Activity Type</span>
+                                            <span style={{ color: '#fca5a5' }}>{p.type || 'Strike & Air Defense'}</span>
+                                        </div>
+                                        <div className="traffic-tooltip-row">
+                                            <span>Status</span>
+                                            <span style={{ color: '#ef4444' }}>Expanding Threat Radar</span>
+                                        </div>
+                                    </div>
+                                );
+                            }
                             if (hoverInfo.feature.layer?.id === 'airports-points') {
                                 return <div className="traffic-tooltip-content">
                                     <div className="traffic-tooltip-header">{p.name}</div>

@@ -39,6 +39,9 @@ import { getJaxaAerosolTiles, getJaxaAerosolTilePng } from './lib/jaxaAerosol.mj
 import { buildForecast as buildOracleForecast } from './lib/oracle/index.mjs';
 import { buildFloodOps, FLOOD_CITIES } from './lib/floodOps.mjs';
 import { buildFloodDirective } from './lib/floodDirective.mjs';
+import { validateApiRequest, parseSourceIds, parseFloodSimulation } from './lib/publicApiInput.mjs';
+import { describeCacheEntries } from './lib/cacheHealth.mjs';
+import { createRequestLimiter } from './lib/requestLimit.mjs';
 import { startScheduler } from './lib/scheduler.mjs';
 import {
     saveSnapshot, loadAllSnapshots, getDbHealth,
@@ -82,6 +85,7 @@ const terrainTileCache = new Map();
 // expired key coalesce onto a single upstream fetch instead of each firing one.
 const pending = new Map();
 const loaderHealth = new Map();
+const allowRequest = createRequestLimiter();
 
 const json = (response, statusCode, payload, meta = {}) => {
     response.writeHead(statusCode, {
@@ -196,13 +200,6 @@ const useCached = async (key, ttlMs, loader, isUsable) => {
     return load;
 };
 
-const parseSourceIds = (searchParams) => {
-    const raw = searchParams.get('sourceIds');
-    if (!raw) return null;
-
-    return raw.split(',').map((value) => value.trim()).filter(Boolean);
-};
-
 const server = http.createServer(async (request, response) => {
     if (!request.url) {
         json(response, 400, { error: 'Missing request URL' }, { status: 'offline' });
@@ -211,7 +208,10 @@ const server = http.createServer(async (request, response) => {
 
     // Reject path traversal attempts before URL normalization collapses them.
     const rawRequestUrl = request.url;
-    if (rawRequestUrl.includes('..') || decodeURIComponent(rawRequestUrl).includes('..')) {
+    let decodedUrl;
+    try { decodedUrl = decodeURIComponent(rawRequestUrl); }
+    catch { json(response, 400, { error: 'Malformed URL' }, { status: 'offline' }); return; }
+    if (rawRequestUrl.includes('..') || decodedUrl.includes('..')) {
         json(response, 403, { error: 'Forbidden' }, { status: 'offline' });
         return;
     }
@@ -246,9 +246,18 @@ const server = http.createServer(async (request, response) => {
     }
 
     const url = new URL(request.url, `http://${request.headers.host || `127.0.0.1:${PORT}`}`);
-    const sourceIds = parseSourceIds(url.searchParams);
-
     try {
+        validateApiRequest(url);
+        if (url.pathname.startsWith('/api/')) {
+            // This retired local server trusts the socket, not spoofable proxy headers.
+            const limit = allowRequest(request.socket.remoteAddress || 'unidentified');
+            if (!limit.allowed) {
+                response.setHeader('Retry-After', String(limit.retryAfter));
+                json(response, 429, { error: 'Request rate limit reached; retry later' }, { status: 'offline' });
+                return;
+            }
+        }
+        const sourceIds = parseSourceIds(url.searchParams);
         if (url.pathname === '/api/sheets-health') {
             json(response, 200, getRecordingHealth(), { status: 'live', updatedAt: new Date().toISOString(), cache: 'miss' });
             return;
@@ -260,11 +269,7 @@ const server = http.createServer(async (request, response) => {
         }
 
         if (url.pathname === '/api/health') {
-            const entries = Array.from(cache.entries()).map(([key, value]) => ({
-                key,
-                updatedAt: value.updatedAt,
-                expiresInMs: Math.max(0, value.expiresAt - Date.now())
-            }));
+            const entries = describeCacheEntries(cache);
 
             json(response, 200, {
                 ok: true,
@@ -299,7 +304,7 @@ const server = http.createServer(async (request, response) => {
         }
 
         // Regional country news — backed by Supabase when configured.
-        // ?region=indopacific|thailand&code=TH (or BKK / VN / SG / etc.)
+        // ?region=indopacific|thailand|middleeast&code=TH (or BKK / SA / etc.)
         if (url.pathname === '/api/regional-news') {
             const region = url.searchParams.get('region') || 'indopacific';
             const code = (url.searchParams.get('code') || '').toUpperCase();
@@ -307,14 +312,19 @@ const server = http.createServer(async (request, response) => {
                 json(response, 400, { error: 'Missing required ?code param' });
                 return;
             }
+            // Empty items is a real answer, not a 500. Loader always returns
+            // { items, status } so we accept any well-shaped payload.
             const result = await useCached(
                 `regional-news:${region}:${code}`,
                 5 * 60 * 1000,
                 () => ingestRegionalNews(region, code, { persistLocal: dbUpsertNews }),
-                (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+                (payload) => payload && Array.isArray(payload.items) && typeof payload.status === 'string'
             );
             recordHealth('regional-news', !!result.payload?.items?.length, result.payload?.status || null);
-            json(response, 200, result.payload, result.meta);
+            json(response, 200, result.payload, {
+                ...result.meta,
+                status: result.payload?.items?.length ? 'live' : 'stale'
+            });
             return;
         }
 
@@ -487,12 +497,11 @@ const server = http.createServer(async (request, response) => {
             const injection = (scenario || escalationDelta != null || postureDeltas)
                 ? { scenario, escalationDelta, postureDeltas }
                 : null;
-            const isSlider = Boolean(postureDeltas);
             const cacheKey = `oracle:${theater}:${scenario || 'base'}:${escDeltaRaw || 0}:${pRaw || ''}`;
             const result = await useCached(
                 cacheKey,
                 injection ? 2 * 60 * 1000 : 5 * 60 * 1000,
-                () => buildOracleForecast(cache, theater, injection, { narrate: !isSlider }),
+                () => buildOracleForecast(cache, theater, injection, { narrate: false }),
                 (p) => p && Array.isArray(p?.forecast?.outcomes)
             );
             json(response, 200, result.payload, result.meta);
@@ -514,23 +523,18 @@ const server = http.createServer(async (request, response) => {
         if (url.pathname === '/api/flood/directive') {
             const cityId = FLOOD_CITIES[url.searchParams.get('city')] ? url.searchParams.get('city') : 'ayutthaya';
             // Simulation summary comes from the client's terrain run (God's Mode).
-            const deltaM = Number(url.searchParams.get('delta'));
-            const floodedKm2 = Number(url.searchParams.get('km2'));
-            const pois = (url.searchParams.get('pois') || '').split('|').filter(Boolean).slice(0, 8);
-            const sim = Number.isFinite(deltaM)
-                ? { deltaM, floodedKm2: Number.isFinite(floodedKm2) ? floodedKm2 : 0, floodedPois: pois }
-                : null;
+            const sim = parseFloodSimulation(url.searchParams);
             const opsResult = await useCached(
                 `flood:${cityId}`,
                 10 * 60 * 1000,
                 () => buildFloodOps(cityId),
                 (p) => Array.isArray(p?.geo?.stations?.features)
             );
-            const simKey = sim ? `${sim.deltaM}:${sim.floodedKm2}:${pois.join(',')}` : 'live';
+            const simKey = sim ? JSON.stringify(sim) : 'live';
             const result = await useCached(
                 `flood-directive:${cityId}:${simKey}`,
                 5 * 60 * 1000,
-                () => buildFloodDirective(opsResult.payload, sim),
+                () => buildFloodDirective(opsResult.payload, sim, { allowLlm: false }),
                 (p) => typeof p?.directive === 'string' && p.directive.length > 20
             );
             json(response, 200, result.payload, result.meta);
@@ -792,9 +796,8 @@ const server = http.createServer(async (request, response) => {
 
         json(response, 404, { error: 'Not found' }, { status: 'offline' });
     } catch (error) {
-        json(response, 502, {
-            error: 'Upstream fetch failed',
-            message: error.message
+        json(response, error.status === 400 ? 400 : 502, {
+            error: error.status === 400 ? error.message : 'Upstream service unavailable'
         }, { status: 'offline' });
     }
 });

@@ -46,6 +46,10 @@ import { THEATERS } from '../../server/lib/theaters.mjs';
 import { getSharedCache, recordHealth, useCached, getCacheEntries, getLoaderHealth } from './cache.mjs';
 import { fetchVesselsPayload } from './vessels.mjs';
 import { jsonResponse, optionsResponse } from './response.mjs';
+import { validateApiRequest, parseSourceIds, parseFloodSimulation } from '../../server/lib/publicApiInput.mjs';
+import { createRequestLimiter } from '../../server/lib/requestLimit.mjs';
+
+const allowRequest = createRequestLimiter();
 
 /**
  * Static ADS-B safety snapshot (public/data/flights/adsb-snapshot.geojson,
@@ -91,16 +95,10 @@ export const fetchFlightSnapshot = async (request, livePayload, next, theater = 
 
 const applyEnv = (env = {}) => {
     for (const [key, value] of Object.entries(env)) {
-        if (value != null && value !== '') {
+        if (typeof value === 'string' && value !== '') {
             process.env[key] = String(value);
         }
     }
-};
-
-const parseSourceIds = (searchParams) => {
-    const raw = searchParams.get('sourceIds');
-    if (!raw) return null;
-    return raw.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
 export async function handleApiRequest(request, env, next) {
@@ -115,10 +113,17 @@ export async function handleApiRequest(request, env, next) {
     }
 
     const url = new URL(request.url);
-    const sourceIds = parseSourceIds(url.searchParams);
     const cache = getSharedCache();
 
     try {
+        validateApiRequest(url);
+        const limit = allowRequest(request.headers.get('CF-Connecting-IP') || 'unidentified');
+        if (!limit.allowed) {
+            const response = jsonResponse({ error: 'Request rate limit reached; retry later' }, 429, { status: 'offline' });
+            response.headers.set('Retry-After', String(limit.retryAfter));
+            return response;
+        }
+        const sourceIds = parseSourceIds(url.searchParams);
         if (url.pathname === '/api/health') {
             return jsonResponse({
                 ok: true,
@@ -184,14 +189,20 @@ export async function handleApiRequest(request, env, next) {
             if (!code) {
                 return jsonResponse({ error: 'Missing required ?code param' }, 400);
             }
+            // Empty items is a real answer, not a 500. Loader always returns
+            // { items, status } so we accept any well-shaped payload — keeps
+            // the panel live during fast-breaking events.
             const result = await useCached(
                 `regional-news:${region}:${code}`,
                 5 * 60 * 1000,
                 () => ingestRegionalNews(region, code),
-                (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+                (payload) => payload && Array.isArray(payload.items) && typeof payload.status === 'string'
             );
             recordHealth('regional-news', !!result.payload?.items?.length, result.payload?.status || null);
-            return jsonResponse(result.payload, 200, result.meta);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                status: result.payload?.items?.length ? 'live' : 'stale'
+            });
         }
 
         if (url.pathname === '/api/firms') {
@@ -410,12 +421,11 @@ export async function handleApiRequest(request, env, next) {
             const injection = (scenario || escalationDelta != null || postureDeltas)
                 ? { scenario, escalationDelta, postureDeltas }
                 : null;
-            const isSlider = Boolean(postureDeltas);
             const cacheKey = `oracle:${theater}:${scenario || 'base'}:${escDeltaRaw || 0}:${pRaw || ''}`;
             const result = await useCached(
                 cacheKey,
                 injection ? 2 * 60 * 1000 : 5 * 60 * 1000,
-                () => buildOracleForecast(cache, theater, injection, { narrate: !isSlider }),
+                () => buildOracleForecast(cache, theater, injection, { narrate: false }),
                 (p) => p && Array.isArray(p?.forecast?.outcomes)
             );
             return jsonResponse(result.payload, 200, result.meta);
@@ -436,23 +446,18 @@ export async function handleApiRequest(request, env, next) {
         if (url.pathname === '/api/flood/directive') {
             const requestedCity = url.searchParams.get('city');
             const cityId = FLOOD_CITIES[requestedCity] ? requestedCity : 'ayutthaya';
-            const deltaM = Number(url.searchParams.get('delta'));
-            const floodedKm2 = Number(url.searchParams.get('km2'));
-            const pois = (url.searchParams.get('pois') || '').split('|').filter(Boolean).slice(0, 8);
-            const sim = Number.isFinite(deltaM)
-                ? { deltaM, floodedKm2: Number.isFinite(floodedKm2) ? floodedKm2 : 0, floodedPois: pois }
-                : null;
+            const sim = parseFloodSimulation(url.searchParams);
             const opsResult = await useCached(
                 `flood:${cityId}`,
                 10 * 60 * 1000,
                 () => buildFloodOps(cityId),
                 (p) => Array.isArray(p?.geo?.stations?.features)
             );
-            const simKey = sim ? `${sim.deltaM}:${sim.floodedKm2}:${pois.join(',')}` : 'live';
+            const simKey = sim ? JSON.stringify(sim) : 'live';
             const result = await useCached(
                 `flood-directive:${cityId}:${simKey}`,
                 5 * 60 * 1000,
-                () => buildFloodDirective(opsResult.payload, sim),
+                () => buildFloodDirective(opsResult.payload, sim, { allowLlm: false }),
                 (p) => typeof p?.directive === 'string' && p.directive.length > 20
             );
             return jsonResponse(result.payload, 200, result.meta);
@@ -594,8 +599,8 @@ export async function handleApiRequest(request, env, next) {
         return jsonResponse({ error: 'Not found' }, 404, { status: 'offline' });
     } catch (error) {
         return jsonResponse(
-            { error: error.message || 'Internal server error' },
-            500,
+            { error: error.status === 400 ? error.message : 'Upstream service unavailable' },
+            error.status === 400 ? 400 : 502,
             { status: 'offline' }
         );
     }

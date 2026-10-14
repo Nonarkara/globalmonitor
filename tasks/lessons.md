@@ -52,3 +52,19 @@ Per §13: the same mistake never happens twice.
 - **Root cause (two layers):** (1) Live frontend is fine, but it calls the Fly backend, which runs STALE code — `/api/flights` works, `/api/vessels` does not exist there (vessel endpoint added in later commits; `fly deploy` is billing-blocked). So ships show "Awaiting AIS feed" live while flights flow. (2) `eo-aerosol` was in the default `activeLayers` (App.jsx) at 0.55 opacity over bright MODIS-AOD tiles — an opaque orange blanket that buried the (working) flight icons.
 - **Correct behaviour:** Diagnose the live data path end-to-end (curl each /api endpoint WITH the prod Origin, check CORS + content-type) before touching rendering. A `200` is hollow if content-type is text/html (SPA fallback).
 - **How to recognise:** "Feature invisible on live but works locally" → first suspect the deployed backend lacks the endpoint (stale host) or the frontend points at a dead same-origin API, not the rendering code.
+
+## 2026-10-10 · Lowering a map's zoom floor exposes zoom ranges no layer was styled for
+- **What went wrong:** Indo-Pacific min zoom went 3.2 → 2.3 so a phone could frame all of Indonesia. Ship and aircraft styles interpolated from zoom 3, so below it they clamped to their zoom-3 size/opacity: 1,200 hulls and 272 planes became black smudges.
+- **Correct behaviour:** when a floor drops, read every layer's `['zoom']` interpolation and extend it below the old floor (fade in, or keep shrinking).
+- **How to recognise:** any change to `minZoom`/`REGION_MIN_ZOOM`, or dense layers that "look fine on desktop" but smear on a phone.
+
+## 2026-10-10 · `typeof navigator === 'undefined'` is not a Cloudflare Worker check
+- **What went wrong:** the guard meant to skip the AIS WebSocket on Workers never fired — Workers define `navigator` (`userAgent === 'Cloudflare-Workers'`). The socket ran, returned 320 Atlantic ships, and every Asian theater filtered to zero while reporting "live".
+- **Correct behaviour:** `globalThis.navigator?.userAgent === 'Cloudflare-Workers'`.
+
+## 2026-10-10 · Ask Axiom for the theater box, not the planet
+- Whole planet: 64,110 ships / 28 MB / 24 s — a timeout risk inside one Worker request. Indo-Pacific viewport: 13,754 ships / 6 MB / 5.5 s. Same API, `west/south/east/north` params.
+
+## 2026-10-10 · zsh does not word-split `$VAR` — a "list in a string" loops once
+- **What went wrong:** `for f in $MINE` iterated once over the whole string; the backup copy failed silently and `mkdir -p $(dirname $f)` created empty directories named like files. Recovered from the stash, nothing lost.
+- **Correct behaviour:** use a real array (`bash -c` with `ARR=(...)` and `"${ARR[@]}"`), or `${=VAR}` in zsh.

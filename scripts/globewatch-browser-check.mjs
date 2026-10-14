@@ -67,6 +67,20 @@ try {
         assert.match(await install.innerText(), /Available on Android and iPhone as a web app/);
         await page.screenshot({ path: `.qa/globewatch/install-${width}.png` });
         await page.keyboard.press('Escape');
+
+        await page.getByRole('button', { name: 'Tools and advanced options' }).click();
+        await page.getByRole('menuitem', { name: 'Data health', exact: true }).click();
+        const health = page.getByRole('dialog', { name: 'Data Provenance & Source Health' });
+        await health.waitFor({ state: 'visible' });
+        assert.match(await health.innerText(), /Evidence from this edge cache only/);
+        assert.match(await health.innerText(), /not measured accuracy/);
+        const closeHealth = page.getByRole('button', { name: 'Close source health modal' });
+        await closeHealth.focus();
+        await page.keyboard.press('Tab');
+        assert.ok(await closeHealth.evaluate(el => el === document.activeElement), 'focus remains inside one-control data-health dialog');
+        await page.screenshot({ path: `.qa/globewatch/health-${width}.png` });
+        await page.keyboard.press('Escape');
+        await health.waitFor({ state: 'hidden' });
         await install.waitFor({ state: 'hidden' });
 
         await page.getByRole('button', { name: 'Tools and advanced options' }).click();
@@ -132,7 +146,9 @@ try {
     const swActive = await page.evaluate(() => Boolean(navigator.serviceWorker.controller));
     assert.ok(swActive, 'service worker must activate');
     await page.evaluate(async () => {
-        const c = await caches.open('gpd-v8-20261002-globewatch');
+        const active = (await caches.keys()).find(key => key.startsWith('gpd-v8-'));
+        if (!active) throw new Error('No active GlobeWatch cache');
+        const c = await caches.open(active);
         await c.put('/api/qa-offline', new Response(JSON.stringify({ count: 7 }), {
             headers: { 'Content-Type': 'application/json', 'X-Tech-Status': 'live', 'X-Tech-Updated-At': '2026-01-01T00:00:00Z' }
         }));

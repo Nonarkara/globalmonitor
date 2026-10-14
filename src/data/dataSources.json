@@ -9,7 +9,7 @@
     "updateFrequency": "Daily",
     "cacheTTL": "1 hour",
     "methodology": "Trained researchers code conflict events from local, regional, national, and international media. Peer-reviewed coding methodology.",
-    "coverage": "Global — filtered to 14 ME countries",
+    "coverage": "Theater-specific country filters; global view uses a curated subset. Requires configured credentials; otherwise labelled demo.",
     "apiEndpoint": "/api/acled"
   },
   {
@@ -22,7 +22,7 @@
     "updateFrequency": "Near real-time (3hr latency)",
     "cacheTTL": "10 minutes",
     "methodology": "VIIRS (Visible Infrared Imaging Radiometer Suite) satellite sensors detect thermal anomalies at 375m resolution.",
-    "coverage": "Global — filtered to ME bounding box",
+    "coverage": "Selected theater; global fetch split into continental boxes. Requires FIRMS key; empty unconfigured shell is not zero fires.",
     "apiEndpoint": "/api/firms"
   },
   {
@@ -61,7 +61,7 @@
     "updateFrequency": "Real-time (< 5 min latency)",
     "cacheTTL": "10 minutes",
     "methodology": "Global seismograph network. Magnitude, depth, and location computed from multiple sensor stations.",
-    "coverage": "Global — filtered to ME region",
+    "coverage": "Selected theater bounding box, or worldwide in Global view",
     "apiEndpoint": "/api/quakes"
   },
   {
@@ -72,9 +72,9 @@
     "url": "https://airplanes.live",
     "reliability": 8,
     "updateFrequency": "Real-time ADS-B",
-    "cacheTTL": "2 minutes",
-    "methodology": "Crowd-sourced ADS-B receiver network. Multi-point 250 nm queries cover the Middle East theater. Heading vectors projected 10 min forward.",
-    "coverage": "Theater-scoped — Middle East, Indo-Pacific, Thailand",
+    "cacheTTL": "10 minutes (Pages API)",
+    "methodology": "Crowd-sourced ADS-B network; overlapping regional queries. OpenSky fallback and dated static snapshot when upstream fails. Heading vectors are modelled 3 min ahead, not observed future positions.",
+    "coverage": "Global query set with theater filters; receiver coverage is partial",
     "apiEndpoint": "/api/flights"
   },
   {
@@ -84,9 +84,9 @@
     "type": "Flight Tracking (Supplement)",
     "url": "https://opensky-network.org",
     "reliability": 9,
-    "updateFrequency": "Real-time ADS-B (5s resolution)",
-    "cacheTTL": "2 minutes",
-    "methodology": "Authenticated OAuth2 client. Worldwide /states/all query supplements airplanes.live with origin-country, emitter category, and SPI metadata. 4,000 daily API credits (OPENSKY_API_DEFAULT).",
+    "updateFrequency": "Provider-dependent ADS-B observations",
+    "cacheTTL": "Shared flight API: 10 minutes",
+    "methodology": "Anonymous or OAuth2 /states/all fallback. Provider credit limits depend on authentication; not every displayed flight is an OpenSky observation.",
     "coverage": "Global — theater bbox filter applied server-side",
     "apiEndpoint": "/api/flights"
   },
@@ -97,8 +97,8 @@
     "type": "OSINT / News",
     "url": "Multiple (BBC, Al Jazeera, Reuters, AP, etc.)",
     "reliability": 8,
-    "updateFrequency": "Every 60 seconds",
-    "cacheTTL": "60 seconds",
+    "updateFrequency": "Publisher-dependent",
+    "cacheTTL": "Ticker 3 min; briefings 2 min",
     "methodology": "Aggregated RSS feeds from 16+ vetted international news sources. Keyword-scored and source-weighted.",
     "coverage": "14 sources (ME focus) + 6 APAC sources",
     "apiEndpoint": "/api/ticker"
@@ -112,7 +112,7 @@
     "reliability": 9,
     "updateFrequency": "Several times daily",
     "cacheTTL": "1 hour",
-    "methodology": "UN-curated humanitarian information from field operations, government reports, and partner agencies.",
+    "methodology": "Humanitarian endpoint prefers UNHCR displacement statistics with ReliefWeb reports. Observation dates and actual payload source take precedence over this catalog.",
     "coverage": "Global humanitarian crises",
     "apiEndpoint": "/api/humanitarian"
   },
@@ -150,7 +150,7 @@
     "url": "Multiple (Yahoo, Binance, FX proxies)",
     "reliability": 7,
     "updateFrequency": "Every 30 seconds",
-    "cacheTTL": "30 seconds",
+    "cacheTTL": "60 seconds (Pages API)",
     "methodology": "Real-time prices from multiple financial data providers via CORS proxy chain. Crypto from Binance WebSocket.",
     "coverage": "Commodities, indices, crypto, FX — war-relevant symbols",
     "apiEndpoint": "/api/markets"
@@ -163,9 +163,9 @@
     "url": "https://aisstream.io",
     "reliability": 8,
     "updateFrequency": "Real-time AIS (WebSocket)",
-    "cacheTTL": "30 minutes (in-memory prune)",
-    "methodology": "Global AIS position reports and ship static data via WebSocket subscription. Worldwide bounding box with chokepoint supplements.",
-    "coverage": "Global — all commercial vessels in subscribed areas",
+    "cacheTTL": "15-second API; bounded edge collection",
+    "methodology": "AIS WebSocket reports; Pages collects a bounded window per request, not a permanent global stream. Dated snapshot fallback is explicitly stale.",
+    "coverage": "Partial receiver/subscription coverage; not a census of ships worldwide",
     "apiEndpoint": "/api/vessels"
   },
   {
@@ -178,19 +178,19 @@
     "updateFrequency": "Every 10 minutes (cached)",
     "cacheTTL": "10 minutes",
     "methodology": "VesselsList subscription endpoint for user-defined fleet (IMO/MMSI). Credit-based /vessels and area LiveData require paid plans — not used for global map.",
-    "coverage": "Fleet-only overlay (up to 10 vessels on free plan); global map remains aisstream.io",
+    "coverage": "Configured fleet only; not worldwide area LiveData. Subscription entitlement is provider-controlled.",
     "apiEndpoint": "/api/vessels"
   },
   {
     "id": "curated",
     "name": "Curated Intelligence",
-    "fullName": "Manually Verified Curated Data",
+    "fullName": "Bundled Reference Datasets",
     "type": "Analyst-Curated",
     "url": "Internal",
     "reliability": 8,
     "updateFrequency": "Periodic (analyst-driven)",
     "cacheTTL": "Static (bundled)",
-    "methodology": "Verified data compiled from SIPRI, UNHCR, CSIS, IAEA, and open-source intelligence. Updated by analysts.",
+    "methodology": "Legacy bundled references. Not currently revalidated or live; use dataset-specific dates and citations. Personnel roster is undated and marked unverified.",
     "coverage": "Conflict milestones, sanctions, nuclear facilities, key figures, actor networks, war costs, displacement",
     "apiEndpoint": "Static JSON files"
   }

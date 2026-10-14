@@ -24,8 +24,8 @@ const buildFacts = (ops, sim) => {
     if (sim) {
         lines.push(
             `SIMULATION (bathtub model on real terrain): stage ${sim.deltaM >= 0 ? '+' : ''}${sim.deltaM} m above current → ` +
-            `~${sim.floodedKm2} km² inundated in the city frame` +
-            (sim.floodedPois?.length ? `; critical sites underwater: ${sim.floodedPois.join(', ')}` : '; no mapped critical sites flooded'),
+            (sim.floodedKm2 == null ? 'inundated area not supplied' : `~${sim.floodedKm2} km² inundated in the city frame`) +
+            (sim.floodedPois?.length ? `; client-modelled affected sites: ${sim.floodedPois.join(', ')}` : '; no affected sites supplied by client'),
         );
     }
     return lines.join('\n');
@@ -49,22 +49,23 @@ const templateDirective = (ops, sim) => {
     return steps.join('\n');
 };
 
-export const buildFloodDirective = async (ops, sim = null) => {
+export const buildFloodDirective = async (ops, sim = null, { allowLlm = false } = {}) => {
     const facts = buildFacts(ops, sim);
     let text = null;
-    if (isGroqEnabled()) {
+    if (allowLlm === true && isGroqEnabled()) {
         text = await groqChat([
             {
                 role: 'system',
                 content: 'You are the duty officer of a Thai municipal flood operations center writing for the mayor. Using ONLY the facts given, produce a terse operational directive: SITUATION (2 sentences), TIMELINE (when water arrives, citing station codes), then ACTIONS as a numbered list of 4-6 concrete orders with deadlines and responsible units (public works, district chiefs, rescue, comms). No preamble, no hedging boilerplate, no invented numbers.',
             },
             { role: 'user', content: facts },
-        ], { temperature: 0.3, maxTokens: 600 });
+        ], { temperature: 0.3, maxTokens: 600, allowExternalAi: true });
     }
     return {
         directive: text || templateDirective(ops, sim),
         engine: text ? `groq/${groqModel()}` : 'rule-based fallback',
         facts,
         generatedAt: new Date().toISOString(),
+        meta: { source: 'flood-advisory-model', tier: sim ? 'client-simulation' : 'rule-based-advisory', requiresHumanReview: true },
     };
 };

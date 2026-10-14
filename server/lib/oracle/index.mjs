@@ -34,7 +34,7 @@ const slimActor = (a) => ({
 });
 
 export const buildForecast = async (cache, theater, injection = null, opts = {}) => {
-    const { narrate = true } = opts;
+    const { narrate = false } = opts;
     const safeTheater = THEATERS.includes(theater) ? theater : 'middleeast';
     const live = readLiveState(cache, safeTheater);
     const baseActors = getActors(safeTheater);
@@ -58,12 +58,13 @@ export const buildForecast = async (cache, theater, injection = null, opts = {})
         };
     }
 
-    // Every run gets a deterministic report; slider-driven runs skip only the
-    // (slow, quota-using) LLM upgrade — baseline and named scenarios get it.
+    // Public runs always keep the deterministic report, without external AI.
     const report = await buildReport({ theater: safeTheater, live, fc, applied, actors }, { allowLlm: narrate });
 
     return {
         theater: safeTheater,
+        requestedTheater: theater,
+        scopeNote: theater === 'global' ? 'Middle East reference model — no calibrated global forecast is available.' : null,
         generatedAt: new Date().toISOString(),
         live: { escalation: live.escalation, level: live.level, signals: live.signals, hasObservedInputs: live.hasObservedInputs },
         actors: actors.map(slimActor),

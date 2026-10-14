@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
     BRIEFING_DEFINITIONS,
     DEFAULT_SOURCE_IDS,
@@ -6,9 +5,16 @@ import {
     KEYWORD_GROUPS,
     buildGoogleNewsSearchUrl
 } from '../../src/services/liveNews.js';
-import { generateBriefingSummary } from './gemini.mjs';
 
 const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+// A User-Agent is required by most publishers' CDNs and by Google News
+// search — without one, the request looks like a script and gets 403/503.
+// Same identity the regional-news fetcher uses so publisher ACLs can
+// whitelist this once.
+const FEED_USER_AGENT = 'DNGWS/1.0 (Intelligence Monitor; +https://github.com/Nonarkara/tech-monitor)';
+const FEED_TIMEOUT_MS = 15000;
+const FALLBACK_TIMEOUT_MS = 12000;
 
 // RSS titles arrive HTML-escaped (Yemen&#039;s, Al Jazeera &#8211; …). Decode
 // once here so no panel has to remember to.
@@ -17,6 +23,67 @@ export const decodeEntities = (value = '') => String(value)
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
     .replace(/&([a-z]+);/gi, (m, n) => NAMED_ENTITIES[n.toLowerCase()] ?? m);
+
+/**
+ * Feeds append their own name to the headline — "Oil rises as strikes stoke
+ * supply fears - Reuters". Every surface that shows an item already prints the
+ * source on its own line, so that tail is the publisher said twice, joined by a
+ * hyphen doing a job the layout already does.
+ *
+ * Only strips the tail when it actually matches the item's source, so a headline
+ * that genuinely ends in a dash keeps its words.
+ */
+export const stripSourceSuffix = (title = '', source = '') => {
+    const raw = String(source).trim();
+    if (!raw) return title;
+    // A feed's <title> is usually a masthead ("Al Jazeera \u2013 Breaking News, \u2026")
+    // while the headline is tagged with the plain name ("\u2026 - Al Jazeera"), so try
+    // the short form as well as the full one.
+    const candidates = [...new Set([raw, raw.split(/\s+[\u2013\u2014|]\s+|:\s+/)[0].trim()])]
+        .filter((c) => c.length >= 3)
+        .sort((a, b) => b.length - a.length);
+    let out = String(title);
+    for (const name of candidates) {
+        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const next = out.replace(new RegExp(`\\s*[-\u2013\u2014|]\\s*${escaped}\\s*$`, 'i'), '').trim();
+        if (next && next !== out) { out = next; break; }
+    }
+    return out || title;
+};
+
+/**
+ * RSS <title> is the feed's masthead, not its name: "Al Jazeera – Breaking News,
+ * World News and Video from Al Jazeera", "AL-MONITOR: The Pulse of The Middle
+ * East". Printed as a byline it crowds out the headline it is meant to attribute.
+ *
+ * Keep the part before the first tagline delimiter. A name with no delimiter is
+ * already a name and passes through untouched.
+ */
+export const cleanSourceName = (source = '') => {
+    const raw = String(source).trim();
+    if (!raw) return raw;
+    const cut = raw.split(/\s+[\u2013\u2014|]\s+|:\s+/)[0].trim();
+    // Only accept the trim if what remains still reads as a name.
+    return cut.length >= 3 && cut.length <= 40 ? cut : raw;
+};
+
+// Aggregators and proxies are not publishers. When a feed only tells us
+// "Google News" / "Bing" / rss2json, credit the item link's host — or nothing.
+const AGGREGATOR_NAME = /rss2json|google news|news\.google|bing|gdelt|allorigins|codetabs|corsproxy/i;
+const AGGREGATOR_HOST = /(^|\.)(google|bing|rss2json|gdeltproject|allorigins|codetabs|corsproxy)\./i;
+const hostnameOf = (link) => {
+    try {
+        const host = new URL(link).hostname.replace(/^www\./, '');
+        return AGGREGATOR_HOST.test(host) ? '' : host;
+    } catch {
+        return '';
+    }
+};
+export const resolvePublisher = (name = '', link = '') => {
+    const cleaned = cleanSourceName(decodeEntities(name));
+    if (cleaned && !AGGREGATOR_NAME.test(cleaned)) return cleaned;
+    return hostnameOf(link);
+};
 
 const normalizeTitle = (value = '') => value.toLowerCase().replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 
@@ -82,12 +149,17 @@ const parseJsonFallback = (payload, source) => {
 
     const feedTitle = payload.feed?.title || source.name;
 
-    return payload.items.map((item) => ({
-        title: decodeEntities(item.title),
-        link: item.link,
-        pubDate: resolveDate(item.pubDate),
-        source: decodeEntities(item.author || feedTitle)
-    })).filter((item) => {
+    // item.author is a journalist's byline, not the publisher — the feed
+    // title (cleaned the same way as the primary path) is the source.
+    return payload.items.map((item) => {
+        const publisher = resolvePublisher(feedTitle, item.link);
+        return {
+            title: stripSourceSuffix(decodeEntities(item.title), publisher),
+            link: item.link,
+            pubDate: resolveDate(item.pubDate),
+            source: publisher
+        };
+    }).filter((item) => {
         if (!item.title || !item.link) return false;
         const normalizedItemTitle = normalizeTitle(item.title);
         const normalizedFeedTitle = normalizeTitle(feedTitle);
@@ -117,7 +189,8 @@ const parseXmlFeed = (xml, source) => {
         if (!title || !link) continue;
         if (normalizeTitle(title) === normalizeTitle(feedTitle) || title === feedTitle) continue;
 
-        items.push({ title: decodeEntities(title), link, pubDate: resolveDate(pubDate), source: decodeEntities(itemSource) });
+        const publisher = resolvePublisher(itemSource, link);
+        items.push({ title: stripSourceSuffix(decodeEntities(title), publisher), link, pubDate: resolveDate(pubDate), source: publisher });
     }
 
     // Try Atom <entry> if no RSS <item> found
@@ -131,7 +204,8 @@ const parseXmlFeed = (xml, source) => {
                 || block.match(/<published>([\s\S]*?)<\/published>/)?.[1] || '').trim();
 
             if (!title || !link) continue;
-            items.push({ title: decodeEntities(title), link, pubDate: resolveDate(pubDate), source: decodeEntities(feedTitle) });
+            const publisher = resolvePublisher(feedTitle, link);
+            items.push({ title: stripSourceSuffix(decodeEntities(title), publisher), link, pubDate: resolveDate(pubDate), source: publisher });
         }
     }
 
@@ -141,18 +215,22 @@ const parseXmlFeed = (xml, source) => {
 const fetchFeedItems = async (source) => {
     // Primary: fetch RSS directly (server-side, no CORS issue)
     try {
-        const response = await axios.get(source.url, {
-            timeout: 15000,
-            maxRedirects: 5,
+        const response = await fetch(source.url, {
+            signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
+            redirect: 'follow',
             headers: {
                 'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
-                'User-Agent': 'DNGWS/1.0 (Intelligence Monitor; +https://github.com/Nonarkara/tech-monitor)',
-            },
-            responseType: 'text'
+                'User-Agent': FEED_USER_AGENT
+            }
         });
-        if (typeof response.data === 'string' && response.data.includes('<')) {
-            const parsed = parseXmlFeed(response.data, source);
-            if (parsed.length > 0) return parsed;
+        if (response.ok) {
+            const xml = await response.text();
+            if (typeof xml === 'string' && xml.includes('<')) {
+                const parsed = parseXmlFeed(xml, source);
+                if (parsed.length > 0) return parsed;
+            }
+        } else {
+            console.error(`[FEED] ${source.id} primary failed: HTTP ${response.status}`);
         }
     } catch (err) {
         console.error(`[FEED] ${source.id} primary failed: ${err.message}`);
@@ -160,8 +238,15 @@ const fetchFeedItems = async (source) => {
 
     // Fallback: rss2json
     try {
-        const response = await axios.get(`${FEED_JSON_FALLBACK}${encodeURIComponent(source.url)}`, { timeout: 12000 });
-        return parseJsonFallback(response.data, source);
+        const response = await fetch(`${FEED_JSON_FALLBACK}${encodeURIComponent(source.url)}`, {
+            signal: AbortSignal.timeout(FALLBACK_TIMEOUT_MS),
+            headers: { 'Accept': 'application/json', 'User-Agent': FEED_USER_AGENT }
+        });
+        if (response.ok) {
+            return parseJsonFallback(await response.json(), source);
+        }
+        console.error(`[FEED] ${source.id} rss2json fallback failed: HTTP ${response.status}`);
+        return [];
     } catch (err) {
         console.error(`[FEED] ${source.id} rss2json fallback failed: ${err.message}`);
         return [];
@@ -249,14 +334,6 @@ export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) =
     const items = await gatherFeeds([...contextualSources, ...querySources], briefing.focusTags, 8);
     const stats = deriveBriefingStats(items);
 
-    const staticSummary = stats.total > 0
-        ? `${stats.highPriority || stats.total} elevated signals across ${stats.dominantTags.length || 1} dominant themes.`
-        : 'No live items were returned on the latest pull. Use the official source links while the feed refreshes.';
-
-    const aiSummary = stats.total > 0
-        ? await generateBriefingSummary(briefing.title, items)
-        : null;
-
     return {
         id: briefing.id,
         title: briefing.title,
@@ -264,7 +341,8 @@ export const fetchBriefingPayload = async (briefingId, activeSourceIds = null) =
         primarySources: briefing.primarySources,
         items,
         stats,
-        summary: aiSummary || staticSummary,
-        aiPowered: Boolean(aiSummary)
+        summary: stats.total > 0
+            ? `${stats.highPriority} elevated of ${stats.total} pulled across ${stats.dominantTags.length || 1} dominant themes.`
+            : 'No live items were returned on the latest pull. Use the official source links while the feed refreshes.'
     };
 };

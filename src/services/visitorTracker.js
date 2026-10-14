@@ -7,7 +7,8 @@
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzTwBNOseKkvkkjD-LH6B3GWrsFcwS6MTDbn7W5eb3zHxA-swtlHYuwJ3w5PAVXDhU7Q/exec';
 
-const BASE_COUNT = 88888;
+// No invented base count: unavailable telemetry is unknown, not a big number.
+const BASE_COUNT = 0;
 
 const GEO_APIS = [
   { url: 'https://ipapi.co/json/',          map: d => ({ ip: d.ip, country: d.country_name, region: d.region, city: d.city }) },
@@ -34,10 +35,10 @@ export async function trackVisitor() {
     const payload = {
       dashboard: 'GPD',
       hostname: location.hostname,        // conflict.nonarkara.org now (was nonarkara.github.io)
-      page: location.href,
+      page: location.origin + location.pathname,
       ...geo,
       userAgent: navigator.userAgent,
-      referrer: document.referrer || 'Direct',
+      referrer: document.referrer ? new URL(document.referrer).origin : 'Direct',
       language: navigator.language,
       screen: screen.width + 'x' + screen.height,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -58,11 +59,11 @@ export async function trackVisitor() {
 export async function getVisitorCount() {
   try {
     const res = await fetch(APPS_SCRIPT_URL);
-    if (!res.ok) return BASE_COUNT;
+    if (!res.ok) return null;
     const data = await res.json();
-    return BASE_COUNT + (data.count || 0);
+    return Number.isSafeInteger(data.count) && data.count >= 0 ? data.count : null;
   } catch {
-    return BASE_COUNT;
+    return null;
   }
 }
 

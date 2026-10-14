@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2, Plane, Ship, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight, Navigation } from 'lucide-react';
+import { Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2, Plane, Ship, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight, Navigation, Radar } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
@@ -47,6 +47,8 @@ const Sidebar = ({
             layers: [
                 { id: 'firms', title: 'Heat signatures', desc: 'Fires, strikes, and thermal hotspots', icon: <Zap size={18} /> },
                 { id: 'conflicts', title: 'Conflict events', desc: 'Reported clashes and violence', icon: <Flame size={18} /> },
+                { id: 'kinetic', title: 'Kinetic strike radar & vectors', desc: 'Animated strike shockwaves & missile/UAV corridors', icon: <Radar size={18} /> },
+                { id: 'blackouts', title: 'Power grid & nightlight loss', desc: 'VIIRS satellite-observed blackouts & infrastructure failure', icon: <Moon size={18} /> },
                 { id: 'infrastructure', title: 'Energy & ports', desc: 'Critical sites and chokepoints', icon: <Building2 size={18} /> },
             ],
         },

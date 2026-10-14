@@ -1,3 +1,5 @@
+import { describeCacheEntries } from '../../server/lib/cacheHealth.mjs';
+
 const cache = new Map();
 const loaderHealth = new Map();
 const inflight = new Map();
@@ -39,12 +41,7 @@ export const recordHealth = (key, ok, message = null, source = null) => {
 };
 
 export const getLoaderHealth = () => loaderHealth;
-export const getCacheEntries = () =>
-    Array.from(cache.entries()).map(([key, value]) => ({
-        key,
-        updatedAt: value.updatedAt,
-        expiresInMs: Math.max(0, value.expiresAt - Date.now())
-    }));
+export const getCacheEntries = () => describeCacheEntries(cache);
 
 const loadCached = async (key, ttlMs, loader, isUsable) => {
     const now = Date.now();

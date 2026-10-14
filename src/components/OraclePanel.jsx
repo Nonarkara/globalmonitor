@@ -71,6 +71,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
             {fc && (
                 <>
                     <p style={{ fontSize: '.6rem', color: 'var(--ink-2)', margin: '0 0 6px' }}>
+                        {data.scopeNote && <span>{data.scopeNote} </span>}
                         {data.live?.hasObservedInputs ? 'Model estimates, not observed outcomes.' : 'Baseline assumptions — no observed input signals.'}
                     </p>
                     {/* Headline forecast */}

@@ -146,7 +146,7 @@ const OracleSandboxModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontSize: '0.82rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--ink)' }}>GPD Oracle — War-Game Sandbox</span>
                             <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>
-                                {THEATER_TITLE[theater] || theater} · agent-based Monte-Carlo · {view?.meta?.aiPowered ? 'LLM narrative' : 'deterministic'}
+                                {view?.scopeNote || THEATER_TITLE[theater] || theater} · agent-based Monte-Carlo · {view?.meta?.aiPowered ? 'LLM narrative' : 'deterministic'}
                             </span>
                         </div>
                     </div>

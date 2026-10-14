@@ -80,6 +80,17 @@ test('offline cache misses return a defined 503 response', async () => {
     assert.equal((await result).status, 503);
 });
 
+test('service worker preserves authoritative validation and quota failures', async () => {
+    for (const status of [400, 401, 403, 429]) {
+        const { handlers } = await worker({ network: async () => new Response('{}', { status, headers: { 'Retry-After': '60' } }) });
+        let result;
+        handlers.fetch({ request: new Request('https://example.test/api/test'), respondWith: value => { result = value; } });
+        const response = await result;
+        assert.equal(response.status, status);
+        assert.equal(response.headers.get('Retry-After'), '60');
+    }
+});
+
 test('airport import refuses empty coordinates and closed airfields', () => {
     const csv = 'ident,type,name,latitude_deg,longitude_deg,scheduled_service\nBKK,large_airport,Bangkok,13.69,100.75,yes\nBAD,large_airport,Missing,,,yes\nOLD,closed,Closed,13,100,yes';
     const airports = airportsCsvToFeatureCollection(csv);

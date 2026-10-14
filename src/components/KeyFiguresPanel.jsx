@@ -13,7 +13,7 @@ const FACTION_COLORS = {
 };
 
 const STATUS_STYLES = {
-    active: { color: 'var(--green)', label: 'ACTIVE' },
+    active: { color: 'var(--ink-3)', label: 'LEGACY: ACTIVE' },
     unknown: { color: 'var(--ink-2)', label: 'UNKNOWN' },
     neutralized: { color: 'var(--red)', label: 'KIA' },
     detained: { color: 'var(--red)', label: 'DETAINED' }
@@ -40,7 +40,7 @@ const KeyFiguresPanel = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <User size={12} style={{ color: 'var(--ink-2)' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
-                        Key Figures
+                        Key Figures · Reference Roster
                     </span>
                 </div>
                 <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
@@ -49,6 +49,9 @@ const KeyFiguresPanel = () => {
             </div>
 
             {/* Figure cards */}
+            <p style={{ fontSize: '.6rem', color: 'var(--ink-2)', margin: '0 0 6px' }}>
+                Undated legacy roster. Roles and statuses are not currently verified; do not use as a live personnel assessment.
+            </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {displayed.map(fig => {
                     const factionColor = FACTION_COLORS[fig.faction] || 'var(--ink-2)';
@@ -85,7 +88,7 @@ const KeyFiguresPanel = () => {
                                     fontSize: '0.5rem', color: 'var(--ink-3)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
-                                    {fig.role}
+                                    Legacy role: {fig.role}
                                 </div>
                             </div>
 
@@ -99,7 +102,7 @@ const KeyFiguresPanel = () => {
                                 letterSpacing: '0.5px',
                                 flexShrink: 0
                             }}>
-                                {statusStyle.label}
+                                UNVERIFIED
                             </span>
                         </div>
                     );

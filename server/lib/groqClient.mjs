@@ -16,7 +16,10 @@ export const groqModel = () => DEFAULT_MODEL;
  * @param messages OpenAI-style [{role, content}]
  * @returns assistant text, or null on missing key / error / timeout.
  */
-export const groqChat = async (messages, { temperature = 0.4, maxTokens = 700 } = {}) => {
+export const groqChat = async (messages, { temperature = 0.4, maxTokens = 700, allowExternalAi = false } = {}) => {
+    // A configured key is not permission to spend it. Public routes never set
+    // this option; future trusted jobs need authentication and a shared budget.
+    if (allowExternalAi !== true) return null;
     const key = process.env.GROQ_API_KEY;
     if (!key) return null;
     try {
@@ -35,13 +38,13 @@ export const groqChat = async (messages, { temperature = 0.4, maxTokens = 700 } 
             signal: AbortSignal.timeout(15000),
         });
         if (!res.ok) {
-            console.error(`[groq] HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+            console.error(`[groq] HTTP ${res.status}`);
             return null;
         }
         const data = await res.json();
         return data.choices?.[0]?.message?.content?.trim() || null;
     } catch (error) {
-        console.error(`[groq] request failed: ${error?.message || error}`);
+        console.error(`[groq] request failed: ${error?.name || 'Error'}`);
         return null;
     }
 };

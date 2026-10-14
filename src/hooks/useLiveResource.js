@@ -177,6 +177,10 @@ export const useLiveResource = (fetcher, {
             } catch (caughtError) {
                 if (generation !== generationRef.current) return;
                 lastError = caughtError;
+                // Validation/auth/quota errors are authoritative responses, not
+                // transient outages. Retrying immediately amplifies load.
+                const httpStatus = caughtError.response?.status;
+                if (httpStatus >= 400 && httpStatus < 500) break;
             }
         }
 

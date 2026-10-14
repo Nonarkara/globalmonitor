@@ -38,9 +38,8 @@ const withTheaterLayers = (layers, theater) =>
   [...new Set([...layers, ...(THEATER_ENTRY_LAYERS[theater] || [])])];
 
 function App() {
-  // Map is the hero: operational traffic + conflict/heat only at first paint.
-  // EO overlays (aerosol, nightlights, …) stay opt-in — they bury ships/planes when default-on.
-  const [activeLayers, setActiveLayers] = useState(() => withTheaterLayers(['conflicts', 'firms', 'flights', 'vessels'], DEFAULT_THEATER));
+  // Map is the hero: operational traffic + conflict/heat + kinetic animations & nightlights at first paint.
+  const [activeLayers, setActiveLayers] = useState(() => withTheaterLayers(['conflicts', 'firms', 'kinetic', 'blackouts', 'flights', 'vessels', 'eo-nightlights'], DEFAULT_THEATER));
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Region nav: 'middleeast' | 'indopacific' | 'thailand' | 'global'.
@@ -648,6 +647,7 @@ function App() {
         {/* Modal: Source Health */}
         <SourceHealthModal
           isOpen={isSourceHealthOpen}
+          theater={viewMode}
           onClose={() => setIsSourceHealthOpen(false)}
         />
 

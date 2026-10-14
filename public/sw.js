@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8-20261002-globewatch';
+const CACHE_NAME = 'gpd-v8-20261002-credibility';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -91,7 +91,7 @@ self.addEventListener('fetch', (event) => {
     if (url.pathname.startsWith('/api')) {
         event.respondWith(
             fetch(request)
-                .then(response => response.ok ? cacheResponse(request, response) : offlineApiResponse(request))
+                .then(response => response.ok ? cacheResponse(request, response) : response.status < 500 ? response : offlineApiResponse(request))
                 .catch(() => offlineApiResponse(request))
         );
         return;
