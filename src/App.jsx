@@ -211,7 +211,7 @@ function App() {
                 GlobeWatch
               </span>
               <span className="header-subtitle">
-                Global Political Dashboard · {getRegion(viewMode).label}
+                Planetary Comparative & Macro Intelligence · {DASHBOARD_VERSION}
               </span>
               <button className="gw-availability" onClick={() => setIsInstallOpen(true)}>Android &amp; iPhone web app</button>
             </div>

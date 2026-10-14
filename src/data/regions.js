@@ -301,8 +301,8 @@ export const REGIONS = {
  * checked only when the hostname doesn't match a known mapping.
  */
 const HOSTNAME_THEATERS = {
+    'globalmonitor.nonarkara.org': 'global',
     'global.nonarkara.org': 'global',
-    'globalmonitor.nonarkara.org': 'middleeast',
 };
 
 const resolveDefaultTheater = () => {
@@ -312,7 +312,7 @@ const resolveDefaultTheater = () => {
     }
     return REGIONS[import.meta.env?.VITE_DEFAULT_THEATER]
         ? import.meta.env.VITE_DEFAULT_THEATER
-        : 'middleeast';
+        : 'global';
 };
 
 export const DEFAULT_THEATER = resolveDefaultTheater();
