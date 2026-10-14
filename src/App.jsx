@@ -29,7 +29,7 @@ import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
 
 const DASHBOARD_VERSION = 'v8.4';
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'flights', 'vessels'];
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'flights', 'vessels', 'eo-nightlights'];
 // global.nonarkara.org is the world-scope console: open on the Global theater
 // (the flagship Middle East view lives at globalmonitor.nonarkara.org).
 const DEFAULT_THEATER = 'global';

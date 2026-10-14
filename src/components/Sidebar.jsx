@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Layers, Activity, CloudRain, Flame, AlertTriangle, Wind, Zap, Building2,
     Plane, Ship, MapPin, Moon, Satellite, Map as MapIcon, Check, ChevronDown, ChevronRight,
+    Radar,
 } from 'lucide-react';
 import CopernicusPreviewPanel from './CopernicusPreviewPanel';
 import AlphaEarthPanel from './AlphaEarthPanel';
@@ -28,6 +29,18 @@ const CORE_LAYERS = {
         title: 'Conflict events (ACLED)',
         desc: 'Reported clashes, violence, strategic developments',
         icon: <Flame size={18} />,
+        group: 'operational',
+    },
+    kinetic: {
+        title: 'Kinetic strike radar & vectors',
+        desc: 'Animated strike shockwaves & missile/UAV corridors',
+        icon: <Radar size={18} />,
+        group: 'operational',
+    },
+    blackouts: {
+        title: 'Power grid & nightlight loss',
+        desc: 'VIIRS satellite-observed blackouts & infrastructure failure',
+        icon: <Moon size={18} />,
         group: 'operational',
     },
     infrastructure: {
@@ -100,10 +113,10 @@ const EO_LAYER_META = {
 };
 
 const REGION_CORE_IDS = {
-    middleeast: ['firms', 'conflicts', 'infrastructure', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
-    indopacific: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
-    thailand: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
-    global: ['firms', 'conflicts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    middleeast: ['firms', 'conflicts', 'kinetic', 'blackouts', 'infrastructure', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
+    indopacific: ['firms', 'conflicts', 'kinetic', 'blackouts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    thailand: ['firms', 'conflicts', 'kinetic', 'blackouts', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters'],
+    global: ['firms', 'conflicts', 'kinetic', 'blackouts', 'infrastructure', 'flights', 'airports', 'vessels', 'weather', 'aqi', 'disasters', 'economy'],
 };
 
 const GROUP_ORDER = [
