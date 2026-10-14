@@ -15,10 +15,11 @@ import { buildGoogleNewsSearchUrl } from '../services/liveNews.js';
 // ---------------------------------------------------------------------------
 
 export const REGION_VIEW_STATES = {
-    middleeast: { longitude: 53, latitude: 30, zoom: 4.5, pitch: 25, bearing: -8 },
-    indopacific: { longitude: 110, latitude: 5, zoom: 3.6, pitch: 0, bearing: 0 },
-    thailand: { longitude: 100.9925, latitude: 14.5, zoom: 5.6, pitch: 20, bearing: 0 },
-    global: { longitude: 10, latitude: 22, zoom: 1.7, pitch: 0, bearing: 0 }
+    middleeast: { longitude: 46, latitude: 27, zoom: 4.6, pitch: 25, bearing: -5 },
+    litani: { longitude: 35.45, latitude: 33.35, zoom: 8.8, pitch: 28, bearing: -2 },
+    gaza: { longitude: 34.38, latitude: 31.42, zoom: 10.5, pitch: 20, bearing: 0 },
+    redsea: { longitude: 42.8, latitude: 15.2, zoom: 6.8, pitch: 25, bearing: -8 },
+    hormuz: { longitude: 56.4, latitude: 26.6, zoom: 7.8, pitch: 28, bearing: -12 }
 };
 
 // ---------------------------------------------------------------------------
@@ -220,31 +221,38 @@ export const TV_CHANNELS_GLOBAL = [
 export const REGIONS = {
     middleeast: {
         id: 'middleeast',
-        label: 'Middle East',
+        label: 'All Fronts',
         viewState: REGION_VIEW_STATES.middleeast,
         dots: null,
         channels: TV_CHANNELS_MIDDLEEAST
     },
-    indopacific: {
-        id: 'indopacific',
-        label: 'Indo-Pacific',
-        viewState: REGION_VIEW_STATES.indopacific,
-        dots: ASEAN_DOTS_GEOJSON,
-        channels: TV_CHANNELS_INDOPACIFIC
-    },
-    thailand: {
-        id: 'thailand',
-        label: 'Thailand',
-        viewState: REGION_VIEW_STATES.thailand,
-        dots: THAILAND_DOTS_GEOJSON,
-        channels: TV_CHANNELS_THAILAND
-    },
-    global: {
-        id: 'global',
-        label: 'Global',
-        viewState: REGION_VIEW_STATES.global,
+    litani: {
+        id: 'litani',
+        label: 'Litani / Lebanon',
+        viewState: REGION_VIEW_STATES.litani,
         dots: null,
-        channels: TV_CHANNELS_GLOBAL
+        channels: TV_CHANNELS_MIDDLEEAST
+    },
+    gaza: {
+        id: 'gaza',
+        label: 'Gaza Sector',
+        viewState: REGION_VIEW_STATES.gaza,
+        dots: null,
+        channels: TV_CHANNELS_MIDDLEEAST
+    },
+    redsea: {
+        id: 'redsea',
+        label: 'Red Sea / Yemen',
+        viewState: REGION_VIEW_STATES.redsea,
+        dots: null,
+        channels: TV_CHANNELS_MIDDLEEAST
+    },
+    hormuz: {
+        id: 'hormuz',
+        label: 'Hormuz / Gulf',
+        viewState: REGION_VIEW_STATES.hormuz,
+        dots: null,
+        channels: TV_CHANNELS_MIDDLEEAST
     }
 };
 

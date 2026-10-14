@@ -762,8 +762,9 @@ const MapContainer = ({
         intervalMs: 24 * 60 * 60 * 1000,
         isUsable: (d) => d?.features?.length > 0
     });
-    const firmsResource = useLiveResource(useCallback(() => fetchFirmsData(viewMode), [viewMode]), {
-        cacheKey: `map:firms:${viewMode}`,
+    const queryTheater = ['middleeast', 'litani', 'gaza', 'redsea', 'hormuz'].includes(viewMode) ? 'middleeast' : viewMode;
+    const firmsResource = useLiveResource(useCallback(() => fetchFirmsData(queryTheater), [queryTheater]), {
+        cacheKey: `map:firms:${queryTheater}`,
         enabled: activeLayers.includes('firms'),
         intervalMs: 10 * 60 * 1000,
         isUsable: hasFeatureData
@@ -790,8 +791,8 @@ const MapContainer = ({
         maxRetries: 2,
         maxStaleMs: 20 * 60 * 1000
     });
-    const acledResource = useLiveResource(useCallback(() => fetchAcledEvents(viewMode), [viewMode]), {
-        cacheKey: `map:acled:${viewMode}`,
+    const acledResource = useLiveResource(useCallback(() => fetchAcledEvents(queryTheater), [queryTheater]), {
+        cacheKey: `map:acled:${queryTheater}`,
         enabled: activeLayers.includes('conflicts'),
         intervalMs: 60 * 60 * 1000,
         isUsable: hasFeatureData

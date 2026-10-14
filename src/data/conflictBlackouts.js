@@ -184,9 +184,10 @@ export const CONFLICT_BLACKOUT_ZONES = [
 ];
 
 export const getConflictBlackoutsGeoJson = (theater = 'all') => {
-    const filtered = theater === 'all'
+    const isMe = ['middleeast', 'litani', 'gaza', 'redsea', 'hormuz'].includes(theater);
+    const filtered = (theater === 'all' || theater === 'global')
         ? CONFLICT_BLACKOUT_ZONES
-        : CONFLICT_BLACKOUT_ZONES.filter(z => z.theater === theater || z.theater === 'all');
+        : CONFLICT_BLACKOUT_ZONES.filter(z => isMe ? z.theater === 'middleeast' : (z.theater === theater || z.theater === 'all'));
 
     const features = [];
 

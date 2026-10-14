@@ -29,10 +29,9 @@ import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
 
 const DASHBOARD_VERSION = 'v8.4';
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'flights', 'vessels', 'eo-nightlights'];
-// global.nonarkara.org is the world-scope console: open on the Global theater
-// (the flagship Middle East view lives at globalmonitor.nonarkara.org).
-const DEFAULT_THEATER = 'global';
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'range-rings', 'military', 'flights', 'vessels', 'eo-nightlights'];
+// Middle East Tactical Kinetic War Room — opens directly on the Levant & Gulf theater
+const DEFAULT_THEATER = 'middleeast';
 const DEFAULT_VIEW_TARGET = { ...REGION_VIEW_STATES[DEFAULT_THEATER] };
 // Desktop opens with the intel column + market strip docked; phones keep the
 // map as hero and reach the same panels through the drawer tabs.
@@ -233,10 +232,10 @@ function App() {
           <div className="header-status">
             <div className="header-title-lockup">
               <span className="header-title">
-                Global Political Dashboard
+                Middle East War Room // Levant & Gulf Command
               </span>
               <span className="header-subtitle">
-                {formatDayCount()}
+                Kinetic Radar Vectors, VIIRS Grid Blackouts & Multi-Front Operations · {formatDayCount()} · {DASHBOARD_VERSION}
               </span>
             </div>
             <ErrorBoundary inline label="Escalation">
@@ -457,7 +456,7 @@ function App() {
                   onClose={() => setSelectedEvent(null)}
                 />
               )}
-              {viewMode === 'middleeast' && (
+              {(['middleeast', 'litani', 'gaza', 'redsea', 'hormuz'].includes(viewMode)) && (
                 <>
                   <ErrorBoundary inline label="Iran War Theater">
                     <LazyPanel name="IranWarPanel" activeSourceIds={activeSources} viewMode={viewMode} />
@@ -590,7 +589,7 @@ function App() {
               <ErrorBoundary inline label="Market Radar">
                 <LazyPanel name="MarketRadarPanel" viewMode={viewMode} />
               </ErrorBoundary>
-              {viewMode === 'middleeast' && (
+              {(['middleeast', 'litani', 'gaza', 'redsea', 'hormuz'].includes(viewMode)) && (
                 <>
                   {/* Row 1: Economics & Markets */}
                   <ErrorBoundary inline label="Oil Price Chart">
@@ -742,7 +741,7 @@ function App() {
         </ErrorBoundary>
 
         {/* Time Machine — date slider for historical data */}
-        {viewMode === 'middleeast' && (
+        {(['middleeast', 'litani', 'gaza', 'redsea', 'hormuz'].includes(viewMode)) && (
           <ErrorBoundary inline label="Time Machine">
             <LazyPanel name="TimeMachine" onDateChange={setTimeMachineDate} />
           </ErrorBoundary>
