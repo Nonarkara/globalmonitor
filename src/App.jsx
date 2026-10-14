@@ -34,7 +34,7 @@ const DASHBOARD_VERSION = 'v8.5';
 // Both were toned down in eoTiles.js so live traffic still reads through them;
 // aerosol at its old 0.55 buried the aircraft entirely, which is why it had been
 // pulled from this list rather than dimmed.
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'eo-aerosol', 'eo-nightlights'];
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'eo-aerosol', 'eo-nightlights'];
 // Derived from the region registry rather than hardcoded, so the opening camera
 // can never drift away from the opening theater again (it was pinned to the Gulf
 // while the default tab said Southeast Asia).
