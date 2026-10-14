@@ -522,6 +522,11 @@ function App() {
                   <ErrorBoundary inline label="Energy & Oil Impact">
                     <LazyPanel name="IntelligencePanel" panelKey={`energyMarkets:${sourceSetKey}`} briefingId="energyMarkets" activeSourceIds={activeSources} viewMode={viewMode} />
                   </ErrorBoundary>
+                  <ErrorBoundary inline label="Gulf & Middle East News">
+                    <LazyPanel name="CountryNewsPanel" mode="middleeast"
+                      selectedCode={selectedCountryCode}
+                      onSelect={setSelectedCountryCode} />
+                  </ErrorBoundary>
                   <ErrorBoundary inline label="Regional Headlines">
                     <LazyPanel name="RegionalNewsPanel" regionName="Middle East" title="Regional Headlines" activeSourceIds={activeSources} viewMode={viewMode} />
                   </ErrorBoundary>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Rss, RefreshCw, Zap, Cpu } from 'lucide-react';
-import { ASEAN_COUNTRIES, THAILAND_REGIONS } from '../data/regions.js';
+import { ASEAN_COUNTRIES, THAILAND_REGIONS, MIDDLE_EAST_COUNTRIES } from '../data/regions.js';
 import { fetchBackendJson } from '../services/backendClient.js';
 import { useLiveResource } from '../hooks/useLiveResource';
 
@@ -48,7 +48,11 @@ const resolveBadge = ({ data, status, isStale, isSample, error }) => {
  * Click a chip → selects that country → fetches its news. Auto-refreshes every 5 min.
  */
 const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
-    const items = mode === 'thailand' ? THAILAND_REGIONS : ASEAN_COUNTRIES;
+    const items = mode === 'thailand'
+        ? THAILAND_REGIONS
+        : mode === 'middleeast' || mode === 'gulf' || mode === 'mideast'
+            ? MIDDLE_EAST_COUNTRIES
+            : ASEAN_COUNTRIES;
     const codeKey = 'code';
 
     const fallbackCode = items[0]?.[codeKey];
@@ -76,7 +80,11 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
 const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
     const labelKey = 'name';
     const codeKey = 'code';
-    const title = mode === 'thailand' ? 'Thailand Regions' : 'ASEAN Countries';
+    const title = mode === 'thailand'
+        ? 'Thailand Regions'
+        : (mode === 'middleeast' || mode === 'gulf' || mode === 'mideast')
+            ? 'Gulf & Middle East'
+            : 'ASEAN Countries';
     const activeChipRef = useRef(null);
 
     const fetcher = useCallback(

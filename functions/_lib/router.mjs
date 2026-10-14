@@ -156,14 +156,23 @@ export async function handleApiRequest(request, env, next) {
             if (!code) {
                 return jsonResponse({ error: 'Missing required ?code param' }, 400);
             }
+            // An empty items array is a real answer during a quiet news cycle,
+            // not a 500.  The loader always returns { items, status } so we
+            // accept any well-shaped payload and let the panel decide whether
+            // the count is meaningful — keeps the UI live during fast-breaking
+            // events (Houthi strikes, etc.) even when feeds throttled.
             const result = await useCached(
                 `regional-news:${region}:${code}`,
                 5 * 60 * 1000,
                 () => ingestRegionalNews(region, code),
-                (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+                (payload) => payload && Array.isArray(payload.items) && typeof payload.status === 'string'
             );
             recordHealth('regional-news', !!result.payload?.items?.length, result.payload?.status || null);
-            return jsonResponse(result.payload, 200, result.meta);
+            const meta = {
+                ...result.meta,
+                status: result.payload?.items?.length ? 'live' : 'stale'
+            };
+            return jsonResponse(result.payload, 200, meta);
         }
 
         if (url.pathname === '/api/firms') {

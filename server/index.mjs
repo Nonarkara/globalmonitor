@@ -256,7 +256,7 @@ const server = http.createServer(async (request, response) => {
         }
 
         // Regional country news — backed by Supabase when configured.
-        // ?region=indopacific|thailand&code=TH (or BKK / VN / SG / etc.)
+        // ?region=indopacific|thailand|middleeast&code=TH (or BKK / SA / etc.)
         if (url.pathname === '/api/regional-news') {
             const region = url.searchParams.get('region') || 'indopacific';
             const code = (url.searchParams.get('code') || '').toUpperCase();
@@ -264,14 +264,20 @@ const server = http.createServer(async (request, response) => {
                 json(response, 400, { error: 'Missing required ?code param' });
                 return;
             }
+            // Empty items is a real answer, not a 500. Loader always returns
+            // { items, status }, so we accept any well-shaped payload and let
+            // the header reflect 'live' vs 'stale' based on item count.
             const result = await useCached(
                 `regional-news:${region}:${code}`,
                 5 * 60 * 1000,
                 () => ingestRegionalNews(region, code),
-                (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+                (payload) => payload && Array.isArray(payload.items) && typeof payload.status === 'string'
             );
             recordHealth('regional-news', !!result.payload?.items?.length, result.payload?.status || null);
-            json(response, 200, result.payload, result.meta);
+            json(response, 200, result.payload, {
+                ...result.meta,
+                status: result.payload?.items?.length ? 'live' : 'stale'
+            });
             return;
         }
 

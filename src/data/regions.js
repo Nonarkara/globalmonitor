@@ -128,6 +128,50 @@ export const SOUTH_ASIA_DOTS_GEOJSON = {
 };
 
 // ---------------------------------------------------------------------------
+// Middle East / Gulf — capitals rendered as dots on the Gulf Lifeline map.
+// Order is war-theater first (SA, YE, IR, IL), then the rest of the region.
+// This is what surfaces the Houthi / Saudi / Iran story on the map and
+// drives the per-country news panel.
+// ---------------------------------------------------------------------------
+
+export const MIDDLE_EAST_COUNTRIES = [
+    { code: 'SA', name: 'Saudi Arabia',      capital: 'Riyadh',    lng:  46.6753, lat:  24.7136 },
+    { code: 'YE', name: 'Yemen',            capital: "Sana'a",    lng:  44.2067, lat:  15.3694 },
+    { code: 'IR', name: 'Iran',             capital: 'Tehran',    lng:  51.3890, lat:  35.6892 },
+    { code: 'IL', name: 'Israel',           capital: 'Jerusalem', lng:  35.2137, lat:  31.7683 },
+    { code: 'PS', name: 'Palestine',        capital: 'Ramallah',  lng:  35.1939, lat:  31.9038 },
+    { code: 'IQ', name: 'Iraq',             capital: 'Baghdad',   lng:  44.3615, lat:  33.3152 },
+    { code: 'SY', name: 'Syria',            capital: 'Damascus',  lng:  36.2765, lat:  33.5138 },
+    { code: 'LB', name: 'Lebanon',          capital: 'Beirut',    lng:  35.5018, lat:  33.8938 },
+    { code: 'JO', name: 'Jordan',           capital: 'Amman',     lng:  35.9304, lat:  31.9454 },
+    { code: 'EG', name: 'Egypt',            capital: 'Cairo',     lng:  31.2357, lat:  30.0444 },
+    { code: 'OM', name: 'Oman',             capital: 'Muscat',    lng:  58.4059, lat:  23.5859 },
+    { code: 'AE', name: 'United Arab Emirates', capital: 'Abu Dhabi', lng: 54.3773, lat: 24.4539 },
+    { code: 'BH', name: 'Bahrain',          capital: 'Manama',    lng:  50.5860, lat:  26.2285 },
+    { code: 'KW', name: 'Kuwait',           capital: 'Kuwait City', lng: 47.9774, lat: 29.3759 },
+    { code: 'QA', name: 'Qatar',            capital: 'Doha',      lng:  51.5310, lat:  25.2854 }
+];
+
+export const MIDDLE_EAST_DOTS_GEOJSON = {
+    type: 'FeatureCollection',
+    features: MIDDLE_EAST_COUNTRIES.map((c) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [c.lng, c.lat] },
+        properties: {
+            id: `mideast-${c.code}`,
+            kind: 'middleeast-country',
+            country: c.name,
+            countryCode: c.code,
+            capital: c.capital,
+            // SA, YE, IR, IL are the war-theater core — warm amber to read as
+            // 'hot' at a glance.  Surrounding states get a calmer cyan.
+            color: ['SA', 'YE', 'IR', 'IL'].includes(c.code) ? '#fb923c' : '#facc15',
+            label: c.name.toUpperCase()
+        }
+    }))
+};
+
+// ---------------------------------------------------------------------------
 // Thailand provinces / regions — six economic-region anchors plus Bangkok
 // for the Thailand-only view.
 // ---------------------------------------------------------------------------
@@ -391,7 +435,7 @@ export const REGIONS = {
         id: 'middleeast',
         label: 'Gulf Lifeline',
         viewState: REGION_VIEW_STATES.middleeast,
-        dots: null,
+        dots: MIDDLE_EAST_DOTS_GEOJSON,
         channels: TV_CHANNELS_MIDDLEEAST
     }
 };
