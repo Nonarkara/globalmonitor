@@ -154,14 +154,19 @@ export async function handleApiRequest(request, env, next) {
             if (!code) {
                 return jsonResponse({ error: 'Missing required ?code param' }, 400);
             }
+            // Empty items is a real answer, not a 500. Loader always returns
+            // { items, status } so we accept any well-shaped payload.
             const result = await useCached(
                 `regional-news:${region}:${code}`,
                 5 * 60 * 1000,
                 () => ingestRegionalNews(region, code),
-                (payload) => Array.isArray(payload?.items) && payload.items.length > 0
+                (payload) => payload && Array.isArray(payload.items) && typeof payload.status === 'string'
             );
             recordHealth('regional-news', !!result.payload?.items?.length, result.payload?.status || null);
-            return jsonResponse(result.payload, 200, result.meta);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                status: result.payload?.items?.length ? 'live' : 'stale'
+            });
         }
 
         if (url.pathname === '/api/firms') {
