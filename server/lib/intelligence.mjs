@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
     BRIEFING_DEFINITIONS,
     DEFAULT_SOURCE_IDS,
@@ -8,6 +7,14 @@ import {
 } from '../../src/services/liveNews.js';
 
 const FEED_JSON_FALLBACK = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+// A User-Agent is required by most publishers' CDNs and by Google News
+// search — without one, the request looks like a script and gets 403/503.
+// Same identity the regional-news fetcher uses so publisher ACLs can
+// whitelist this once.
+const FEED_USER_AGENT = 'DNGWS/1.0 (Intelligence Monitor; +https://github.com/Nonarkara/tech-monitor)';
+const FEED_TIMEOUT_MS = 15000;
+const FALLBACK_TIMEOUT_MS = 12000;
 
 // RSS titles arrive HTML-escaped (Yemen&#039;s, Al Jazeera &#8211; …). Decode
 // once here so no panel has to remember to.
@@ -208,18 +215,22 @@ const parseXmlFeed = (xml, source) => {
 const fetchFeedItems = async (source) => {
     // Primary: fetch RSS directly (server-side, no CORS issue)
     try {
-        const response = await axios.get(source.url, {
-            timeout: 15000,
-            maxRedirects: 5,
+        const response = await fetch(source.url, {
+            signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
+            redirect: 'follow',
             headers: {
                 'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
-                'User-Agent': 'DNGWS/1.0 (Intelligence Monitor; +https://github.com/Nonarkara/tech-monitor)',
-            },
-            responseType: 'text'
+                'User-Agent': FEED_USER_AGENT
+            }
         });
-        if (typeof response.data === 'string' && response.data.includes('<')) {
-            const parsed = parseXmlFeed(response.data, source);
-            if (parsed.length > 0) return parsed;
+        if (response.ok) {
+            const xml = await response.text();
+            if (typeof xml === 'string' && xml.includes('<')) {
+                const parsed = parseXmlFeed(xml, source);
+                if (parsed.length > 0) return parsed;
+            }
+        } else {
+            console.error(`[FEED] ${source.id} primary failed: HTTP ${response.status}`);
         }
     } catch (err) {
         console.error(`[FEED] ${source.id} primary failed: ${err.message}`);
@@ -227,8 +238,15 @@ const fetchFeedItems = async (source) => {
 
     // Fallback: rss2json
     try {
-        const response = await axios.get(`${FEED_JSON_FALLBACK}${encodeURIComponent(source.url)}`, { timeout: 12000 });
-        return parseJsonFallback(response.data, source);
+        const response = await fetch(`${FEED_JSON_FALLBACK}${encodeURIComponent(source.url)}`, {
+            signal: AbortSignal.timeout(FALLBACK_TIMEOUT_MS),
+            headers: { 'Accept': 'application/json', 'User-Agent': FEED_USER_AGENT }
+        });
+        if (response.ok) {
+            return parseJsonFallback(await response.json(), source);
+        }
+        console.error(`[FEED] ${source.id} rss2json fallback failed: HTTP ${response.status}`);
+        return [];
     } catch (err) {
         console.error(`[FEED] ${source.id} rss2json fallback failed: ${err.message}`);
         return [];
