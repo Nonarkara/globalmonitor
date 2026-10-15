@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci || npm install
       - name: Refresh AIS snapshot (optional — needs AISSTREAM_API_KEY secret)
         run: npm run refresh:ais

@@ -4,7 +4,7 @@ This is an independent digital-economy and geopolitical OSINT map — **not** a 
 
 ## Run it
 
-Requires **Node 20** and npm. No private endpoints are required.
+Requires **Node 22.12+** and npm. No private endpoints are required.
 
 ```bash
 git clone https://github.com/Nonarkara/globalmonitor.git

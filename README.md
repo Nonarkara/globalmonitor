@@ -56,7 +56,9 @@ Longer architecture, source list, and Cloudflare caveats: [`docs/HOW-IT-WORKS.md
 
 ## 5. How to run / fork
 
-Requires **Node 20** (CI and Docker) and npm. No private endpoints are required.
+Requires **Node 22.12+** and npm, matching the locked frontend/dependency requirements.
+`.nvmrc` selects Node 22 for local development. Node 20 is not supported by the locked MapLibre dependency.
+No private endpoints are required.
 
 ```bash
 git clone https://github.com/Nonarkara/globalmonitor.git
