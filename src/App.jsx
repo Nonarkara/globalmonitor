@@ -6,7 +6,7 @@ import SettingsModal from './components/SettingsModal';
 import WebAppInstall from './components/WebAppInstall';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
-import { REGIONS, getRegion, DEFAULT_THEATER } from './data/regions';
+import { REGIONS, DEFAULT_THEATER } from './data/regions';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { useLiveResource } from './hooks/useLiveResource';
 import { Settings, RefreshCw, Network, Database, FileText, Printer, Info, Menu, ChevronDown } from 'lucide-react';
@@ -39,7 +39,7 @@ const withTheaterLayers = (layers, theater) =>
 
 function App() {
   // Map is the hero: operational traffic + conflict/heat + kinetic animations & nightlights at first paint.
-  const [activeLayers, setActiveLayers] = useState(() => withTheaterLayers(['conflicts', 'firms', 'kinetic', 'blackouts', 'flights', 'vessels', 'eo-nightlights'], DEFAULT_THEATER));
+  const [activeLayers, setActiveLayers] = useState(() => withTheaterLayers(['conflicts', 'outages', 'firms', 'kinetic', 'blackouts', 'flights', 'vessels', 'eo-nightlights'], DEFAULT_THEATER));
   const [mapStyle, setMapStyle] = useState('light');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Region nav: 'middleeast' | 'indopacific' | 'thailand' | 'global'.
@@ -108,7 +108,7 @@ function App() {
   }, []);
 
   const resetCoreLayers = useCallback(() => {
-    setActiveLayers(['conflicts', 'firms', 'flights', 'vessels']);
+    setActiveLayers(['conflicts', 'outages', 'firms', 'flights', 'vessels']);
     logActivity(LOG_TYPES.USER_ACTION, 'Core operational map layers restored');
   }, []);
 

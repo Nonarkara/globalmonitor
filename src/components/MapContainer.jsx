@@ -24,6 +24,8 @@ import { getConflictBlackoutsGeoJson } from '../data/conflictBlackouts.js';
 import { getKineticTrajectoriesGeoJson, generateKineticPulsesGeoJson } from '../data/conflictKineticAnimations.js';
 import { fetchWind } from '../services/wind';
 import { windArrows } from '../utils/windArrows';
+import { fetchOutages } from '../services/outages';
+import { outagesByCountry } from '../utils/outagesByCountry';
 import { getRegion, REGION_MAX_BOUNDS, REGION_MIN_ZOOM, REGION_MAX_ZOOM, REGION_FIT_BOUNDS } from '../data/regions.js';
 import { setFlightCount } from '../services/flightCountBus.js';
 import { setVesselCount } from '../services/vesselCountBus.js';
@@ -661,6 +663,7 @@ const MapContainer = ({
                 || f.layer?.id === 'flood-stations-alert' || f.layer?.id === 'flood-stations-all'
                 || f.layer?.id === 'blackout-center-core' || f.layer?.id === 'blackout-zones-fill'
                 || f.layer?.id === 'kinetic-targets-core' || f.layer?.id === 'kinetic-pulses-centers' || f.layer?.id === 'kinetic-trajectories-line'
+                || f.layer?.id === 'outages-ring'
         );
         if (feature) {
             const [longitude, latitude] = feature.geometry?.coordinates || [];
@@ -717,6 +720,14 @@ const MapContainer = ({
         isUsable: hasFeatureData
     });
     const windArrowData = useMemo(() => windArrows(windResource.data), [windResource.data]);
+    const outagesResource = useLiveResource(useCallback(() => fetchOutages(), []), {
+        cacheKey: 'map:outages',
+        enabled: activeLayers.includes('outages'),
+        intervalMs: 30 * 60 * 1000,
+        isUsable: (d) => Array.isArray(d?.features)
+    });
+    const outagePoints = useMemo(() => outagesByCountry(outagesResource.data), [outagesResource.data]);
+    const outagesMeta = outagesResource.data?.meta;
     const infraResource = useLiveResource(useCallback(() => fetchInfrastructure(), []), {
         cacheKey: 'map:infrastructure',
         enabled: activeLayers.includes('infrastructure'),
@@ -938,7 +949,8 @@ const MapContainer = ({
                 onMouseLeave={handleMouseLeave}
                 interactiveLayerIds={[
                     'flights-icons', 'vessels-icons', 'airports-points', 'flood-stations-alert', 'flood-stations-all',
-                    'blackout-center-core', 'blackout-zones-fill', 'kinetic-targets-core', 'kinetic-pulses-centers', 'kinetic-trajectories-line'
+                    'blackout-center-core', 'blackout-zones-fill', 'kinetic-targets-core', 'kinetic-pulses-centers', 'kinetic-trajectories-line',
+                    'outages-ring'
                 ]}
                 style={{ width: '100%', height: '100%' }}
                 mapStyle={MAP_STYLES[mapStyle] || MAP_STYLES.dark}
@@ -1661,6 +1673,54 @@ const MapContainer = ({
                     </>
                 )}
 
+                {/* Drawn above the blackout and kinetic layers on purpose: those are
+                    hand-placed, these are measured, and at a shared point (Iran's
+                    centre) the measured one must win the hover.
+                    Internet outages, Cloudflare Radar. Red = someone cut it (military
+                    action or government order); warm grey = it broke (cable, power,
+                    weather, earthquake). Solid = still ongoing; ring = ended within the
+                    28-day window. One point per country, sized by how many times. */}
+                {activeLayers.includes('outages') && outagePoints.features.length > 0 && (
+                    <Source id="outages" type="geojson" data={outagePoints}>
+                        <Layer
+                            id="outages-ring"
+                            type="circle"
+                            paint={{
+                                'circle-radius': ['interpolate', ['linear'], ['get', 'count'], 1, 9, 6, 15],
+                                'circle-color': 'rgba(0,0,0,0)',
+                                'circle-stroke-width': 1.5,
+                                'circle-stroke-color': ['case', ['get', 'deliberate'], '#a23a26', '#5c5650'],
+                                'circle-stroke-opacity': ['case', ['get', 'ongoing'], 0.95, 0.6],
+                            }}
+                        />
+                        <Layer
+                            id="outages-core"
+                            type="circle"
+                            paint={{
+                                'circle-radius': ['interpolate', ['linear'], ['get', 'count'], 1, 4, 6, 7],
+                                'circle-color': ['case', ['get', 'deliberate'], '#a23a26', '#5c5650'],
+                                'circle-opacity': ['case', ['get', 'ongoing'], 0.95, 0],
+                            }}
+                        />
+                        <Layer
+                            id="outages-count"
+                            type="symbol"
+                            filter={['>', ['get', 'count'], 1]}
+                            layout={{
+                                'text-field': ['concat', '×', ['to-string', ['get', 'count']]],
+                                'text-size': 10,
+                                'text-offset': [1.4, -1.1],
+                                'text-allow-overlap': true,
+                            }}
+                            paint={{
+                                'text-color': ['case', ['get', 'deliberate'], '#a23a26', '#5c5650'],
+                                'text-halo-color': 'rgba(255,255,255,0.85)',
+                                'text-halo-width': 1,
+                            }}
+                        />
+                    </Source>
+                )}
+
                 {/* Vessel path vectors — heading look-ahead, drawn under the position dots */}
                 {vesselsLayerActive && vesselPaths?.features?.length > 0 && (
                     <Source id="vessel-paths" type="geojson" data={vesselPaths}>
@@ -1863,6 +1923,29 @@ const MapContainer = ({
                         {(() => {
                             const p = hoverInfo.feature.properties || {};
                             const layerId = hoverInfo.feature.layer?.id;
+                            if (layerId === 'outages-ring') {
+                                const day = (d) => (d ? String(d).slice(0, 10) : '');
+                                return (
+                                    <div className="traffic-tooltip-content">
+                                        <div className="traffic-tooltip-header" style={{ color: p.deliberate ? '#a23a26' : undefined }}>
+                                            {p.country} · internet {p.ongoing ? 'outage, ongoing' : 'outage'}
+                                        </div>
+                                        <div className="traffic-tooltip-row"><span>Cause</span><span>{p.cause}{p.scope ? ` · ${String(p.scope).toLowerCase()}` : ''}</span></div>
+                                        <div className="traffic-tooltip-row"><span>When</span><span>{p.ongoing ? `since ${day(p.startDate)}` : `${day(p.startDate)} → ${day(p.endDate)}`}</span></div>
+                                        {p.description && (
+                                            <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                                                <span>{p.description}</span>
+                                            </div>
+                                        )}
+                                        {p.networks && <div className="traffic-tooltip-row"><span>Networks</span><span>{p.networks}</span></div>}
+                                        {Number(p.count) > 1 && <div className="traffic-tooltip-row"><span>Past 28 days</span><span>{p.count} outages</span></div>}
+                                        <div className="traffic-tooltip-row">
+                                            <span>Source</span>
+                                            <span>Cloudflare Radar{p.placedBy === 'description' ? ' · placed from its description' : ''}</span>
+                                        </div>
+                                    </div>
+                                );
+                            }
                             if (layerId === 'blackout-center-core' || layerId === 'blackout-zones-fill') {
                                 return (
                                     <div className="traffic-tooltip-content">
@@ -2181,6 +2264,17 @@ const MapContainer = ({
                     <div className="map-legend-item">
                         <span className="map-legend-line" style={{ background: firmsLive ? 'var(--red)' : '#d2cfc5' }} />
                         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{firmsSourceLabel}</span>
+                    </div>
+                )}
+                {activeLayers.includes('outages') && (
+                    <div className="map-legend-item">
+                        <span className="map-legend-line" style={{ background: '#a23a26' }} />
+                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                            {outagesMeta?.source === 'cloudflare-radar'
+                                ? `${outagesMeta.count} internet outages · 28 days · ${outagesMeta.ongoing} ongoing · Cloudflare Radar`
+                                : outagesMeta?.source === 'no_radar_key' ? 'Internet outages: Cloudflare Radar token not set'
+                                    : outagesResource.isLoading ? 'Loading outages…' : 'Internet outages: no data'}
+                        </span>
                     </div>
                 )}
                 {activeLayers.includes('wind') && (

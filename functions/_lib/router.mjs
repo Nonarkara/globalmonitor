@@ -22,6 +22,7 @@ import { computeFrontStatus } from '../../server/lib/frontStatus.mjs';
 import { fetchNgaWarnings } from '../../server/lib/ngaWarnings.mjs';
 import { fetchUsgsQuakes } from '../../server/lib/usgsQuakes.mjs';
 import { fetchWindField } from '../../server/lib/windField.mjs';
+import { fetchRadarOutages } from '../../server/lib/radarOutages.mjs';
 import { fetchAcledEvents } from '../../server/lib/acled.mjs';
 import { fetchOilPriceTimeline } from '../../server/lib/eia.mjs';
 import { searchStacScenes } from '../../server/lib/stacCatalog.mjs';
@@ -287,6 +288,19 @@ export async function handleApiRequest(request, env, next) {
                     { status: 'error', updatedAt: new Date().toISOString(), cache: 'miss' }
                 );
             }
+        }
+
+        if (url.pathname === '/api/outages') {
+            // Radar annotations are confirmed by analysts over hours, not seconds;
+            // 30 minutes keeps a new outage visible the same morning.
+            const result = await useCached(
+                'outages',
+                30 * 60 * 1000,
+                () => fetchRadarOutages(),
+                (p) => Array.isArray(p?.features)
+            );
+            recordHealth('outages', result.payload?.meta?.source === 'cloudflare-radar', result.payload?.meta?.note || null, result.payload?.meta?.source);
+            return jsonResponse(result.payload, 200, result.meta);
         }
 
         if (url.pathname === '/api/wind') {
