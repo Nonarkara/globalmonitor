@@ -423,13 +423,11 @@ const OSM_RASTER_STYLE = {
             // tiles across them. Mixing OSM/Esri in here painted a patchwork of three
             // different maps. Voyager a/b/c only.
             tiles: [
-                'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             ],
             tileSize: 256,
             maxzoom: 19,
-            attribution: '© CARTO © OpenStreetMap',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         },
     },
     layers: [
