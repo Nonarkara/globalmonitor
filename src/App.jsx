@@ -6,7 +6,6 @@ import SettingsModal from './components/SettingsModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getDefaultSourceIdsForRegion } from './services/liveNews';
 import { REGIONS, REGION_VIEW_STATES } from './data/regions';
-import { formatDayCount } from './data/warConstants';
 import { fetchCopernicusPreview } from './services/copernicus';
 import { fetchAlphaEarthForRegion } from './services/alphaearth';
 import { useLiveResource } from './hooks/useLiveResource';
