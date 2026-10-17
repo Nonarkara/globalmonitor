@@ -2,10 +2,42 @@
  * EIA (Energy Information Administration) — oil price & production data.
  * Free API: https://api.eia.gov/v2/
  * Historical data back to 1990. Perfect for time machine feature.
+ *
+ * Fallback: Yahoo Finance chart endpoint for daily Brent/WTI (last 6 months
+ * by default). Lets the war dashboard show current crude prices when EIA
+ * key is unset, instead of the 7-month-stale curated series.
  */
 import axios from 'axios';
 
 const EIA_BASE = 'https://api.eia.gov/v2';
+const YAHOO_CHART = 'https://query1.finance.yahoo.com/v8/finance/chart';
+
+const YAHOO_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Accept': 'application/json'
+};
+
+const fetchYahooHistory = async (symbolEncoded, range = '6mo', interval = '1d') => {
+    const response = await axios.get(`${YAHOO_CHART}/${symbolEncoded}?interval=${interval}&range=${range}`, {
+        timeout: 15000,
+        headers: YAHOO_HEADERS
+    });
+    const result = response.data?.chart?.result?.[0];
+    if (!result?.timestamp || !result?.indicators?.quote?.[0]?.close) {
+        throw new Error('Yahoo: empty history');
+    }
+    const ts = result.timestamp;
+    const closes = result.indicators.quote[0].close;
+    const series = [];
+    for (let i = 0; i < ts.length; i += 1) {
+        const close = closes[i];
+        if (typeof close !== 'number' || !Number.isFinite(close)) continue;
+        const date = new Date(ts[i] * 1000).toISOString().slice(0, 10);
+        series.push({ date, price: close });
+    }
+    if (!series.length) throw new Error('Yahoo: no valid points');
+    return series;
+};
 
 /**
  * Fetch daily Brent & WTI crude oil spot prices.
@@ -17,50 +49,65 @@ export const fetchOilPriceTimeline = async (options = {}) => {
         daysBack = 90
     } = options;
 
-    // If no API key, return curated war-period oil prices
-    if (!key) {
-        return buildFallbackOilPrices();
+    // Live path: EIA with API key (free, official, historical depth).
+    if (key) {
+        const since = new Date(Date.now() - daysBack * 86400000).toISOString().slice(0, 10);
+        try {
+            const [brent, wti] = await Promise.all([
+                axios.get(`${EIA_BASE}/petroleum/pri/spt/data`, {
+                    params: {
+                        api_key: key,
+                        frequency: 'daily',
+                        'data[0]': 'value',
+                        'facets[series][]': 'RBRTE',
+                        start: since,
+                        sort: '[{"column":"period","direction":"asc"}]'
+                    },
+                    timeout: 10000
+                }),
+                axios.get(`${EIA_BASE}/petroleum/pri/spt/data`, {
+                    params: {
+                        api_key: key,
+                        frequency: 'daily',
+                        'data[0]': 'value',
+                        'facets[series][]': 'RWTC',
+                        start: since,
+                        sort: '[{"column":"period","direction":"asc"}]'
+                    },
+                    timeout: 10000
+                })
+            ]);
+            const brentData = brent.data?.response?.data || [];
+            const wtiData = wti.data?.response?.data || [];
+            if (brentData.length || wtiData.length) {
+                return {
+                    brent: brentData.map(d => ({ date: d.period, price: parseFloat(d.value) })),
+                    wti: wtiData.map(d => ({ date: d.period, price: parseFloat(d.value) })),
+                    source: 'eia',
+                    updatedAt: new Date().toISOString()
+                };
+            }
+            // Both empty — fall through to Yahoo.
+        } catch (err) {
+            console.warn('[EIA] API fetch failed, falling back to Yahoo:', err.message);
+        }
     }
 
-    const since = new Date(Date.now() - daysBack * 86400000).toISOString().slice(0, 10);
-
+    // Live path: Yahoo Finance daily history. No key needed; same source the
+    // market panel uses, so Brent / WTI agree across the dashboard.
     try {
         const [brent, wti] = await Promise.all([
-            axios.get(`${EIA_BASE}/petroleum/pri/spt/data`, {
-                params: {
-                    api_key: key,
-                    frequency: 'daily',
-                    'data[0]': 'value',
-                    'facets[series][]': 'RBRTE',  // Brent spot
-                    start: since,
-                    sort: '[{"column":"period","direction":"asc"}]'
-                },
-                timeout: 10000
-            }),
-            axios.get(`${EIA_BASE}/petroleum/pri/spt/data`, {
-                params: {
-                    api_key: key,
-                    frequency: 'daily',
-                    'data[0]': 'value',
-                    'facets[series][]': 'RWTC',  // WTI spot
-                    start: since,
-                    sort: '[{"column":"period","direction":"asc"}]'
-                },
-                timeout: 10000
-            })
+            fetchYahooHistory('BZ%3DF', '6mo', '1d'),
+            fetchYahooHistory('CL%3DF', '6mo', '1d')
         ]);
-
-        const brentData = brent.data?.response?.data || [];
-        const wtiData = wti.data?.response?.data || [];
-
         return {
-            brent: brentData.map(d => ({ date: d.period, price: parseFloat(d.value) })),
-            wti: wtiData.map(d => ({ date: d.period, price: parseFloat(d.value) })),
-            source: 'eia',
+            brent,
+            wti,
+            source: 'yahoo-finance',
             updatedAt: new Date().toISOString()
         };
     } catch (err) {
-        console.warn('[EIA] API fetch failed, using fallback:', err.message);
+        console.warn('[OIL] Yahoo fetch failed, using curated series:', err.message);
         return buildFallbackOilPrices();
     }
 };
