@@ -18,11 +18,16 @@ const YAHOO_HEADERS = {
 };
 
 const fetchYahooHistory = async (symbolEncoded, range = '6mo', interval = '1d') => {
-    const response = await axios.get(`${YAHOO_CHART}/${symbolEncoded}?interval=${interval}&range=${range}`, {
-        timeout: 15000,
+    // Use native fetch — axios in Cloudflare Workers adds a `cache` field to
+    // the RequestInit that this runtime does not implement, and the call
+    // fails before any data returns.
+    const response = await fetch(`${YAHOO_CHART}/${symbolEncoded}?interval=${interval}&range=${range}`, {
+        signal: AbortSignal.timeout(15000),
         headers: YAHOO_HEADERS
     });
-    const result = response.data?.chart?.result?.[0];
+    if (!response.ok) throw new Error(`Yahoo: HTTP ${response.status}`);
+    const payload = await response.json();
+    const result = payload?.chart?.result?.[0];
     if (!result?.timestamp || !result?.indicators?.quote?.[0]?.close) {
         throw new Error('Yahoo: empty history');
     }
@@ -149,3 +154,4 @@ function buildFallbackOilPrices() {
         fetchedAt: asOf
     };
 }
+
