@@ -374,7 +374,7 @@ export async function handleApiRequest(request, env, next) {
 
         if (url.pathname === '/api/oil-prices') {
             const result = await useCached(
-                'oil-prices',
+                'oil-prices:v2',
                 30 * 60 * 1000,
                 () => fetchOilPriceTimeline(),
                 (p) => Array.isArray(p?.brent)
