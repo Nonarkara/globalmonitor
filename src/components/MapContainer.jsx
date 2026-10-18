@@ -32,6 +32,13 @@ import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } f
 import { buildPopupClassName } from '../utils/mapPopup.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
+// Hand-typed demo events must show how old they are, not read as current.
+const acledDemoRange = (features) => {
+    const dates = (features || []).map((f) => f?.properties?.date).filter(Boolean).sort();
+    if (!dates.length) return 'undated';
+    return dates[0] === dates[dates.length - 1] ? dates[0] : `${dates[0]} → ${dates[dates.length - 1]}`;
+};
+
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
 const TRAFFIC_SESSION_MAX_FLIGHTS = 1200;
@@ -967,7 +974,7 @@ const MapContainer = ({
     const acledCount = acledRaw?.features?.length ?? 0;
     const acledSourceLabel = acledLive
         ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
-        : acledCount > 0 ? acledCount + ' events · DEMO — not ACLED'
+        : acledCount > 0 ? acledCount + ' DEMO events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
             : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
     const legendVisible = flightsLayerActive || vesselsLayerActive
         || activeLayers.includes('firms') || activeLayers.includes('conflicts');

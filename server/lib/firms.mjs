@@ -12,7 +12,11 @@
  * "offline", never as calm.
  */
 
-const FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY || '';
+// Read per call, NOT at module load: on Cloudflare Pages the router copies
+// env bindings into process.env on each request, after this module loaded, so
+// a module-level constant stayed '' even with the key set. FIRMS_API_KEY is
+// accepted as an alias for the same NASA MAP_KEY.
+export const firmsKey = () => process.env.FIRMS_MAP_KEY || process.env.FIRMS_API_KEY || '';
 
 const THEATER_BBOX = {
     middleeast: '24,10,65,42',
@@ -61,6 +65,7 @@ export const fetchFirmsPayload = async (theater = 'middleeast') => {
             `No FIRMS bounding box is defined for theater "${theater}".`);
     }
 
+    const FIRMS_MAP_KEY = firmsKey();
     if (!FIRMS_MAP_KEY) {
         return emptyPayload(theater, 'no_firms_key',
             'FIRMS_MAP_KEY is not set. Live NASA VIIRS detections require a key; no sample data is substituted.');
@@ -109,7 +114,7 @@ export const fetchFirmsPayload = async (theater = 'middleeast') => {
                 });
             }
         } catch (err) {
-            console.error(`FIRMS fetch error for ${url}:`, err.message);
+            console.error(`FIRMS fetch error for ${String(url).replace(FIRMS_MAP_KEY, '***')}:`, err.message);
         }
     }
 
