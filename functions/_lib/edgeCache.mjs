@@ -2,82 +2,86 @@
  * Edge cache for /api/* (Cloudflare Cache API, per data centre).
  *
  * The in-memory cache in cache.mjs lives inside one isolate; Pages spins up
- * many isolates, so before this every cold isolate re-hit Yahoo, GDELT,
- * OpenSky, Copernicus... on its first request. Cloudflare has no spend cap on
- * Functions, so a traffic spike (or a client retry loop) multiplied upstream
- * calls and Function CPU. This layer answers repeat requests from the edge
- * cache for a short, per-route TTL, and normalises the cache key to the query
- * parameters each route actually reads — so `?x=<random>` cannot bust it.
+ * many isolates, so every cold isolate re-hit the upstreams on its first
+ * request. Cloudflare has no spend cap on Functions, so a traffic spike (or a
+ * client retry loop) multiplied upstream calls and Function CPU. This layer
+ * answers repeat requests from the edge cache for a short, per-route TTL.
  *
- * Not cached: health/diagnostic routes and routes computed from isolate state
- * (escalation, strike-stats, fronts), and anything that is not a 200.
- * Non-live answers (sample / stale / unconfigured) get a short TTL so a feed
- * that recovers shows up within a minute.
+ * Correctness rules (a shared cache must never hand one request another's
+ * answer):
+ *  - Routes match EXACTLY (or by an explicit `prefix: true` entry), so
+ *    /api/flood never covers /api/flood/directive.
+ *  - Each route lists every query parameter its handler reads (router.mjs /
+ *    the parsers it calls). The key is built from exactly those, read with
+ *    URLSearchParams.get() — the same first-value semantics the handler uses —
+ *    so unknown params (`?x=<random>`) cannot bust the cache, and every param
+ *    that changes the answer is in the key.
+ *  - Simulation / scenario / what-if requests (`bypassIf`) are never edge
+ *    cached; only the plain live default is.
+ *  - Not cached: health/diagnostic routes, routes computed from isolate state
+ *    (escalation, strike-stats, fronts), unlisted routes, and any non-200.
+ *  - Non-live answers (sample / stale / unconfigured) get a short TTL so a feed
+ *    that recovers shows up within a minute.
  */
 
-// path prefix → TTL seconds. First match wins; order specific before general.
-export const EDGE_TTLS = [
-    ['/api/ticker', 180],
-    ['/api/briefings/', 120],
-    ['/api/news-rss', 300],
-    ['/api/regional-news', 300],
-    ['/api/firms', 600],
-    ['/api/humanitarian', 3600],
-    ['/api/infrastructure', 300],
-    ['/api/nga-warnings', 900],
-    ['/api/quakes', 300],
-    ['/api/sentiment', 900],
-    ['/api/flights', 60],
-    ['/api/military-flights', 60],
-    ['/api/vessels', 120],
-    ['/api/rainviewer', 300],
-    ['/api/acled', 3600],
-    ['/api/oil-prices', 1800],
-    ['/api/markets', 60],
-    ['/api/sar', 1800],
-    ['/api/outages', 600],
-    ['/api/wind', 1800],
-    ['/api/jaxa-aerosol', 1800],
-    ['/api/flood', 300],
-    ['/api/oracle', 300],
-    ['/api/stac/search', 1800],
-    ['/api/stac/presets', 86400],
-    ['/api/cog/probe', 3600],
-    ['/api/copernicus/preview', 1200],
-];
+const COPERNICUS_PARAMS = ['theater', 'preset', 'bbox', 'width', 'height', 'maxCloudCoverage', 'lookbackDays', 'from', 'to'];
+
+export const EDGE_ROUTES = {
+    '/api/ticker': { ttl: 180, params: ['sourceIds'] },
+    '/api/briefings/': { ttl: 120, params: ['sourceIds'], prefix: true },
+    '/api/news-rss': { ttl: 300, params: ['q', 'hl'] },
+    '/api/regional-news': { ttl: 300, params: ['region', 'code'] },
+    '/api/firms': { ttl: 600, params: ['theater'] },
+    '/api/humanitarian': { ttl: 3600, params: ['theater'] },
+    '/api/infrastructure': { ttl: 300, params: [] },
+    '/api/nga-warnings': { ttl: 900, params: [] },
+    '/api/quakes': { ttl: 300, params: ['theater'] },
+    '/api/sentiment': { ttl: 900, params: ['theater'] },
+    '/api/flights': { ttl: 60, params: ['theater'] },
+    '/api/vessels': { ttl: 120, params: ['theater'] },
+    '/api/rainviewer': { ttl: 300, params: [] },
+    '/api/acled': { ttl: 3600, params: ['theater', 'since'] },
+    '/api/oil-prices': { ttl: 1800, params: [] },
+    '/api/markets': { ttl: 60, params: [] },
+    '/api/outages': { ttl: 600, params: [] },
+    '/api/wind': { ttl: 1800, params: ['theater'] },
+    '/api/jaxa-aerosol': { ttl: 1800, params: [] },
+    // Live flood ops per city. City is in the key: Chiang Mai ≠ Ayutthaya.
+    '/api/flood': { ttl: 300, params: ['city'] },
+    // Live directive only; any sandbox simulation param bypasses the cache.
+    '/api/flood/directive': { ttl: 300, params: ['city'], bypassIf: ['delta', 'km2', 'pois'] },
+    // Baseline forecast only; scenario / what-if injections bypass the cache.
+    '/api/oracle': { ttl: 300, params: ['theater'], bypassIf: ['scenario', 'escDelta', 'p'] },
+    '/api/stac/search': { ttl: 1800, params: ['bbox', 'datetime', 'maxCloudCover', 'source'] },
+    '/api/stac/presets': { ttl: 86400, params: [] },
+    '/api/cog/probe': { ttl: 3600, params: ['url'] },
+    '/api/copernicus/preview': { ttl: 1200, params: COPERNICUS_PARAMS },
+};
 
 export const NON_LIVE_TTL = 60;
 
-// Query parameters any route reads. Everything else is dropped from the key.
-const KEY_PARAMS = new Set([
-    'sourceIds', 'q', 'hl', 'region', 'code', 'theater', 'since', 'bbox',
-    'datetime', 'maxCloudCover', 'source', 'url', 'limit', 'days', 'lat',
-    'lon', 'zoom', 'width', 'height', 'preset', 'date', 'from', 'to', 'mode',
-    'layer', 'country', 'id',
-]);
-
-// Copernicus / COG previews parse arbitrary option names; keep every param.
-const KEEP_ALL_PARAMS = ['/api/copernicus/preview', '/api/cog/probe'];
-
-export const edgeTtlFor = (pathname) => {
-    for (const [prefix, ttl] of EDGE_TTLS) {
-        if (prefix.endsWith('/')) {
-            if (pathname.startsWith(prefix)) return ttl;
-        } else if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
-            return ttl;
-        }
+export const edgeRouteFor = (pathname) => {
+    const exact = EDGE_ROUTES[pathname];
+    if (exact && !exact.prefix) return exact;
+    for (const [path, route] of Object.entries(EDGE_ROUTES)) {
+        if (route.prefix && pathname.startsWith(path) && pathname.length > path.length) return route;
     }
-    return 0;
+    return null;
 };
 
+export const edgeTtlFor = (pathname) => edgeRouteFor(pathname)?.ttl ?? 0;
+
+/** Cache key for a request, or null when the request must not be edge cached. */
 export const edgeCacheKey = (requestUrl) => {
     const url = new URL(requestUrl);
-    const keepAll = KEEP_ALL_PARAMS.some((p) => url.pathname.startsWith(p));
-    const entries = [...url.searchParams.entries()]
-        .filter(([k]) => keepAll || KEY_PARAMS.has(k))
-        .sort(([a, av], [b, bv]) => (a === b ? av.localeCompare(bv) : a.localeCompare(b)));
+    const route = edgeRouteFor(url.pathname);
+    if (!route) return null;
+    if ((route.bypassIf || []).some((p) => url.searchParams.has(p))) return null;
     const key = new URL(url.origin + url.pathname);
-    for (const [k, v] of entries) key.searchParams.append(k, v);
+    for (const p of [...route.params].sort()) {
+        const v = url.searchParams.get(p);
+        if (v !== null) key.searchParams.set(p, v);
+    }
     return key.toString();
 };
 
@@ -86,10 +90,11 @@ const isLiveStatus = (status) => !status || status === 'live';
 export const withEdgeCache = async (request, handler, { cache, waitUntil } = {}) => {
     const url = new URL(request.url);
     const ttl = request.method === 'GET' ? edgeTtlFor(url.pathname) : 0;
+    const keyUrl = ttl ? edgeCacheKey(request.url) : null;
     const store = cache ?? (typeof caches !== 'undefined' ? caches.default : null);
-    if (!ttl || !store) return handler(request);
+    if (!ttl || !keyUrl || !store) return handler(request);
 
-    const key = new Request(edgeCacheKey(request.url), { method: 'GET' });
+    const key = new Request(keyUrl, { method: 'GET' });
     try {
         const hit = await store.match(key);
         if (hit) {

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import axios from 'axios';
-import { edgeTtlFor, edgeCacheKey, withEdgeCache, NON_LIVE_TTL } from '../functions/_lib/edgeCache.mjs';
+import { edgeTtlFor, edgeCacheKey, withEdgeCache, NON_LIVE_TTL, EDGE_ROUTES } from '../functions/_lib/edgeCache.mjs';
+import fs from 'node:fs';
 import { workerFetchAdapter } from '../functions/_lib/axiosWorkerAdapter.mjs';
 import { acledOr, getAcledToken, resetAcledTokenCache, missingAcledVars } from '../server/lib/acledAuth.mjs';
 
@@ -35,6 +36,70 @@ test('edge cache key ignores unknown params so ?x=random cannot bust it', () => 
     const b = edgeCacheKey('https://x.org/api/regional-news?region=middleeast&code=SA&cb=999');
     assert.equal(a, b);
     assert.notEqual(a, edgeCacheKey('https://x.org/api/regional-news?region=middleeast&code=AE'));
+});
+
+test('flood: city is in the key, and /api/flood does not cover /api/flood/directive', () => {
+    const cm = edgeCacheKey('https://x.org/api/flood?city=chiangmai');
+    const ay = edgeCacheKey('https://x.org/api/flood?city=ayutthaya');
+    assert.ok(cm && ay);
+    assert.notEqual(cm, ay);
+    assert.notEqual(edgeCacheKey('https://x.org/api/flood/directive?city=chiangmai'), cm);
+    assert.equal(edgeTtlFor('/api/flood/directive/extra'), 0);
+    assert.equal(edgeTtlFor('/api/floodx'), 0);
+});
+
+test('flood sandbox simulations are never edge cached; live directive is keyed by city', () => {
+    for (const q of ['delta=1.5', 'delta=1.5&km2=40', 'km2=40', 'pois=a|b', 'delta=0']) {
+        assert.equal(edgeCacheKey(`https://x.org/api/flood/directive?city=chiangmai&${q}`), null, q);
+    }
+    assert.notEqual(
+        edgeCacheKey('https://x.org/api/flood/directive?city=chiangmai'),
+        edgeCacheKey('https://x.org/api/flood/directive?city=ayutthaya'));
+});
+
+test('oracle scenarios / what-ifs are never edge cached; baseline keyed by theater', () => {
+    for (const q of ['scenario=hormuz', 'escDelta=10', 'p=iran:5', 'escDelta=']) {
+        assert.equal(edgeCacheKey(`https://x.org/api/oracle?theater=middleeast&${q}`), null, q);
+    }
+    const me = edgeCacheKey('https://x.org/api/oracle?theater=middleeast');
+    assert.ok(me);
+    assert.notEqual(me, edgeCacheKey('https://x.org/api/oracle?theater=indopacific'));
+});
+
+test('copernicus preview keys every option the parser reads', () => {
+    const base = 'https://x.org/api/copernicus/preview?theater=middleeast';
+    const keys = new Set(['', '&preset=ndvi', '&bbox=1,2,3,4', '&width=512', '&height=512',
+        '&maxCloudCoverage=10', '&lookbackDays=3', '&from=2026-10-01', '&to=2026-10-10']
+        .map((q) => edgeCacheKey(base + q)));
+    assert.equal(keys.size, 9);
+});
+
+test('withEdgeCache: simulation request calls the handler every time and stores nothing', async () => {
+    const cache = fakeCache();
+    let calls = 0;
+    const handler = async () => { calls += 1; return new Response('{}', { status: 200 }); };
+    for (let i = 0; i < 2; i += 1) {
+        const r = await withEdgeCache(new Request('https://x.org/api/flood/directive?city=chiangmai&delta=2'), handler, { cache });
+        assert.equal(r.headers.get('X-Edge-Cache'), null);
+    }
+    assert.equal(calls, 2);
+    assert.equal(cache.m.size, 0);
+});
+
+test('every query param router.mjs reads on a cached route is in that route\'s key (or bypasses it)', () => {
+    const src = fs.readFileSync(new URL('../functions/_lib/router.mjs', import.meta.url), 'utf8');
+    const blocks = src.split(/if \(url\.pathname (?:===|\.startsWith\()\s*/).slice(1);
+    for (const block of blocks) {
+        const path = block.match(/^'([^']+)'/)?.[1];
+        const route = path && EDGE_ROUTES[path];
+        if (!route) continue;
+        const body = block.split(/\n        if \(url\.pathname/)[0];
+        const read = new Set([...body.matchAll(/searchParams\.(?:get|has)\('([^']+)'\)/g)].map((m) => m[1]));
+        if (/parseFloodSimulation\(url\.searchParams\)/.test(body)) ['delta', 'km2', 'pois'].forEach((p) => read.add(p));
+        if (/sourceIds/.test(body)) read.add('sourceIds');
+        const covered = new Set([...route.params, ...(route.bypassIf || [])]);
+        for (const p of read) assert.ok(covered.has(p), `${path} reads ?${p} but it is not in the edge key`);
+    }
 });
 
 test('withEdgeCache: miss then hit; upstream called once', async () => {
