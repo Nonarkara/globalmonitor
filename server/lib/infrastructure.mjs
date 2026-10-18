@@ -9,6 +9,9 @@
  *   'damaged' = confirmed strike damage, 'closed' = not operational,
  *   'intermittent' = periodic closures, 'at_risk' = nearby strikes/threats
  */
+// Date the war-time statuses below were last hand-checked.
+export const INFRA_REGISTRY_AS_OF = '2026-03-29';
+
 const INFRASTRUCTURE_POINTS = [
     { name: 'Ras Laffan LNG', type: 'lng_terminal', coords: [51.53, 25.9], capacity: '77 MTPA', warStatus: 'damaged', warNote: 'Iranian missile damage; force majeure on all LNG exports since Mar 4' },
     { name: 'Kharg Island Terminal', type: 'oil_terminal', coords: [50.33, 29.24], capacity: '5 mbpd', warStatus: 'at_risk', warNote: 'Military sites hit; oil infra spared — Trump threatened future strikes' },
@@ -101,6 +104,11 @@ export const computeInfrastructureStatus = (serverCache) => {
             intermittent: features.filter(f => f.properties.status === 'intermittent').length,
             at_risk: features.filter(f => f.properties.status === 'at_risk').length
         },
-        updatedAt: new Date().toISOString()
+        // Statuses/notes are hand-curated (see header) — the payload says so
+        // and carries the registry date, not the request time.
+        source: 'curated_registry',
+        asOf: INFRA_REGISTRY_AS_OF,
+        updatedAt: `${INFRA_REGISTRY_AS_OF}T00:00:00.000Z`,
+        computedAt: new Date().toISOString()
     };
 };
