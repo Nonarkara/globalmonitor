@@ -787,7 +787,11 @@ const MapContainer = ({
     const kineticTrajectoriesGeoJson = useMemo(() => getKineticTrajectoriesGeoJson(), []);
     const blackoutsGeoJson = useMemo(() => getConflictBlackoutsGeoJson(viewMode), [viewMode]);
 
-    const [pulseGeoJson, setPulseGeoJson] = useState(() => generateKineticPulsesGeoJson(Date.now()));
+    // Initial frame only; the animation below writes straight to the MapLibre
+    // source. Driving it through React state re-rendered this whole component
+    // 25x a second and tripped React's "Maximum update depth exceeded" (#185)
+    // on the Middle East build whenever the kinetic layer was on.
+    const [pulseGeoJson] = useState(() => generateKineticPulsesGeoJson(Date.now()));
     useEffect(() => {
         if (!activeLayers.includes('kinetic')) return;
         let animId;
@@ -795,7 +799,10 @@ const MapContainer = ({
         const animate = (time) => {
             if (time - lastUpdate > 40) {
                 lastUpdate = time;
-                setPulseGeoJson(generateKineticPulsesGeoJson(Date.now()));
+                const source = mapRef.current?.getMap?.()?.getSource?.('kinetic-pulses-data');
+                if (source && typeof source.setData === 'function') {
+                    source.setData(generateKineticPulsesGeoJson(Date.now()));
+                }
             }
             animId = requestAnimationFrame(animate);
         };
