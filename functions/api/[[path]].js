@@ -1,9 +1,14 @@
 import { handleApiRequest } from '../_lib/router.mjs';
+import { withEdgeCache } from '../_lib/edgeCache.mjs';
 
 export async function onRequest(context) {
-    return handleApiRequest(
+    return withEdgeCache(
         context.request,
-        context.env,
-        (request) => context.next(request),
+        (request) => handleApiRequest(
+            request,
+            context.env,
+            (req) => context.next(req),
+        ),
+        { waitUntil: context.waitUntil?.bind(context) },
     );
 }

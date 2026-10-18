@@ -10,6 +10,7 @@
  * separate prod copy — a fix here applies to both. Do not fork this fetcher.
  */
 import axios from 'axios';
+import { ACLED_READ_URL, acledCredentials, acledOr, getAcledToken, missingAcledVars } from './acledAuth.mjs';
 
 // Source label for offline/demo fallback events. Deliberately distinct from
 // 'acled' so the frontend (DataStatus/AcledAnalytics) can badge it as DEMO
@@ -20,7 +21,7 @@ import axios from 'axios';
 // asserts neither string ever returns to this file.
 const DEMO_SOURCE = 'demo_offline_no_acled_key';
 
-const ACLED_BASE = 'https://api.acleddata.com/acled/read';
+const ACLED_BASE = ACLED_READ_URL;
 
 // Theater-specific country lists
 const THEATER_COUNTRIES = {
@@ -52,8 +53,6 @@ const EVENT_TYPES = [
 
 export const fetchAcledEvents = async (options = {}) => {
     const {
-        key = process.env.ACLED_API_KEY,
-        email = process.env.ACLED_EMAIL,
         daysBack = 30,
         since: sinceOverride,
         theater = 'middleeast'
@@ -64,8 +63,10 @@ export const fetchAcledEvents = async (options = {}) => {
     // ACLED requires BOTH a key and the registered email. If either is missing
     // the feed can never go live, so say which one — a misconfiguration must
     // announce itself instead of silently degrading to demo data.
-    if (!key || !email) {
-        const missing = [!key && 'ACLED_API_KEY', !email && 'ACLED_EMAIL'].filter(Boolean).join(' + ');
+    // myACLED OAuth needs the account email AND password (ACLED_EMAIL +
+    // ACLED_PASSWORD). Name what is missing instead of silently degrading.
+    if (!acledCredentials().configured) {
+        const missing = missingAcledVars().join(' + ');
         console.warn(`[ACLED] ${missing} not set — serving labelled demo events, not live intelligence`);
         return buildFallbackEvents(theater);
     }
@@ -73,13 +74,15 @@ export const fetchAcledEvents = async (options = {}) => {
     const since = sinceOverride || new Date(Date.now() - daysBack * 86400000).toISOString().slice(0, 10);
 
     try {
+        const token = await getAcledToken();
         const resp = await axios.get(ACLED_BASE, {
+            headers: { Authorization: `Bearer ${token}` },
             params: {
-                key, email,
+                _format: 'json',
                 event_date: since,
                 event_date_where: '>=',
-                country: countries.join('|'),
-                event_type: EVENT_TYPES.join('|'),
+                country: acledOr('country', countries),
+                event_type: acledOr('event_type', EVENT_TYPES),
                 limit: 500,
                 fields: 'event_date|event_type|sub_event_type|actor1|actor2|country|admin1|latitude|longitude|fatalities|notes|source'
             },

@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { TrendingUp, TrendingDown, Droplets } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
-import { fetchBackendJson } from '../services/backendClient.js';
 import DataStatus from './DataStatus';
+import { fetchBackendJson } from '../services/backendClient.js';
 
 const WAR_EVENTS = [
     { date: '2026-02-28', label: 'War starts', color: '#ef4444' },
@@ -11,6 +11,14 @@ const WAR_EVENTS = [
     { date: '2026-03-18', label: 'Peak $126', color: '#dc2626' }
 ];
 
+// Every figure carries its source and as-of date ("credit every source").
+// Yahoo Finance's chart endpoint is unofficial (no SLA, no licence for
+// redistribution) — say so on the card instead of implying an official feed.
+const OIL_SOURCES = {
+    eia: { label: 'EIA spot (official)', live: true },
+    'yahoo-finance': { label: 'Yahoo Finance futures (unofficial)', live: true },
+};
+
 // Series dates are YYYY-MM-DD; parse them as UTC days so labels never slip a
 // day in negative-offset timezones.
 const toDayMs = (date) => {
@@ -18,10 +26,12 @@ const toDayMs = (date) => {
     return Number.isNaN(t) ? null : t;
 };
 
-const formatDay = (date) => {
+const formatDay = (date, withYear = false) => {
     const t = toDayMs(date);
     if (t == null) return String(date ?? '—');
-    return new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    return new Date(t).toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'short', ...(withYear ? { year: 'numeric' } : {}), timeZone: 'UTC'
+    });
 };
 
 const nearestIndex = (series, date) => {
@@ -47,8 +57,10 @@ const OilPriceChart = () => {
         isUsable: (d) => d?.brent?.length > 0
     });
 
-    // Anything that is not an EIA observation is curated — badge it in red.
-    const isDemo = isSample || data?.source !== 'eia';
+    const sourceInfo = OIL_SOURCES[data?.source];
+    // Only EIA and Yahoo are observations; anything else is the hand-typed
+    // March series and is badged as curated with its real end date.
+    const isDemo = Boolean(isSample) || !sourceInfo?.live;
 
     if (!data?.brent?.length) return (
         <div className="bottom-card" style={{ padding: '10px 12px' }}>
@@ -62,7 +74,7 @@ const OilPriceChart = () => {
                 <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Oil Price</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
-                isEmpty={!isLoading && !data?.brent?.length} emptyMessage="Awaiting EIA data" />
+                isEmpty={!isLoading && !data?.brent?.length} emptyMessage="Oil price feed not answering" />
         </div>
     );
 
@@ -72,7 +84,7 @@ const OilPriceChart = () => {
     const maxP = Math.max(...prices) + 5;
     const W = 220, H = 100, PAD = 2;
 
-    const toX = (i) => PAD + (i / (brent.length - 1)) * (W - PAD * 2);
+    const toX = (i) => PAD + (i / Math.max(1, brent.length - 1)) * (W - PAD * 2);
     const toY = (p) => PAD + (1 - (p - minP) / (maxP - minP)) * (H - PAD * 2);
 
     const linePath = brent.map((d, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(d.price).toFixed(1)}`).join(' ');
@@ -82,12 +94,11 @@ const OilPriceChart = () => {
     const first = brent[0];
     const firstMs = toDayMs(first.date);
     const lastMs = toDayMs(latest.date);
-    // Window: latest point vs the first point in the series.
     const change = (latest.price - first.price) / first.price * 100;
     const ChangeIcon = change < 0 ? TrendingDown : TrendingUp;
-    const sourceLabel = isDemo ? `curated · as of ${formatDay(latest.date)}` : 'EIA spot';
+    const sourceLabel = sourceInfo?.live ? sourceInfo.label : 'curated series — not a live feed';
+    const asOfLabel = `as of ${formatDay(latest.date, true)}`;
 
-    // $100 threshold line
     const y100 = toY(100);
 
     return (
@@ -109,7 +120,7 @@ const OilPriceChart = () => {
                         ${latest.price.toFixed(1)}
                     </span>
                     <span
-                        title={`vs first point in series (${formatDay(first.date)})`}
+                        title={`vs first point in series (${formatDay(first.date, true)})`}
                         style={{
                             fontSize: '0.5rem', fontWeight: 700,
                             color: change > 0 ? '#ef4444' : '#22c55e',
@@ -132,9 +143,10 @@ const OilPriceChart = () => {
                 data={data}
                 refresh={refresh}
                 isDemo={isDemo}
-                demoLabel="CURATED — NO EIA KEY"
+                demoLabel={`CURATED — ENDS ${formatDay(latest.date, true).toUpperCase()}`}
             >
-                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '120px' }}>
+                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '120px' }} role="img"
+                    aria-label={`Brent crude ${latest.price.toFixed(2)} US dollars per barrel, ${asOfLabel}, source ${sourceLabel}`}>
                     <defs>
                         <linearGradient id="oilGrad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
@@ -142,7 +154,6 @@ const OilPriceChart = () => {
                         </linearGradient>
                     </defs>
 
-                    {/* $100 threshold */}
                     {y100 > PAD && y100 < H - PAD && (
                         <>
                             <line x1={PAD} y1={y100} x2={W - PAD} y2={y100} stroke="rgba(239,68,68,0.2)" strokeWidth="0.5" strokeDasharray="3,3" />
@@ -150,10 +161,7 @@ const OilPriceChart = () => {
                         </>
                     )}
 
-                    {/* Area fill */}
                     <path d={areaPath} fill="url(#oilGrad)" />
-
-                    {/* Price line */}
                     <path d={linePath} fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 
                     {/* Event markers — only inside the series window, snapped to the nearest date */}
@@ -175,7 +183,6 @@ const OilPriceChart = () => {
                         );
                     })}
 
-                    {/* Latest price dot — pulses only on a live observation */}
                     <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="#ef4444" stroke="var(--ink-2)" strokeWidth="0.8">
                         {!isDemo && <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />}
                     </circle>
@@ -183,10 +190,10 @@ const OilPriceChart = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
                     <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(first.date)}</span>
-                    <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
-                        {sourceLabel} · Δ vs first pt · {brent.length} pts
-                    </span>
                     <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(latest.date)}</span>
+                </div>
+                <div data-testid="oil-source" style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red, #ef4444)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px', textAlign: 'center' }}>
+                    Source: {sourceLabel} · {asOfLabel} · daily close · Δ vs first point
                 </div>
             </DataStatus>
         </div>
