@@ -3,6 +3,7 @@
 // Both import the SAME server/lib/*.mjs fetchers, so fetch-level fixes apply to
 // both — but response-shaping logic (e.g. X-Tech-Status derivation) must be
 // edited in both places. See server/index.mjs's matching note.
+import { installAxiosWorkerAdapter } from './axiosWorkerAdapter.mjs';
 import {
     buildCopernicusUnavailablePayload,
     fetchCopernicusPreview,
@@ -93,6 +94,9 @@ export const fetchFlightSnapshot = async (request, livePayload, next, theater = 
         }
     };
 };
+
+// Must run before any loader calls axios (see axiosWorkerAdapter.mjs).
+installAxiosWorkerAdapter();
 
 const applyEnv = (env = {}) => {
     for (const [key, value] of Object.entries(env)) {
@@ -256,7 +260,9 @@ export async function handleApiRequest(request, env, next) {
 
         if (url.pathname === '/api/infrastructure') {
             const payload = computeInfrastructureStatus(cache);
-            return jsonResponse(payload, 200, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            // A hand-maintained registry is not a live feed: badge it and
+            // carry the registry's own date, never now().
+            return jsonResponse(payload, 200, { status: 'sample', source: payload.source, updatedAt: payload.updatedAt, cache: 'miss' });
         }
 
         if (url.pathname === '/api/fronts') {
