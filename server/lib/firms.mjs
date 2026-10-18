@@ -14,7 +14,11 @@
 
 import { THEATERS, getTheater, resolveTheater, FIRMS_GLOBAL_SUB_BBOXES } from './theaters.mjs';
 
-const FIRMS_MAP_KEY = process.env.FIRMS_MAP_KEY || '';
+// Read per call, NOT at module load: on Cloudflare Pages the router copies
+// env bindings into process.env on each request, after this module loaded, so
+// a module-level constant stayed '' even with the key set. FIRMS_API_KEY is
+// accepted as an alias for the same NASA MAP_KEY.
+export const firmsKey = () => process.env.FIRMS_MAP_KEY || process.env.FIRMS_API_KEY || '';
 
 const parseCsvLine = (line) => {
     const parts = line.split(',');
@@ -153,6 +157,7 @@ export const fetchFirmsPayload = async (theater = 'middleeast') => {
     }
     const resolved = resolveTheater(theater);
 
+    const FIRMS_MAP_KEY = firmsKey();
     if (!FIRMS_MAP_KEY) {
         const publicFile = PUBLIC_REGION_FILE[resolved];
         if (publicFile) return fetchPublicRegionFires(resolved, publicFile);

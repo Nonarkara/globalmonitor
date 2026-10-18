@@ -38,6 +38,13 @@ maplibregl.setWorkerUrl(mapWorkerUrl);
 
 // ponytail: no route/origin-destination API exists (airplanes.live gives position + track + speed
 // only), so a "flight path" is a short heading projection — not a route spiderweb.
+// Hand-typed demo events must show how old they are, not read as current.
+const acledDemoRange = (features) => {
+    const dates = (features || []).map((f) => f?.properties?.date).filter(Boolean).sort();
+    if (!dates.length) return 'undated';
+    return dates[0] === dates[dates.length - 1] ? dates[0] : `${dates[0]} → ${dates[dates.length - 1]}`;
+};
+
 const EARTH_RADIUS_M = 6371000;
 const PATH_LOOKAHEAD_S = 180; // 3 min look-ahead
 const MAX_PATH_DISTANCE_M = 25000; // cap at 25 km regardless of speed
@@ -871,7 +878,7 @@ const MapContainer = ({
     const acledCount = acledRaw?.features?.length ?? 0;
     const acledSourceLabel = acledLive
         ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
-        : acledCount > 0 ? acledCount + ' events · DEMO — not ACLED'
+        : acledCount > 0 ? acledCount + ' DEMO events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
             : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
     const legendVisible = flightsLayerActive || vesselsLayerActive
         || activeLayers.includes('firms') || activeLayers.includes('conflicts');

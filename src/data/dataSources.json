@@ -40,14 +40,14 @@
   },
   {
     "id": "eia",
-    "name": "EIA",
-    "fullName": "US Energy Information Administration",
+    "name": "EIA / Yahoo Finance",
+    "fullName": "US Energy Information Administration (when EIA_API_KEY is set); otherwise Yahoo Finance futures chart endpoint",
     "type": "Oil Prices",
     "url": "https://www.eia.gov",
     "reliability": 10,
     "updateFrequency": "Daily (market hours)",
     "cacheTTL": "30 minutes",
-    "methodology": "Official US government energy statistics. Brent and WTI spot prices from trading exchanges.",
+    "methodology": "Official EIA Brent/WTI spot prices when an EIA key is configured. Without it: daily closes of Brent (BZ=F) and WTI (CL=F) front-month futures from Yahoo Finance's public chart endpoint — unofficial, no SLA. If both fail, a hand-typed Feb–Mar 2026 series is shown, badged CURATED with its end date.",
     "coverage": "Global oil markets",
     "apiEndpoint": "/api/oil-prices"
   },
