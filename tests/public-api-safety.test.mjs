@@ -5,6 +5,7 @@ import { validateApiRequest, parseFloodSimulation } from '../server/lib/publicAp
 import { handleApiRequest } from '../functions/_lib/router.mjs';
 import { buildForecast } from '../server/lib/oracle/index.mjs';
 import { groqChat } from '../server/lib/groqClient.mjs';
+import { openrouterChat, isOpenRouterEnabled } from '../server/lib/openrouter.mjs';
 import { generateBriefingSummary } from '../server/lib/gemini.mjs';
 import { describeCacheEntries } from '../server/lib/cacheHealth.mjs';
 import { resolveSourceHealth } from '../src/services/sourceHealth.js';
@@ -72,12 +73,16 @@ test('configured external AI keys do not authorize public calls', async () => {
     const originalFetch = globalThis.fetch;
     const old = process.env.GROQ_API_KEY;
     const oldGemini = process.env.GEMINI_API_KEY;
+    const oldOpenRouter = process.env.OPENROUTER_API_KEY;
     let calls = 0;
     process.env.GROQ_API_KEY = 'test-only-not-a-secret';
     process.env.GEMINI_API_KEY = 'test-only-not-a-secret';
+    process.env.OPENROUTER_API_KEY = 'test-only-not-a-secret';
     globalThis.fetch = async () => { calls++; throw new Error('Unexpected external AI call'); };
     try {
         assert.equal(await groqChat([{ role: 'user', content: 'test' }]), null);
+        assert.equal(await openrouterChat([{ role: 'user', content: 'test' }]), null);
+        assert.equal(isOpenRouterEnabled(), true);
         assert.equal(await generateBriefingSummary('test', [{ title: 'test', source: 'test' }]), null);
         const report = await buildForecast(new Map(), 'global');
         assert.equal(report.meta.aiPowered, false);
@@ -91,6 +96,29 @@ test('configured external AI keys do not authorize public calls', async () => {
         globalThis.fetch = originalFetch;
         if (old === undefined) delete process.env.GROQ_API_KEY; else process.env.GROQ_API_KEY = old;
         if (oldGemini === undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY = oldGemini;
+        if (oldOpenRouter === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = oldOpenRouter;
+    }
+});
+
+test('openrouter client refuses public calls and returns null without a key', async () => {
+    const originalFetch = globalThis.fetch;
+    const oldKey = process.env.OPENROUTER_API_KEY;
+    let calls = 0;
+    delete process.env.OPENROUTER_API_KEY;
+    globalThis.fetch = async () => { calls++; throw new Error('Unexpected external AI call'); };
+    try {
+        assert.equal(isOpenRouterEnabled(), false);
+        // No key → returns null without hitting the network.
+        assert.equal(await openrouterChat([{ role: 'user', content: 'hi' }]), null);
+        assert.equal(calls, 0);
+        // allowExternalAi must be true even with a key — public paths never
+        // set it, so the call still returns null and never leaves the box.
+        process.env.OPENROUTER_API_KEY = 'test-only-not-a-secret';
+        assert.equal(await openrouterChat([{ role: 'user', content: 'hi' }]), null);
+        assert.equal(calls, 0);
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (oldKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = oldKey;
     }
 });
 

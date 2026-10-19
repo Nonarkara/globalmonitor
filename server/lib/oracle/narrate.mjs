@@ -6,6 +6,7 @@
  */
 
 import { groqChat, isGroqEnabled, groqModel } from '../groqClient.mjs';
+import { openrouterChat, isOpenRouterEnabled, openrouterModel } from '../openrouter.mjs';
 
 const trendVerb = (t) => (t === 'rising' ? 'climbs' : t === 'easing' ? 'eases' : 'holds roughly flat');
 
@@ -77,12 +78,20 @@ export const buildReport = async ({ theater, live, fc, applied, actors }, { allo
         `- Key actors: ${facts.keyActors}\n\n` +
         'Write the brief: what the model expects, why (actor dynamics), and the single biggest swing factor.';
 
-    const llm = await groqChat([{ role: 'system', content: system }, { role: 'user', content: user }], {
-        temperature: 0.4,
-        maxTokens: 320,
-        allowExternalAi: allowLlm === true,
-    });
+    const messages = [{ role: 'system', content: system }, { role: 'user', content: user }];
+    const external = allowLlm === true;
+
+    // Primary: Groq.  Cheap, fast, our default.  When the key isn't set or
+    // the call fails, fall through to OpenRouter so a single-vendor outage
+    // doesn't strip the dashboard of its narrative.  Returns null on miss
+    // either way; deterministic remains the floor.
+    let llm = await groqChat(messages, { temperature: 0.4, maxTokens: 320, allowExternalAi: external });
+    let model = groqModel();
+    if (!llm && isOpenRouterEnabled()) {
+        llm = await openrouterChat(messages, { temperature: 0.4, maxTokens: 320, allowExternalAi: external });
+        model = openrouterModel();
+    }
 
     if (!llm) return { text: deterministic, aiPowered: false };
-    return { text: llm, aiPowered: true, model: groqModel() };
+    return { text: llm, aiPowered: true, model };
 };
