@@ -122,6 +122,11 @@ test('openrouter client refuses public calls and returns null without a key', as
     }
 });
 
+test('Oracle narrative permits the OpenRouter fallback when Groq is unavailable', async () => {
+    const text = await fs.readFile(new URL('../server/lib/oracle/narrate.mjs', import.meta.url), 'utf8');
+    assert.match(text, /!isGroqEnabled\(\) && !isOpenRouterEnabled\(\)/);
+});
+
 test('health uses exact theater and distinguishes snapshot, sample and provider evidence', () => {
     const cache = new Map([
         ['acled:middleeast', { payload: { source: 'demo_offline_no_acled_key' }, updatedAt: '2026-10-02', expiresAt: 200 }],

@@ -44,7 +44,7 @@ const THEATER_NAME = {
  */
 export const buildReport = async ({ theater, live, fc, applied, actors }, { allowLlm = false } = {}) => {
     const deterministic = deterministicReport({ theater, live, fc, applied });
-    if (!allowLlm || !isGroqEnabled()) return { text: deterministic, aiPowered: false };
+    if (!allowLlm || (!isGroqEnabled() && !isOpenRouterEnabled())) return { text: deterministic, aiPowered: false };
 
     const top3 = actors
         .slice()
