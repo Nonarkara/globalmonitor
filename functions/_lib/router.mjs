@@ -23,6 +23,7 @@ import { computeFrontStatus } from '../../server/lib/frontStatus.mjs';
 import { fetchNgaWarnings } from '../../server/lib/ngaWarnings.mjs';
 import { fetchUsgsQuakes } from '../../server/lib/usgsQuakes.mjs';
 import { fetchWindField } from '../../server/lib/windField.mjs';
+import { fetchAirQualityPayload } from '../../server/lib/airQuality.mjs';
 import { fetchRadarOutages } from '../../server/lib/radarOutages.mjs';
 import { fetchAcledEvents } from '../../server/lib/acled.mjs';
 import { fetchOilPriceTimeline } from '../../server/lib/eia.mjs';
@@ -320,6 +321,22 @@ export async function handleApiRequest(request, env, next) {
                 (p) => Array.isArray(p?.features) && p.features.length > 0
             );
             recordHealth('wind', Boolean(result.payload?.features?.length), null);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+            });
+        }
+
+        if (url.pathname === '/api/air-quality') {
+            // AQI changes over minutes; the map doesn't care. Cache 30 min so
+            // a single dashboard session doesn't repeat 11 upstream calls.
+            const result = await useCached(
+                'air-quality',
+                30 * 60 * 1000,
+                () => fetchAirQualityPayload(),
+                (p) => Array.isArray(p?.features) && p.features.length > 0
+            );
+            recordHealth('air-quality', (result.payload?.meta?.live ?? 0) > 0, null);
             return jsonResponse(result.payload, 200, {
                 ...result.meta,
                 updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
