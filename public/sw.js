@@ -4,7 +4,8 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8-20261019-non-slop';
+const APP_ENTRY = '__APP_ENTRY__';
+const CACHE_NAME = 'gpd-v8-release-' + APP_ENTRY;
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -31,12 +32,34 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Clean old caches on activate
+// Ask each tab which bundle it is actually running. Claiming a tab alone does
+// not replace its already-executing JavaScript or CSS. Legacy tabs cannot reply.
+const refreshOutdatedClients = async () => {
+    if (!APP_ENTRY.startsWith('/')) return;
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    await Promise.all(windows.map(async client => {
+        const entry = await new Promise(resolve => {
+            const channel = new MessageChannel();
+            const finish = value => { clearTimeout(timer); channel.port1.close(); resolve(value); };
+            const timer = setTimeout(() => finish(null), 3000);
+            channel.port1.onmessage = event => finish(event.data?.entry);
+            try { client.postMessage({ type: 'GPD_RELEASE_CHECK' }, [channel.port2]); }
+            catch { finish(null); }
+        });
+        // Do not await navigation inside activation: its fetch waits for this
+        // activation to finish. Awaiting both creates a circular wait.
+        if (entry !== APP_ENTRY) client.navigate(client.url).catch(() => {
+            // A tab closed during the version check needs no migration.
+        });
+    }));
+};
+
+// Clean only this app's old caches and migrate stale open tabs once per release.
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(keys.filter(k => k.startsWith('gpd-') && k !== CACHE_NAME).map(k => caches.delete(k)))
-        ).then(() => self.clients.claim())
+        ).then(() => self.clients.claim()).then(refreshOutdatedClients)
     );
 });
 

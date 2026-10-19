@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
+      - name: Verify returning-session migration
+        run: npm run test:updates
       - run: npm run build
         env:
           VITE_API_BASE_URL: ""

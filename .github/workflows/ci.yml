@@ -30,6 +30,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test an already-open legacy PWA updating to the new release
+        run: npm run test:updates
+
       - name: Build
         run: npm run build
 
