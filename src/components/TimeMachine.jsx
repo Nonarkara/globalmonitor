@@ -101,7 +101,7 @@ const TimeMachine = ({ onDateChange }) => {
                 {playing ? <Pause size={11} /> : <Play size={11} />}
             </button>
 
-            <button onClick={resetToNow} style={{
+            <button aria-label="Reset timeline to now" onClick={resetToNow} style={{
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',

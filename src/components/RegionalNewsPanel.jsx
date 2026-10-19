@@ -98,7 +98,7 @@ const RegionalNewsPanel = ({ regionName, title }) => {
     const badge = resolveBadge({ hasFeed, isRefreshing, news, meta });
 
     return (
-        <div className="bottom-card flex-column">
+        <div lang={regionName === 'DEPA' ? 'th' : 'en'} className="bottom-card flex-column">
             <div className="panel-header">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Rss size={14} /> {title}

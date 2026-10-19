@@ -16,14 +16,14 @@
 }
 
 .header-title {
-  font-size: 11px;
+  font-size: var(--type-11);
   font-weight: 700;
   letter-spacing: 0.16em;
   color: var(--ink);
 }
 
 .header-subtitle {
-  font-size: 9px;
+  font-size: var(--type-10);
   font-weight: 600;
   letter-spacing: 0.14em;
   color: var(--ink-3);
@@ -44,7 +44,7 @@
   background: var(--green);
   border: 1px solid var(--green);
   color: #fff;
-  font-size: 11px;
+  font-size: var(--type-11);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -65,7 +65,7 @@
 .header-region-tab {
   border-left: 1px solid var(--line);
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: var(--type-10);
   font-weight: 600;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -102,12 +102,12 @@
   background: var(--panel);
   border: 1px solid var(--line-2);
   border-radius: 0;
-  box-shadow: none;
+  box-shadow:none;
 }
 
 .header-tools-warning-dot {
   background: var(--green);
-  box-shadow: none;
+  box-shadow:none;
   animation: rams-blink 2.4s ease-in-out infinite;
 }
 
@@ -123,13 +123,13 @@
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 0;
-  box-shadow: none;
+  box-shadow:none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
 .panel-header {
-  font-size: 11px;
+  font-size: var(--type-11);
   font-weight: 700;
   letter-spacing: 0.16em;
   color: var(--ink);
@@ -153,11 +153,11 @@
 
 .panel-lead {
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 .section-title {
-  font-size: 11px;
+  font-size: var(--type-11);
   font-weight: 700;
   letter-spacing: 0.16em;
   color: var(--ink);
@@ -168,7 +168,7 @@
 }
 
 .section-title-row span {
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.14em;
   color: var(--ink-3);
 }
@@ -206,7 +206,7 @@
 }
 
 .layer-group-title {
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.14em;
   color: var(--ink-3);
 }
@@ -259,7 +259,7 @@
 }
 
 .radar-group-label {
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.14em;
   color: var(--ink-3);
 }
@@ -327,13 +327,13 @@
 
 .multi-front-card__headline {
   color: var(--ink-3);
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.1em;
 }
 
 .multi-front-card__metrics {
   color: var(--ink-3);
-  font-size: 9px;
+  font-size: var(--type-10);
 }
 
 /* ── Headline wire ── */
@@ -345,14 +345,14 @@
 
 .news-ticker-kicker {
   color: var(--ink);
-  font-size: 9px;
+  font-size: var(--type-10);
   font-weight: 700;
   letter-spacing: 0.16em;
 }
 
 .news-item {
   color: var(--ink-2);
-  font-size: 11px;
+  font-size: var(--type-11);
 }
 
 .news-item:hover,
@@ -402,7 +402,7 @@
 }
 
 .map-legend-title {
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.14em;
   color: var(--ink-3);
   font-weight: 600;
@@ -410,20 +410,20 @@
 
 .map-legend-item {
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 .map-style-toggle {
   background: var(--panel);
   border: 1px solid var(--line-2);
   border-radius: 0;
-  box-shadow: none;
+  box-shadow:none;
   backdrop-filter: none;
 }
 
 .map-style-btn.active {
   background: var(--surface-hover);
-  box-shadow: none;
+  box-shadow:none;
   border-bottom: 2px solid var(--ink);
 }
 
@@ -431,14 +431,14 @@
 .clock-city-small,
 .primary-clock-content .clock-city {
   color: var(--ink-3);
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.1em;
   font-weight: 600;
 }
 
 .clock-tz-small {
   color: var(--ink-3);
-  font-size: 8px;
+  font-size: var(--type-10);
   letter-spacing: 0.08em;
   font-weight: 500;
   font-family: var(--font-mono);
@@ -453,7 +453,7 @@
 .primary-clock-content .clock-time-large {
   color: var(--ink);
   font-weight: 600;
-  font-size: 1.875rem;
+  font-size: var(--type-28);
 }
 
 .primary-clock-content .seconds {
@@ -493,7 +493,7 @@
 
 .glass-panel {
   background: var(--panel);
-  box-shadow: none;
+  box-shadow:none;
   backdrop-filter: none;
 }
 
@@ -527,7 +527,7 @@
 
 .eo-insight-kicker {
   color: var(--green);
-  font-size: 9px;
+  font-size: var(--type-10);
   letter-spacing: 0.14em;
 }
 
@@ -628,7 +628,7 @@
   border: 1px solid var(--line-2);
   border-radius: 0;
   backdrop-filter: none;
-  box-shadow: none;
+  box-shadow:none;
   color: var(--ink);
 }
 
@@ -657,7 +657,7 @@
 
 /* ── Logo pills — CLAUDE.md exception for border-radius ── */
 .header-brand-strip {
-  border-radius: 5px;
+  border-radius: 0;
 }
 
 /* ── Kill gradients site-wide on dashboard chrome; no backdrop-filter over WebGL map ── */
@@ -672,9 +672,9 @@
 .header-tools-menu,
 .multi-front-board,
 .top-bar-clock {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:none;
 }
 
 /* ── Mobile: solid panels, no dark gradients ── */

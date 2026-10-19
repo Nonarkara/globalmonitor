@@ -27,10 +27,10 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #a855f7', paddingLeft: '8px'
+                borderLeft: '2px solid var(--ink-2)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Radiation size={12} style={{ color: '#a855f7' }} />
+                    <Radiation size={12} style={{ color: 'var(--ink-2)' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Nuclear Program
                     </span>
@@ -47,7 +47,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                 background: 'rgba(168,85,247,0.06)',
                 border: '1px solid rgba(168,85,247,0.1)'
             }}>
-                <AlertTriangle size={10} style={{ color: '#a855f7', marginTop: '1px', flexShrink: 0 }} />
+                <AlertTriangle size={10} style={{ color: 'var(--ink-2)', marginTop: '1px', flexShrink: 0 }} />
                 <div>
                     <div style={{ fontSize: '0.42rem', color: 'var(--ink-2)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
                         Breakout Estimate

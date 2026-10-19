@@ -46,10 +46,10 @@ const SanctionsPanel = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #8b5cf6', paddingLeft: '8px'
+                borderLeft: '2px solid var(--ink-2)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Shield size={12} style={{ color: '#8b5cf6' }} />
+                    <Shield size={12} style={{ color: 'var(--ink-2)' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Sanctions Tracker
                     </span>
@@ -65,7 +65,7 @@ const SanctionsPanel = () => {
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: 'var(--line)', borderRadius: '4px'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#8b5cf6', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
                     <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
                 </div>
                 <div style={{

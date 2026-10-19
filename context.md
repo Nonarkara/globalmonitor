@@ -225,3 +225,9 @@ Five worktrees share one git database (`v3-global/.git`). Three branches deploy.
 | v1 (`v1-basic/v1-basic`, separate repo middleeast-monitor) | GitHub Pages | nonarkara.github.io/middleeast-monitor | push to main |
 
 Data-honesty envelope (2026-09-03): every API response carries `X-Tech-Status` (`live` | `stale` | `sample`) and `X-Tech-Source`. `sample` means the payload's own source is demo/fallback/curated; `useLiveResource` exposes it as `isSample` and `DataStatus` renders a red badge. `tests/data-honesty.test.mjs` is the conservation law.
+# 19 October 2026: compact operational shell
+
+Design Read: AsiaWatch is a geographic operating table with compact instruments at its edges. Reference: MoMA collection wayfinding and the Braun ET66, not a marketing landing page. The map is dominant; thicker focus/action rules differ from quiet separators. Existing Rams Helvetica, paper/ink and scientific map colours are deliberate load-bearing identity exceptions, recorded in STYLE.md.
+
+Non-Slop is vendored at upstream 99a6215f2f108f92ec3f7a3740030d209450c931. Source gates run before both build commands and in deployment workflows. No panels open by default. Header56px, clock24–28px, ticker44px. All earned maps, datasets, sponsor credits and instruments remain accessible through Layers, Intel, Markets and Tools. See docs/non-slop-release-2026-10-19.md for measured scope and limits.
+

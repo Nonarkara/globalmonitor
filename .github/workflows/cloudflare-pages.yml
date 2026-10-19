@@ -25,7 +25,7 @@ jobs:
           AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
       - name: Refresh OpenSky safety snapshot
         run: npm run refresh:flights
-      - run: npx vite build
+      - run: npm run build
         env:
           VITE_API_BASE_URL: ""
       - name: Deploy to Cloudflare Pages

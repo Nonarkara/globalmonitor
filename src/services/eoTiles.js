@@ -59,7 +59,7 @@ export const EO_TILE_LAYERS = [
         name: 'Vegetation (NDVI)',
         description: 'Global vegetation index from MODIS satellite',
         group: 'satellite',
-        icon: '🌿',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('MODIS_Terra_NDVI_8Day', 'GoogleMapsCompatible_Level9', 'png')
         ),
@@ -73,7 +73,7 @@ export const EO_TILE_LAYERS = [
         name: 'True Color (VIIRS)',
         description: 'Daily true-color satellite imagery',
         group: 'satellite',
-        icon: '🛰️',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('VIIRS_SNPP_CorrectedReflectance_TrueColor', 'GoogleMapsCompatible_Level9', 'jpg')
         ),
@@ -87,7 +87,7 @@ export const EO_TILE_LAYERS = [
         name: 'Sea Surface Temp',
         description: 'Gap-free daily ocean surface temperature analysis (GHRSST MUR)',
         group: 'satellite',
-        icon: '🌊',
+        icon: '',
         // MODIS_Aqua_L3_SST_MidIR_Monthly no longer exists in the EPSG:3857 endpoint
         // and returned 400 on every request. MUR L4 is the gap-free daily successor.
         tiles: gibsRedundant(
@@ -108,7 +108,7 @@ export const EO_TILE_LAYERS = [
         name: 'Smoke Plumes (OMPS)',
         description: 'UV aerosol index tuned for thick smoke from intense fires and explosions',
         group: 'satellite',
-        icon: '🌫️',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('OMPS_Aerosol_Index_PyroCumuloNimbus', 'GoogleMapsCompatible_Level6', 'png')
         ),
@@ -122,7 +122,7 @@ export const EO_TILE_LAYERS = [
         name: 'Precipitation (IMERG)',
         description: 'Global rainfall estimates from GPM satellite',
         group: 'satellite',
-        icon: '🌧️',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('IMERG_Precipitation_Rate', 'GoogleMapsCompatible_Level6', 'png')
         ),
@@ -136,7 +136,7 @@ export const EO_TILE_LAYERS = [
         name: 'Snow Cover (MODIS)',
         description: 'Global snow coverage from MODIS',
         group: 'satellite',
-        icon: '❄️',
+        icon: '',
         // Level9 was a 400 — GIBS caps this product at Level8.
         tiles: gibsRedundant(
             gibsTileUrl('MODIS_Terra_NDSI_Snow_Cover', 'GoogleMapsCompatible_Level8', 'png')
@@ -151,7 +151,7 @@ export const EO_TILE_LAYERS = [
         name: 'Aerosol (MODIS)',
         description: 'Aerosol optical depth — haze, dust, smoke and industrial particulate',
         group: 'satellite',
-        icon: '💨',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('MODIS_Combined_Value_Added_AOD', 'GoogleMapsCompatible_Level6', 'png')
         ),
@@ -167,7 +167,7 @@ export const EO_TILE_LAYERS = [
         name: 'Nitrogen Dioxide (OMI)',
         description: 'Tropospheric NO₂ column — combustion tracer from strikes, fires and industry',
         group: 'satellite',
-        icon: '🟤',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('OMI_Nitrogen_Dioxide_Tropo_Column', 'GoogleMapsCompatible_Level6', 'png')
         ),
@@ -181,7 +181,7 @@ export const EO_TILE_LAYERS = [
         name: 'Carbon Monoxide (AIRS)',
         description: 'CO at 500 hPa — the atmospheric signature of burning, traceable downwind for days',
         group: 'satellite',
-        icon: '🟠',
+        icon: '',
         tiles: gibsRedundant(
             gibsTileUrl('AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day', 'GoogleMapsCompatible_Level6', 'png')
         ),
@@ -195,7 +195,7 @@ export const EO_TILE_LAYERS = [
         name: 'JAXA GCOM-W Soil Moisture',
         description: 'Land surface soil moisture from JAXA GCOM-W1 AMSR2 (LPRM downscaled C1 band, daytime daily)',
         group: 'satellite',
-        icon: '🇯🇵',
+        icon: '',
         // Ran ~6 days behind the hardcoded 2-day date, so this returned 404 and drew
         // nothing. `default` tracks whatever AMSR2 has actually published.
         tiles: gibsRedundant(
@@ -211,7 +211,7 @@ export const EO_TILE_LAYERS = [
         name: 'Sentinel-2 Cloudless',
         description: 'Cloud-free mosaic from ESA Sentinel-2 (EOX)',
         group: 'satellite',
-        icon: '🛰️',
+        icon: '',
         tiles: [
             'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg'
         ],
@@ -225,7 +225,7 @@ export const EO_TILE_LAYERS = [
         name: 'Surface Water (JRC)',
         description: 'Global surface water occurrence from Landsat archive',
         group: 'satellite',
-        icon: '💧',
+        icon: '',
         tiles: [
             'https://storage.googleapis.com/global-surface-water/tiles2021/occurrence/{z}/{x}/{y}.png'
         ],
@@ -239,7 +239,7 @@ export const EO_TILE_LAYERS = [
         name: 'Ocean Bathymetry',
         description: 'Seabed depth from EMODnet',
         group: 'satellite',
-        icon: '🌊',
+        icon: '',
         tiles: [
             'https://tiles.emodnet-bathymetry.eu/2020/baselayer/web_mercator/{z}/{x}/{y}.png'
         ],
@@ -253,7 +253,7 @@ export const EO_TILE_LAYERS = [
         name: 'Weather Radar',
         description: 'Live precipitation radar from RainViewer',
         group: 'satellite',
-        icon: '🌧️',
+        icon: '',
         // Placeholder path; refreshRadarPath() below replaces it with a live one on load.
         tiles: [
             'https://tilecache.rainviewer.com/v2/radar/nowcast/256/{z}/{x}/{y}/2/1_1.png'
@@ -278,7 +278,7 @@ export const EO_TILE_LAYERS = [
         name: 'Nightlights (BRDF)',
         description: 'Cloud-free, BRDF-corrected city lights from VIIRS — paints on top of the other GIBS rasters so settlement patterns never get buried by aerosol or weather haze',
         group: 'satellite',
-        icon: '🌃',
+        icon: '',
         // Switched from `VIIRS_SNPP_DayNightBand_AtSensor_M15` (raw per-orbit
         // radiance — each swath showed up as a rectangle) to the gap-filled,
         // BRDF-corrected composite. Same 256px Level8 maxzoom as before.
@@ -309,7 +309,7 @@ export const registerCogLayer = ({ id, name, tileUrl, bbox, attribution, opacity
         description: `COG layer from STAC scene ${id}`,
         group: 'satellite',
         type: 'cog',
-        icon: '🛰️',
+        icon: '',
         tiles: [tileUrl],
         tileSize: 256,
         bounds: bbox,

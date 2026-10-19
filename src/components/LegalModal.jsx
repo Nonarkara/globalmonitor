@@ -204,8 +204,8 @@ function PrivacySection() {
         border: '1px solid var(--line)',
         marginTop: '14px',
       }}>
-        <div style={labelStyle}>สรุปภาษาไทย</div>
-        <p style={{ ...bodyText, marginBottom: 0, fontSize: '12px' }}>{p.thaiSummary}</p>
+        <div lang="th" style={labelStyle}>สรุปภาษาไทย</div>
+        <p lang="th" style={{ ...bodyText, marginBottom: 0, fontSize: '12px' }}>{p.thaiSummary}</p>
       </div>
     </>
   );

@@ -5,6 +5,11 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "design:check": "node .non-slop/bin/non-slop.mjs scan src --fail-on=P1",
+    "design:render": "node .non-slop/bin/non-slop.mjs render",
+    "verify:live": "node scripts/operational-check.mjs",
+    "prebuild": "npm run design:check",
+    "prebuild:pages": "npm run design:check",
     "api": "node server/index.mjs",
     "dev": "vite",
     "dev:stack": "node scripts/dev-stack.mjs",
