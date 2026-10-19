@@ -35,21 +35,21 @@ const ThailandOilShipmentTracker = () => {
             }}>
                 <div>
                     <div style={{
-                        fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
+                        fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
                         <Ship size={14} style={{ color: '#006eb8' }} />
                         Thailand Oil Shipment &amp; Maritime Supply Line
                     </div>
-                    <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>
                         Middle East Supply Corridor · Malacca to Gulf of Thailand
                     </div>
                 </div>
                 <span style={{
-                    fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
+                    fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '0.8px',
                     color: '#006eb8', padding: '2px 8px',
                     background: 'rgba(59, 130, 246, 0.12)',
-                    borderRadius: '4px', border: '1px solid rgba(59, 130, 246, 0.3)'
+                    borderRadius: '0', border: '1px solid rgba(59, 130, 246, 0.3)'
                 }}>
                     LIVE AIS TANKER FEED
                 </span>
@@ -59,78 +59,78 @@ const ThailandOilShipmentTracker = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginBottom: '10px' }}>
                 <div style={{
                     padding: '6px 8px', background: 'rgba(255, 255, 255, 0.03)',
-                    borderRadius: '4px', border: '1px solid var(--line)'
+                    borderRadius: '0', border: '1px solid var(--line)'
                 }}>
-                    <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         ME Crude Share
                     </div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>
                         {OIL_METRICS.meImportDependency}
                     </div>
-                    <div style={{ fontSize: '0.44rem', color: 'var(--ink-3)' }}>Import reliance</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>Import reliance</div>
                 </div>
 
                 <div style={{
                     padding: '6px 8px', background: 'rgba(255, 255, 255, 0.03)',
-                    borderRadius: '4px', border: '1px solid var(--line)'
+                    borderRadius: '0', border: '1px solid var(--line)'
                 }}>
-                    <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Strategic Reserve
                     </div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
                         {OIL_METRICS.strategicReserveDays}
                     </div>
-                    <div style={{ fontSize: '0.44rem', color: 'var(--ink-3)' }}>National fuel buffer</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>National fuel buffer</div>
                 </div>
 
                 <div style={{
                     padding: '6px 8px', background: 'rgba(255, 255, 255, 0.03)',
-                    borderRadius: '4px', border: '1px solid var(--line)'
+                    borderRadius: '0', border: '1px solid var(--line)'
                 }}>
-                    <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Active Tankers
                     </div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)' }}>
                         {OIL_METRICS.activeTankersEnRoute}
                     </div>
-                    <div style={{ fontSize: '0.44rem', color: 'var(--ink-3)' }}>En route to Thai ports</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>En route to Thai ports</div>
                 </div>
             </div>
 
             {/* Maritime Route Status */}
             <div style={{
                 background: 'rgba(0,0,0,0.2)', padding: '8px 10px',
-                borderRadius: '5px', border: '1px solid var(--line)', marginBottom: '8px'
+                borderRadius: '0', border: '1px solid var(--line)', marginBottom: '8px'
             }}>
-                <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--ink-2)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink-2)', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Chokepoint Risk &amp; Corridor Status:
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.52rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--type-micro)' }}>
                     <span style={{ color: 'var(--ink-2)' }}>Strait of Hormuz (Origin):</span>
                     <span style={{ fontWeight: 700, color: '#a72144' }}>BLOCKADE ALERT</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.52rem', marginTop: '2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--type-micro)', marginTop: '2px' }}>
                     <span style={{ color: 'var(--ink-2)' }}>Strait of Malacca (Transit):</span>
                     <span style={{ fontWeight: 700, color: '#1a7444' }}>OPEN &amp; MONITORED</span>
                 </div>
             </div>
 
             {/* Major Oil Ports */}
-            <div style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '4px' }}>
+            <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '4px' }}>
                 Thai Primary Petroleum Terminals:
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {OIL_METRICS.primaryPorts.map((port, idx) => (
                     <div key={idx} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        fontSize: '0.5rem', padding: '3px 6px', background: 'rgba(255,255,255,0.02)',
-                        borderRadius: '3px', border: '1px solid var(--line)'
+                        fontSize: 'var(--type-micro)', padding: '3px 6px', background: 'rgba(255,255,255,0.02)',
+                        borderRadius: '0', border: '1px solid var(--line)'
                     }}>
                         <div>
                             <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{port.name}</span>
-                            <span style={{ color: 'var(--ink-3)', marginLeft: '6px', fontSize: '0.46rem' }}>{port.type}</span>
+                            <span style={{ color: 'var(--ink-3)', marginLeft: '6px', fontSize: 'var(--type-micro)' }}>{port.type}</span>
                         </div>
-                        <span style={{ fontWeight: 700, color: '#1a7444', fontSize: '0.46rem' }}>{port.status}</span>
+                        <span style={{ fontWeight: 700, color: '#1a7444', fontSize: 'var(--type-micro)' }}>{port.status}</span>
                     </div>
                 ))}
             </div>

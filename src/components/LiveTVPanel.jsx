@@ -29,7 +29,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
     <div className="grid-panel" style={{
       display: 'flex',
       flexDirection: 'column',
-      borderRadius: 'var(--radius)',
+      borderRadius: '0',
       overflow: 'hidden',
       flexShrink: 0,
       maxHeight: '180px',
@@ -40,7 +40,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
         gap: '6px',
         padding: '5px 10px',
         borderBottom: '1px solid var(--border-color)',
-        fontSize: '0.6rem',
+        fontSize: 'var(--type-micro)',
         fontWeight: 600,
         letterSpacing: '1px',
         color: 'var(--text-muted)',
@@ -51,7 +51,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
         {activeChannel && (
           <span style={{
             marginLeft: 'auto',
-            fontSize: '0.5rem',
+            fontSize: 'var(--type-micro)',
             color: '#a72144',
             fontWeight: 700,
             display: 'flex',
@@ -87,7 +87,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
               key={ch.id}
               style={{
                 position: 'relative',
-                borderRadius: '4px',
+                borderRadius: '0',
                 overflow: 'hidden',
                 border: isActive
                   ? `1px solid ${ch.color}`
@@ -125,7 +125,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
                 pointerEvents: 'none',
               }}>
                 <span style={{
-                  fontSize: '0.48rem',
+                  fontSize: 'var(--type-micro)',
                   fontWeight: 600,
                   color: 'var(--ink)',
                   letterSpacing: '0.2px',
@@ -153,7 +153,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
               key={i}
               onClick={() => setPageState({ viewMode, page: i })}
               style={{
-                width: '12px', height: '3px', borderRadius: '2px',
+                width: '12px', height: '3px', borderRadius: '0',
                 background: i === page ? 'var(--ink-2)' : 'var(--line)',
                 border: 'none', cursor: 'pointer', padding: 0,
                 transition: 'background 0.3s'

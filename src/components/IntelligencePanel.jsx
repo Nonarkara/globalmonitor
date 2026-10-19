@@ -163,7 +163,7 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                     ))}
 
                     {(!briefing || !briefing.items || briefing.items.length === 0) && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 'var(--type-body)' }}>
                             {error ? 'No live items yet. Cached data will stay visible whenever it exists.' : 'Loading live items…'}
                         </span>
                     )}

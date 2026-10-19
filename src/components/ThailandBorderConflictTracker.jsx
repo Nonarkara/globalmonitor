@@ -30,21 +30,21 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
             }}>
                 <div>
                     <div style={{
-                        fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
+                        fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
                         <ShieldAlert size={14} style={{ color: '#a72144' }} />
                         Thailand Border Conflict Monitor
                     </div>
-                    <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>
                         Geopolitical Risk &amp; Early Warning System · 3 Strategic Frontiers
                     </div>
                 </div>
                 <span style={{
-                    fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
+                    fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '0.8px',
                     color: '#1a7444', padding: '2px 8px',
                     background: 'rgba(34, 197, 94, 0.12)',
-                    borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)'
+                    borderRadius: '0', border: '1px solid rgba(34, 197, 94, 0.3)'
                 }}>
                     3 ZONES MONITORED
                 </span>
@@ -58,7 +58,7 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                         <div
                             key={zone.id}
                             style={{
-                                borderRadius: '6px',
+                                borderRadius: '0',
                                 border: `1px solid ${isSelected ? zone.color : 'var(--line)'}`,
                                 background: isSelected ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.2)',
                                 padding: '8px 10px',
@@ -74,18 +74,18 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                                         background: zone.color, boxShadow: `0 0 8px ${zone.color}`
                                     }} />
                                     <div>
-                                        <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--ink)' }}>
+                                        <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink)' }}>
                                             {zone.shortName}
                                         </div>
-                                        <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)' }}>
+                                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                                             {zone.region}
                                         </div>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span style={{
-                                        fontSize: '0.48rem', fontWeight: 700, color: zone.color,
-                                        padding: '2px 6px', borderRadius: '3px',
+                                        fontSize: 'var(--type-micro)', fontWeight: 700, color: zone.color,
+                                        padding: '2px 6px', borderRadius: '0',
                                         background: `${zone.color}15`, border: `1px solid ${zone.color}35`
                                     }}>
                                         {zone.riskLevel} ({zone.riskScore})
@@ -95,8 +95,8 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                                         style={{
                                             background: isSelected ? zone.color : 'var(--line-2)',
                                             color: isSelected ? '#000' : 'var(--ink-2)',
-                                            border: 'none', borderRadius: '4px',
-                                            padding: '4px 8px', fontSize: '0.5rem', fontWeight: 600,
+                                            border: 'none', borderRadius: '0',
+                                            padding: '4px 8px', fontSize: 'var(--type-micro)', fontWeight: 600,
                                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                                         }}
                                         onClick={(e) => {
@@ -111,11 +111,11 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
 
                             {isSelected && (
                                 <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--line-2)' }}>
-                                    <div style={{ fontSize: '0.54rem', color: 'var(--ink-2)', lineHeight: 1.4, marginBottom: '6px' }}>
+                                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', lineHeight: 1.4, marginBottom: '6px' }}>
                                         {zone.summary}
                                     </div>
 
-                                    <div style={{ fontSize: '0.48rem', fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                                    <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '4px' }}>
                                         Key Border Checkpoints &amp; Outposts:
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
@@ -123,8 +123,8 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                                             <div
                                                 key={idx}
                                                 style={{
-                                                    fontSize: '0.48rem', padding: '3px 6px',
-                                                    background: 'rgba(255,255,255,0.02)', borderRadius: '3px',
+                                                    fontSize: 'var(--type-micro)', padding: '3px 6px',
+                                                    background: 'rgba(255,255,255,0.02)', borderRadius: '0',
                                                     border: '1px solid var(--line)', display: 'flex',
                                                     alignItems: 'center', justifyContent: 'space-between'
                                                 }}
@@ -133,7 +133,7 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                                                     {cp.name}
                                                 </span>
                                                 <span style={{
-                                                    fontSize: '0.44rem', fontWeight: 700,
+                                                    fontSize: 'var(--type-micro)', fontWeight: 700,
                                                     color: cp.status === 'ALERT' ? '#a72144' : cp.status === 'MONITORED' ? '#f59e0b' : '#1a7444'
                                                 }}>
                                                     {cp.status}

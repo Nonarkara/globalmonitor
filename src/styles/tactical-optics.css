@@ -43,11 +43,11 @@
   gap: 4px;
   padding: 2px 6px;
   font-family: var(--font-mono, monospace);
-  font-size: 0.55rem;
+  font-size: var(--type-micro);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .optics-badge--standard {

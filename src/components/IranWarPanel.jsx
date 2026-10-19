@@ -21,14 +21,14 @@ const SubFront = ({ front }) => (
             boxShadow: front.status === 'CRITICAL' ? `0 0 6px ${front.color}` : 'none'
         }} />
         <span style={{
-            fontSize: '0.48rem',
+            fontSize: 'var(--type-micro)',
             color: 'var(--ink-2)',
             flex: 1
         }}>
             {front.name}
         </span>
         <span style={{
-            fontSize: '0.4rem',
+            fontSize: 'var(--type-micro)',
             fontWeight: 700,
             color: front.color,
             letterSpacing: '0.5px'
@@ -79,7 +79,7 @@ const IranWarPanel = () => {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{
-                        fontSize: '0.75rem',
+                        fontSize: 'var(--type-body)',
                         fontWeight: 200,
                         fontFamily: 'var(--font-mono)',
                         fontVariantNumeric: 'tabular-nums',
@@ -114,7 +114,7 @@ const IranWarPanel = () => {
                 }} title={strikeData?.method || undefined}>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{
-                            fontSize: '1.1rem',
+                            fontSize: 'var(--type-display)',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
                             color: weekTotal.missiles > 0 ? '#a72144' : 'var(--text-muted)',
@@ -122,13 +122,13 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.missiles || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             MISSILE MENTIONS
                         </div>
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{
-                            fontSize: '1.1rem',
+                            fontSize: 'var(--type-display)',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
                             color: weekTotal.drones > 0 ? '#f59e0b' : 'var(--text-muted)',
@@ -136,13 +136,13 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.drones || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             DRONE MENTIONS
                         </div>
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{
-                            fontSize: '1.1rem',
+                            fontSize: 'var(--type-display)',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
                             color: weekTotal.interceptions > 0 ? '#006eb8' : 'var(--text-muted)',
@@ -150,13 +150,13 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.interceptions || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             INTERCEPT MENTIONS
                         </div>
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{
-                            fontSize: '1.1rem',
+                            fontSize: 'var(--type-display)',
                             fontWeight: 200,
                             fontFamily: 'var(--font-mono)',
                             color: weekTotal.casualties > 0 ? '#a72144' : 'var(--text-muted)',
@@ -164,7 +164,7 @@ const IranWarPanel = () => {
                         }}>
                             {weekTotal.casualties || 0}
                         </div>
-                        <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             CASUALTY MENTIONS
                         </div>
                     </div>
@@ -174,7 +174,7 @@ const IranWarPanel = () => {
                 <div
                     title={strikeData?.method || undefined}
                     style={{
-                        fontSize: '0.4rem',
+                        fontSize: 'var(--type-micro)',
                         fontFamily: 'var(--font-mono)',
                         letterSpacing: '0.5px',
                         color: 'var(--ink-3)',
@@ -188,7 +188,7 @@ const IranWarPanel = () => {
 
                 {/* Sub-front status indicators */}
                 <div style={{
-                    fontSize: '0.42rem',
+                    fontSize: 'var(--type-micro)',
                     fontWeight: 600,
                     letterSpacing: '1.2px',
                     color: 'var(--text-muted)',

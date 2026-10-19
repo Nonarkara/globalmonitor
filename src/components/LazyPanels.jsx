@@ -4,15 +4,15 @@ const PanelSkeleton = () => (
     <div className="bottom-card" style={{ padding: '10px 12px' }}>
         <div style={{
             height: '16px', width: '40%', background: 'var(--line)',
-            borderRadius: '4px', marginBottom: '8px'
+            borderRadius: '0', marginBottom: '8px'
         }} />
         <div style={{
             height: '8px', width: '100%', background: 'var(--line)',
-            borderRadius: '4px', marginBottom: '6px'
+            borderRadius: '0', marginBottom: '6px'
         }} />
         <div style={{
             height: '8px', width: '80%', background: 'var(--line)',
-            borderRadius: '4px'
+            borderRadius: '0'
         }} />
     </div>
 );

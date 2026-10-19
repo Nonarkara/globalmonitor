@@ -90,11 +90,11 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Users size={12} style={{ color: '#b984af' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Displacement Tracker
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: isIllustrative ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: isIllustrative ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {isCurated ? `CURATED · AS OF ${AS_OF}` : isIllustrative ? 'ILLUSTRATIVE' : 'NO DATA'} · {theaterLabel}
                 </span>
             </div>
@@ -102,7 +102,7 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
             {!data && (
                 <div style={{
                     padding: '12px 8px', textAlign: 'center',
-                    fontSize: '0.42rem', color: 'var(--ink-3)',
+                    fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)', letterSpacing: '0.5px'
                 }}>
                     NO DISPLACEMENT DATA FOR THIS THEATER
@@ -114,20 +114,20 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
                     {/* Headline number */}
                     <div style={{
                         textAlign: 'center', padding: '6px 0', marginBottom: '6px',
-                        background: 'rgba(244,114,182,0.06)', borderRadius: '6px',
+                        background: 'rgba(244,114,182,0.06)', borderRadius: '0',
                         border: '1px solid rgba(244,114,182,0.1)'
                     }}>
                         <div style={{
-                            fontSize: '1.2rem', fontWeight: 200, fontFamily: 'var(--font-mono)',
+                            fontSize: 'var(--type-display)', fontWeight: 200, fontFamily: 'var(--font-mono)',
                             color: '#b984af', lineHeight: 1
                         }}>
                             {formatNum(data.totalDisplaced)}
                         </div>
-                        <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', marginTop: '2px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                             Total Displaced Persons
                         </div>
                         {isIllustrative && (
-                            <div style={{ fontSize: '0.36rem', color: 'var(--red)', marginTop: '2px', letterSpacing: '0.8px', fontFamily: 'var(--font-mono)' }}>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--red)', marginTop: '2px', letterSpacing: '0.8px', fontFamily: 'var(--font-mono)' }}>
                                 ILLUSTRATIVE — NOT SOURCED
                             </div>
                         )}
@@ -135,13 +135,13 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
 
                     {/* KPI row */}
                     <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
-                        <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'var(--line)', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{formatNum(data.internallyDisplaced)}</div>
-                            <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Internal</div>
+                        <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'var(--line)', borderRadius: '0' }}>
+                            <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{formatNum(data.internallyDisplaced)}</div>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Internal</div>
                         </div>
-                        <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'var(--line)', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#f37420', fontFamily: 'var(--font-mono)' }}>{formatNum(data.crossBorderRefugees)}</div>
-                            <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Cross-border</div>
+                        <div style={{ flex: 1, textAlign: 'center', padding: '3px', background: 'var(--line)', borderRadius: '0' }}>
+                            <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#f37420', fontFamily: 'var(--font-mono)' }}>{formatNum(data.crossBorderRefugees)}</div>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Cross-border</div>
                         </div>
                     </div>
 
@@ -149,12 +149,12 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '4px 6px', marginBottom: '6px',
-                        background: 'var(--line)', borderRadius: '4px'
+                        background: 'var(--line)', borderRadius: '0'
                     }}>
                         <Sparkline data={data.timeline} color="#b984af" />
                         <div style={{ textAlign: 'right' }}>
                             <TrendingUp size={8} style={{ color: '#b984af', marginBottom: '1px' }} />
-                            <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>5-week trend</div>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>5-week trend</div>
                         </div>
                     </div>
 
@@ -162,14 +162,14 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         {data.countries.slice(0, 5).map((c, i) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{c.name}</span>
-                                <div style={{ flex: 1, height: '5px', background: 'var(--line)', borderRadius: '3px', overflow: 'hidden' }}>
+                                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', width: '50px', textAlign: 'right', flexShrink: 0 }}>{c.name}</span>
+                                <div style={{ flex: 1, height: '5px', background: 'var(--line)', borderRadius: '0', overflow: 'hidden' }}>
                                     <div style={{
                                         width: `${Math.max((c.count / maxCount) * 100, 3)}%`,
-                                        height: '100%', borderRadius: '3px', background: c.color
+                                        height: '100%', borderRadius: '0', background: c.color
                                     }} />
                                 </div>
-                                <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '28px' }}>{formatNum(c.count)}</span>
+                                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '28px' }}>{formatNum(c.count)}</span>
                             </div>
                         ))}
                     </div>
@@ -178,7 +178,7 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
                     <div style={{
                         display: 'flex', gap: '6px', marginTop: '6px', padding: '3px 0',
                         borderTop: '1px solid var(--line)',
-                        fontSize: '0.36rem', color: 'var(--ink-3)'
+                        fontSize: 'var(--type-micro)', color: 'var(--ink-3)'
                     }}>
                         <span>Funding gap: <strong style={{ color: '#a72144' }}>{data.aidResponse.unhcrFundingGap}</strong></span>
                         <span>Corridors: <strong style={{ color: '#1a7444' }}>{data.aidResponse.corridorsOpen}</strong>/<strong style={{ color: '#a72144' }}>{data.aidResponse.corridorsBlocked}</strong></span>
@@ -186,7 +186,7 @@ const RefugeePanel = ({ viewMode = 'middleeast' }) => {
 
                     {/* Source note */}
                     <div style={{
-                        fontSize: '0.32rem', color: isIllustrative ? 'var(--red)' : 'var(--ink-3)',
+                        fontSize: 'var(--type-micro)', color: isIllustrative ? 'var(--red)' : 'var(--ink-3)',
                         marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
                     }}>
                         {isIllustrative ? 'Illustrative placeholder figures — no source. Not an observation.' : refugeeData.sources}

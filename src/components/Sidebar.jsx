@@ -332,9 +332,9 @@ const Sidebar = ({
                                         onClick={() => setTacticalOptics(opt.id)}
                                         style={{
                                             padding: '4px 6px',
-                                            fontSize: '0.52rem',
+                                            fontSize: 'var(--type-micro)',
                                             fontWeight: 600,
-                                            borderRadius: '3px',
+                                            borderRadius: '0',
                                             border: `1px solid ${isActive ? opt.color : 'var(--line)'}`,
                                             background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.2)',
                                             color: isActive ? opt.color : 'var(--ink-2)',

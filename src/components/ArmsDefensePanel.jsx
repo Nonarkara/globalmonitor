@@ -31,11 +31,11 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Shield size={12} style={{ color: 'var(--ink-2)' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Arms & Defense
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     AS OF {AS_OF} · {isMiddleEast ? 'MIDDLE EAST' : 'THEATER SNAPSHOT'}
                 </span>
             </div>
@@ -44,8 +44,8 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
             {!isMiddleEast && (
                 <div style={{
                     padding: '8px', marginBottom: '6px',
-                    background: 'var(--line)', borderRadius: '4px',
-                    border: '1px solid var(--line)', fontSize: '0.42rem',
+                    background: 'var(--line)', borderRadius: '0',
+                    border: '1px solid var(--line)', fontSize: 'var(--type-micro)',
                     color: 'var(--ink-3)', textAlign: 'center', lineHeight: 1.5
                 }}>
                     Detailed arsenal tracking is focused on the Middle East theater.<br />
@@ -64,10 +64,10 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                         ].map(k => (
                             <div key={k.label} style={{
                                 textAlign: 'center', padding: '4px',
-                                background: 'var(--line)', borderRadius: '4px'
+                                background: 'var(--line)', borderRadius: '0'
                             }}>
-                                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.value}</div>
-                                <div style={{ fontSize: '0.34rem', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
+                                <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.value}</div>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{k.label}</div>
                             </div>
                         ))}
                     </div>
@@ -75,21 +75,21 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                     {/* Interception rate bar */}
                     <div style={{
                         padding: '4px 8px', marginBottom: '6px',
-                        background: 'rgba(99,102,241,0.06)', borderRadius: '4px',
+                        background: 'rgba(99,102,241,0.06)', borderRadius: '0',
                         border: '1px solid rgba(99,102,241,0.1)'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                                 Overall Interception Rate
                             </span>
-                            <span style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
+                            <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
                                 {arsenalUsage.interceptionRate}
                             </span>
                         </div>
-                        <div style={{ height: '4px', background: 'var(--line)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ height: '4px', background: 'var(--line)', borderRadius: '0', overflow: 'hidden' }}>
                             <div style={{
                                 width: arsenalUsage.interceptionRate,
-                                height: '100%', borderRadius: '2px',
+                                height: '100%', borderRadius: '0',
                                 background: 'var(--ink-2)'
                             }} />
                         </div>
@@ -103,14 +103,14 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                                     width: '5px', height: '5px', borderRadius: '50%',
                                     background: STATUS_COLORS[sys.status] || '#6b665e', flexShrink: 0
                                 }} />
-                                <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>
+                                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', flex: 1 }}>
                                     {sys.name}
                                 </span>
-                                <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)' }}>
+                                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                                     {sys.operator}
                                 </span>
                                 <span style={{
-                                    fontSize: '0.34rem', fontWeight: 700, fontFamily: 'var(--font-mono)',
+                                    fontSize: 'var(--type-micro)', fontWeight: 700, fontFamily: 'var(--font-mono)',
                                     color: STATUS_COLORS[sys.status] || '#6b665e'
                                 }}>
                                     {sys.interceptRate}
@@ -127,8 +127,8 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                             gap: '4px', width: '100%', marginTop: '2px',
                             padding: '3px', background: 'var(--line)',
                             border: '1px solid var(--line)',
-                            borderRadius: '4px', color: 'var(--ink-3)',
-                            fontSize: '0.38rem', cursor: 'pointer', fontFamily: 'inherit'
+                            borderRadius: '0', color: 'var(--ink-3)',
+                            fontSize: 'var(--type-micro)', cursor: 'pointer', fontFamily: 'inherit'
                         }}
                     >
                         {showFlows ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
@@ -139,12 +139,12 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                         <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             {armsData.armsFlows.map((flow, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
-                                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '32px', flexShrink: 0 }}>{flow.from}</span>
-                                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>&rarr;</span>
-                                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-2)', width: '40px', flexShrink: 0 }}>{flow.to}</span>
-                                    <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
+                                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', width: '32px', flexShrink: 0 }}>{flow.from}</span>
+                                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>&rarr;</span>
+                                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', width: '40px', flexShrink: 0 }}>{flow.to}</span>
+                                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
                                     <span style={{
-                                        fontSize: '0.3rem', fontWeight: 700,
+                                        fontSize: 'var(--type-micro)', fontWeight: 700,
                                         color: STATUS_COLORS[flow.status] || '#6b665e',
                                         letterSpacing: '0.3px', textTransform: 'uppercase'
                                     }}>
@@ -157,7 +157,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
 
                     {/* Source note — split attribution: SIPRI for transfers, OSINT compilation for counts */}
                     <div style={{
-                        fontSize: '0.32rem', color: 'var(--ink-3)',
+                        fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                         marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
                     }}>
                         {armsData.sources}

@@ -50,11 +50,11 @@ const SanctionsPanel = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Shield size={12} style={{ color: 'var(--ink-2)' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Sanctions Tracker
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {totalCount} LOGGED · AS OF {AS_OF}
                 </span>
             </div>
@@ -63,24 +63,24 @@ const SanctionsPanel = () => {
             <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'var(--line)', borderRadius: '4px'
+                    background: 'var(--line)', borderRadius: '0'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>{totalCount}</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'var(--line)', borderRadius: '4px'
+                    background: 'var(--line)', borderRadius: '0'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'var(--line)', borderRadius: '4px'
+                    background: 'var(--line)', borderRadius: '0'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>{uniqueTargets}</div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Targets</div>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>{uniqueTargets}</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Targets</div>
                 </div>
             </div>
 
@@ -88,8 +88,8 @@ const SanctionsPanel = () => {
             <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
                 {Object.entries(byImposer).sort((a, b) => b[1] - a[1]).map(([who, count]) => (
                     <span key={who} style={{
-                        fontSize: '0.4rem', fontWeight: 600,
-                        padding: '2px 6px', borderRadius: '3px',
+                        fontSize: 'var(--type-micro)', fontWeight: 600,
+                        padding: '2px 6px', borderRadius: '0',
                         background: 'rgba(139,92,246,0.1)',
                         border: '1px solid rgba(139,92,246,0.15)',
                         color: 'var(--ink-2)',
@@ -108,17 +108,17 @@ const SanctionsPanel = () => {
                         padding: '3px 0',
                         borderBottom: '1px solid var(--line)'
                     }}>
-                        <span style={{ fontSize: '0.55rem', width: '16px', textAlign: 'center' }}>
+                        <span style={{ fontSize: 'var(--type-micro)', width: '16px', textAlign: 'center' }}>
                             {TYPE_ICONS[s.type] || '📄'}
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
-                                fontSize: '0.46rem', color: 'var(--ink-2)',
+                                fontSize: 'var(--type-micro)', color: 'var(--ink-2)',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }}>
                                 {s.target}
                             </div>
-                            <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                                 {s.imposedBy} · {s.date}
                             </div>
                         </div>
@@ -139,8 +139,8 @@ const SanctionsPanel = () => {
                         gap: '4px', width: '100%', marginTop: '4px',
                         padding: '3px', background: 'var(--line)',
                         border: '1px solid var(--line)',
-                        borderRadius: '4px', color: 'var(--ink-3)',
-                        fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit',
+                        borderRadius: '0', color: 'var(--ink-3)',
+                        fontSize: 'var(--type-micro)', cursor: 'pointer', fontFamily: 'inherit',
                         transition: 'all 0.2s'
                     }}
                 >
@@ -151,7 +151,7 @@ const SanctionsPanel = () => {
 
             {/* Source note */}
             <div style={{
-                fontSize: '0.32rem', color: 'var(--ink-3)',
+                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                 marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
             }}>
                 {sanctionsData.sources}

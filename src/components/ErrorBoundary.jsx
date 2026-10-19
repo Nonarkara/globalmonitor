@@ -52,9 +52,9 @@ class ErrorBoundary extends React.Component {
                         padding: '12px 16px',
                         background: 'rgba(239, 68, 68, 0.08)',
                         border: '1px solid rgba(239, 68, 68, 0.2)',
-                        borderRadius: '10px',
+                        borderRadius: '0',
                         color: '#6b665e',
-                        fontSize: '0.78rem',
+                        fontSize: 'var(--type-body)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -69,9 +69,9 @@ class ErrorBoundary extends React.Component {
                                 border: '1px solid var(--line-2)',
                                 color: '#f7f5ef',
                                 padding: '4px 12px',
-                                borderRadius: '6px',
+                                borderRadius: '0',
                                 cursor: 'pointer',
-                                fontSize: '0.72rem',
+                                fontSize: 'var(--type-micro)',
                                 fontWeight: 600
                             }}
                         >
@@ -84,7 +84,7 @@ class ErrorBoundary extends React.Component {
             // Full-page fallback
             return (
                 <div style={{ color: '#a72144', padding: '20px', background: '#050E20', height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
-                    <h2 style={{ fontSize: '1.5rem' }}>Something went wrong.</h2>
+                    <h2 style={{ fontSize: 'var(--type-display)' }}>Something went wrong.</h2>
                     <button
                         onClick={this.handleRetry}
                         style={{
@@ -92,14 +92,14 @@ class ErrorBoundary extends React.Component {
                             border: '1px solid var(--ink-3)',
                             color: '#f7f5ef',
                             padding: '8px 24px',
-                            borderRadius: '8px',
+                            borderRadius: '0',
                             cursor: 'pointer',
-                            fontSize: '0.9rem'
+                            fontSize: 'var(--type-body)'
                         }}
                     >
                         Retry
                     </button>
-                    <details style={{ whiteSpace: 'pre-wrap', color: '#6b665e', fontSize: '0.8rem', maxWidth: '600px' }}>
+                    <details style={{ whiteSpace: 'pre-wrap', color: '#6b665e', fontSize: 'var(--type-body)', maxWidth: '600px' }}>
                         {this.state.error && this.state.error.toString()}
                         <br />
                         {this.state.errorInfo && this.state.errorInfo.componentStack}

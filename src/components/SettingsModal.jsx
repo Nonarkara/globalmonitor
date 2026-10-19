@@ -42,14 +42,14 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
 
                 {/* Header */}
                 <div style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)' }}>
-                    <h2 id="settings-modal-title" style={{ margin: 0, fontSize: '1.2rem', letterSpacing: '2px', fontWeight: 600, color: 'var(--ink)' }}>NEWS SOURCES</h2>
+                    <h2 id="settings-modal-title" style={{ margin: 0, fontSize: 'var(--type-display)', letterSpacing: '2px', fontWeight: 600, color: 'var(--ink)' }}>NEWS SOURCES</h2>
                     <button onClick={onClose} aria-label="Close settings modal" style={{ background: 'none', border: 'none', color: 'var(--ink-3)', cursor: 'pointer' }}>
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Filter hint */}
-                <div style={{ padding: '12px 24px 0', color: 'var(--ink-2)', fontSize: '0.8rem' }}>
+                <div style={{ padding: '12px 24px 0', color: 'var(--ink-2)', fontSize: 'var(--type-body)' }}>
                     Choose which news sources feed the headline wire and briefing panels.
                 </div>
 
@@ -62,11 +62,11 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                 onClick={() => setActiveTab(tab.id)}
                                 style={{
                                     padding: '6px 16px',
-                                    borderRadius: '2px',
+                                    borderRadius: '0',
                                     border: `1px solid ${activeTab === tab.id ? 'var(--green)' : 'var(--line-2)'}`,
                                     color: activeTab === tab.id ? 'var(--green)' : 'var(--ink-2)',
                                     background: 'transparent',
-                                    fontSize: '0.75rem',
+                                    fontSize: 'var(--type-body)',
                                     cursor: 'pointer',
                                     whiteSpace: 'nowrap',
                                     transition: 'var(--transition)',
@@ -89,9 +89,9 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                 background: 'transparent',
                                 border: '1px solid var(--line-2)',
                                 color: 'var(--ink)',
-                                borderRadius: '2px',
+                                borderRadius: '0',
                                 fontFamily: 'inherit',
-                                fontSize: '0.85rem'
+                                fontSize: 'var(--type-body)'
                             }}
                         />
                     </div>
@@ -111,7 +111,7 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                     gap: '12px',
                                     padding: '12px 16px',
                                     border: `1px solid ${isActive ? 'var(--green)' : 'var(--line-2)'}`,
-                                    borderRadius: '2px',
+                                    borderRadius: '0',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s'
                                 }}
@@ -121,12 +121,12 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
                                     backgroundColor: isActive ? 'var(--green)' : 'transparent',
                                     border: `1px solid ${isActive ? 'var(--green)' : 'var(--line-2)'}`,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    borderRadius: '1px'
+                                    borderRadius: '0'
                                 }}>
                                     {isActive && <Check size={12} color="#000" strokeWidth={3} />}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <span style={{ fontSize: '0.85rem', color: isActive ? 'var(--ink)' : 'var(--ink-2)', fontWeight: isActive ? 500 : 400 }}>
+                                    <span style={{ fontSize: 'var(--type-body)', color: isActive ? 'var(--ink)' : 'var(--ink-2)', fontWeight: isActive ? 500 : 400 }}>
                                         {source.name}
                                     </span>
                                 </div>
@@ -137,16 +137,16 @@ const SettingsModal = ({ isOpen, onClose, activeSources, toggleSource, setAllSou
 
                 {/* Footer Controls */}
                 <div style={{ padding: '16px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--ink-2)' }}>{activeSources.length}/{INTELLIGENCE_SOURCES.length} enabled</span>
+                    <span style={{ fontSize: 'var(--type-body)', color: 'var(--ink-2)' }}>{activeSources.length}/{INTELLIGENCE_SOURCES.length} enabled</span>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button
                             onClick={() => setAllSources(true)}
-                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--line-2)', color: 'var(--ink)', borderRadius: '2px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
+                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--line-2)', color: 'var(--ink)', borderRadius: '0', fontSize: 'var(--type-body)', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
                             SELECT ALL
                         </button>
                         <button
                             onClick={() => setAllSources(false)}
-                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--line-2)', color: 'var(--ink)', borderRadius: '2px', fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
+                            style={{ padding: '10px 24px', background: 'transparent', border: '1px solid var(--line-2)', color: 'var(--ink)', borderRadius: '0', fontSize: 'var(--type-body)', cursor: 'pointer', letterSpacing: '1px', transition: 'var(--transition)' }}>
                             SELECT NONE
                         </button>
                     </div>

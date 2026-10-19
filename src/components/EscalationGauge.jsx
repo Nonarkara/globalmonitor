@@ -101,14 +101,14 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
                     <Arc color="var(--line)" progress={0} circumference={circumference} />
                     <div style={{
                         position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                        fontSize: '0.95rem', fontWeight: 200, fontFamily: 'var(--font-mono)',
+                        fontSize: 'var(--type-body)', fontWeight: 200, fontFamily: 'var(--font-mono)',
                         color: 'var(--ink-3)', lineHeight: 1, fontVariantNumeric: 'tabular-nums'
                     }}>
                         —
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minHeight: '26px' }}>
-                    <span style={{ fontSize: '0.48rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>
                         {silent ? 'NO DATA' : 'ESCALATION'}
                     </span>
                     <div style={{ width: 48, height: 14, marginTop: 2 }} aria-hidden="true" />
@@ -164,21 +164,21 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
                 <Arc color={color} progress={progress} circumference={circumference} dim={isStale} />
                 <div style={{
                     position: 'absolute', bottom: '0', left: '50%', transform: 'translateX(-50%)',
-                    fontSize: '0.95rem', fontWeight: 200, fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--type-body)', fontWeight: 200, fontFamily: 'var(--font-mono)',
                     color, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
                     minWidth: '2ch', textAlign: 'center', transition: 'color 0.5s ease',
                     opacity: isStale ? 0.6 : 1, whiteSpace: 'nowrap'
                 }}>
                     {score}
                     {partial && (
-                        <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', marginLeft: 1 }}>/{availableMax}</span>
+                        <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginLeft: 1 }}>/{availableMax}</span>
                     )}
                 </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minHeight: '26px' }}>
                 <span style={{
-                    fontSize: '0.48rem',
+                    fontSize: 'var(--type-micro)',
                     fontWeight: 600,
                     letterSpacing: '1.5px',
                     color: isStale ? 'var(--ink-3)' : color,
@@ -200,7 +200,7 @@ const EscalationGauge = ({ viewMode = 'middleeast' }) => {
                     <HealthDots sourceHealth={sourceHealth} />
                     {(nonLive.length > 0 || age) && (
                         <span style={{
-                            fontSize: '0.38rem', fontFamily: 'var(--font-mono)',
+                            fontSize: 'var(--type-micro)', fontFamily: 'var(--font-mono)',
                             color: nonLive.length ? '#f59e0b' : 'var(--ink-3)',
                             letterSpacing: '0.3px', whiteSpace: 'nowrap', maxWidth: '26ch',
                             overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2

@@ -8,7 +8,7 @@ import {
 
 const H2 = ({ children }) => (
     <h2 style={{
-        fontSize: '14px', fontWeight: 800, margin: '32px 0 12px',
+        fontSize: 'var(--type-body)', fontWeight: 800, margin: '32px 0 12px',
         textTransform: 'uppercase', letterSpacing: '0.04em',
         borderBottom: '2px solid #111', paddingBottom: '6px',
     }}>
@@ -17,7 +17,7 @@ const H2 = ({ children }) => (
 );
 
 const H3 = ({ children }) => (
-    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: '16px 0 6px' }}>{children}</h3>
+    <h3 style={{ fontSize: 'var(--type-body)', fontWeight: 700, margin: '16px 0 6px' }}>{children}</h3>
 );
 
 const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
@@ -59,12 +59,12 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                         <div style={{
                             width: '32px', height: '32px', background: '#111', color: '#d9d5c9',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: 700, fontSize: '14px', flexShrink: 0,
+                            fontWeight: 700, fontSize: 'var(--type-body)', flexShrink: 0,
                         }}>
                             A
                         </div>
                         <span style={{
-                            fontSize: '14px', fontWeight: 700, letterSpacing: '0.05em',
+                            fontSize: 'var(--type-body)', fontWeight: 700, letterSpacing: '0.05em',
                             textTransform: 'uppercase',
                         }}>
                             About
@@ -78,7 +78,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                             border: 'none',
                             color: '#111', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', gap: '6px',
-                            fontSize: '14px', fontWeight: 700, textTransform: 'uppercase',
+                            fontSize: 'var(--type-body)', fontWeight: 700, textTransform: 'uppercase',
                             minHeight: '44px',
                         }}
                     >
@@ -88,7 +88,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
 
                 <div style={{
                     flex: 1, overflowY: 'auto', padding: '24px 20px 32px',
-                    fontSize: '14px', lineHeight: 1.6, color: '#222',
+                    fontSize: 'var(--type-body)', lineHeight: 1.6, color: '#222',
                 }}>
                     {ORIGIN_ESSAY.map((paragraph) => (
                         <p key={paragraph.slice(0, 40)} style={{ margin: '0 0 16px' }}>
@@ -100,7 +100,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                     {CREATORS.map((person) => (
                         <div key={person.name} style={{ marginBottom: '16px' }}>
                             <div style={{ fontWeight: 700 }}>{person.name}</div>
-                            <div style={{ fontSize: '13px', fontStyle: 'italic', margin: '2px 0 6px' }}>{person.role}</div>
+                            <div style={{ fontSize: 'var(--type-body)', fontStyle: 'italic', margin: '2px 0 6px' }}>{person.role}</div>
                             <div>{person.detail}</div>
                         </div>
                     ))}
@@ -141,7 +141,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                                         background: here ? '#fff' : 'transparent',
                                     }}
                                 >
-                                    <div style={{ fontWeight: 700, fontSize: '14px' }}>
+                                    <div style={{ fontWeight: 700, fontSize: 'var(--type-body)' }}>
                                         {system.name}
                                         {here ? ' — this screen' : ''}
                                     </div>
@@ -151,7 +151,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                                             href={system.url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            style={{ color: '#111', fontSize: '11px', display: 'inline-block', marginTop: '6px', minHeight: '44px', lineHeight: '44px' }}
+                                            style={{ color: '#111', fontSize: 'var(--type-micro)', display: 'inline-block', marginTop: '6px', minHeight: '44px', lineHeight: '44px' }}
                                         >
                                             {system.url.replace('https://', '')}
                                         </a>

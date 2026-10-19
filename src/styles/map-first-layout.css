@@ -93,7 +93,7 @@
 
 .app-container[data-layout="map-first"] .map-legend--traffic .map-legend-item span {
   min-width: 0 !important;
-  font-size: 0.62rem;
+  font-size: var(--type-micro);
 }
 
 .app-container[data-layout="map-first"] .map-wrapper .maplibregl-map {
@@ -147,14 +147,14 @@
 }
 
 .app-container[data-layout="map-first"] .primary-clock-content .clock-time-large {
-  font-size: 1.25rem;
+  font-size: var(--type-display);
   line-height: 1.05;
 }
 
 .app-container[data-layout="map-first"] .primary-clock-content .clock-war-date,
 .app-container[data-layout="map-first"] .primary-clock-content .clock-city {
   line-height: 1.1;
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
 }
 
 .app-container[data-layout="map-first"] .header-bar {
@@ -218,7 +218,7 @@
   border-left-color: var(--chrome-line);
   color: var(--chrome-muted);
   padding: 5px 10px;
-  font-size: 0.58rem;
+  font-size: var(--type-micro);
   min-height: 26px;
 }
 
@@ -261,7 +261,7 @@
 }
 
 .app-container[data-layout="map-first"] .header-icon-label {
-  font-size: 0.42rem;
+  font-size: var(--type-micro);
 }
 
 .app-container[data-layout="map-first"] .news-ticker-wrapper {
@@ -526,7 +526,7 @@
 .app-container[data-layout="map-first"] .panel-header {
   margin: 6px 10px 0;
   padding-bottom: 5px;
-  font-size: 10px;
+  font-size: var(--type-micro);
 }
 
 .app-container[data-layout="map-first"] .panel-content,
@@ -771,12 +771,12 @@
      rule near the top of this file — a media query adds no specificity of its own. */
   .app-container[data-layout="map-first"] .primary-clock-content .clock-war-date,
   .app-container[data-layout="map-first"] .primary-clock-content .clock-city {
-    font-size: 11px;
+    font-size: var(--type-micro);
   }
 
   /* The legal footer renders outside .app-container, so it needs a bare selector. */
   .legal-footer-link {
-    font-size: 11px;
+    font-size: var(--type-micro);
   }
 
   .app-container[data-layout="map-first"] .map-wrapper {
@@ -792,7 +792,7 @@
   }
 
   .app-container[data-layout="map-first"] .primary-clock-content .clock-time-large {
-    font-size: 1.15rem;
+    font-size: var(--type-display);
   }
 
   .app-container[data-layout="map-first"] .header-bar {

@@ -80,7 +80,7 @@ const TimeMachine = ({ onDateChange }) => {
             alignItems: 'center',
             gap: '8px',
             padding: '6px 14px',
-            borderRadius: '12px',
+            borderRadius: '0',
             background: 'rgba(22, 28, 40, 0.85)',
             border: '1px solid var(--line-2)',
             backdropFilter: 'none',
@@ -91,7 +91,7 @@ const TimeMachine = ({ onDateChange }) => {
             <button onClick={togglePlay} style={{
                 background: 'var(--line-2)',
                 border: '1px solid var(--line-2)',
-                borderRadius: '6px',
+                borderRadius: '0',
                 padding: '3px 6px',
                 cursor: 'pointer',
                 display: 'flex',
@@ -135,7 +135,7 @@ const TimeMachine = ({ onDateChange }) => {
                 flexShrink: 0
             }}>
                 <span style={{
-                    fontSize: '0.6rem',
+                    fontSize: 'var(--type-micro)',
                     fontFamily: 'var(--font-mono)',
                     color: isLive ? '#1a7444' : '#f59e0b',
                     fontWeight: 600,
@@ -144,7 +144,7 @@ const TimeMachine = ({ onDateChange }) => {
                     {isLive ? 'LIVE' : `DAY ${currentDay}`}
                 </span>
                 <span style={{
-                    fontSize: '0.55rem',
+                    fontSize: 'var(--type-micro)',
                     color: 'var(--ink-2)',
                     fontFamily: 'var(--font-mono)'
                 }}>

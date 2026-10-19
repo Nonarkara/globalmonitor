@@ -37,7 +37,7 @@ const FrontCard = ({ front }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Icon size={12} style={{ color: front.color === '#a72144' ? 'var(--red)' : front.color === '#f59e0b' ? 'var(--ink-2)' : 'var(--green)', opacity: 0.9 }} />
                 <span style={{
-                    fontSize: '9px',
+                    fontSize: 'var(--type-micro)',
                     fontWeight: 700,
                     letterSpacing: '0.14em',
                     color: front.status === 'CRITICAL' ? 'var(--red)' : front.status === 'ACTIVE' ? 'var(--ink)' : 'var(--ink-3)',
@@ -53,7 +53,7 @@ const FrontCard = ({ front }) => {
             </div>
 
             <div style={{
-                fontSize: '12px',
+                fontSize: 'var(--type-body)',
                 fontWeight: 600,
                 color: 'var(--ink)',
                 letterSpacing: 'normal',
@@ -63,7 +63,7 @@ const FrontCard = ({ front }) => {
             </div>
 
             <div style={{
-                fontSize: '15px',
+                fontSize: 'var(--type-body)',
                 fontWeight: 600,
                 fontFamily: 'var(--font-mono)',
                 fontVariantNumeric: 'tabular-nums',
@@ -118,7 +118,7 @@ const MultiFrontBoard = ({ viewMode = 'middleeast' }) => {
                 </span>
                 <div style={{ display: 'flex', gap: '10px', minWidth: '12ch', justifyContent: 'flex-end' }}>
                     <span style={{
-                        fontSize: '9px',
+                        fontSize: 'var(--type-micro)',
                         fontWeight: 600,
                         color: 'var(--red)',
                         letterSpacing: '0.14em',
@@ -129,7 +129,7 @@ const MultiFrontBoard = ({ viewMode = 'middleeast' }) => {
                         {criticalCount} CRITICAL
                     </span>
                     <span style={{
-                        fontSize: '9px',
+                        fontSize: 'var(--type-micro)',
                         fontWeight: 600,
                         color: 'var(--ink-2)',
                         letterSpacing: '0.14em',

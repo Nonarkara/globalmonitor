@@ -32,7 +32,7 @@ const formatStamp = (value) => {
     return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-const CAPTION_STYLE = { fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' };
+const CAPTION_STYLE = { fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' };
 
 const SentimentChart = ({ viewMode = 'middleeast' }) => {
     const fetcher = useCallback(() => fetchBackendJson('/api/sentiment', { theater: viewMode }), [viewMode]);
@@ -97,7 +97,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                 borderLeft: '2px solid var(--accent-cyan)', paddingLeft: '8px'
             }}>
                 <Activity size={12} style={{ color: 'var(--accent-cyan)' }} />
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Media Sentiment</span>
+                <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Media Sentiment</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isRefreshing={isRefreshing} isStale={isStale}
@@ -122,14 +122,14 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Activity size={12} style={{ color: '#006eb8' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Media Sentiment
                     </span>
                 </div>
                 <span style={{
-                    fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
+                    fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '0.8px',
                     color: labelColor,
-                    padding: '2px 6px', borderRadius: '3px',
+                    padding: '2px 6px', borderRadius: '0',
                     background: `${labelColor}18`, border: `1px solid ${labelColor}30`
                 }}>
                     {label}

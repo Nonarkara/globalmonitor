@@ -15,9 +15,25 @@ Palette stack. Four faces, one job each, and no fifth:
 - **JetBrains Mono** — every number, and only numbers. A monospace *label* is a regression.
 - **IBM Plex Sans Thai** — Thai only, non-looped. Thai blocks carry `lang="th"`.
 
-Three sizes, and no fourth: Display 28px / Body 13px / Micro 11px. Every legacy
-`--type-*` alias resolves to one of those three, so the ladder is enforced without
-rewriting call sites. Helvetica Neue is retired as the default body face — it was
+Three sizes, and no fourth: Display 1.75rem / Body 0.8125rem / Micro 0.6875rem.
+Every legacy `--type-*` alias resolves to one of those three, and there is no
+literal `font-size` left in the interface — the scale is the ladder and the
+components use it instead of bypassing it. The root is fluid (13px → 16px on
+a phone → 24px on a wall display), so the three sizes scale together and the
+chrome rows are sized in rem to match: a fluid type scale under fixed-px rows
+is a half-implemented idea that ends up eating the clock's own labels.
+
+One named exception: `--type-instrument` (1.125rem) is the clock face alone.
+A display-size numeral does not fit a compact clock row, and a clock is an
+instrument rather than a voice.
+
+Map glyphs are a fifth face, **Noto Sans**, and that is a hard constraint of
+the glyph endpoint rather than a preference: the server serves only the
+families it serves, and the previous choice 404s there — which is why no
+MapLibre label ever drew. A map label is not an interface font, and it is not
+allowed to leak into the interface.
+
+Helvetica Neue is retired as the default body face — it was
 retained while the ground was dark; it stays in the fallback chain, but the
 grotesque discipline now comes from the Palette stack. The banned list still
 stands: no Inter, Roboto, Poppins, Montserrat, Lato, Open Sans, DM Sans, Space
@@ -33,10 +49,49 @@ Closed set. Every colour on the page is a named role.
 - Categorical data series: Blue #006eb8 · Violet #4f4086 · Lilac #b984af · Orange #f37420 · Yellow-Orange #f99d1b · Olive #837e31 · Brown #7c4226.
 - Tailwind's default palette and the VibeCode purples are **not** in the system. Do not reintroduce them; use a named series token instead.
 - US-EPA AQI band colours are a domain standard, not interface chrome: the six published EPA hexes are used verbatim, so an AQI reading means what it means to a reader anywhere.
-- Hairlines only. No gradient, no glow, no glass, no drop shadow, zero radius.
+- Hairlines only. No gradient, no glow, no glass, no drop shadow, zero radius on every container. A 50% circle is a shape, not a radius.
+
+### The map's ink
+Map ink has **one voice**. A label that sits on the basemap is ink `#101010`
+with a paper halo `rgba(247,245,239,0.9)` — never a black outline, and never a
+colour of its own. The colour belongs to the mark, not to its name. Two
+exceptions, both deliberate: a range-ring value keeps Wada Red because it
+annotates a red line, and the military callsign keeps the paper-ground amber
+`#8a5a00`.
+
+**One mark, one colour.** A conflict event is drawn in Wada Red whether the
+feed is live or a sample; whether the data is live is said in words, never in
+the colour. A density field is one hue that deepens with density — a crimson
+field on paper — and never a rainbow that prints its densest cells brighter
+than the ground. The old red→yellow ramp made the fires brighter than the
+paper and contradicted the red swatch the legend promised.
+
+**No blurred glows.** Every mark that carried a blurred under-layer lost it:
+corridors, anchors, beacons, strike origins and crisis zones are drawn once,
+at one weight. A crisis zone is a flat translucent fill with a clean edge — a
+zone, not a halo of importance and not a reticle.
+
+**The legend is the key, and the key must agree with the drawing.** A swatch
+is the colour the map actually paints; the provenance — API or public file,
+live or sample — is said underneath it in words. A key that disagrees with the
+map is worse than no key.
 
 ## Layout
 The live map is the operating table. Compact clock (24–28px), 56px masthead and 44px ticker; no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.
+
+The clock rail is **centred**: the reference clock is the focal point of the
+strip and the eight flanking clocks are an index around it. The rail used to be
+left-packed, which left 740px of empty margin on the right while the primary
+clock was squeezed into a 240px cell and truncated its own city name. A rail
+may not truncate a label.
+
+The masthead subtitle names the product, not the build. The version is a build
+fact and it is read in the LAYERS panel and in the legal notice; a truncated
+subtitle is worse than a version number the reader has to go and look for.
+
+The product name and the build version come from one module
+(`src/data/dashboardMeta.js`). A legal notice that claims a different product
+or an older version than the build is telling the reader two things at once.
 
 The opening camera frames the theater the tab claims. Southeast Asia opens at
 zoom 4.4, not the hemisphere — a view that includes all of India and half the
@@ -92,8 +147,6 @@ are said in words — "NASA FIRMS public file · 24h", not "nasa-firms-public-24
 - rule eyebrow-caps: existing instrument labels and sector wayfinding, not marketing eyebrows
 - colour #f7f5ef: Palette paper ground
 - colour #a72144: Wada Red — severity ink and brand anchor
-- rule default-purple in **/MapContainer.jsx: retained scientific/map category identifiers with legends
-- rule default-purple in **/mapTrafficIcons.js: vessel category colour, not interface accent
 - rule default-purple in **/regions.js: geographic category data
 - rule purple-gradient in **/tactical-optics.css: user-selected CRT spectral scanlines; never default decoration
 

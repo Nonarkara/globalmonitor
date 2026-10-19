@@ -8,15 +8,15 @@ const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
 
 const KPI = ({ icon, label, value, color, sub }) => (
     <div style={{
-        padding: '6px 8px', borderRadius: '6px',
+        padding: '6px 8px', borderRadius: '0',
         background: 'var(--line)',
         border: '1px solid var(--line)',
         textAlign: 'center'
     }}>
         {React.createElement(icon, { size: 10, style: { color, marginBottom: '2px' } })}
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{value}</div>
-        <div style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
-        {sub && <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
+        <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{value}</div>
+        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{label}</div>
+        {sub && <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '1px' }}>{sub}</div>}
     </div>
 );
 
@@ -24,15 +24,15 @@ const MiniBar = ({ items, maxVal }) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {items.map(({ label, count, color }, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', width: '55px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
-                <div style={{ flex: 1, height: '6px', background: 'var(--line)', borderRadius: '3px', overflow: 'hidden' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', width: '55px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
+                <div style={{ flex: 1, height: '6px', background: 'var(--line)', borderRadius: '0', overflow: 'hidden' }}>
                     <div style={{
                         width: `${Math.max((count / maxVal) * 100, 3)}%`,
-                        height: '100%', borderRadius: '3px',
+                        height: '100%', borderRadius: '0',
                         background: color
                     }} />
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '14px' }}>{count}</span>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', fontFamily: 'var(--font-mono)', width: '14px' }}>{count}</span>
             </div>
         ))}
     </div>
@@ -142,11 +142,11 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Crosshair size={12} style={{ color: '#f37420' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Conflict Analytics
                     </span>
                 </div>
-                <span style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: isDemo ? 'var(--red)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {isDemo ? 'DEMO — NOT ACLED' : 'ACLED · LIVE'} · {viewMode.toUpperCase()}
                 </span>
             </div>
@@ -179,31 +179,31 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                         {showTrend && !isDemo && analysis.cumulativeFatalities.length > 1 && (
                             <div style={{
                                 marginBottom: '8px', padding: '6px 8px',
-                                background: 'var(--line)', borderRadius: '6px'
+                                background: 'var(--line)', borderRadius: '0'
                             }}>
-                                <div style={{ fontSize: '0.4rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>
                                     Cumulative Trend
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <div style={{ flex: 1 }}>
                                         <CumulativeChart data={analysis.cumulativeEvents} color="#f37420" />
-                                        <div style={{ fontSize: '0.35rem', color: 'var(--ink-3)', marginTop: '2px' }}>Events</div>
+                                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>Events</div>
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <CumulativeChart data={analysis.cumulativeFatalities} color="#a72144" />
-                                        <div style={{ fontSize: '0.35rem', color: 'var(--ink-3)', marginTop: '2px' }}>Fatalities</div>
+                                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>Fatalities</div>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         <div style={{ marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Type</div>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Type</div>
                             <MiniBar items={analysis.typeItems} maxVal={analysis.maxType} />
                         </div>
 
                         <div style={{ marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.45rem', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Country</div>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '3px' }}>By Country</div>
                             <MiniBar items={analysis.countryItems} maxVal={analysis.maxCountry} />
                         </div>
 
@@ -214,7 +214,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '4px',
                                     background: 'none', border: 'none', cursor: 'pointer',
-                                    color: 'var(--ink-3)', fontSize: '0.45rem',
+                                    color: 'var(--ink-3)', fontSize: 'var(--type-micro)',
                                     letterSpacing: '0.8px', textTransform: 'uppercase',
                                     padding: 0, marginBottom: '3px', fontFamily: 'inherit'
                                 }}

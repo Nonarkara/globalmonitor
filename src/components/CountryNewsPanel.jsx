@@ -119,7 +119,7 @@ const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
                     >
                         <RefreshCw size={14} className={isRefreshing ? 'spin-anim' : ''} />
                     </button>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-mono)', padding: '2px 6px', ...BADGE_STYLES[badge] }}>{badge}</span>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 'bold', fontFamily: 'var(--font-mono)', padding: '2px 6px', ...BADGE_STYLES[badge] }}>{badge}</span>
                 </div>
             </div>
 
@@ -150,7 +150,7 @@ const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
                                 background: isActive ? 'rgba(56,189,248,0.18)' : 'transparent',
                                 border: isActive ? '1px solid rgba(56,189,248,0.55)' : '1px solid var(--line-2)',
                                 color: isActive ? 'var(--green)' : 'var(--ink-2)',
-                                fontSize: '0.65rem',
+                                fontSize: 'var(--type-micro)',
                                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                                 letterSpacing: '0.5px',
                                 textTransform: 'uppercase',
@@ -166,7 +166,7 @@ const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
 
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minHeight: 0, overflowY: 'auto' }}>
                 {news.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '0.7rem', color: 'var(--ink-3)' }}>
+                    <div style={{ textAlign: 'center', padding: '12px 0', fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                         {isLoading || isRefreshing ? 'Connecting to live feeds…' : 'No live items right now.'}
                     </div>
                 )}
@@ -184,14 +184,14 @@ const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
                             display: 'block'
                         }}
                     >
-                        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--text-muted)', marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                 {item.tag === 'urgent' ? <Zap size={9} style={{ color: '#a72144' }} /> : <Cpu size={9} style={{ color: '#006eb8' }} />}
                                 <span style={{ fontWeight: 'bold' }}>{item.source}</span>
                             </span>
                             <span>{itemTime(item)}</span>
                         </div>
-                        <div style={{ fontSize: '0.78rem', lineHeight: 1.35 }}>{item.title}</div>
+                        <div style={{ fontSize: 'var(--type-body)', lineHeight: 1.35 }}>{item.title}</div>
                     </a>
                 ))}
             </div>

@@ -116,7 +116,7 @@ const RegionalNewsPanel = ({ regionName, title }) => {
                     </button>
                     <span
                         title={meta?.updatedAt ? `Backend stamp ${safeDateString(meta.updatedAt)}` : undefined}
-                        style={{ fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-mono)', padding: '2px 6px', borderRadius: 0, ...BADGE_STYLES[badge.tone] }}
+                        style={{ fontSize: 'var(--type-micro)', fontWeight: 'bold', fontFamily: 'var(--font-mono)', padding: '2px 6px', borderRadius: 0, ...BADGE_STYLES[badge.tone] }}
                     >
                         {badge.label}
                     </span>
@@ -125,24 +125,24 @@ const RegionalNewsPanel = ({ regionName, title }) => {
             <div className="panel-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {news.map((item, i) => (
                     <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', borderBottom: '1px solid var(--line)', paddingBottom: '8px' }}>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ fontSize: 'var(--type-body)', color: 'var(--text-muted)', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ fontWeight: 'bold' }}>{item.source}</span>
                             <span>{safeDateString(item.pubDate)}</span>
                         </div>
-                        <div style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                        <div style={{ fontSize: 'var(--type-body)', lineHeight: '1.4' }}>
                             {item.title}
                         </div>
                     </a>
                 ))}
                 {news.length === 0 && (
                     <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--ink-3)', marginBottom: '4px' }}>
+                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginBottom: '4px' }}>
                             {!hasFeed
                                 ? `No dedicated feed for "${regionName}".`
                                 : (isRefreshing ? 'Connecting to live feeds…' : 'No live items are currently available.')}
                         </div>
                         {hasFeed && isRefreshing && (
-                            <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', }}>
+                            <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', }}>
                                 Connecting to live feeds...
                             </div>
                         )}

@@ -60,7 +60,7 @@ const LiveMediaPanel = () => {
                             onError={() => setEmbedFailed(true)}
                         />
                     ) : (
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.78rem', textAlign: 'center', padding: '16px' }}>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: 'var(--type-body)', textAlign: 'center', padding: '16px' }}>
                             <Webcam size={28} style={{ opacity: 0.4 }} />
                             <span>Embed blocked by source</span>
                         </div>

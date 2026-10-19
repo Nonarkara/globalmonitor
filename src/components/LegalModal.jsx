@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import SourceStack from './SourceStack';
+import { DASHBOARD_NAME, DASHBOARD_VERSION } from '../data/dashboardMeta';
 import {
   LEGAL_TABS,
   LEGAL_CONTACT,
@@ -9,10 +10,8 @@ import {
   aboutCopy,
 } from '../data/legalCopy';
 
-const DASHBOARD_VERSION = 'v8.4';
-
 const sectionHeading = {
-  fontSize: '11px',
+  fontSize: 'var(--type-micro)',
   fontWeight: 700,
   letterSpacing: '0.14em',
   textTransform: 'uppercase',
@@ -22,14 +21,14 @@ const sectionHeading = {
 };
 
 const bodyText = {
-  fontSize: '13px',
+  fontSize: 'var(--type-body)',
   color: 'var(--ink-2)',
   lineHeight: 1.7,
   marginBottom: '10px',
 };
 
 const labelStyle = {
-  fontSize: '10px',
+  fontSize: 'var(--type-micro)',
   fontWeight: 700,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
@@ -44,7 +43,7 @@ const tabButtonStyle = (active) => ({
   border: `1px solid ${active ? 'var(--green)' : 'var(--line-2)'}`,
   color: active ? 'var(--green)' : 'var(--ink-2)',
   background: 'transparent',
-  fontSize: '10px',
+  fontSize: 'var(--type-micro)',
   fontFamily: 'var(--font-mono)',
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
@@ -57,36 +56,36 @@ function AboutSection() {
   return (
     <>
       <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-        <div style={{ fontSize: '9px', color: 'var(--ink-3)', fontFamily: 'var(--font-sans)', letterSpacing: '0.16em', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-sans)', letterSpacing: '0.16em', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase' }}>
           FUNDED BY
         </div>
         <img
           src={`${import.meta.env.BASE_URL}pmua-logo.webp`}
           alt="PMUA"
-          style={{ height: '36px', objectFit: 'contain', background: '#fff', borderRadius: '5px', padding: '3px 8px' }}
+          style={{ height: '36px', objectFit: 'contain', background: '#fff', borderRadius: '0', padding: '3px 8px' }}
         />
-        <div style={{ fontSize: '10px', color: 'var(--ink-2)', marginTop: '4px' }}>{aboutCopy.fundedBy}</div>
+        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', marginTop: '4px' }}>{aboutCopy.fundedBy}</div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', background: '#fff', borderRadius: '5px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', background: '#fff', borderRadius: '0' }}>
         <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" style={{ height: '20px', objectFit: 'contain' }} />
         <img src={`${import.meta.env.BASE_URL}mdes.png`} alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain' }} />
         <img src={`${import.meta.env.BASE_URL}smart-city-thailand-logo.svg`} alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain' }} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '18px' }}>
-        <div style={{ fontSize: '9px', color: 'var(--ink-3)', letterSpacing: '0.16em', fontWeight: 700, textTransform: 'uppercase' }}>EXECUTED BY</div>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: '#fff', borderRadius: '5px', padding: '3px 8px' }}>
+        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.16em', fontWeight: 700, textTransform: 'uppercase' }}>EXECUTED BY</div>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: '#fff', borderRadius: '0', padding: '3px 8px' }}>
           <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom AI" style={{ height: '20px', objectFit: 'contain' }} />
           <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" style={{ height: '18px', objectFit: 'contain' }} />
         </span>
       </div>
 
-      <h2 id="legal-modal-title" style={{ fontSize: '19px', fontWeight: 600, color: 'var(--ink)', marginBottom: '4px' }}>
+      <h2 id="legal-modal-title" style={{ fontSize: 'var(--type-display)', fontWeight: 600, color: 'var(--ink)', marginBottom: '4px' }}>
         Global Political Dashboard
       </h2>
-      <p style={{ fontSize: '9px', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.14em', marginBottom: '14px', textTransform: 'uppercase', fontWeight: 600 }}>
-        GLOBEWATCH {DASHBOARD_VERSION}
+      <p style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.14em', marginBottom: '14px', textTransform: 'uppercase', fontWeight: 600 }}>
+        {DASHBOARD_NAME.toUpperCase()} {DASHBOARD_VERSION}
       </p>
 
       <div style={bodyText}>
@@ -102,7 +101,7 @@ function AboutSection() {
       </div>
 
       <h3 style={sectionHeading}>Source Agencies</h3>
-      <p style={{ ...bodyText, fontSize: '11px', color: 'var(--ink-3)', marginBottom: '10px' }}>
+      <p style={{ ...bodyText, fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginBottom: '10px' }}>
         Where each layer's data is pulled from. Status reflects integration, not live health — a green check means the source is wired and rendering, not that the feed is currently responding.
       </p>
       <SourceStack />
@@ -125,7 +124,7 @@ function LegalSection() {
         <p key={i} style={bodyText}>{p}</p>
       ))}
 
-      <p style={{ ...bodyText, fontSize: '11px', color: 'var(--ink-3)', marginTop: '16px' }}>
+      <p style={{ ...bodyText, fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '16px' }}>
         Mock-up framing: panels, gauges, and classification banners are visual design elements for situational awareness — not live classified products.
       </p>
     </>
@@ -138,7 +137,7 @@ function PrivacySection() {
   return (
     <>
       <h3 style={{ ...sectionHeading, marginTop: 0 }}>{p.title}</h3>
-      <p style={{ ...bodyText, fontSize: '11px', color: 'var(--ink-3)', marginBottom: '14px' }}>{p.subtitle}</p>
+      <p style={{ ...bodyText, fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginBottom: '14px' }}>{p.subtitle}</p>
       {p.paragraphs.map((text, i) => (
         <p key={i} style={bodyText}>{text}</p>
       ))}
@@ -205,7 +204,7 @@ function PrivacySection() {
         marginTop: '14px',
       }}>
         <div lang="th" style={labelStyle}>สรุปภาษาไทย</div>
-        <p lang="th" style={{ ...bodyText, marginBottom: 0, fontSize: '12px' }}>{p.thaiSummary}</p>
+        <p lang="th" style={{ ...bodyText, marginBottom: 0, fontSize: 'var(--type-body)' }}>{p.thaiSummary}</p>
       </div>
     </>
   );
@@ -246,7 +245,7 @@ function TermsSection({ onOpenDataProvenance }) {
             borderRadius: '0',
             color: 'var(--ink-2)',
             cursor: 'pointer',
-            fontSize: '11px',
+            fontSize: 'var(--type-micro)',
             fontFamily: 'var(--font-mono)',
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
@@ -256,7 +255,7 @@ function TermsSection({ onOpenDataProvenance }) {
         </button>
       )}
 
-      <p style={{ ...bodyText, fontSize: '11px', color: 'var(--ink-3)', marginTop: '16px' }}>
+      <p style={{ ...bodyText, fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '16px' }}>
         Questions: {LEGAL_CONTACT}
       </p>
     </>
@@ -398,7 +397,7 @@ const LegalModal = ({
           flexShrink: 0,
           gap: '12px',
         }}>
-          <span style={{ fontSize: '9px', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em' }}>
+          <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em' }}>
             {aboutCopy.footerMeta}
           </span>
           <button
@@ -413,7 +412,7 @@ const LegalModal = ({
               minHeight: '44px',
               color: '#fff',
               cursor: 'pointer',
-              fontSize: '11px',
+              fontSize: 'var(--type-micro)',
               fontFamily: 'inherit',
               fontWeight: 700,
               letterSpacing: '0.12em',

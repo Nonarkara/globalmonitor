@@ -23,13 +23,13 @@ const formatDate = (value) => {
 const wholeEvents = (value) => (typeof value === 'number' && !Number.isNaN(value) ? Math.round(value) : '—');
 
 const EXPIRED_PILL = {
-    fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.3px',
+    fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '0.3px',
     fontFamily: 'var(--font-mono)', color: 'var(--amber)',
     background: 'rgba(245,158,11,0.1)', padding: '2px 6px'
 };
 
 const UNIT_STYLE = {
-    fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)',
     textTransform: 'none', letterSpacing: 0
 };
 

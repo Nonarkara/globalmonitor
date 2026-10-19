@@ -15,7 +15,7 @@ const S = {
     retryBtn: {
         marginTop: 'var(--sp-1)', padding: '3px 10px',
         fontSize: 'var(--type-xs)', background: 'var(--line)',
-        border: '1px solid var(--line-2)', borderRadius: '4px',
+        border: '1px solid var(--line-2)', borderRadius: '0',
         color: 'var(--text-muted)', cursor: 'pointer',
         letterSpacing: '0.5px', textTransform: 'uppercase',
         fontFamily: 'var(--font-mono)', transition: 'var(--transition)'
@@ -23,7 +23,7 @@ const S = {
     staleBadge: {
         display: 'inline-flex', alignItems: 'center', gap: '4px',
         color: 'var(--amber)',
-        padding: '2px 6px', borderRadius: '3px',
+        padding: '2px 6px', borderRadius: '0',
         background: 'rgba(245,158,11,0.1)', letterSpacing: '0.3px',
         fontFamily: 'var(--font-mono)'
     }
@@ -52,7 +52,7 @@ const DataStatus = ({
     if (!data && error) {
         return (
             <div style={S.container} role="alert">
-                <span style={{ fontSize: '16px', opacity: 0.5 }} aria-hidden="true">⚠</span>
+                <span style={{ fontSize: 'var(--type-body)', opacity: 0.5 }} aria-hidden="true">⚠</span>
                 <span style={S.label}>
                     UNAVAILABLE{retryCount > 0 ? ` (${retryCount} ${retryCount === 1 ? 'retry' : 'retries'})` : ''}
                 </span>

@@ -31,7 +31,7 @@ const describeChange = (item) => {
     return { state: n < 0 || item.isPositive === false ? 'negative' : 'positive', text: item.changePerc };
 };
 
-const WINDOW_STYLE = { fontSize: '0.44rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.3px' };
+const WINDOW_STYLE = { fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.3px' };
 
 const OIL_THRESHOLDS = [
     { price: 200, label: '$200', level: 'EXTREME', color: '#a72144' },
@@ -55,7 +55,7 @@ const OilCrisisHeader = ({ items }) => {
     return (
         <div style={{
             background: `${currentThreshold.color}10`,
-            borderRadius: '6px',
+            borderRadius: '0',
             padding: '8px 10px',
             marginBottom: '6px',
             border: `1px solid ${currentThreshold.color}25`
@@ -63,9 +63,9 @@ const OilCrisisHeader = ({ items }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
-                        fontSize: '0.42rem', fontWeight: 700, letterSpacing: '1px',
+                        fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1px',
                         color: currentThreshold.color, textTransform: 'uppercase',
-                        padding: '1px 5px', background: `${currentThreshold.color}20`, borderRadius: '3px'
+                        padding: '1px 5px', background: `${currentThreshold.color}20`, borderRadius: '0'
                     }}>
                         OIL CRISIS — {currentThreshold.level}
                     </span>
@@ -73,12 +73,12 @@ const OilCrisisHeader = ({ items }) => {
             </div>
 
             {/* Price threshold bar */}
-            <div style={{ position: 'relative', height: '12px', background: 'var(--line)', borderRadius: '6px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '12px', background: 'var(--line)', borderRadius: '0', overflow: 'hidden' }}>
                 <div style={{
                     position: 'absolute', left: 0, top: 0, bottom: 0,
                     width: `${pctPosition}%`,
                     background: `linear-gradient(90deg, #1a7444 0%, #8a5a00 36%, #f59e0b 45%, #a72144 68%, #a72144 90%)`,
-                    borderRadius: '6px',
+                    borderRadius: '0',
                     transition: 'width 1s ease'
                 }} />
                 {/* Threshold markers */}
@@ -92,7 +92,7 @@ const OilCrisisHeader = ({ items }) => {
                     }}>
                         <span style={{
                             position: 'absolute', top: '-11px', transform: 'translateX(-50%)',
-                            fontSize: '0.36rem', color: 'var(--ink-3)',
+                            fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                             fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap'
                         }}>
                             {t.label}
@@ -106,13 +106,13 @@ const OilCrisisHeader = ({ items }) => {
                     top: '-2px', bottom: '-2px',
                     width: '3px',
                     background: 'white',
-                    borderRadius: '2px',
+                    borderRadius: '0',
                     boxShadow: '0 0 6px var(--ink-2)',
                     transform: 'translateX(-50%)'
                 }} />
             </div>
             <div style={{
-                fontSize: '0.44rem', color: 'var(--ink-3)',
+                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                 marginTop: '4px', fontFamily: 'var(--font-mono)', textAlign: 'right'
             }}>
                 {oilItem.symbol}: ${price.toFixed(2)} ({oilChange.text}{oilItem.window ? ` ${oilItem.window}` : ''})
@@ -161,7 +161,7 @@ const MarketRadarPanel = ({ viewMode = 'middleeast' }) => {
                 {/* Oil Crisis Header — Middle East only; oil is the ME-war story.
                     Outside ME, surfacing it overweights Iran/Gulf and misleads. */}
                 {viewMode === 'middleeast' && safeMarkets.length > 0 && <OilCrisisHeader items={safeMarkets} />}
-                <div className="panel-lead" style={{ marginBottom: 0, fontFamily: 'var(--font-mono)', fontSize: '0.68rem', letterSpacing: '0.3px' }}>
+                <div className="panel-lead" style={{ marginBottom: 0, fontFamily: 'var(--font-mono)', fontSize: 'var(--type-micro)', letterSpacing: '0.3px' }}>
                     {lastUpdated ? `Last update ${new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Waiting for first live quote…'}
                 </div>
                 <div className="radar-groups">
@@ -200,7 +200,7 @@ const MarketRadarPanel = ({ viewMode = 'middleeast' }) => {
 
                 {safeMarkets.length === 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 'var(--type-body)', fontStyle: 'italic' }}>
                             {isLoading ? 'Connecting to live markets…' : 'No live market data available right now.'}
                         </span>
                     </div>

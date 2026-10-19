@@ -67,7 +67,7 @@ const AlertBanner = () => {
         }}>
             <AlertTriangle size={14} style={{ color: textColor, flexShrink: 0 }} />
             <span style={{
-                fontSize: '0.6rem',
+                fontSize: 'var(--type-micro)',
                 fontWeight: 600,
                 letterSpacing: '1.5px',
                 color: textColor,
@@ -77,7 +77,7 @@ const AlertBanner = () => {
             </span>
             {factors.length > 0 && (
                 <span style={{
-                    fontSize: '0.5rem',
+                    fontSize: 'var(--type-micro)',
                     color: 'var(--ink-3)',
                     letterSpacing: '0.3px'
                 }}>

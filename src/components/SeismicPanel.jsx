@@ -29,13 +29,13 @@ const QuakeItem = ({ quake }) => {
             alignItems: 'center',
             gap: '8px',
             padding: '4px 6px',
-            borderRadius: '4px'
+            borderRadius: '0'
         }}>
             {/* Magnitude badge */}
             <div style={{
                 width: '32px',
                 height: '28px',
-                borderRadius: '6px',
+                borderRadius: '0',
                 background: `${color}18`,
                 border: `1px solid ${color}30`,
                 display: 'flex',
@@ -44,7 +44,7 @@ const QuakeItem = ({ quake }) => {
                 flexShrink: 0
             }}>
                 <span style={{
-                    fontSize: '0.72rem',
+                    fontSize: 'var(--type-micro)',
                     fontWeight: 300,
                     fontFamily: 'var(--font-mono)',
                     color
@@ -55,7 +55,7 @@ const QuakeItem = ({ quake }) => {
             {/* Details */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                    fontSize: '0.48rem',
+                    fontSize: 'var(--type-micro)',
                     color: 'var(--ink-2)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -64,7 +64,7 @@ const QuakeItem = ({ quake }) => {
                     {quake.place}
                 </div>
                 <div style={{
-                    fontSize: '0.4rem',
+                    fontSize: 'var(--type-micro)',
                     color: 'var(--ink-3)',
                     fontFamily: 'var(--font-mono)'
                 }}>
@@ -102,7 +102,7 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {summary.significant > 0 && (
-                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: '#a72144' }}>
+                        <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#a72144' }}>
                             {summary.significant} M4.5+
                         </span>
                     )}
@@ -130,22 +130,22 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
                         marginBottom: '4px'
                     }}>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: summary.last24h > 5 ? '#f59e0b' : 'var(--text-muted)' }}>
+                            <div style={{ fontSize: 'var(--type-body)', fontWeight: 200, fontFamily: 'var(--font-mono)', color: summary.last24h > 5 ? '#f59e0b' : 'var(--text-muted)' }}>
                                 {summary.last24h || 0}
                             </div>
-                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>24H</div>
+                            <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>24H</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: getMagColor(summary.maxMagnitude || 0) }}>
+                            <div style={{ fontSize: 'var(--type-body)', fontWeight: 200, fontFamily: 'var(--font-mono)', color: getMagColor(summary.maxMagnitude || 0) }}>
                                 {summary.maxMagnitude ? summary.maxMagnitude.toFixed(1) : '--'}
                             </div>
-                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>MAX MAG</div>
+                            <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>MAX MAG</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 200, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: 'var(--type-body)', fontWeight: 200, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                                 {summary.total || 0}
                             </div>
-                            <div style={{ fontSize: '0.38rem', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>TOTAL</div>
+                            <div style={{ fontSize: 'var(--type-micro)', fontWeight: 600, letterSpacing: '0.8px', color: 'var(--text-muted)' }}>TOTAL</div>
                         </div>
                     </div>
                     {quakes.map((q) => <QuakeItem key={q.id} quake={q} />)}
@@ -154,7 +154,7 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
             <div style={{
                 padding: '4px 8px',
                 borderTop: '1px solid var(--line)',
-                fontSize: '0.4rem',
+                fontSize: 'var(--type-micro)',
                 color: 'var(--ink-3)',
                 textAlign: 'right'
             }}>

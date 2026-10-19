@@ -45,11 +45,11 @@ const KeyFiguresPanel = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <User size={12} style={{ color: '#006eb8' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Key Figures
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {keyFigures.length} PROFILED · AS OF {AS_OF}
                 </span>
             </div>
@@ -63,7 +63,7 @@ const KeyFiguresPanel = () => {
                     return (
                         <div key={fig.id} style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
-                            padding: '4px 6px', borderRadius: '4px',
+                            padding: '4px 6px', borderRadius: '0',
                             background: 'var(--surface-hover)',
                             borderLeft: `2px solid ${factionColor}20`
                         }}>
@@ -73,7 +73,7 @@ const KeyFiguresPanel = () => {
                                 background: `${factionColor}15`,
                                 border: `1.5px solid ${factionColor}40`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '0.42rem', fontWeight: 700, color: factionColor,
+                                fontSize: 'var(--type-micro)', fontWeight: 700, color: factionColor,
                                 fontFamily: 'var(--font-mono)', flexShrink: 0
                             }}>
                                 {fig.name.split(' ').pop().substring(0, 2).toUpperCase()}
@@ -81,14 +81,14 @@ const KeyFiguresPanel = () => {
 
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
-                                    fontSize: '0.48rem', fontWeight: 600,
+                                    fontSize: 'var(--type-micro)', fontWeight: 600,
                                     color: 'var(--ink)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.name}
                                 </div>
                                 <div style={{
-                                    fontSize: '0.38rem', color: 'var(--ink-3)',
+                                    fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {fig.role}
@@ -96,11 +96,11 @@ const KeyFiguresPanel = () => {
                             </div>
 
                             <span style={{
-                                fontSize: '0.34rem', fontWeight: 700,
+                                fontSize: 'var(--type-micro)', fontWeight: 700,
                                 color: statusStyle.color,
                                 padding: '1px 4px',
                                 background: `${statusStyle.color}15`,
-                                borderRadius: '2px',
+                                borderRadius: '0',
                                 letterSpacing: '0.5px',
                                 flexShrink: 0
                             }}>
@@ -119,8 +119,8 @@ const KeyFiguresPanel = () => {
                         gap: '4px', width: '100%', marginTop: '4px',
                         padding: '3px', background: 'var(--line)',
                         border: '1px solid var(--line)',
-                        borderRadius: '4px', color: 'var(--ink-3)',
-                        fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
+                        borderRadius: '0', color: 'var(--ink-3)',
+                        fontSize: 'var(--type-micro)', cursor: 'pointer', fontFamily: 'inherit'
                     }}
                 >
                     {expanded ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
@@ -130,7 +130,7 @@ const KeyFiguresPanel = () => {
 
             {/* Source note */}
             <div style={{
-                fontSize: '0.32rem', color: 'var(--ink-3)',
+                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                 marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
             }}>
                 {keyFiguresData.sources}

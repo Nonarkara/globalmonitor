@@ -27,7 +27,7 @@ const ClassificationBanner = ({ level = 'UNCLASSIFIED' }) => {
         justifyContent: 'center',
         background: 'var(--ink)',
         color: 'var(--paper)',
-        fontSize: '9px',
+        fontSize: 'var(--type-micro)',
         fontWeight: 700,
         letterSpacing: '0.18em',
         fontFamily: 'var(--font-sans)',

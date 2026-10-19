@@ -23,10 +23,10 @@ import LegalModal from './components/LegalModal';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
+import { DASHBOARD_VERSION } from './data/dashboardMeta';
 import './styles/print.css';
 import './styles/tactical-optics.css';
 
-const DASHBOARD_VERSION = 'v8.5';
 // The opening map is a cartographic instrument, not a satellite picture.
 // The two GIBS rasters (aerosol, city lights) are opaque composites that
 // bury the basemap and every plotted mark underneath them, so they are
@@ -279,7 +279,7 @@ function App() {
                 AsiaWatch
               </span>
               <span className="header-subtitle">
-                Pan-Asian Sentinel · Chokepoints · ADIZ · {DASHBOARD_VERSION}
+                Pan-Asian Sentinel · Chokepoints
               </span>
             </div>
           </div>

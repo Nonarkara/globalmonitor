@@ -152,22 +152,22 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
             }}>
                 <div>
                     <div style={{
-                        fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
+                        fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
                         <Radio size={14} style={{ color: '#8a5a00' }} />
                         Crisis Radio Monitor · Braun T-1000
                     </div>
-                    <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>
                         Local Shortwave &amp; News Broadcasts · Open Audio Stream {usingBackup && '· [BACKUP STREAM]'}
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
-                        fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
+                        fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '0.8px',
                         color: isPlaying ? '#1a7444' : '#8a5a00', padding: '2px 8px',
                         background: isPlaying ? 'rgba(34, 197, 94, 0.12)' : 'rgba(234, 179, 8, 0.12)',
-                        borderRadius: '4px', border: `1px solid ${isPlaying ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'}`
+                        borderRadius: '0', border: `1px solid ${isPlaying ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'}`
                     }}>
                         {isPlaying ? 'STREAMING LIVE' : 'TUNER STANDBY'}
                     </span>
@@ -177,24 +177,24 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
             {/* Tuner Display */}
             <div style={{
                 background: 'rgba(0,0,0,0.4)', padding: '8px 10px',
-                borderRadius: '6px', border: '1px solid var(--line-2)', marginBottom: '8px'
+                borderRadius: '0', border: '1px solid var(--line-2)', marginBottom: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <RadioTower size={12} style={{ color: '#8a5a00' }} />
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
                             {selectedStation.name}
                         </span>
                     </div>
                     <span style={{
-                        fontSize: '0.55rem', fontWeight: 700, color: '#8a5a00',
+                        fontSize: 'var(--type-micro)', fontWeight: 700, color: '#8a5a00',
                         fontFamily: 'var(--font-mono)', letterSpacing: '0.5px'
                     }}>
                         {selectedStation.freq}
                     </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.5rem', color: 'var(--ink-3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                     <span>Location: {selectedStation.city} ({selectedStation.country})</span>
                     <span>Lang: {selectedStation.language}</span>
                 </div>
@@ -208,7 +208,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                                 flex: 1,
                                 height: isPlaying ? `${SIGNAL_BAR_HEIGHTS[i % SIGNAL_BAR_HEIGHTS.length]}%` : '15%',
                                 background: isPlaying ? '#8a5a00' : 'rgba(255,255,255,0.1)',
-                                borderRadius: '1px',
+                                borderRadius: '0',
                                 transition: 'height 0.1s ease'
                             }}
                         />
@@ -224,8 +224,8 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                     style={{
                         background: isPlaying ? '#a72144' : '#8a5a00',
                         color: isPlaying ? '#fff' : '#000',
-                        border: 'none', borderRadius: '4px',
-                        padding: '5px 12px', fontSize: '0.55rem', fontWeight: 700,
+                        border: 'none', borderRadius: '0',
+                        padding: '5px 12px', fontSize: 'var(--type-micro)', fontWeight: 700,
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px'
                     }}
                 >
@@ -267,9 +267,9 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                             padding: '2px 6px',
                             background: regionFilter === f.id ? 'rgba(234, 179, 8, 0.2)' : 'rgba(255,255,255,0.03)',
                             border: `1px solid ${regionFilter === f.id ? '#8a5a00' : 'var(--line)'}`,
-                            borderRadius: '3px',
+                            borderRadius: '0',
                             color: regionFilter === f.id ? '#8a5a00' : 'var(--ink-3)',
-                            fontSize: '0.45rem',
+                            fontSize: 'var(--type-micro)',
                             fontWeight: 700,
                             letterSpacing: '0.4px',
                             cursor: 'pointer',
@@ -294,9 +294,9 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                                 padding: '3px 6px',
                                 background: isCurrent ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.02)',
                                 border: `1px solid ${isCurrent ? '#8a5a00' : 'var(--line)'}`,
-                                borderRadius: '3px',
+                                borderRadius: '0',
                                 color: isCurrent ? '#8a5a00' : 'var(--ink-2)',
-                                fontSize: '0.48rem',
+                                fontSize: 'var(--type-micro)',
                                 textAlign: 'left',
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -307,14 +307,14 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90px' }}>
                                 {station.name}
                             </span>
-                            <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)' }}>{station.city.split('/')[0]}</span>
+                            <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>{station.city.split('/')[0]}</span>
                         </button>
                     );
                 })}
             </div>
 
             {streamError && (
-                <div style={{ fontSize: '0.48rem', color: '#a72144', marginTop: '6px', textAlign: 'center' }}>
+                <div style={{ fontSize: 'var(--type-micro)', color: '#a72144', marginTop: '6px', textAlign: 'center' }}>
                     Station stream unreachable or network restricted. Select an alternate station.
                 </div>
             )}

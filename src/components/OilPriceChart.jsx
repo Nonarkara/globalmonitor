@@ -71,7 +71,7 @@ const OilPriceChart = () => {
                 borderLeft: '2px solid var(--accent-amber)', paddingLeft: '8px'
             }}>
                 <Droplets size={12} style={{ color: 'var(--accent-amber)' }} />
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Oil Price</span>
+                <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>Oil Price</span>
             </div>
             <DataStatus isLoading={isLoading} error={error} retryCount={retryCount} data={data} refresh={refresh}
                 isEmpty={!isLoading && !data?.brent?.length} emptyMessage="Oil price feed not answering" />
@@ -111,20 +111,20 @@ const OilPriceChart = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Droplets size={12} style={{ color: '#a72144' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Brent Crude
                     </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: latest.price > 100 ? '#a72144' : '#f59e0b' }}>
+                    <span style={{ fontSize: 'var(--type-body)', fontWeight: 700, fontFamily: 'var(--font-mono)', color: latest.price > 100 ? '#a72144' : '#f59e0b' }}>
                         ${latest.price.toFixed(1)}
                     </span>
                     <span
                         title={`vs first point in series (${formatDay(first.date, true)})`}
                         style={{
-                            fontSize: '0.5rem', fontWeight: 700,
+                            fontSize: 'var(--type-micro)', fontWeight: 700,
                             color: change > 0 ? '#a72144' : '#1a7444',
-                            padding: '1px 5px', borderRadius: '3px',
+                            padding: '1px 5px', borderRadius: '0',
                             background: change > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'
                         }}
                     >
@@ -189,10 +189,10 @@ const OilPriceChart = () => {
                 </svg>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(first.date)}</span>
-                    <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(latest.date)}</span>
+                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(first.date)}</span>
+                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(latest.date)}</span>
                 </div>
-                <div data-testid="oil-source" style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red, #a72144)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px', textAlign: 'center' }}>
+                <div data-testid="oil-source" style={{ fontSize: 'var(--type-micro)', color: isDemo ? 'var(--red, #a72144)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px', textAlign: 'center' }}>
                     Source: {sourceLabel} · {asOfLabel} · daily close · Δ vs first point
                 </div>
             </DataStatus>

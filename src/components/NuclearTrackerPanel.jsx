@@ -31,11 +31,11 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Radiation size={12} style={{ color: 'var(--ink-2)' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Nuclear Program
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {nuclearData.facilities.length} SITES · AS OF {AS_OF}
                 </span>
             </div>
@@ -43,30 +43,30 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
             {/* Breakout estimate */}
             <div style={{
                 display: 'flex', gap: '6px', marginBottom: '8px',
-                padding: '6px 8px', borderRadius: '6px',
+                padding: '6px 8px', borderRadius: '0',
                 background: 'rgba(168,85,247,0.06)',
                 border: '1px solid rgba(168,85,247,0.1)'
             }}>
                 <AlertTriangle size={10} style={{ color: 'var(--ink-2)', marginTop: '1px', flexShrink: 0 }} />
                 <div>
-                    <div style={{ fontSize: '0.42rem', color: 'var(--ink-2)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
                         Breakout Estimate
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <div>
-                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
+                            <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
                                 {nuclearData.breakoutEstimate.postWar}
                             </span>
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>post-war</span>
+                            <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginLeft: '4px' }}>post-war</span>
                         </div>
                         <div>
-                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)', textDecoration: 'line-through', opacity: 0.5 }}>
+                            <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)', textDecoration: 'line-through', opacity: 0.5 }}>
                                 {nuclearData.breakoutEstimate.preWar}
                             </span>
-                            <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>pre-war</span>
+                            <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginLeft: '4px' }}>pre-war</span>
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
                         ESTIMATE · UNCERTAINTY: {nuclearData.breakoutEstimate.uncertainty}
                     </div>
                 </div>
@@ -81,10 +81,10 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                 ].map(k => (
                     <div key={k.label} style={{
                         flex: 1, textAlign: 'center', padding: '4px',
-                        background: 'var(--line)', borderRadius: '4px'
+                        background: 'var(--line)', borderRadius: '0'
                     }}>
-                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.count}</div>
-                        <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{k.label}</div>
+                        <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: k.color, fontFamily: 'var(--font-mono)' }}>{k.count}</div>
+                        <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{k.label}</div>
                     </div>
                 ))}
             </div>
@@ -98,7 +98,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                             onClick={() => onFlyTo?.({ longitude: f.lon, latitude: f.lat, zoom: 8, transitionDuration: 1500 })}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '6px',
-                                padding: '4px 6px', borderRadius: '4px',
+                                padding: '4px 6px', borderRadius: '0',
                                 background: 'var(--surface-hover)',
                                 cursor: onFlyTo ? 'pointer' : 'default',
                                 transition: 'background 0.2s'
@@ -109,20 +109,20 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                                 background: f.statusColor, flexShrink: 0
                             }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: '0.48rem', color: 'var(--ink-2)', fontWeight: 600 }}>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', fontWeight: 600 }}>
                                     {f.name}
                                 </div>
-                                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                                     {f.type} · IAEA: {f.iaeaAccess}
                                 </div>
                             </div>
                             <span style={{
-                                fontSize: '0.36rem', fontWeight: 700,
+                                fontSize: 'var(--type-micro)', fontWeight: 700,
                                 color: badge.color,
                                 padding: '1px 5px',
                                 background: badge.bg,
                                 border: `1px solid ${badge.border}`,
-                                borderRadius: '3px',
+                                borderRadius: '0',
                                 letterSpacing: '0.5px',
                                 textTransform: 'uppercase'
                             }}>
@@ -141,8 +141,8 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                     gap: '4px', width: '100%', marginTop: '6px',
                     padding: '3px', background: 'var(--line)',
                     border: '1px solid var(--line)',
-                    borderRadius: '4px', color: 'var(--ink-3)',
-                    fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
+                    borderRadius: '0', color: 'var(--ink-3)',
+                    fontSize: 'var(--type-micro)', cursor: 'pointer', fontFamily: 'inherit'
                 }}
             >
                 {showTimeline ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
@@ -154,7 +154,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                     {nuclearData.timeline.map((t, i) => (
                         <div key={i} style={{ display: 'flex', gap: '6px', padding: '2px 0' }}>
                             <span style={{
-                                fontSize: '0.36rem', color: 'var(--ink-3)',
+                                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                                 fontFamily: 'var(--font-mono)', width: '38px', flexShrink: 0
                             }}>
                                 {t.date.slice(5)}
@@ -164,7 +164,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                                 background: t.severity === 'critical' ? '#a72144' : t.severity === 'high' ? '#f59e0b' : '#006eb8',
                                 flexShrink: 0
                             }} />
-                            <span style={{ fontSize: '0.4rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
+                            <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', lineHeight: 1.3 }}>
                                 {t.event}
                             </span>
                         </div>
@@ -174,7 +174,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
 
             {/* Source note */}
             <div style={{
-                fontSize: '0.32rem', color: 'var(--ink-3)',
+                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                 marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
             }}>
                 {nuclearData.sources}

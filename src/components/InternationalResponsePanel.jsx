@@ -36,11 +36,11 @@ const InternationalResponsePanel = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Globe size={12} style={{ color: '#006eb8' }} />
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         International Response
                     </span>
                 </div>
-                <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     UNSC + UNGA · AS OF {AS_OF}
                 </span>
             </div>
@@ -49,56 +49,56 @@ const InternationalResponsePanel = () => {
             <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'var(--line)', borderRadius: '4px'
+                    background: 'var(--line)', borderRadius: '0'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)' }}>
                         {responseData.unscVotes.length}
                     </div>
-                    <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>UNSC votes, {VOTE_WINDOW}</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>UNSC votes, {VOTE_WINDOW}</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'var(--line)', borderRadius: '4px'
+                    background: 'var(--line)', borderRadius: '0'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>{adopted}</div>
-                    <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Adopted</div>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>{adopted}</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Adopted</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
-                    background: 'var(--line)', borderRadius: '4px'
+                    background: 'var(--line)', borderRadius: '0'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{vetoed}</div>
-                    <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Vetoed</div>
+                    <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{vetoed}</div>
+                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Vetoed</div>
                 </div>
             </div>
 
             {/* UNGA highlight */}
             <div style={{
-                padding: '5px 8px', marginBottom: '6px', borderRadius: '4px',
+                padding: '5px 8px', marginBottom: '6px', borderRadius: '0',
                 background: 'rgba(14,165,233,0.06)',
                 border: '1px solid rgba(14,165,233,0.1)'
             }}>
-                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '2px' }}>
                     UN General Assembly
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
                         {responseData.generalAssembly.for}
                     </span>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>for /</span>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>for /</span>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>
                         {responseData.generalAssembly.against}
                     </span>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>against /</span>
-                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#6b665e', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>against /</span>
+                    <span style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: '#6b665e', fontFamily: 'var(--font-mono)' }}>
                         {responseData.generalAssembly.abstain}
                     </span>
-                    <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>abstain</span>
+                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>abstain</span>
                 </div>
-                <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginTop: '2px' }}>
+                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>
                     {responseData.generalAssembly.resolution}
                 </div>
-                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                     {responseData.generalAssembly.date}
                 </div>
             </div>
@@ -114,29 +114,29 @@ const InternationalResponsePanel = () => {
                             borderBottom: '1px solid var(--line)'
                         }}>
                             <span style={{
-                                fontSize: '0.36rem', color: 'var(--ink-3)',
+                                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                                 fontFamily: 'var(--font-mono)', width: '48px', flexShrink: 0
                             }}>
                                 {vote.date}
                             </span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
-                                    fontSize: '0.44rem', color: 'var(--ink-2)',
+                                    fontSize: 'var(--type-micro)', color: 'var(--ink-2)',
                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                                 }}>
                                     {vote.resolution}
                                 </div>
-                                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                                     {vote.for}Y / {vote.against}N / {vote.abstain}A
                                     {vote.vetoBy && ` · veto: ${vote.vetoBy}`}
                                 </div>
                             </div>
                             <span style={{
-                                fontSize: '0.32rem', fontWeight: 700,
+                                fontSize: 'var(--type-micro)', fontWeight: 700,
                                 color: style.color,
                                 padding: '1px 4px',
                                 background: style.bg,
-                                borderRadius: '2px',
+                                borderRadius: '0',
                                 letterSpacing: '0.5px'
                             }}>
                                 {style.label}
@@ -154,8 +154,8 @@ const InternationalResponsePanel = () => {
                     gap: '4px', width: '100%', marginTop: '6px',
                     padding: '3px', background: 'var(--line)',
                     border: '1px solid var(--line)',
-                    borderRadius: '4px', color: 'var(--ink-3)',
-                    fontSize: '0.4rem', cursor: 'pointer', fontFamily: 'inherit'
+                    borderRadius: '0', color: 'var(--ink-3)',
+                    fontSize: 'var(--type-micro)', cursor: 'pointer', fontFamily: 'inherit'
                 }}
             >
                 {showPositions ? <ChevronUp size={8} /> : <ChevronDown size={8} />}
@@ -167,7 +167,7 @@ const InternationalResponsePanel = () => {
                     {responseData.coalitionPositions.map((p, i) => (
                         <div key={i} style={{
                             display: 'flex', alignItems: 'center', gap: '6px',
-                            padding: '3px 4px', borderRadius: '3px',
+                            padding: '3px 4px', borderRadius: '0',
                             background: 'var(--surface-hover)'
                         }}>
                             <div style={{
@@ -175,10 +175,10 @@ const InternationalResponsePanel = () => {
                                 background: p.color, flexShrink: 0
                             }} />
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '0.44rem', color: 'var(--ink-2)', fontWeight: 600 }}>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', fontWeight: 600 }}>
                                     {p.actor}
                                 </div>
-                                <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)' }}>
+                                <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
                                     {p.position}
                                 </div>
                             </div>
@@ -189,7 +189,7 @@ const InternationalResponsePanel = () => {
 
             {/* Provenance — the vote record could not be independently verified at audit. */}
             <div style={{
-                fontSize: '0.32rem', color: 'var(--ink-3)',
+                fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                 marginTop: '4px', lineHeight: 1.3, fontStyle: 'italic'
             }}>
                 Record as compiled — verify against UN Digital Library. {responseData.sources}

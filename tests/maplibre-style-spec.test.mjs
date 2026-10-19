@@ -6,24 +6,25 @@
  * Nothing is thrown, nothing is logged, and the map keeps working. A legend
  * can therefore promise a reading the map never drew.
  *
- * This exact failure shipped: the wind layer used
+ * Three real instances of this shipped:
  *
- *   'line-width': ['*',
- *     ['interpolate', ['linear'], ['zoom'], 3, 1.5, ...],
- *     ['interpolate', ['linear'], ['get', 'speedKmh'], 0, 0.75, ...]]
+ *   1. The wind layer's line-width wrapped a zoom interpolate in a `*`
+ *      expression. MapLibre only allows zoom as the input of a TOP-LEVEL
+ *      interpolate, so it refused the layer without throwing: the SOURCES
+ *      plate said "117 points" and the map drew no arrows.
  *
- * and MapLibre refused it with
+ *   2. Four layers carried a CSS custom property in a paint value
+ *      (`'line-color': 'var(--ink-3)'`). MapLibre refuses CSS variables
+ *      outright — the layers were absent in production and nothing said so.
  *
- *   "zoom" expression may only be used as input to a top-level "step" or
- *   "interpolate" expression.
+ *   3. A style object with no `glyphs` endpoint cannot draw any label: the
+ *      symbol layer is accepted and the text silently never appears.
  *
- * The wind arrows were absent from the map for as long as that stood, and the
- * SOURCES plate still said "117 points".
- *
- * The rule, enforced here:
- *   `zoom` may appear ONLY as the direct input of an `interpolate` or `step`
- *   expression, and that expression must be the top-level value of the
- *   paint/layout property — never nested inside another operator.
+ * The rules enforced here:
+ *   - `zoom` may appear ONLY as the direct input of an `interpolate`/`step`,
+ *     and that expression must be the top-level value of the property.
+ *   - a paint/layout value may not contain a CSS custom property.
+ *   - a paint/layout value may not be a bare object.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -34,17 +35,11 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
 
-/** Marker for a value the source computes at runtime — not statically known. */
-const UNKNOWN = Symbol('runtime-value');
-
 const collectFiles = (dir, out = []) => {
     for (const entry of readdirSync(dir)) {
         const full = path.join(dir, entry);
-        if (statSync(full).isDirectory()) {
-            collectFiles(full, out);
-        } else if (/\.(jsx?|mjs)$/.test(entry)) {
-            out.push(full);
-        }
+        if (statSync(full).isDirectory()) collectFiles(full, out);
+        else if (/\.(jsx?|mjs)$/.test(entry)) out.push(full);
     }
     return out;
 };
@@ -53,8 +48,8 @@ const collectFiles = (dir, out = []) => {
  * Pull the value that follows `marker`, honouring nesting. The value may be
  * an object literal (`paint={{…}}`), an array (`filter={[…]}`) or a plain
  * identifier (`layout={someVar}`), so track a bracket stack rather than
- * assuming braces. String literals are skipped so a brace inside one does
- * not unbalance the scan.
+ * assuming braces. String literals and comments are skipped so a brace or a
+ * backtick inside one does not unbalance the scan.
  */
 const extractBlock = (text, marker) => {
     const blocks = [];
@@ -104,15 +99,60 @@ const extractBlock = (text, marker) => {
 };
 
 /**
+ * Collect the module-level constants of a file that hold an array literal.
+ * An expression hoisted into a variable is the blind spot a naive scan
+ * misses: the identifier resolves to a placeholder and the zoom structure
+ * inside it is never inspected.
+ */
+const collectConstArrays = (text) => {
+    const found = new Map();
+    const re = /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\[/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+        const start = m.index + m[0].length - 1;
+        let depth = 0;
+        let quote = null;
+        let i = start;
+        for (; i < text.length; i += 1) {
+            const ch = text[i];
+            if (quote) {
+                if (ch === '\\') { i += 1; continue; }
+                if (ch === quote) quote = null;
+                continue;
+            }
+            if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
+            if (ch === '[') depth += 1;
+            else if (ch === ']') {
+                depth -= 1;
+                if (depth === 0) { i += 1; break; }
+            }
+        }
+        if (depth === 0) found.set(m[1], text.slice(start, i));
+    }
+    return found;
+};
+
+/**
  * Evaluate a paint/layout object literal. Identifiers the source computes at
  * runtime resolve to 0 so the walk can still see the shape: an identifier used
  * arithmetically (`baseRadius * 2.4`) must stay arithmetic, and the zoom
- * structure around it is what this test is about.
+ * structure around it is what this test is about. Identifiers that name a
+ * module-level array constant resolve to that array, so a hoisted
+ * expression is inspected rather than skipped.
  */
-const evaluateObject = (literal) => {
+const evaluateObject = (literal, constArrays = new Map(), depth = 0) => {
     const scope = new Proxy(Object.create(null), {
         has: () => true,
-        get: () => 0
+        get: (_t, prop) => {
+            if (typeof prop !== 'string') return 0;
+            const raw = constArrays.get(prop);
+            if (raw === undefined || depth > 3) return 0;
+            try {
+                return evaluateObject(raw, constArrays, depth + 1);
+            } catch {
+                return 0;
+            }
+        }
     });
     // eslint-disable-next-line no-new-func
     const fn = new Function('__scope', `with (__scope) { return (${literal}); }`);
@@ -129,7 +169,6 @@ const isZoomNode = (v) => Array.isArray(v) && v.length === 1 && v[0] === 'zoom';
 const findZoomViolations = (node, topLevel, trail, out) => {
     if (!Array.isArray(node)) return;
     if (isZoomNode(node)) {
-        // `zoom` is only legal as the input of interpolate/step.
         const parent = trail[trail.length - 1];
         const parentOp = parent && parent.node ? parent.node[0] : null;
         const parentIsInput = parent && parent.role === 'input';
@@ -162,24 +201,40 @@ const violationsIn = (value) => {
     return out;
 };
 
+/** MapLibre refuses a CSS custom property in a paint value. */
+const cssVarIn = (value) => {
+    if (typeof value === 'string') return value.includes('var(') ? [value] : [];
+    if (Array.isArray(value)) return value.flatMap(cssVarIn);
+    if (value && typeof value === 'object') return Object.values(value).flatMap(cssVarIn);
+    return [];
+};
+
+// `paint={` is the JSX attribute form; `paint:` is the plain style-object
+// form used by the inline basemap styles.
+const PAINT_MARKERS = ['paint={', 'layout={', 'filter={', 'paint:'];
+
 test('no MapLibre layer hides a zoom expression where the style spec forbids it', () => {
     const problems = [];
     for (const file of collectFiles(SRC)) {
         const text = readFileSync(file, 'utf8');
-        for (const marker of ['paint={', 'layout={', 'filter={']) {
+        const constArrays = collectConstArrays(text);
+        for (const marker of PAINT_MARKERS) {
             for (const literal of extractBlock(text, marker)) {
                 let parsed;
                 try {
-                    parsed = evaluateObject(literal);
+                    parsed = evaluateObject(literal, constArrays);
                 } catch (err) {
                     problems.push(`${path.relative(ROOT, file)} ${marker}: could not evaluate (${err.message})`);
                     continue;
                 }
                 if (!parsed || typeof parsed !== 'object') continue;
                 for (const [key, value] of Object.entries(parsed)) {
-                    if (value === UNKNOWN) continue;
+                    if (value === null || value === undefined) continue;
                     for (const violation of violationsIn(value)) {
                         problems.push(`${path.relative(ROOT, file)} ${marker} ${key}: ${violation}`);
+                    }
+                    for (const cssVar of cssVarIn(value)) {
+                        problems.push(`${path.relative(ROOT, file)} ${marker} ${key}: CSS custom property "${cssVar}" — MapLibre refuses these`);
                     }
                 }
             }
@@ -203,4 +258,20 @@ test('the guard actually catches the shipped wind-layer defect', () => {
 
     const nested = ['case', ['>', ['zoom'], 4], ['interpolate', ['linear'], ['zoom'], 5, 1, 6, 2]];
     assert.ok(violationsIn(nested).length > 0, 'a nested zoom interpolate is not legal');
+});
+
+test('the guard catches the CSS custom property that silenced four layers', () => {
+    assert.ok(cssVarIn('var(--ink-3)').length > 0, 'a CSS var in a paint value must be reported');
+    assert.deepEqual(cssVarIn('#6b665e'), [], 'a literal hex is fine');
+    assert.deepEqual(cssVarIn(['interpolate', ['linear'], ['get', 'x'], 0, 1, 1, 2]), [], 'an expression without a var is fine');
+});
+
+test('the guard resolves a hoisted expression instead of skipping it', () => {
+    // A naive scan resolves the identifier to a placeholder and never sees
+    // the zoom structure inside it — the exact defect class, passing blind.
+    const source = "const WIDTH = ['*', ['interpolate', ['linear'], ['zoom'], 3, 1.5, 6, 2.6]];";
+    const constArrays = collectConstArrays(source);
+    assert.ok(constArrays.has('WIDTH'), 'the hoisted array must be collected');
+    const value = evaluateObject('WIDTH', constArrays);
+    assert.ok(violationsIn(value).length > 0, 'a hoisted malformed expression must still be reported');
 });

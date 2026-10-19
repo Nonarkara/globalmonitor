@@ -61,7 +61,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 width: '640px', maxWidth: '95vw', maxHeight: '80vh',
                 background: 'rgba(14, 18, 28, 0.95)',
                 backdropFilter: 'none',
-                borderRadius: '16px',
+                borderRadius: '0',
                 border: '1px solid var(--line-2)',
                 overflow: 'hidden', display: 'flex', flexDirection: 'column'
             }} onClick={e => e.stopPropagation()}>
@@ -72,35 +72,35 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <FileText size={16} style={{ color: '#f59e0b' }} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: 'var(--type-body)', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
                             Session Activity Log
                         </span>
-                        <span style={{ fontSize: '0.42rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>
                             {entries.length} entries
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <button aria-label="Export session log" onClick={exportLog} style={{
                             background: 'var(--line)', border: '1px solid var(--line-2)',
-                            borderRadius: '6px', padding: '4px 8px', color: 'var(--ink-2)',
+                            borderRadius: '0', padding: '4px 8px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                            fontSize: '0.45rem', fontFamily: 'inherit'
+                            fontSize: 'var(--type-micro)', fontFamily: 'inherit'
                         }}>
                             <Download size={10} /> Export
                         </button>
                         <button onClick={clearActivityLog} style={{
                             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
-                            borderRadius: '6px', padding: '4px 8px', color: 'rgba(239,68,68,0.6)',
+                            borderRadius: '0', padding: '4px 8px', color: 'rgba(239,68,68,0.6)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                            fontSize: '0.45rem', fontFamily: 'inherit'
+                            fontSize: 'var(--type-micro)', fontFamily: 'inherit'
                         }}>
                             <Trash2 size={10} /> Clear
                         </button>
                         <button aria-label="Close session log" onClick={onClose} style={{
                             background: 'var(--line)', border: '1px solid var(--line-2)',
-                            borderRadius: '6px', padding: '6px 12px', color: 'var(--ink-2)',
+                            borderRadius: '0', padding: '6px 12px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                            fontSize: '0.6rem', fontFamily: 'inherit', minHeight: '32px'
+                            fontSize: 'var(--type-micro)', fontFamily: 'inherit', minHeight: '32px'
                         }}>
                             <X size={14} />
                         </button>
@@ -114,7 +114,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 }}>
                     {['all', LOG_TYPES.DATA_FETCH, LOG_TYPES.ERROR, LOG_TYPES.USER_ACTION, LOG_TYPES.SYSTEM].map(f => (
                         <button key={f} onClick={() => setFilter(f)} style={{
-                            padding: '3px 8px', borderRadius: '4px', fontSize: '0.4rem',
+                            padding: '3px 8px', borderRadius: '0', fontSize: 'var(--type-micro)',
                             fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase',
                             cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
                             background: filter === f ? 'var(--line-2)' : 'var(--line)',
@@ -129,7 +129,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                 {/* Log entries */}
                 <div style={{ overflowY: 'auto', flex: 1, padding: '8px 20px' }}>
                     {filtered.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--ink-3)', fontSize: '0.5rem' }}>
+                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--ink-3)', fontSize: 'var(--type-micro)' }}>
                             No activity logged yet
                         </div>
                     ) : (
@@ -141,22 +141,22 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                                     borderBottom: '1px solid var(--surface-hover)'
                                 }}>
                                     <span style={{
-                                        fontSize: '0.38rem', color: 'var(--ink-3)',
+                                        fontSize: 'var(--type-micro)', color: 'var(--ink-3)',
                                         fontFamily: 'var(--font-mono)', width: '55px', flexShrink: 0,
                                         marginTop: '1px'
                                     }}>
                                         {formatTime(entry.timestamp)}
                                     </span>
                                     <span style={{
-                                        fontSize: '0.34rem', fontWeight: 700,
+                                        fontSize: 'var(--type-micro)', fontWeight: 700,
                                         color: TYPE_COLORS[entry.type] || '#6b665e',
-                                        padding: '1px 4px', borderRadius: '2px',
+                                        padding: '1px 4px', borderRadius: '0',
                                         background: `${TYPE_COLORS[entry.type] || '#6b665e'}15`,
                                         letterSpacing: '0.5px', flexShrink: 0, marginTop: '1px'
                                     }}>
                                         {TYPE_LABELS[entry.type] || entry.type}
                                     </span>
-                                    <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
+                                    <span style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', lineHeight: 1.3 }}>
                                         {entry.message}
                                     </span>
                                 </div>
