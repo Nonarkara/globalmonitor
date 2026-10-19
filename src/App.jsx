@@ -62,6 +62,16 @@ function App() {
   const [isInstallOpen, setIsInstallOpen] = useState(false);
   useEscapeKey(isAboutOpen, () => setIsAboutOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
+  useEffect(() => {
+    if (!toolsOpen) return undefined;
+    const closeTools = event => {
+      if (event.key !== 'Escape') return;
+      setToolsOpen(false);
+      document.querySelector('[aria-label="Tools and advanced options"]')?.focus();
+    };
+    document.addEventListener('keydown', closeTools);
+    return () => document.removeEventListener('keydown', closeTools);
+  }, [toolsOpen]);
   const [mobileDrawer, setMobileDrawer] = useState('none');
   const toolsRef = useRef(null);
   useEffect(() => {
