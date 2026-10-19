@@ -9,6 +9,8 @@ import { fetchLiveWeather } from '../services/weather';
 import { fetchMacroEconomy } from '../services/worldBank';
 import { fetchAirQuality } from '../services/airQuality';
 import { fetchFirmsData } from '../services/firms';
+import { fetchWind } from '../services/wind';
+import { windArrows } from '../utils/windArrows';
 import { fetchInfrastructure } from '../services/infrastructure';
 import { fetchAirportLocations } from '../services/airports.js';
 import { fetchFlights } from '../services/flights.js';
@@ -791,6 +793,13 @@ const MapContainer = ({
         intervalMs: 10 * 60 * 1000,
         isUsable: hasFeatureData
     });
+    const windResource = useLiveResource(useCallback(() => fetchWind(viewMode), [viewMode]), {
+        cacheKey: `map:wind:${viewMode}`,
+        enabled: activeLayers.includes('wind'),
+        intervalMs: 15 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
+    const windArrowData = useMemo(() => windArrows(windResource.data), [windResource.data]);
     const infraResource = useLiveResource(useCallback(() => fetchInfrastructure(), []), {
         cacheKey: 'map:infrastructure',
         enabled: activeLayers.includes('infrastructure'),
@@ -1398,6 +1407,24 @@ const MapContainer = ({
                             paint={{
                                 'line-color': 'var(--ink-3)',
                                 'line-width': 1
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Surface wind, drawn downwind so each arrow shows where smoke goes.
+                    Same basemap-aware ink as the flagship: dark on the light
+                    paper, pale on dark and satellite. */}
+                {activeLayers.includes('wind') && windArrowData.features.length > 0 && (
+                    <Source id="wind-arrows" type="geojson" data={windArrowData}>
+                        <Layer
+                            id="wind-arrows-line"
+                            type="line"
+                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+                            paint={{
+                                'line-color': mapStyle === 'light' ? '#2b2924' : '#e6edf3',
+                                'line-width': ['interpolate', ['linear'], ['get', 'speedKmh'], 0, 0.7, 15, 1.2, 35, 1.9],
+                                'line-opacity': 0.7
                             }}
                         />
                     </Source>

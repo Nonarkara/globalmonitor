@@ -8,6 +8,8 @@ import {
 import { fetchBriefingPayload, fetchTickerPayload } from '../../server/lib/intelligence.mjs';
 import { fetchMarketPayload } from '../../server/lib/marketData.mjs';
 import { fetchFirmsPayload } from '../../server/lib/firms.mjs';
+import { fetchWindField } from '../../server/lib/windField.mjs';
+import { fetchAirQualityPayload } from '../../server/lib/airQuality.mjs';
 import { computeEscalation } from '../../server/lib/escalation.mjs';
 import { computeStrikeStats } from '../../server/lib/strikeStats.mjs';
 import { fetchHumanitarianPayload } from '../../server/lib/humanitarian.mjs';
@@ -189,6 +191,39 @@ export async function handleApiRequest(request, env, next) {
             );
             if (result.meta.cache !== 'hit' && result.payload?.meta?.source === 'nasa-firms-live') upsertFirmsHotspots(result.payload, theater).catch(() => {});
             return jsonResponse(result.payload, 200, result.meta);
+        }
+
+        if (url.pathname === '/api/wind') {
+            const theater = url.searchParams.get('theater') || 'indopacific';
+            // An hour: a regional 10 m wind field barely moves in that time, the
+            // legend states the observation age, and Open-Meteo bills per grid point.
+            const result = await useCached(
+                `wind:${theater}`,
+                60 * 60 * 1000,
+                () => fetchWindField(theater),
+                (p) => Array.isArray(p?.features) && p.features.length > 0
+            );
+            recordHealth('wind', Boolean(result.payload?.features?.length), null);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+            });
+        }
+
+        if (url.pathname === '/api/air-quality') {
+            // AQI changes over minutes; the map doesn't care. Cache 30 min so
+            // a single dashboard session doesn't repeat 11 upstream calls.
+            const result = await useCached(
+                'air-quality',
+                30 * 60 * 1000,
+                () => fetchAirQualityPayload(),
+                (p) => Array.isArray(p?.features) && p.features.length > 0
+            );
+            recordHealth('air-quality', (result.payload?.meta?.live ?? 0) > 0, null);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+            });
         }
 
         if (url.pathname === '/api/escalation') {
