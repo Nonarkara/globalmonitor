@@ -1,8 +1,10 @@
 import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
+maplibregl.setWorkerUrl(mapWorkerUrl);
 import { fetchNaturalDisasters, fetchActiveStorms } from '../services/nasaEonet';
 import { fetchConflictsAndCrises } from '../services/reliefWeb';
 import { fetchLiveWeather } from '../services/weather';
@@ -919,6 +921,11 @@ const MapContainer = ({
     // FIRMS and ACLED sit on the same map as traffic with no provenance line of
     // their own. Same format as the traffic rows: count · source · age.
     const firmsMeta = firmsData?.meta;
+    const ageLabel = (iso) => {
+        const minutes = Math.floor((Date.now() - Date.parse(iso || '')) / 60000);
+        if (!Number.isFinite(minutes) || minutes < 0) return null;
+        return minutes < 60 ? minutes + 'm old' : Math.floor(minutes / 60) + 'h old';
+    };
     const firmsLive = firmsMeta?.source === 'nasa-firms-live';
     const firmsCount = firmsData?.features?.length ?? 0;
     const firmsSourceLabel = firmsLive

@@ -58,6 +58,7 @@ const IranWarPanel = () => {
 
     const dayCount = getDayCount();
     const weekTotal = strikeData?.weekTotal || {};
+    const hasHeadlines = (strikeData?.headlineCount || 0) > 0;
     const fronts = frontData?.fronts || [];
 
     return (
@@ -80,7 +81,7 @@ const IranWarPanel = () => {
                     }}>
                         DAY {dayCount}
                     </span>
-                    <span className="live-pill">LIVE</span>
+                    <span className="live-pill live-pill-muted">{hasHeadlines ? 'HEADLINE COUNTS' : 'NO SIGNAL'}</span>
                 </div>
             </div>
 
@@ -108,7 +109,7 @@ const IranWarPanel = () => {
                             color: weekTotal.missiles > 0 ? '#ef4444' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
-                            {weekTotal.missiles || 0}
+                            {hasHeadlines ? (weekTotal.missiles || 0) : '—'}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             MISSILES
@@ -122,7 +123,7 @@ const IranWarPanel = () => {
                             color: weekTotal.drones > 0 ? '#f59e0b' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
-                            {weekTotal.drones || 0}
+                            {hasHeadlines ? (weekTotal.drones || 0) : '—'}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             DRONES
@@ -136,7 +137,7 @@ const IranWarPanel = () => {
                             color: weekTotal.interceptions > 0 ? '#3b82f6' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
-                            {weekTotal.interceptions || 0}
+                            {hasHeadlines ? (weekTotal.interceptions || 0) : '—'}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             INTERCEPT
@@ -150,7 +151,7 @@ const IranWarPanel = () => {
                             color: weekTotal.casualties > 0 ? '#ef4444' : 'var(--text-muted)',
                             lineHeight: 1
                         }}>
-                            {weekTotal.casualties || 0}
+                            {hasHeadlines ? (weekTotal.casualties || 0) : '—'}
                         </div>
                         <div style={{ fontSize: '0.4rem', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '2px' }}>
                             CASUALTIES

@@ -33,11 +33,7 @@ const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'range
 // Middle East Tactical Kinetic War Room — opens directly on the Levant & Gulf theater
 const DEFAULT_THEATER = 'middleeast';
 const DEFAULT_VIEW_TARGET = { ...REGION_VIEW_STATES[DEFAULT_THEATER] };
-// Desktop opens with the intel column + market strip docked; phones keep the
-// map as hero and reach the same panels through the drawer tabs.
-const initialDrawer = () => (
-  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches ? 'intel' : 'none'
-);
+// The map opens unobstructed; intelligence is available from its dock control.
 
 function App() {
   // World console: first paint is the composed map with live air + sea traffic on.
@@ -63,7 +59,7 @@ function App() {
   useEscapeKey(isLegalOpen, () => setIsLegalOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileDrawer, setMobileDrawer] = useState(initialDrawer);
+  const [mobileDrawer, setMobileDrawer] = useState('none');
   const toolsRef = useRef(null);
   useEffect(() => {
     const onDocClick = (e) => {
@@ -173,6 +169,7 @@ function App() {
         id="main-content"
         role="main"
         data-layout="map-first"
+        data-shell="compact"
         data-theater={viewMode}
         data-sidebar-open={sidebarOpen ? 'true' : 'false'}
         data-layers-open={sidebarOpen || mobileDrawer === 'layers' ? 'true' : 'false'}
@@ -238,12 +235,10 @@ function App() {
                 Kinetic Radar Vectors, VIIRS Grid Blackouts & Multi-Front Operations · {formatDayCount()} · {DASHBOARD_VERSION}
               </span>
             </div>
-            <ErrorBoundary inline label="Escalation">
-              <EscalationGauge viewMode={viewMode} />
-            </ErrorBoundary>
           </div>
           {/* Right: Controls */}
           <div className="header-controls">
+            <select className="compact-region-select" aria-label="Choose theater" value={viewMode} onChange={event => { const id = event.target.value; setViewMode(id); setViewTarget({ ...(REGIONS[id].viewState || REGIONS[id]), transitionDuration: 800 }); setActiveSources(getDefaultSourceIdsForRegion(id)); setSelectedCountryCode(null); }}>{Object.values(REGIONS).map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</select>
             <button
               type="button"
               onClick={() => {
@@ -342,6 +337,8 @@ function App() {
               </button>
               {toolsOpen && (
                 <div className="header-tools-menu" role="menu">
+                  <label className="compact-region-menu">Choose theater <select aria-label="Choose theater from tools" value={viewMode} onChange={event => { const id = event.target.value; setViewMode(id); setViewTarget({ ...(REGIONS[id].viewState || REGIONS[id]), transitionDuration: 800 }); setActiveSources(getDefaultSourceIdsForRegion(id)); setSelectedCountryCode(null); }}>{Object.values(REGIONS).map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</select></label>
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); setIsManualOpen(true); }}>System manual</button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsPapersOpen(true); }}>
                     <FileText size={12} aria-hidden="true" /> Papers
                   </button>
@@ -371,13 +368,7 @@ function App() {
         </div>
 
         {/* Row 3: Multi-Front Status Board */}
-        {viewMode === 'middleeast' && (
-          <div className="multi-front-row">
-            <ErrorBoundary inline label="Multi-Front Board">
-              <LazyPanel name="MultiFrontBoard" viewMode={viewMode} />
-            </ErrorBoundary>
-          </div>
-        )}
+
 
         {/* Row 3-5: Left sidebar — layer controls drawer */}
         <button
@@ -449,6 +440,14 @@ function App() {
         <div className="intel-zone">
           <div className="intel-drawer-host">
             <div className="right-sidebar">
+              <ErrorBoundary inline label="Escalation"><EscalationGauge viewMode={viewMode} /></ErrorBoundary>
+              {viewMode === 'middleeast' && (
+          <div className="compact-front-board">
+            <ErrorBoundary inline label="Multi-Front Board">
+              <LazyPanel name="MultiFrontBoard" viewMode={viewMode} />
+            </ErrorBoundary>
+          </div>
+        )}
               {selectedEvent && (
                 <LazyPanel
                   name="EventDetailsPanel"

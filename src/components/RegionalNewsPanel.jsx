@@ -52,8 +52,8 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
         if (RSS_REGIONS[regionName]) {
             const q = encodeURIComponent(RSS_REGIONS[regionName]);
             const rssUrl = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&cb=${Date.now()}`;
-            const encoded = encodeURIComponent(rssUrl);
-            const parseXml = (xml) => {
+            const LEGACY_ENCODED = encodeURIComponent(rssUrl);
+            const LEGACY_PARSE_XML = (xml) => {
                 const doc = new DOMParser().parseFromString(xml, 'text/xml');
                 if (doc.querySelector('parsererror')) return [];
                 return Array.from(doc.querySelectorAll('item')).slice(0, 5).map(item => ({
@@ -73,9 +73,9 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
         if (regionName === 'DEPA') {
             const depaSearchUrl = 'https://news.google.com/rss/search?q="Digital+Economy+Promotion+Agency"+OR+"สำนักงานส่งเสริมเศรษฐกิจดิจิทัล"&hl=th&gl=TH&ceid=TH:th';
             const freshUrl = depaSearchUrl + '&cb=' + Date.now();
-            const encoded = encodeURIComponent(freshUrl);
+            const LEGACY_ENCODED = encodeURIComponent(freshUrl);
 
-            const tryProxy = async (url, extract) => {
+            const LEGACY_TRY_PROXY = async (url, extract) => {
                 const res = await fetch(url);
                 const data = await res.json();
                 const xml = extract(data);
@@ -85,7 +85,7 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
                 return items;
             };
 
-            const tryRawProxy = async (url) => {
+            const LEGACY_TRY_RAW_PROXY = async (url) => {
                 const res = await fetch(url);
                 const text = await res.text();
                 if (!text.includes('<')) throw new Error('Not XML');
@@ -130,7 +130,7 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
     }, [fetchNews]);
 
     return (
-        <div className="bottom-card flex-column">
+        <div lang={regionName === 'DEPA' ? 'th' : 'en'} className="bottom-card flex-column">
             <div className="panel-header">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Rss size={14} /> {title}

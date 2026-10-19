@@ -7,7 +7,7 @@ export const SKY_LAYERS = [
         id: 'eo-true-color',
         title: 'Photo',
         aria: 'Latest NASA satellite photo of the ground',
-        hint: 'NASA VIIRS, about 1 day old',
+        hint: 'Latest available NASA VIIRS mosaic; source latency varies',
     },
     {
         id: 'eo-cloud',

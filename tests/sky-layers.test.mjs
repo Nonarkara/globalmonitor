@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { EO_TILE_LAYERS, getEoLayerById, gibsDate } from '../src/services/eoTiles.js';
+import { EO_TILE_LAYERS, getEoLayerById } from '../src/services/eoTiles.js';
 import { SKY_LAYERS, SKY_LAYER_IDS } from '../src/data/skyLayers.js';
 import { isStormEvent } from '../src/services/nasaEonet.js';
 
@@ -19,7 +19,9 @@ test('latest photo tiles are NOAA-20 VIIRS true color', () => {
     assert.ok(layer);
     assert.equal(layer.name, 'Latest photo');
     assert.ok(layer.tiles[0].includes('VIIRS_NOAA20_CorrectedReflectance_TrueColor'));
-    assert.ok(layer.tiles[0].includes(gibsDate(1)));
+    // NASA's default time resolves to that product's latest available day.
+    // Do not invent a one-day observation age or import a retired date helper.
+    assert.ok(layer.tiles[0].includes('/default/default/'));
 });
 
 test('cloud fraction layer is on the catalog', () => {

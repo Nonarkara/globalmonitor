@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { X, Database, CheckCircle, AlertCircle, Clock, ExternalLink } from 'lucide-react';
 import dataSources from '../data/dataSources.json';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const API_BASE = import.meta.env.DEV ? 'http://localhost:4000' : '';
 
 const SourceHealthModal = ({ isOpen, onClose }) => {
     const [healthData, setHealthData] = useState(null);
+    const dialogRef = useDialogFocus(isOpen);
 
     const fetchHealth = useCallback(() => {
         fetch(`${API_BASE}/api/health`)
@@ -51,7 +53,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(0,0,0,0.72)', backdropFilter: 'none'
         }} onClick={onClose}>
-            <div style={{
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Data Provenance and Source Health" style={{
                 width: '720px', maxWidth: '95vw', maxHeight: '85vh',
                 background: 'rgba(14, 18, 28, 0.95)',
                 backdropFilter: 'none',

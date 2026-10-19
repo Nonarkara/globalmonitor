@@ -10,6 +10,7 @@ import SourceStack from './SourceStack';
 import { EO_TILE_LAYERS } from '../services/eoTiles';
 import { useFlightStats } from '../hooks/useFlightCount';
 import { useVesselStats } from '../hooks/useVesselCount';
+import { formatTrafficCount } from '../utils/formatTrafficCount.js';
 import { SKY_LAYERS, SKY_LAYER_IDS } from '../data/skyLayers';
 
 const BASEMAP_CONFIGS = [

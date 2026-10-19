@@ -100,7 +100,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
             .map(([label, count]) => ({
                 label: label.length > 20 ? label.substring(0, 18) + '…' : label,
                 count,
-                color: '#a78bfa'
+                color: 'var(--ink-2)'
             }));
 
         // Cumulative fatalities by date

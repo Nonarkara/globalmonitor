@@ -32,3 +32,6 @@ dist-ssr
 # local secrets / platform state — never commit
 .dev.vars
 .netlify/
+
+# non-slop render screenshots
+non-slop-shots/

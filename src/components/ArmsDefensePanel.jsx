@@ -22,10 +22,10 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #6366f1', paddingLeft: '8px'
+                borderLeft: '2px solid var(--ink-2)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Shield size={12} style={{ color: '#6366f1' }} />
+                    <Shield size={12} style={{ color: 'var(--ink-2)' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Arms & Defense
                     </span>
@@ -43,7 +43,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                     color: 'var(--ink-3)', textAlign: 'center', lineHeight: 1.5
                 }}>
                     Detailed arsenal tracking is focused on the Middle East theater.<br />
-                    Switch to <strong style={{ color: '#6366f1' }}>Middle East</strong> view for live SIPRI + OSINT data.
+                    Switch to <strong style={{ color: 'var(--ink-2)' }}>Middle East</strong> view for live SIPRI + OSINT data.
                 </div>
             )}
 
@@ -74,7 +74,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                     <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                         Overall Interception Rate
                     </span>
-                    <span style={{ fontSize: '0.55rem', fontWeight: 700, color: '#6366f1', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--ink-2)', fontFamily: 'var(--font-mono)' }}>
                         {arsenalUsage.interceptionRate}
                     </span>
                 </div>
@@ -82,7 +82,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                     <div style={{
                         width: arsenalUsage.interceptionRate,
                         height: '100%', borderRadius: '2px',
-                        background: 'linear-gradient(90deg, #6366f1, #3b82f6)'
+                        background: 'var(--ink-2)'
                     }} />
                 </div>
             </div>

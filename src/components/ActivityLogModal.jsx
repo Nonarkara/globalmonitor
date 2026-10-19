@@ -2,6 +2,7 @@ import React, { useState, useSyncExternalStore } from 'react';
 import { X, FileText, Download, Trash2 } from 'lucide-react';
 import { getActivityLog, subscribeActivityLog, clearActivityLog, LOG_TYPES } from '../services/activityLog';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const TYPE_COLORS = {
     [LOG_TYPES.DATA_FETCH]: '#3b82f6',
@@ -22,6 +23,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
     const [filter, setFilter] = useState('all');
 
     useEscapeKey(isOpen, onClose);
+    const dialogRef = useDialogFocus(isOpen);
 
     if (!isOpen) return null;
 
@@ -38,8 +40,10 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
         const a = document.createElement('a');
         a.href = url;
         a.download = `dashboard-activity-${new Date().toISOString().slice(0, 10)}.log`;
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
 
     const formatTime = (iso) => {
@@ -53,7 +57,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)'
         }} onClick={onClose}>
-            <div style={{
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Session Activity Log" style={{
                 width: '640px', maxWidth: '95vw', maxHeight: '80vh',
                 background: 'rgba(14, 18, 28, 0.95)',
                 backdropFilter: 'blur(24px)',
@@ -76,7 +80,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button onClick={exportLog} style={{
+                        <button aria-label="Export session log" onClick={exportLog} style={{
                             background: 'var(--line)', border: '1px solid var(--line-2)',
                             borderRadius: '6px', padding: '4px 8px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
@@ -92,7 +96,7 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                         }}>
                             <Trash2 size={10} /> Clear
                         </button>
-                        <button onClick={onClose} style={{
+                        <button aria-label="Close session log" onClick={onClose} style={{
                             background: 'var(--line)', border: '1px solid var(--line-2)',
                             borderRadius: '6px', padding: '6px 12px', color: 'var(--ink-2)',
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
