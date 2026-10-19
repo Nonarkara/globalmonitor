@@ -20,7 +20,6 @@ import ActivityLogModal from './components/ActivityLogModal';
 import BraunManualModal from './components/BraunManualModal';
 import PapersModal from './components/PapersModal';
 import LegalModal from './components/LegalModal';
-import LegalFooterLinks from './components/LegalFooterLinks';
 import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
@@ -899,7 +898,7 @@ function App() {
         </nav>
 
         <ErrorBoundary inline label="Live Feed">
-          <LiveIntelligenceFeed key={`ticker:${viewMode}:${sourceSetKey}`} activeSourceIds={activeSources} viewMode={viewMode} />
+          <LiveIntelligenceFeed key={`ticker:${viewMode}:${sourceSetKey}`} activeSourceIds={activeSources} viewMode={viewMode} onOpenSection={openLegalModal} />
         </ErrorBoundary>
 
         {/* Time Machine — date slider for historical data */}
@@ -953,8 +952,6 @@ function App() {
           />
         )}
       </div>
-
-      <LegalFooterLinks onOpenSection={openLegalModal} />
 
       {/* Classification Banner — always visible, top and bottom of viewport */}
       <ClassificationBanner level="FOUO" />

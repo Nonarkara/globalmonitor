@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { fetchLiveNews } from '../services/liveNews';
 import { RefreshCw } from 'lucide-react';
 import { useLiveResource } from '../hooks/useLiveResource';
+import LegalFooterLinks from './LegalFooterLinks';
 
 const THEATER_WIRE = {
     middleeast: 'Gulf',
@@ -44,7 +45,7 @@ const resolveStatus = ({ news, isLoading, isStale, isSample, status, error }) =>
     return 'LIVE';
 };
 
-const LiveIntelligenceFeed = ({ activeSourceIds, viewMode = 'middleeast' }) => {
+const LiveIntelligenceFeed = ({ activeSourceIds, viewMode = 'middleeast', onOpenSection }) => {
     const cacheKey = `ticker:${Array.isArray(activeSourceIds) && activeSourceIds.length ? activeSourceIds.join(',') : 'default'}`;
     const fetcher = useCallback(() => fetchLiveNews(activeSourceIds), [activeSourceIds]);
     const {
@@ -137,6 +138,13 @@ const LiveIntelligenceFeed = ({ activeSourceIds, viewMode = 'middleeast' }) => {
                     </div>
                 )}
             </div>
+
+            {/* The legal links live INSIDE the wire strip. As a fixed overlay
+                they needed a hardcoded reservation in the ticker, and that
+                reservation was always short of their real width — the wire
+                and the links collided. As a flex child the space is reserved
+                by the layout itself. */}
+            {onOpenSection && <LegalFooterLinks onOpenSection={onOpenSection} />}
         </aside>
     );
 };

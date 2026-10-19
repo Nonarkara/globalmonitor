@@ -106,13 +106,14 @@
 .app-container[data-shell="compact"] .map-eo-label {padding:2px 4px;border:0;gap:4px;flex-wrap:wrap;}
 .app-container[data-shell="compact"] p {max-width:65ch;}
 .app-container[data-shell="compact"] .bottom-card {box-shadow:none!important;backdrop-filter:none!important;border-radius:0!important;}
-/* The legal links sit IN the ticker strip. They used to carry their own
-   opaque panel, which floated a white slab over the wire. */
-.legal-footer-links {position:fixed!important;bottom:18px!important;right:4px!important;z-index:60;display:flex!important;align-items:center;height:44px;background:transparent;}
+/* The legal links sit IN the ticker strip, as a flex child of it. They used
+   to be a fixed overlay with a hardcoded 165px reservation in the ticker —
+   the reservation was always short of the links' real width, so the wire
+   and the links collided. In-flow, the layout reserves the space itself. */
+.legal-footer-links {position:static!important;flex:0 0 auto!important;display:flex!important;align-items:center!important;height:44px;margin-left:10px;padding-right:6px;background:transparent;z-index:auto;}
 .legal-footer-link {position:static!important;min-width:44px!important;min-height:44px!important;font-size:11px!important;color:var(--ink-2)!important;background:transparent!important;}
 .legal-footer-link:hover,.legal-footer-link:focus-visible {color:var(--ink)!important;}
 .legal-footer-sep {color:var(--ink-2)!important;}
-body:has(.legal-footer-links) .app-container[data-shell="compact"] .news-ticker-wrapper {padding-right:165px;}
 .app-container[data-shell="compact"] .maplibregl-ctrl-attrib-button {width:44px;height:44px;}
 @media(max-width:1180px) {
   .app-container[data-shell="compact"] .header-region-tabs {display:none!important;}
@@ -142,7 +143,10 @@ body:has(.legal-footer-links) .app-container[data-shell="compact"] .news-ticker-
   .app-container[data-shell="compact"] .header-controls .header-button {display:none!important;}
   .app-container[data-shell="compact"] .secondary-clocks-side {display:none!important;}
   .app-container[data-shell="compact"] .top-bar-clock {justify-content:center!important;}
-  .app-container[data-shell="compact"] .map-legend--traffic {max-width:196px!important;max-height:132px!important;right:4px!important;bottom:44px!important;padding:4px!important;}
+  /* On a phone the plate is narrower, so the copy stacks taller. It still has
+     to hold every qualification: the cap gives way to the content, and only
+     scrolls when the screen genuinely has no room left. */
+  .app-container[data-shell="compact"] .map-legend--traffic {max-width:196px!important;max-height:min(268px, calc(100% - 150px))!important;right:4px!important;bottom:44px!important;padding:4px!important;}
   .app-container[data-shell="compact"] .map-coord-readout {display:none;}
   .app-container[data-shell="compact"] .map-eo-labels {left:4px;right:172px;bottom:30px;flex-direction:column;align-items:flex-start;}
   .app-container[data-shell="compact"] .map-first-layers-rail {display:none!important;}
