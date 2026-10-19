@@ -43,7 +43,7 @@ const DEFAULT_VIEW_TARGET = { ...REGION_VIEW_STATES.indopacific };
 function App() {
   // First paint should read as a composed war-room map. Dense live traffic stays opt-in.
   const [activeLayers, setActiveLayers] = useState(DEFAULT_MAP_LAYERS);
-  const [mapStyle, setMapStyle] = useState('dark');
+  const [mapStyle, setMapStyle] = useState('topographic');
   const [tacticalOptics, setTacticalOptics] = useState('standard');
   const [selectedEvent, setSelectedEvent] = useState(null);
   // Three-way region nav: 'middleeast' | 'indopacific' | 'thailand'

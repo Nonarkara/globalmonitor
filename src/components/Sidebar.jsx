@@ -11,9 +11,9 @@ import { useVesselStats } from '../hooks/useVesselCount';
 import { formatTrafficCount } from '../utils/formatTrafficCount.js';
 
 const BASEMAP_CONFIGS = [
-    { id: 'dark', title: 'Dark', desc: 'Low-glare operations map', icon: <Moon size={16} /> },
+    { id: 'topographic', title: 'Topographic', desc: 'Esri World Street Map', icon: <MapIcon size={16} /> },
     { id: 'satellite', title: 'Satellite', desc: 'Esri imagery with place labels', icon: <Satellite size={16} /> },
-    { id: 'voyager', title: 'Political', desc: 'Borders and place context', icon: <MapIcon size={16} /> },
+    { id: 'dark', title: 'Dark', desc: 'Low-glare operations map', icon: <Moon size={16} /> },
 ];
 
 const CORE_LAYERS = {

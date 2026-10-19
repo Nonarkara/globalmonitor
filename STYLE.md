@@ -54,10 +54,16 @@ Closed set. Every colour on the page is a named role.
 ### The map's ink
 Map ink has **one voice**. A label that sits on the basemap is ink `#101010`
 with a paper halo `rgba(247,245,239,0.9)` — never a black outline, and never a
-colour of its own. The colour belongs to the mark, not to its name. Two
-exceptions, both deliberate: a range-ring value keeps Wada Red because it
-annotates a red line, and the military callsign keeps the paper-ground amber
-`#8a5a00`.
+colour of its own. The colour belongs to the mark, not to its name.
+
+**The label voice follows the ground.** On paper: ink `#101010` with a paper
+halo. On a dark ground: paper `#f7f5ef` with an ink halo. Same voice, opposite
+polarity — a printed label over imagery knocks the ground out rather than
+wearing a black outline. Two labels keep an accent because they annotate a
+coloured mark, and the accent flips brightness with the ground: the
+range-ring value is Wada Red on paper and Palette Orange on dark; the
+military callsign is the paper-ground amber `#8a5a00` and Yellow-Orange
+`#f99d1b` on dark.
 
 **One mark, one colour.** A conflict event is drawn in Wada Red whether the
 feed is live or a sample; whether the data is live is said in words, never in
@@ -67,14 +73,22 @@ than the ground. The old red→yellow ramp made the fires brighter than the
 paper and contradicted the red swatch the legend promised.
 
 **No blurred glows.** Every mark that carried a blurred under-layer lost it:
-corridors, anchors, beacons, strike origins and crisis zones are drawn once,
-at one weight. A crisis zone is a flat translucent fill with a clean edge — a
-zone, not a halo of importance and not a reticle.
+corridors, anchors, beacons, strike origins, crisis zones, kinetic targets and
+the trajectory glow. A crisis zone is a flat translucent fill with a clean
+edge — a zone, not a halo of importance and not a reticle.
 
 **The legend is the key, and the key must agree with the drawing.** A swatch
 is the colour the map actually paints; the provenance — API or public file,
 live or sample — is said underneath it in words. A key that disagrees with the
 map is worse than no key.
+
+**A control may not lie about what it does.** The basemap picker's "Dark"
+option pointed at the bright Esri street map: the label promised a low-glare
+operations map and delivered a white one. It is now the Esri Dark Gray
+Canvas — a real low-glare ground — and the other two options say what they
+render ("Topographic", "Satellite"). CARTO's dark raster was tried and
+rejected: without an API key it returns tiles watermarked "API KEY REQUIRED"
+across the whole map, which is worse than no option at all.
 
 ## Layout
 The live map is the operating table. Compact clock (24–28px), 56px masthead and 44px ticker; no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.

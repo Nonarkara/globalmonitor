@@ -529,19 +529,58 @@ const ESRI_STREET_STYLE = {
     glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
 };
 
+/** ESRI World Dark Gray Canvas — keyless, low-glare raster.
+ *  The "Dark" option in the basemap picker used to point at the bright Esri
+ *  street map: the label promised a low-glare operations map and delivered a
+ *  white one. A control that lies about what it does is worse than no
+ *  control, so the dark option now really is dark.
+ *  CARTO's dark raster was tried first and rejected: without an API key it
+ *  returns tiles watermarked "API KEY REQUIRED" across the whole map. */
+const ESRI_DARK_STYLE = {
+    version: 8,
+    sources: {
+        'esri-dark-base': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+            ],
+            tileSize: 256,
+            maxzoom: 16,
+            attribution: 'Esri, HERE, Garmin, OpenStreetMap',
+        },
+        'esri-dark-ref': {
+            type: 'raster',
+            tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+            ],
+            tileSize: 256,
+            maxzoom: 16
+        }
+    },
+    layers: [
+        { id: 'background', type: 'background', paint: { 'background-color': '#101010' } },
+        { id: 'esri-dark-base-layer', type: 'raster', source: 'esri-dark-base', paint: { 'raster-opacity': 1 } },
+        { id: 'esri-dark-ref-layer', type: 'raster', source: 'esri-dark-ref', paint: { 'raster-opacity': 0.85 } }
+    ],
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
+};
+
 // Each entry can be a URL string or an inline style object — MapLibre accepts both.
 // Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
 // onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
-// Default dark = Esri street raster, which is reliable on Cloudflare Pages.
+// The default is the light Esri street raster: it is the paper ground the whole
+// interface is built on, and it is reliable on Cloudflare Pages.
 const MAP_STYLES = {
-    dark: ESRI_STREET_STYLE,
+    topographic: ESRI_STREET_STYLE,
     satellite: ESRI_SATELLITE_STYLE,
-    voyager: ESRI_STREET_STYLE,
+    dark: ESRI_DARK_STYLE,
 };
 
 const MAP_STYLE_FALLBACKS = {
-    dark: ESRI_STREET_STYLE,
-    voyager: ESRI_STREET_STYLE,
+    // The dark map falls back to imagery, not to the bright street map: a
+    // dark ground is the promise, and a white one would break it.
+    dark: ESRI_SATELLITE_STYLE,
+    topographic: ESRI_STREET_STYLE,
     satellite: OSM_RASTER_STYLE,
 };
 
@@ -549,7 +588,7 @@ const MAP_STYLE_FALLBACKS = {
 const BASEMAP_SOURCE_PATTERN = /^(carto|esri|openmaptiles|composite|basemap|demotiles|protomaps|osm)/i;
 
 const resolveMapStyle = (mapStyleKey, fallbackLevel = 0) => {
-    const primary = MAP_STYLES[mapStyleKey] || MAP_STYLES.dark;
+    const primary = MAP_STYLES[mapStyleKey] || MAP_STYLES.topographic;
     if (fallbackLevel <= 0) return primary;
     if (fallbackLevel === 1) return MAP_STYLE_FALLBACKS[mapStyleKey] || OSM_RASTER_STYLE;
     if (fallbackLevel === 2) return MAP_STYLE_ULTIMATE;
@@ -573,7 +612,7 @@ const MapContainer = ({
     showStrategicContext,
     viewMode = 'middleeast',
     onRegionDotClick,
-    mapStyle = 'dark',
+    mapStyle = 'topographic',
 }) => {
     const region = getRegion(viewMode);
     const regionDots = region.dots;
@@ -615,10 +654,23 @@ const MapContainer = ({
     // is actually painted, not the name of the button: `dark` resolves to the
     // Esri STREET style, so the old `mapStyle === 'light'` test never matched and
     // the wind arrows were drawn in pale ink on a light map — invisible.
-    const basemapIsDark = activeMapStyle === ESRI_SATELLITE_STYLE;
+    // Both dark grounds — the Esri imagery and the Esri dark canvas — need
+    // paper ink for the wind; ink-2 would vanish into them.
+    const basemapIsDark = activeMapStyle === ESRI_SATELLITE_STYLE || activeMapStyle === ESRI_DARK_STYLE;
     // The wind legend's swatch is --ink-2, so the arrows have to be ink-2 too
     // on the paper basemap. On the dark satellite basemap they are paper.
     const basemapInk = basemapIsDark ? '#f7f5ef' : '#57534b';
+
+    /* The label voice follows the ground it sits on. On paper: ink #101010
+       with a paper halo. On a dark ground: paper #f7f5ef with an ink halo.
+       Same voice, opposite polarity — a printed label over imagery knocks
+       the ground out rather than wearing a black outline. */
+    const labelInk = basemapIsDark ? '#f7f5ef' : '#101010';
+    const labelHalo = basemapIsDark ? 'rgba(16,16,16,0.85)' : 'rgba(247,245,239,0.9)';
+    /* Two labels keep an accent because they annotate a coloured mark. The
+       accent flips brightness with the ground so it stays legible. */
+    const labelSeverity = basemapIsDark ? '#f37420' : '#a72144';
+    const labelMilitary = basemapIsDark ? '#f99d1b' : '#8a5a00';
 
     useEffect(() => {
         const map = mapRef.current?.getMap?.();
@@ -783,20 +835,53 @@ const MapContainer = ({
         }
     }, []);
 
-    // Honest failure: a map that never reaches `load` has no data layers.
-    // Say so rather than let an empty theatre imply an empty world.
+    /* Honest failure: a map that never settles has no data layers. Say so
+       rather than let an empty theatre imply an empty world.
+
+       The watchdog asks the map before accusing it. `load` is a one-shot — it
+       fires once per map instance and never again after a basemap switch — so
+       trusting the event alone raised "Data layers unavailable" over a map
+       whose layers were all drawn. A false alarm in the one place the map is
+       allowed to complain is worse than no alarm.
+
+       `map.loaded()` is the authority: it is true only when the style is
+       loaded AND every source has loaded, which is exactly the state the
+       notice claims is missing. */
     useEffect(() => {
-        if (mapReady) return undefined;
-        const timer = window.setTimeout(() => setMapLoadStalled(true), MAP_LOAD_STALL_MS);
+        const timer = window.setTimeout(() => {
+            const map = mapRef.current?.getMap?.();
+            if (map?.loaded?.()) {
+                setMapReady(true);
+                setMapLoadStalled(false);
+                return;
+            }
+            setMapLoadStalled(true);
+        }, MAP_LOAD_STALL_MS);
         return () => window.clearTimeout(timer);
-    }, [mapReady]);
+    }, [mapReady, activeMapStyleKey]);
 
     // A basemap switch is a fresh load: re-arm the watchdog, or a style that
-    // never arrives after a switch could never be reported.
+    // never arrives after a switch could never be reported. The ready flag is
+    // NOT cleared — the map instance is the same, only its style changed, and
+    // clearing it detached the error handler for no reason.
     useEffect(() => {
-        setMapReady(false);
         setMapLoadStalled(false);
     }, [activeMapStyleKey]);
+
+    // `load` fires once; `idle` settles after every style change. This is
+    // what clears the notice the moment the new basemap is actually drawn.
+    useEffect(() => {
+        if (!mapReady) return undefined;
+        const map = mapRef.current?.getMap?.();
+        if (!map) return undefined;
+        const settle = () => {
+            if (!map.loaded?.()) return;
+            setMapReady(true);
+            setMapLoadStalled(false);
+        };
+        map.on('idle', settle);
+        return () => { map.off('idle', settle); };
+    }, [mapReady]);
 
     useEffect(() => {
         if (!mapReady) return undefined;
@@ -1408,8 +1493,8 @@ const MapContainer = ({
                                     'text-anchor': 'top'
                                 }}
                                 paint={{
-                                    'text-color': '#101010',
-                                    'text-halo-color': 'rgba(247,245,239,0.9)',
+                                    'text-color': labelInk,
+                                    'text-halo-color': labelHalo,
                                     'text-halo-width': 1
                                 }}
                             />
@@ -1697,8 +1782,8 @@ const MapContainer = ({
                                 'text-anchor': 'top'
                             }}
                             paint={{
-                                'text-color': '#101010',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1
                             }}
                         />
@@ -1738,8 +1823,8 @@ const MapContainer = ({
                                 'text-optional': true,
                             }}
                             paint={{
-                                'text-color': '#101010',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1,
                             }}
                         />
@@ -1779,8 +1864,8 @@ const MapContainer = ({
                                 'text-optional': true,
                             }}
                             paint={{
-                                'text-color': '#101010',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1,
                             }}
                         />
@@ -1875,8 +1960,8 @@ const MapContainer = ({
                                 'text-optional': true,
                             }}
                             paint={{
-                                'text-color': '#101010',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1,
                             }}
                         />
@@ -1910,8 +1995,8 @@ const MapContainer = ({
                                 'text-offset': [0, 1]
                             }}
                             paint={{
-                                'text-color': '#101010',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1.2
                             }}
                         />
@@ -1944,8 +2029,8 @@ const MapContainer = ({
                                 'text-anchor': 'top'
                             }}
                             paint={{
-                                'text-color': '#101010',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1.2
                             }}
                         />
@@ -1977,8 +2062,8 @@ const MapContainer = ({
                                 'text-offset': [0, -0.8]
                             }}
                             paint={{
-                                'text-color': '#a72144',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelSeverity,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1.2
                             }}
                         />
@@ -2021,8 +2106,8 @@ const MapContainer = ({
                                 'text-anchor': 'top'
                             }}
                             paint={{
-                                'text-color': '#8a5a00',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelMilitary,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1.2
                             }}
                         />
@@ -2076,8 +2161,8 @@ const MapContainer = ({
                                 'text-allow-overlap': true
                             }}
                             paint={{
-                                'text-color': '#a72144',
-                                'text-halo-color': 'rgba(247,245,239,0.9)',
+                                'text-color': labelSeverity,
+                                'text-halo-color': labelHalo,
                                 'text-halo-width': 1.2
                             }}
                         />
@@ -2124,8 +2209,8 @@ const MapContainer = ({
                                     'text-offset': [0, -0.8]
                                 }}
                                 paint={{
-                                    'text-color': '#a72144',
-                                    'text-halo-color': 'rgba(247,245,239,0.9)',
+                                    'text-color': labelSeverity,
+                                    'text-halo-color': labelHalo,
                                     'text-halo-width': 1.2
                                 }}
                             />
@@ -2168,8 +2253,8 @@ const MapContainer = ({
                                     'text-anchor': 'top'
                                 }}
                                 paint={{
-                                    'text-color': '#101010',
-                                    'text-halo-color': 'rgba(247,245,239,0.9)',
+                                    'text-color': labelInk,
+                                    'text-halo-color': labelHalo,
                                     'text-halo-width': 1.4
                                 }}
                             />
