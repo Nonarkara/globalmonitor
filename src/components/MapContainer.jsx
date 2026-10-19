@@ -32,6 +32,13 @@ import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } f
 import { buildPopupClassName } from '../utils/mapPopup.js';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
+// Hand-typed demo events must show how old they are, not read as current.
+const acledDemoRange = (features) => {
+    const dates = (features || []).map((f) => f?.properties?.date).filter(Boolean).sort();
+    if (!dates.length) return 'undated';
+    return dates[0] === dates[dates.length - 1] ? dates[0] : `${dates[0]} → ${dates[dates.length - 1]}`;
+};
+
 const TRAFFIC_THEATER = 'global';
 /** Cap rendered symbols — global pool, painted once (no viewport re-setData on pan). */
 const TRAFFIC_SESSION_MAX_FLIGHTS = 1200;
@@ -422,13 +429,11 @@ const OSM_RASTER_STYLE = {
             // tiles across them. Mixing OSM/Esri in here painted a patchwork of three
             // different maps. Voyager a/b/c only.
             tiles: [
-                'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             ],
             tileSize: 256,
             maxzoom: 19,
-            attribution: '© CARTO © OpenStreetMap',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         },
     },
     layers: [
@@ -843,7 +848,11 @@ const MapContainer = ({
     const kineticTrajectoriesGeoJson = useMemo(() => getKineticTrajectoriesGeoJson(), []);
     const blackoutsGeoJson = useMemo(() => getConflictBlackoutsGeoJson(viewMode), [viewMode]);
 
-    const [pulseGeoJson, setPulseGeoJson] = useState(() => generateKineticPulsesGeoJson(Date.now()));
+    // Initial frame only; the animation below writes straight to the MapLibre
+    // source. Driving it through React state re-rendered this whole component
+    // 25x a second and tripped React's "Maximum update depth exceeded" (#185)
+    // on the Middle East build whenever the kinetic layer was on.
+    const [pulseGeoJson] = useState(() => generateKineticPulsesGeoJson(Date.now()));
     useEffect(() => {
         if (!activeLayers.includes('kinetic')) return;
         let animId;
@@ -851,7 +860,10 @@ const MapContainer = ({
         const animate = (time) => {
             if (time - lastUpdate > 40) {
                 lastUpdate = time;
-                setPulseGeoJson(generateKineticPulsesGeoJson(Date.now()));
+                const source = mapRef.current?.getMap?.()?.getSource?.('kinetic-pulses-data');
+                if (source && typeof source.setData === 'function') {
+                    source.setData(generateKineticPulsesGeoJson(Date.now()));
+                }
             }
             animId = requestAnimationFrame(animate);
         };
@@ -969,7 +981,7 @@ const MapContainer = ({
     const acledCount = acledRaw?.features?.length ?? 0;
     const acledSourceLabel = acledLive
         ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
-        : acledCount > 0 ? acledCount + ' events · DEMO — not ACLED'
+        : acledCount > 0 ? acledCount + ' DEMO events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
             : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
     const legendVisible = flightsLayerActive || vesselsLayerActive
         || activeLayers.includes('firms') || activeLayers.includes('conflicts');

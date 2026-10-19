@@ -1,3 +1,4 @@
+import { installAxiosWorkerAdapter } from './axiosWorkerAdapter.mjs';
 import {
     buildCopernicusUnavailablePayload,
     fetchCopernicusPreview,
@@ -38,6 +39,9 @@ import {
 import { getSharedCache, recordHealth, useCached, getCacheEntries, getLoaderHealth } from './cache.mjs';
 import { fetchVesselsPayload } from './vessels.mjs';
 import { jsonResponse, optionsResponse } from './response.mjs';
+
+// Must run before any loader calls axios (see axiosWorkerAdapter.mjs).
+installAxiosWorkerAdapter();
 
 const applyEnv = (env = {}) => {
     for (const [key, value] of Object.entries(env)) {
@@ -247,7 +251,9 @@ export async function handleApiRequest(request, env, next) {
 
         if (url.pathname === '/api/infrastructure') {
             const payload = computeInfrastructureStatus(cache);
-            return jsonResponse(payload, 200, { status: 'live', updatedAt: payload.updatedAt, cache: 'miss' });
+            // A hand-maintained registry is not a live feed: badge it and
+            // carry the registry's own date, never now().
+            return jsonResponse(payload, 200, { status: 'sample', source: payload.source, updatedAt: payload.updatedAt, cache: 'miss' });
         }
 
         if (url.pathname === '/api/fronts') {
