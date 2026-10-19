@@ -1074,6 +1074,7 @@ const MapContainer = ({
     return (
         <div className="map-wrapper" ref={wrapperRef}>
             <Map
+                attributionControl={{ compact: true }}
                 ref={mapRef}
                 minZoom={viewMode === 'global' ? 1.5 : MAP_MIN_ZOOM}
                 maxZoom={MAP_MAX_ZOOM}

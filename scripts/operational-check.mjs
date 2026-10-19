@@ -44,6 +44,36 @@ try {
       await control.click();
       await page.locator(selector).waitFor({ state: 'hidden' });
     }
+    if (width === 1440) {
+      await page.locator('.map-first-header-layers').first().click();
+      for (const name of ['Aircraft','Airports','Ships']) {
+        const toggle = page.getByRole('switch', { name: new RegExp(name) }).first();
+        if (await toggle.count()) {
+          if (await toggle.getAttribute('aria-checked') !== 'true') await toggle.click();
+        } else {
+          const button = page.getByRole('button', { name: new RegExp('^(Show|Hide) ' + name + ' layer$') }).first();
+          if (await button.getAttribute('aria-pressed') !== 'true') await button.click();
+        }
+      }
+      await page.locator('.map-first-header-layers').first().click();
+      await page.waitForFunction(() => window.__GM_MAP__?.getSource('airports-data')?._data?.features?.length > 0, null, { timeout: 30000 });
+      for (const source of ['flights-data','vessels-data','airports-data']) {
+        const available = await page.evaluate(id => {
+          const map = window.__GM_MAP__, data = map?.getSource(id)?._data;
+          const f = data?.features?.find(f => f.geometry?.type === 'Point');
+          if (!f) return false;
+          map.jumpTo({ center: f.geometry.coordinates, zoom: 6 });
+          return true;
+        }, source);
+        if (available) {
+          await page.waitForTimeout(500);
+          const map = await page.locator('.maplibregl-canvas').boundingBox();
+          await page.mouse.move(map.x + map.width / 2, map.y + map.height / 2);
+          await page.waitForTimeout(300);
+          assert.equal(await page.getByText('Something went wrong.', { exact: true }).count(), 0);
+        }
+      }
+    }
     await page.getByRole('button', { name: 'Tools and advanced options' }).click();
     await page.getByRole('menuitem', { name: 'Session log', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Session Activity Log' });

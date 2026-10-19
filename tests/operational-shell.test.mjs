@@ -12,6 +12,7 @@ test('release enforces Non-Slop and keeps the map-first shell', async () => {
   assert.match(css, /data-mobile-drawer="intel"/);
   assert.match(css, /pointer-events:auto!important/);
   assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /\.operational-alert.*top:110px!important/);
 });
 test('session export has accessible dialog and safe download lifetime', async () => {
   const source = await read('src/components/ActivityLogModal.jsx');

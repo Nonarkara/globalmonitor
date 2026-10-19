@@ -19,7 +19,7 @@ const ThailandFlightTracker = () => {
     ];
 
     return (
-        <div className="bottom-card" style={{ padding: '12px 14px', background: 'rgba(12, 16, 26, 0.85)', backdropFilter: 'blur(20px)' }}>
+        <div className="bottom-card" style={{ padding: '12px 14px', background: 'rgba(12, 16, 26, 0.85)', backdropFilter: 'none' }}>
             <div className="panel-header" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '8px', marginBottom: '10px',

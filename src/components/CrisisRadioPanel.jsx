@@ -134,7 +134,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
     }, [regionFilter]);
 
     return (
-        <div className="bottom-card" style={{ padding: '12px 14px', background: 'rgba(12, 16, 26, 0.88)', backdropFilter: 'blur(20px)' }}>
+        <div className="bottom-card" style={{ padding: '12px 14px', background: 'rgba(12, 16, 26, 0.88)', backdropFilter: 'none' }}>
             <audio
                 ref={audioRef}
                 src={usingBackup ? selectedStation.backupUrl : selectedStation.streamUrl}
