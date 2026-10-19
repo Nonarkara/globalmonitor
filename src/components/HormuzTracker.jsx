@@ -12,7 +12,7 @@ const warDay = getDayCount();
 
 const HORMUZ_STATUS = {
     status: 'CLOSED',
-    statusColor: '#ef4444',
+    statusColor: '#a72144',
     irgcToll: '$2M per vessel',
     tankersSinceWarStart: 21,
     normalDailyTransits: '100+',
@@ -61,7 +61,7 @@ const HormuzTracker = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '6px', marginBottom: '8px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #ef4444',
+                borderLeft: '2px solid #a72144',
                 paddingLeft: '8px'
             }}>
                 <div>
@@ -85,10 +85,10 @@ const HormuzTracker = () => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '8px' }}>
-                <Stat icon={Ship} label="Transits since Feb 28" value={HORMUZ_STATUS.tankersSinceWarStart} color="#ef4444" />
+                <Stat icon={Ship} label="Transits since Feb 28" value={HORMUZ_STATUS.tankersSinceWarStart} color="#a72144" />
                 <Stat icon={Anchor} label="Vessels anchored" value={HORMUZ_STATUS.vesselsAnchored} color="#f59e0b" />
                 <Stat icon={DollarSign} label="IRGC toll" value={HORMUZ_STATUS.irgcToll} color="#f59e0b" />
-                <Stat icon={AlertTriangle} label="Attacks on ships" value={HORMUZ_STATUS.attacks} color="#ef4444" />
+                <Stat icon={AlertTriangle} label="Attacks on ships" value={HORMUZ_STATUS.attacks} color="#a72144" />
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
@@ -99,7 +99,7 @@ const HormuzTracker = () => {
                     textAlign: 'center'
                 }}>
                     <div style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>BRENT CRUDE</div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>
                         {HORMUZ_STATUS.brentPrice}
                     </div>
                 </div>

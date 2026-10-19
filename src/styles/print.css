@@ -68,7 +68,7 @@
 
     /* Header bar */
     .header-bar {
-        background: #f5f5f5 !important;
+        background: #f7f5ef !important;
         border: 1px solid #ddd !important;
         border-radius: 4px !important;
         padding: 8px 12px !important;
@@ -82,7 +82,7 @@
 
     /* World clock */
     .top-bar-clock {
-        background: #f5f5f5 !important;
+        background: #f7f5ef !important;
         border: 1px solid #ddd !important;
         border-radius: 4px !important;
         padding: 4px 12px !important;
@@ -141,10 +141,10 @@
         color: #333 !important;
     }
 
-    [style*="color: #ef4444"],
+    [style*="color: #a72144"],
     [style*="color: #f59e0b"],
-    [style*="color: #3b82f6"],
-    [style*="color: #22c55e"] {
+    [style*="color: #006eb8"],
+    [style*="color: #1a7444"] {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }

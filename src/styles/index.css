@@ -1,28 +1,57 @@
 :root {
-  /* ── RAMS Design Tokens — light instrument shell over dark map canvas ── */
-  --paper: #faf9f7;
-  --panel: #ffffff;
-  --ink: #191712;
-  /* Ratios measured against --paper #faf9f7, not white. --ink-3 was #a9a59a at
-     2.34:1 — it carries the source/age captions, the smallest text on the page,
-     so it failed WCAG AA outright. Both secondary tiers move together: lifting
-     --ink-3 alone to 4.5:1 would have landed it on top of --ink-2's 4.99:1 and
-     erased the step between them. Same warm-grey family, same three tiers. */
-  --ink-2: #5c5650; /* 6.88:1 */
-  --ink-3: #78726c; /* 4.51:1 */
-  --line: rgba(0, 0, 0, 0.12);
-  --line-2: rgba(0, 0, 0, 0.18);
-  --amber: #f59e0b;
-  --green: #22c55e;
-  --red: #ef4444;
+  /* ═══════════════════════════════════════════════════════════════
+     PALETTE (Dr Non production palette — Sanzo Wada collection)
+     Closed set. Every colour on this dashboard comes from here or
+     from a named role below. Tailwind defaults and VibeCode purples
+     are not in the system and must not be reintroduced.
+     ═══════════════════════════════════════════════════════════════ */
 
-  /* ── Legacy aliases → RAMS ── */
+  /* — Grounds — */
+  --paper: #f7f5ef;   /* Palette white — the page ground */
+  --panel: #ffffff;   /* raised instrument surface */
+  --ink: #101010;     /* Palette black — primary text (17.5:1 on paper) */
+  --ink-2: #57534b;   /* secondary text (7.0:1) */
+  --ink-3: #6b665e;   /* caption / micro text (5.2:1) */
+  --line: rgba(16, 16, 16, 0.12);   /* hairline */
+  --line-2: rgba(16, 16, 16, 0.20); /* hairline, stronger */
+
+  /* — Signal roles. These three channels never bleed into each other. —
+       Amber = wayfinding.  Green = signal.  Red = signal-loss / brand. */
+  --amber: #f59e0b;      /* Palette focus — wayfinding ONLY (active tab,
+                              focus ring, marker halo). 1.97:1 on paper, so it
+                              is never used for text on a light ground. */
+  --amber-ink: #8a5a00;  /* the same channel, legible as text (5.4:1) */
+  --green: #2c6e4b;      /* signal: live, gain, positive (5.6:1) */
+  --red: #a72144;        /* Wada Red — signal loss, alarm, brand (6.5:1) */
+
+  /* — Data series. Categorical, from the same Wada collection. — */
+  --blue: #006eb8;       /* Wada Blue — data series 1, links (4.9:1) */
+  --violet: #4f4086;     /* Wada Violet — data series 2 (8.0:1) */
+  --tyrian: #12354e;     /* Wada Dark Tyrian Blue — dark chrome ground */
+  --series-3: #489b6e;   /* Wada Green — data series 3 */
+  --series-4: #a72144;   /* Wada Red — data series 4 */
+  --series-5: #f37420;   /* Wada Orange — data series 5 */
+  --series-6: #f99d1b;   /* Wada Yellow Orange — data series 6 */
+  --series-7: #b984af;   /* Wada Lilac — data series 7 */
+  --series-8: #837e31;   /* Wada Olive — data series 8 */
+  --series-9: #7c4226;   /* Wada Brown — data series 9 */
+
+  /* — Dark chrome (map masthead). Ink on the Palette black ground. — */
+  --chrome-bg: var(--paper);
+  --chrome-surface: var(--paper);
+  --chrome-ink: var(--ink);
+  --chrome-muted: var(--ink-2);
+  --chrome-dim: var(--ink-3);
+  --chrome-line: var(--line);
+  --chrome-line-2: var(--line-2);
+
+  /* ── Legacy aliases → Palette ── */
   --bg-dark: var(--paper);
   --bg-panel: var(--panel);
   --surface-color: var(--panel);
   --surface-translucent: var(--panel);
-  --surface-hover: rgba(0, 0, 0, 0.04);
-  --shadow-color: rgba(0, 0, 0, 0.12);
+  --surface-hover: rgba(16, 16, 16, 0.04);
+  --shadow-color: rgba(16, 16, 16, 0.12);
   --bg-blur: none;
   --text-main: var(--ink);
   --text-muted: var(--ink-2);
@@ -30,24 +59,42 @@
   --border-color: var(--line);
   --accent-green: var(--green);
   --accent-red: var(--red);
-  --accent-blue: #2563eb;
+  --accent-blue: var(--blue);
   --accent-yellow: var(--amber);
   --accent-amber: var(--amber);
-  --accent-cyan: var(--green);
-  --accent-purple: var(--ink-3);
+  --accent-cyan: var(--blue);
+  --accent-purple: var(--violet);
   --accent-pink: var(--red);
 
-  /* ── RAMS Typography Scale ── */
-  --type-xs: 0.5625rem;   /* 9px micro-label */
-  --type-sm: 0.6875rem;   /* 11px section header / nav */
-  --type-base: 0.8125rem; /* 13px body */
-  --type-lg: 0.875rem;    /* 14px row value */
-  --type-xl: 1.1875rem;   /* 19px section metric */
-  --type-2xl: 1.875rem;   /* 30px hero number */
-  --type-caption: 0.5625rem;
-  --type-body: 0.8125rem;
-  --type-title: 0.6875rem;
-  --type-hero: 1.875rem;
+  /* ═══════════════════════════════════════════════════════════════
+     TYPE — THREE SIZES. Display / Body / Micro. Do not add a fourth.
+     Every legacy --type-* alias resolves to one of these three, so
+     the ladder is enforced without rewriting every call site.
+     ═══════════════════════════════════════════════════════════════ */
+  --type-display: 1.75rem;    /* 28px — hero numbers, section metrics */
+  --type-body: 0.8125rem;     /* 13px — body copy, row values */
+  --type-micro: 0.6875rem;    /* 11px — labels, captions, axis text */
+
+  --type-xs: var(--type-micro);
+  --type-sm: var(--type-micro);
+  --type-caption: var(--type-micro);
+  --type-title: var(--type-micro);
+  --type-base: var(--type-body);
+  --type-lg: var(--type-body);
+  --type-xl: var(--type-display);
+  --type-2xl: var(--type-display);
+  --type-hero: var(--type-display);
+
+  /* Numeric aliases kept for call sites that already use them. Same
+     three sizes, different names. */
+  --type-10: var(--type-micro);
+  --type-11: var(--type-micro);
+  --type-12: var(--type-body);
+  --type-14: var(--type-body);
+  --type-16: var(--type-body);
+  --type-20: var(--type-display);
+  --type-28: var(--type-display);
+  --type-40: var(--type-display);
 
   /* ── RAMS Spacing (22px grid) ── */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 13px;  --sp-4: 16px;
@@ -66,8 +113,18 @@
   --radius-full: 0;
 
   --transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, opacity 0.14s ease;
-  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  /* ── Typeface stack (Palette). One face per role, closed set. ──
+     display  Archivo Narrow  — label voice, uppercase, tracked
+     body     Archivo         — prose
+     data     JetBrains Mono  — every number
+     thai     IBM Plex Sans Thai — non-looped Thai (house rule) */
+  --font-display: 'Archivo Narrow', 'Archivo', 'IBM Plex Sans Thai', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-sans: 'Archivo', 'IBM Plex Sans Thai', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-body: 'Archivo', 'IBM Plex Sans Thai', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  --font-data: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  --font-thai: 'IBM Plex Sans Thai', 'Noto Sans Thai', 'Archivo', sans-serif;
 
   --z-map: 0;
   --z-panels: 10;
@@ -100,7 +157,7 @@ html {
    pin the root to 16px there. Sharing the 1024px seam with the layout keeps the
    size change on a boundary the reader already perceives. */
 @media (max-width: 1024px) {
-  html { font-size: var(--type-16); }
+  html { font-size: 16px; }
 }
 
 @media (min-width: 2560px) {
@@ -111,9 +168,9 @@ html {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
-  font-size: var(--type-12);
+  font-size: var(--type-body);
   line-height: 1.42;
   background-color: var(--paper);
   color: var(--ink);
@@ -151,8 +208,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0e14;
-  color: rgba(255, 255, 255, 0.72);
+  background: var(--ink);
+  color: var(--paper);
   font: 600 11px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -176,16 +233,11 @@ body {
   mix-blend-mode: screen;
 }
 
+/* The 48px grid was drawn for texture alone. Rams: if removing it loses no
+   meaning, remove it. */
 .map-grid-overlay::before {
-  display: block;
+  display: none;
   content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.22;
 }
 
 /* ═══════════════════════════════════════════
@@ -206,7 +258,7 @@ body {
   padding: 10px 12px;
   border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  background: linear-gradient(180deg, rgba(8, 22, 48, 0.68), rgba(5, 14, 32, 0.74));
+  background: rgba(16, 16, 16, 0.88);
   box-shadow:none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -606,7 +658,7 @@ body {
   font-size: var(--type-10);
   font-weight: 700;
   letter-spacing: 1px;
-  color: #ef4444;
+  color: #a72144;
   padding: 2px 6px;
   background: rgba(239, 68, 68, 0.1);
   border-radius: 0;
@@ -710,7 +762,7 @@ body {
 
 .header-icon-label {
   display: inline-block;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   letter-spacing: 0.55px;
   line-height: 1;
@@ -974,7 +1026,7 @@ body {
 .region-selector-label {
   display: inline-block;
   padding: 0 10px;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -1043,7 +1095,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
 }
 
 .sidebar-section {
@@ -1103,7 +1155,7 @@ body {
 }
 
 .section-title-row span {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   letter-spacing: 0.7px;
   color: var(--text-dim);
@@ -1124,7 +1176,7 @@ body {
   background: transparent;
   color: var(--ink-2);
   border-radius: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   letter-spacing: 0.65px;
   text-transform: uppercase;
@@ -1185,15 +1237,15 @@ body {
 }
 
 .basemap-option-swatch--dark {
-  background: linear-gradient(135deg, #0a0e14 50%, #151c2c 100%);
+  background: #2b2f36;
 }
 
 .basemap-option-swatch--satellite {
-  background: linear-gradient(135deg, #2d3a1e 0%, #1a2a1a 40%, #3d4a2e 100%);
+  background: #3c4a2f;
 }
 
 .basemap-option-swatch--voyager {
-  background: linear-gradient(135deg, #dce8f0 0%, #c8d8e8 50%, #e8eef4 100%);
+  background: #d8dee4;
 }
 
 .basemap-option-icon {
@@ -1216,7 +1268,7 @@ body {
 
 .layer-group-title {
   margin: 0 0 5px;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   letter-spacing: 1.1px;
   text-transform: uppercase;
@@ -1302,7 +1354,7 @@ body {
 }
 
 .sidebar-disclosure-toggle span:last-child {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   color: var(--text-dim);
   letter-spacing: 0.7px;
@@ -1443,7 +1495,6 @@ body {
 }
 
 .eo-preview-empty {
-  min-height: 168px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1469,8 +1520,8 @@ body {
 .eo-insight-card {
   padding: 9px 10px;
   border-radius: 0;
-  border: 1px solid rgba(56, 189, 248, 0.14);
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.08), var(--line));
+  border: 1px solid var(--line-2);
+  background: var(--paper);
 }
 
 .eo-insight-kicker {
@@ -1555,12 +1606,12 @@ body {
 }
 
 .timesfm-delta.up {
-  color: #ef4444;
+  color: #a72144;
   background: rgba(239, 68, 68, 0.15);
 }
 
 .timesfm-delta.down {
-  color: #22c55e;
+  color: #1a7444;
   background: rgba(34, 197, 94, 0.15);
 }
 
@@ -1725,7 +1776,7 @@ body {
 }
 
 .news-ticker-kicker {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -1734,7 +1785,7 @@ body {
 }
 
 .news-ticker-status {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-xs);
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -1760,7 +1811,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-xs);
   letter-spacing: 0.04em;
   color: var(--ink-3);
@@ -1856,7 +1907,7 @@ body {
 }
 
 .news-item-tag {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-xs);
   letter-spacing: 0.04em;
   text-transform: lowercase;
@@ -1963,7 +2014,7 @@ body {
   justify-content: space-between;
   gap: 8px;
   padding: 7px 10px;
-  background: linear-gradient(180deg, transparent, rgba(250, 249, 247, 0.92));
+  background: rgba(247, 245, 239, 0.92);
   font-size: var(--type-11);
   color: var(--ink-2);
 }
@@ -2131,7 +2182,7 @@ body {
 .signal-tag {
   border: 1px solid rgba(16, 185, 129, 0.15);
   background: rgba(16, 185, 129, 0.06);
-  color: #86efac;
+  color: #489b6e;
 }
 
 
@@ -2146,7 +2197,7 @@ body {
 }
 
 .radar-group-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   text-transform: uppercase;
   letter-spacing: 1.6px;
@@ -2375,7 +2426,7 @@ body {
 }
 
 .primary-clock-content .clock-war-date {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   color: var(--ink-3);
   text-transform: uppercase;
@@ -2706,11 +2757,11 @@ body {
 }
 
 .right-sidebar>.bottom-card:nth-child(2) .panel-header {
-  border-left-color: #ec4899; /* humanitarian pink */
+  border-left-color: #b984af; /* humanitarian pink */
 }
 
 .right-sidebar>.bottom-card:nth-child(3) .panel-header {
-  border-left-color: #f97316; /* acled orange */
+  border-left-color: #f37420; /* acled orange */
 }
 
 .right-sidebar>.bottom-card:nth-child(4) .panel-header {
@@ -2857,7 +2908,7 @@ body {
 }
 
 .marker-weather {
-  background-color: #38bdf8;
+  background-color: #006eb8;
   color: var(--ink);
 }
 
@@ -2882,24 +2933,25 @@ body {
   right: 10px;
   padding: 10px 14px;
   border-radius: 0;
-  background: rgba(9, 23, 52, 0.88);
-  border: 1px solid var(--border-color);
+  background: var(--paper);
+  border: 1px solid var(--line-2);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   pointer-events: auto;
   z-index: 20;
-  max-width: 260px;
-  min-height: 88px;
-  contain: layout size style;
+  max-width: 300px;
+  contain: layout style;
   box-shadow:none;
+  max-height: calc(100% - 88px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .map-legend--traffic {
-  min-height: 72px;
   top: auto;
   left: auto;
-  right: 10px;
-  bottom: 52px;
+  right: 8px;
+  bottom: 46px;
 }
 
 .map-legend--strategic {
@@ -2911,20 +2963,20 @@ body {
 }
 
 .map-legend-title {
-  font-size: var(--type-10);
+  font-size: var(--type-micro);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  color: var(--accent-blue);
+  color: var(--ink);
   margin-bottom: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
 }
 
 .map-legend-item--attribution {
   margin-top: 2px;
   padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: var(--type-10);
+  border-top: 1px solid var(--line);
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   color: var(--ink-3);
   opacity: 0.82;
@@ -2938,6 +2990,24 @@ body {
   font-size: var(--type-11);
   color: var(--text-muted);
   min-height: 1.25rem;
+}
+
+.map-legend-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.map-legend-value {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.map-legend-meta {
+  color: var(--ink-3);
+  font-size: var(--type-micro);
+  letter-spacing: 0.04em;
 }
 
 .map-legend-line {
@@ -3994,7 +4064,7 @@ body {
 }
 
 .traffic-tooltip-header {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--type-12);
   color: var(--green);
@@ -4046,36 +4116,66 @@ body {
   background: var(--panel);
   border: 1px solid var(--line-2);
   font-family: var(--font-mono);
-  font-size: var(--type-11);
+  font-size: var(--type-micro);
   font-variant-numeric: tabular-nums;
   color: var(--ink);
   letter-spacing: 0.04em;
   pointer-events: none;
   line-height: 1.4;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .map-coord-readout__label {
   display: block;
-  font-size: var(--type-10);
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-3);
-  margin-bottom: 2px;
+  margin-bottom: 0;
+}
+
+/* Status surfaces, top-right of the map. They used to sit at bottom:12px,
+   which is behind the 44px wire strip — the badge was rendered and never
+   seen. */
+.map-status-stack {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 22;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+  max-width: min(320px, calc(100% - 24px));
+}
+
+.map-stall-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--paper);
+  border: 1px solid var(--red);
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
+  color: var(--red);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .map-layer-warning {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  z-index: 5;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
   background: var(--panel);
   border: 1px solid var(--line-2);
-  font-family: var(--font-mono);
-  font-size: var(--type-10);
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
   color: var(--red);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -4115,7 +4215,7 @@ body {
   font-size: var(--type-10);
   color: var(--ink-3);
   letter-spacing: 0.04em;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
 }
 
 /* ── Legal footer links — discrete, above classification band ── */
@@ -4136,8 +4236,8 @@ body {
   padding: 0 8px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.72);
-  font-family: var(--font-mono);
+  color: var(--paper);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4156,7 +4256,7 @@ body {
 
 .legal-footer-sep {
   color: rgba(255, 255, 255, 0.4);
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
   font-size: var(--type-10);
   user-select: none;
   pointer-events: none;

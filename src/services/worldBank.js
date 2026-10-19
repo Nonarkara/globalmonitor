@@ -53,7 +53,7 @@ export const fetchMacroEconomy = async () => {
                         growth,
                         year: item.date,
                         type: 'economy',
-                        color: growth > 3 ? '#10b981' : (growth > 0 ? '#FFC400' : '#ef4444')
+                        color: growth > 3 ? '#1a7444' : (growth > 0 ? '#FFC400' : '#a72144')
                     }
                 };
             });

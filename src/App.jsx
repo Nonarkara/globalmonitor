@@ -28,12 +28,14 @@ import './styles/print.css';
 import './styles/tactical-optics.css';
 
 const DASHBOARD_VERSION = 'v8.5';
-// Aerosol and nightlights are on at first paint by request — they are the two
-// layers that read as "this is a satellite picture" rather than a plotted map.
-// Both were toned down in eoTiles.js so live traffic still reads through them;
-// aerosol at its old 0.55 buried the aircraft entirely, which is why it had been
-// pulled from this list rather than dimmed.
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'eo-aerosol', 'eo-nightlights'];
+// The opening map is a cartographic instrument, not a satellite picture.
+// The two GIBS rasters (aerosol, city lights) are opaque composites that
+// bury the basemap and every plotted mark underneath them, so they are
+// offered in the LAYERS panel and off by default.
+// Air quality and surface wind ARE on by default: they are the live haze
+// reading for the theater, and a map that omits them is not answering the
+// question the dashboard is opened to answer.
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'aqi', 'wind'];
 // Derived from the region registry rather than hardcoded, so the opening camera
 // can never drift away from the opening theater again (it was pinned to the Gulf
 // while the default tab said Southeast Asia).
@@ -275,10 +277,10 @@ function App() {
           <div className="header-status">
             <div className="header-title-lockup">
               <span className="header-title">
-                AsiaWatch // Pan-Asian Sentinel
+                AsiaWatch
               </span>
               <span className="header-subtitle">
-                Maritime Chokepoints, ADIZ & Strategic Hydropolitics · {DASHBOARD_VERSION}
+                Pan-Asian Sentinel · Chokepoints · ADIZ · {DASHBOARD_VERSION}
               </span>
             </div>
           </div>

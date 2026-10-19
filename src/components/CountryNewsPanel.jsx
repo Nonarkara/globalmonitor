@@ -186,7 +186,7 @@ const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
                     >
                         <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                {item.tag === 'urgent' ? <Zap size={9} style={{ color: '#ef4444' }} /> : <Cpu size={9} style={{ color: '#38bdf8' }} />}
+                                {item.tag === 'urgent' ? <Zap size={9} style={{ color: '#a72144' }} /> : <Cpu size={9} style={{ color: '#006eb8' }} />}
                                 <span style={{ fontWeight: 'bold' }}>{item.source}</span>
                             </span>
                             <span>{itemTime(item)}</span>

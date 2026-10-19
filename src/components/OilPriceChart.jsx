@@ -5,10 +5,10 @@ import DataStatus from './DataStatus';
 import { fetchBackendJson } from '../services/backendClient.js';
 
 const WAR_EVENTS = [
-    { date: '2026-02-28', label: 'War starts', color: '#ef4444' },
+    { date: '2026-02-28', label: 'War starts', color: '#a72144' },
     { date: '2026-03-04', label: 'Hormuz closed', color: '#f59e0b' },
-    { date: '2026-03-08', label: '$100 crossed', color: '#f97316' },
-    { date: '2026-03-18', label: 'Peak $126', color: '#dc2626' }
+    { date: '2026-03-08', label: '$100 crossed', color: '#f37420' },
+    { date: '2026-03-18', label: 'Peak $126', color: '#a72144' }
 ];
 
 // Every figure carries its source and as-of date ("credit every source").
@@ -107,23 +107,23 @@ const OilPriceChart = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '6px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #ef4444', paddingLeft: '8px'
+                borderLeft: '2px solid #a72144', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Droplets size={12} style={{ color: '#ef4444' }} />
+                    <Droplets size={12} style={{ color: '#a72144' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Brent Crude
                     </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: latest.price > 100 ? '#ef4444' : '#f59e0b' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: latest.price > 100 ? '#a72144' : '#f59e0b' }}>
                         ${latest.price.toFixed(1)}
                     </span>
                     <span
                         title={`vs first point in series (${formatDay(first.date, true)})`}
                         style={{
                             fontSize: '0.5rem', fontWeight: 700,
-                            color: change > 0 ? '#ef4444' : '#22c55e',
+                            color: change > 0 ? '#a72144' : '#1a7444',
                             padding: '1px 5px', borderRadius: '3px',
                             background: change > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'
                         }}
@@ -149,8 +149,8 @@ const OilPriceChart = () => {
                     aria-label={`Brent crude ${latest.price.toFixed(2)} US dollars per barrel, ${asOfLabel}, source ${sourceLabel}`}>
                     <defs>
                         <linearGradient id="oilGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
-                            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.02" />
+                            <stop offset="0%" stopColor="#a72144" stopOpacity="0.4" />
+                            <stop offset="100%" stopColor="#a72144" stopOpacity="0.02" />
                         </linearGradient>
                     </defs>
 
@@ -162,7 +162,7 @@ const OilPriceChart = () => {
                     )}
 
                     <path d={areaPath} fill="url(#oilGrad)" />
-                    <path d={linePath} fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={linePath} fill="none" stroke="#a72144" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 
                     {/* Event markers — only inside the series window, snapped to the nearest date */}
                     {WAR_EVENTS.map((evt, ei) => {
@@ -183,7 +183,7 @@ const OilPriceChart = () => {
                         );
                     })}
 
-                    <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="#ef4444" stroke="var(--ink-2)" strokeWidth="0.8">
+                    <circle cx={toX(brent.length - 1)} cy={toY(latest.price)} r="3" fill="#a72144" stroke="var(--ink-2)" strokeWidth="0.8">
                         {!isDemo && <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />}
                     </circle>
                 </svg>
@@ -192,7 +192,7 @@ const OilPriceChart = () => {
                     <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(first.date)}</span>
                     <span style={{ fontSize: '0.45rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{formatDay(latest.date)}</span>
                 </div>
-                <div data-testid="oil-source" style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red, #ef4444)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px', textAlign: 'center' }}>
+                <div data-testid="oil-source" style={{ fontSize: '0.45rem', color: isDemo ? 'var(--red, #a72144)' : 'var(--ink-3)', fontFamily: 'var(--font-mono)', marginTop: '2px', textAlign: 'center' }}>
                     Source: {sourceLabel} · {asOfLabel} · daily close · Δ vs first point
                 </div>
             </DataStatus>

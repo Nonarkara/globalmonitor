@@ -31,6 +31,14 @@ const OPEN_METEO = 'https://api.open-meteo.com/v1/forecast';
 // and on a phone they still sit ~29px apart — airy enough that the fires show.
 const STEP_DEG = 4;
 
+// One request carrying every point in the theater was measured at 8.7 s, and
+// from a shared Cloudflare egress IP it regularly runs past 25 s and returns
+// nothing at all. The grid is therefore split into chunks fetched in parallel;
+// a chunk that fails costs that chunk's arrows, not the whole layer. The meta
+// records when the field is partial so the legend can say so.
+const CHUNK_SIZE = 20;
+const CHUNK_TIMEOUT_MS = 10000;
+
 const gridFor = ([minLon, minLat, maxLon, maxLat]) => {
     const lats = [];
     const lons = [];
@@ -44,17 +52,41 @@ const gridFor = ([minLon, minLat, maxLon, maxLat]) => {
     return { lats, lons };
 };
 
+const chunk = (arr, size) => {
+    const out = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+};
+
+const fetchChunk = async (lats, lons) => {
+    const url = `${OPEN_METEO}?latitude=${lats.join(',')}&longitude=${lons.join(',')}`
+        + '&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=kmh&timezone=UTC';
+
+    const res = await fetch(url, { signal: AbortSignal.timeout(CHUNK_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
+    const body = await res.json();
+    return Array.isArray(body) ? body : [body];
+};
+
 export const fetchWindField = async (theater = 'indopacific') => {
     const bbox = THEATER_BBOX[theater];
     if (!bbox) throw new Error(`windField: no bbox configured for theater "${theater}"`);
     const { lats, lons } = gridFor(bbox);
-    const url = `${OPEN_METEO}?latitude=${lats.join(',')}&longitude=${lons.join(',')}`
-        + '&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=kmh&timezone=UTC';
 
-    const res = await fetch(url, { signal: AbortSignal.timeout(25000) });
-    if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
-    const body = await res.json();
-    const rows = Array.isArray(body) ? body : [body];
+    const latChunks = chunk(lats, CHUNK_SIZE);
+    const lonChunks = chunk(lons, CHUNK_SIZE);
+    const requested = latChunks.length;
+
+    const settled = await Promise.allSettled(
+        latChunks.map((_, i) => fetchChunk(latChunks[i], lonChunks[i]))
+    );
+
+    const failed = settled.filter((s) => s.status === 'rejected');
+    if (failed.length === requested) {
+        throw new Error(`Open-Meteo: all ${requested} grid chunks failed — ${failed[0].reason?.message || 'unknown'}`);
+    }
+
+    const rows = settled.flatMap((s) => (s.status === 'fulfilled' ? s.value : []));
 
     const features = [];
     let observedAt = null;
@@ -83,6 +115,11 @@ export const fetchWindField = async (theater = 'indopacific') => {
             observedAt: observedAt ? `${observedAt}Z` : null,
             fetchedAt: new Date().toISOString(),
             source: 'open-meteo',
+            // Honest about gaps: a partial field says so rather than passing
+            // a short grid off as a complete one.
+            requestedChunks: requested,
+            failedChunks: failed.length,
+            partial: failed.length > 0
         },
     };
 };

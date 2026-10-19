@@ -17,7 +17,7 @@ const BraunManualModal = ({ isOpen, onClose, theaters = 'Southeast Asia, East As
         }} onClick={onClose}>
             <div style={{
                 width: '100%', maxWidth: '850px', maxHeight: '90vh',
-                background: '#e0e0e0',
+                background: '#d9d5c9',
                 color: '#111',
                 borderRadius: '0px',
                 border: '4px solid #111',
@@ -32,11 +32,11 @@ const BraunManualModal = ({ isOpen, onClose, theaters = 'Southeast Asia, East As
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '20px 30px',
                     borderBottom: '4px solid #111',
-                    background: '#d4d4d4'
+                    background: '#d9d5c9'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <div style={{
-                            width: '32px', height: '32px', background: '#111', color: '#e0e0e0',
+                            width: '32px', height: '32px', background: '#111', color: '#d9d5c9',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 'bold', fontSize: '18px'
                         }}>

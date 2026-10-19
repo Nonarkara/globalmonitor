@@ -38,7 +38,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
             <div
                 style={{
                     width: '100%', maxWidth: '720px', maxHeight: '90vh',
-                    background: '#e0e0e0',
+                    background: '#d9d5c9',
                     color: '#111',
                     border: '4px solid #111',
                     overflow: 'hidden',
@@ -52,12 +52,12 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '16px 20px',
                     borderBottom: '4px solid #111',
-                    background: '#d4d4d4',
+                    background: '#d9d5c9',
                     gap: '12px',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                         <div style={{
-                            width: '32px', height: '32px', background: '#111', color: '#e0e0e0',
+                            width: '32px', height: '32px', background: '#111', color: '#d9d5c9',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 700, fontSize: '14px', flexShrink: 0,
                         }}>
@@ -121,7 +121,7 @@ const PapersModal = ({ isOpen, onClose, systemId = 'asia' }) => {
                         </div>
                     ))}
                     <div style={{
-                        border: '2px solid #111', padding: '12px', marginTop: '14px', background: '#d4d4d4',
+                        border: '2px solid #111', padding: '12px', marginTop: '14px', background: '#d9d5c9',
                     }}>
                         <H3>On keeping a history</H3>
                         <p style={{ margin: 0 }}>{LONGITUDINAL_NOTE}</p>

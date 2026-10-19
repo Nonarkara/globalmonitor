@@ -35,7 +35,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 35.51,
         lat: 33.84,
         type: 'Airstrike & Air Defense Engagement',
-        color: '#ef4444',
+        color: '#a72144',
         periodMs: 2400,
         maxRadiusKm: 35
     },
@@ -45,7 +45,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 35.38,
         lat: 33.24,
         type: 'Artillery & Ground Clash Perimeter',
-        color: '#f97316',
+        color: '#f37420',
         periodMs: 2800,
         maxRadiusKm: 42
     },
@@ -65,7 +65,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 34.30,
         lat: 31.30,
         type: 'Intensive Kinetic Bombardment',
-        color: '#dc2626',
+        color: '#a72144',
         periodMs: 2200,
         maxRadiusKm: 30
     },
@@ -75,7 +75,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 42.50,
         lat: 14.15,
         type: 'Anti-Ship Drone & Ballistic Missile Danger Zone',
-        color: '#ef4444',
+        color: '#a72144',
         periodMs: 3200,
         maxRadiusKm: 65
     },
@@ -85,7 +85,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 42.95,
         lat: 14.80,
         type: 'Terminal & Air Defense Strike Zone',
-        color: '#f97316',
+        color: '#f37420',
         periodMs: 2600,
         maxRadiusKm: 45
     },
@@ -95,7 +95,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 56.35,
         lat: 26.55,
         type: 'Naval Interdiction & Drone Reconnaissance Route',
-        color: '#38bdf8',
+        color: '#006eb8',
         periodMs: 3500,
         maxRadiusKm: 55
     },
@@ -105,7 +105,7 @@ export const KINETIC_HOTSPOTS = [
         lng: 51.68,
         lat: 32.65,
         type: 'Air Defense Radar & Alert Perimeter',
-        color: '#ec4899',
+        color: '#b984af',
         periodMs: 3800,
         maxRadiusKm: 70
     }
@@ -117,7 +117,7 @@ export const KINETIC_TRAJECTORIES = [
         name: 'Houthi Anti-Ship Missile & UAV Strike Corridor',
         origin: 'Yemen Western Coast',
         target: 'Red Sea International Shipping Lane',
-        color: '#ef4444',
+        color: '#a72144',
         coordinates: [
             [44.19, 15.37],
             [43.30, 14.60],
@@ -131,7 +131,7 @@ export const KINETIC_TRAJECTORIES = [
         name: 'Houthi Long-Range Ballistic & UAV Attack Vector',
         origin: 'Sana\'a Launch Enclave',
         target: 'Eilat / Southern Israel',
-        color: '#f97316',
+        color: '#f37420',
         coordinates: [
             [44.19, 15.37],
             [41.50, 19.80],
@@ -145,7 +145,7 @@ export const KINETIC_TRAJECTORIES = [
         name: 'Hezbollah Rocket & Shahed Drone Incursion Arc',
         origin: 'Litani River Valley / Southern Lebanon',
         target: 'Upper Galilee / Haifa Industrial Bay',
-        color: '#ef4444',
+        color: '#a72144',
         coordinates: [
             [35.50, 33.32],
             [35.35, 33.15],
@@ -158,7 +158,7 @@ export const KINETIC_TRAJECTORIES = [
         name: 'IDF Counter-Battery & Air Superiority Sortie Vector',
         origin: 'Ramat David / Central Airbases',
         target: 'Southern Lebanon & Syrian Border Outposts',
-        color: '#38bdf8',
+        color: '#006eb8',
         coordinates: [
             [35.18, 32.66],
             [35.40, 33.05],
@@ -171,7 +171,7 @@ export const KINETIC_TRAJECTORIES = [
         name: 'Iranian Long-Range Ballistic Transit Corridor',
         origin: 'Western Iran Launch Silos',
         target: 'Levant Airspace / Interception Gate',
-        color: '#dc2626',
+        color: '#a72144',
         coordinates: [
             [51.67, 32.65],
             [47.50, 33.60],
@@ -185,7 +185,7 @@ export const KINETIC_TRAJECTORIES = [
         name: 'IRGC Fast-Attack Naval Interdiction Perimeter',
         origin: 'Bandar Abbas',
         target: 'Strait of Hormuz Traffic Separation Scheme',
-        color: '#06b6d4',
+        color: '#006eb8',
         coordinates: [
             [56.28, 27.18],
             [56.35, 26.85],

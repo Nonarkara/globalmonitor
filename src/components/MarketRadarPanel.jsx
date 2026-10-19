@@ -34,10 +34,10 @@ const describeChange = (item) => {
 const WINDOW_STYLE = { fontSize: '0.44rem', color: 'var(--ink-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.3px' };
 
 const OIL_THRESHOLDS = [
-    { price: 200, label: '$200', level: 'EXTREME', color: '#dc2626' },
-    { price: 150, label: '$150', level: 'CRITICAL', color: '#ef4444' },
+    { price: 200, label: '$200', level: 'EXTREME', color: '#a72144' },
+    { price: 150, label: '$150', level: 'CRITICAL', color: '#a72144' },
     { price: 100, label: '$100', level: 'HIGH', color: '#f59e0b' },
-    { price: 80, label: '$80', level: 'ELEVATED', color: '#eab308' },
+    { price: 80, label: '$80', level: 'ELEVATED', color: '#8a5a00' },
 ];
 
 const OilCrisisHeader = ({ items }) => {
@@ -77,7 +77,7 @@ const OilCrisisHeader = ({ items }) => {
                 <div style={{
                     position: 'absolute', left: 0, top: 0, bottom: 0,
                     width: `${pctPosition}%`,
-                    background: `linear-gradient(90deg, #22c55e 0%, #eab308 36%, #f59e0b 45%, #ef4444 68%, #dc2626 90%)`,
+                    background: `linear-gradient(90deg, #1a7444 0%, #8a5a00 36%, #f59e0b 45%, #a72144 68%, #a72144 90%)`,
                     borderRadius: '6px',
                     transition: 'width 1s ease'
                 }} />

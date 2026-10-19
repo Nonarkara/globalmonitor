@@ -147,7 +147,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '8px', marginBottom: '10px',
                 borderBottom: '1px solid var(--line-2)',
-                borderLeft: '3px solid #eab308',
+                borderLeft: '3px solid #8a5a00',
                 paddingLeft: '8px'
             }}>
                 <div>
@@ -155,7 +155,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
-                        <Radio size={14} style={{ color: '#eab308' }} />
+                        <Radio size={14} style={{ color: '#8a5a00' }} />
                         Crisis Radio Monitor · Braun T-1000
                     </div>
                     <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
@@ -165,7 +165,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
                         fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
-                        color: isPlaying ? '#22c55e' : '#eab308', padding: '2px 8px',
+                        color: isPlaying ? '#1a7444' : '#8a5a00', padding: '2px 8px',
                         background: isPlaying ? 'rgba(34, 197, 94, 0.12)' : 'rgba(234, 179, 8, 0.12)',
                         borderRadius: '4px', border: `1px solid ${isPlaying ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'}`
                     }}>
@@ -181,13 +181,13 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <RadioTower size={12} style={{ color: '#eab308' }} />
+                        <RadioTower size={12} style={{ color: '#8a5a00' }} />
                         <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
                             {selectedStation.name}
                         </span>
                     </div>
                     <span style={{
-                        fontSize: '0.55rem', fontWeight: 700, color: '#eab308',
+                        fontSize: '0.55rem', fontWeight: 700, color: '#8a5a00',
                         fontFamily: 'var(--font-mono)', letterSpacing: '0.5px'
                     }}>
                         {selectedStation.freq}
@@ -207,7 +207,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                             style={{
                                 flex: 1,
                                 height: isPlaying ? `${SIGNAL_BAR_HEIGHTS[i % SIGNAL_BAR_HEIGHTS.length]}%` : '15%',
-                                background: isPlaying ? '#eab308' : 'rgba(255,255,255,0.1)',
+                                background: isPlaying ? '#8a5a00' : 'rgba(255,255,255,0.1)',
                                 borderRadius: '1px',
                                 transition: 'height 0.1s ease'
                             }}
@@ -222,7 +222,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                     type="button"
                     onClick={handleTogglePlay}
                     style={{
-                        background: isPlaying ? '#ef4444' : '#eab308',
+                        background: isPlaying ? '#a72144' : '#8a5a00',
                         color: isPlaying ? '#fff' : '#000',
                         border: 'none', borderRadius: '4px',
                         padding: '5px 12px', fontSize: '0.55rem', fontWeight: 700,
@@ -251,7 +251,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                         step="0.05"
                         value={volume}
                         onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                        style={{ width: '60px', height: '4px', accentColor: '#eab308' }}
+                        style={{ width: '60px', height: '4px', accentColor: '#8a5a00' }}
                     />
                 </div>
             </div>
@@ -266,9 +266,9 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                         style={{
                             padding: '2px 6px',
                             background: regionFilter === f.id ? 'rgba(234, 179, 8, 0.2)' : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${regionFilter === f.id ? '#eab308' : 'var(--line)'}`,
+                            border: `1px solid ${regionFilter === f.id ? '#8a5a00' : 'var(--line)'}`,
                             borderRadius: '3px',
-                            color: regionFilter === f.id ? '#eab308' : 'var(--ink-3)',
+                            color: regionFilter === f.id ? '#8a5a00' : 'var(--ink-3)',
                             fontSize: '0.45rem',
                             fontWeight: 700,
                             letterSpacing: '0.4px',
@@ -293,9 +293,9 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
                             style={{
                                 padding: '3px 6px',
                                 background: isCurrent ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.02)',
-                                border: `1px solid ${isCurrent ? '#eab308' : 'var(--line)'}`,
+                                border: `1px solid ${isCurrent ? '#8a5a00' : 'var(--line)'}`,
                                 borderRadius: '3px',
-                                color: isCurrent ? '#eab308' : 'var(--ink-2)',
+                                color: isCurrent ? '#8a5a00' : 'var(--ink-2)',
                                 fontSize: '0.48rem',
                                 textAlign: 'left',
                                 cursor: 'pointer',
@@ -314,7 +314,7 @@ const CrisisRadioPanel = ({ viewMode = 'middleeast' }) => {
             </div>
 
             {streamError && (
-                <div style={{ fontSize: '0.48rem', color: '#ef4444', marginTop: '6px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.48rem', color: '#a72144', marginTop: '6px', textAlign: 'center' }}>
                     Station stream unreachable or network restricted. Select an alternate station.
                 </div>
             )}

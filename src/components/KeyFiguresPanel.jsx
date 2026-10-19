@@ -3,20 +3,20 @@ import { User, ChevronDown, ChevronUp } from 'lucide-react';
 import keyFiguresData from '../data/keyFigures.json';
 
 const FACTION_COLORS = {
-    iran: '#ef4444',
-    israel: '#3b82f6',
-    usa: '#3b82f6',
-    hezbollah: '#ef4444',
-    houthis: '#ef4444',
-    saudi: '#22c55e',
-    international: '#38bdf8'
+    iran: '#a72144',
+    israel: '#006eb8',
+    usa: '#006eb8',
+    hezbollah: '#a72144',
+    houthis: '#a72144',
+    saudi: '#1a7444',
+    international: '#006eb8'
 };
 
 const STATUS_STYLES = {
-    active: { color: '#22c55e', label: 'ACTIVE' },
+    active: { color: '#1a7444', label: 'ACTIVE' },
     unknown: { color: '#f59e0b', label: 'UNKNOWN' },
-    neutralized: { color: '#ef4444', label: 'KIA' },
-    detained: { color: '#f97316', label: 'DETAINED' }
+    neutralized: { color: '#a72144', label: 'KIA' },
+    detained: { color: '#f37420', label: 'DETAINED' }
 };
 
 // Hand-maintained profiles — stamp the header with its git date, never "now".
@@ -41,10 +41,10 @@ const KeyFiguresPanel = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #06b6d4', paddingLeft: '8px'
+                borderLeft: '2px solid #006eb8', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <User size={12} style={{ color: '#06b6d4' }} />
+                    <User size={12} style={{ color: '#006eb8' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Key Figures
                     </span>
@@ -57,7 +57,7 @@ const KeyFiguresPanel = () => {
             {/* Figure cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {displayed.map(fig => {
-                    const factionColor = FACTION_COLORS[fig.faction] || '#94a3b8';
+                    const factionColor = FACTION_COLORS[fig.faction] || '#6b665e';
                     const statusStyle = STATUS_STYLES[fig.status] || STATUS_STYLES.unknown;
 
                     return (

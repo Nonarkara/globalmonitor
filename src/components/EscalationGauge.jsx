@@ -3,9 +3,9 @@ import { fetchEscalation } from '../services/escalation';
 import { useLiveResource } from '../hooks/useLiveResource';
 
 const COLORS = {
-    green: '#22c55e',
+    green: '#1a7444',
     amber: '#f59e0b',
-    red: '#ef4444'
+    red: '#a72144'
 };
 
 const SHELL = {
@@ -59,7 +59,7 @@ const HealthDots = ({ sourceHealth }) => {
         <div style={{ display: 'flex', gap: '3px', marginTop: '2px', minHeight: 5 }}>
             {keys.map((key) => {
                 const status = sourceHealth?.[key];
-                const dotColor = status === 'live' ? '#22c55e' : status === 'sample' ? '#f59e0b' : status === 'error' ? '#ef4444' : 'var(--line-2)';
+                const dotColor = status === 'live' ? '#1a7444' : status === 'sample' ? '#f59e0b' : status === 'error' ? '#a72144' : 'var(--line-2)';
                 return (
                     <div
                         key={key}

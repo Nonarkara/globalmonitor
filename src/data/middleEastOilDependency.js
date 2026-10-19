@@ -67,8 +67,8 @@ export const MOST_OIL_RELIANT_COUNTRIES = [...MIDDLE_EAST_OIL_DEPENDENCY.countri
     .sort((a, b) => b.pct - a.pct);
 
 export function dependencyColor(pct) {
-    if (pct >= 70) return '#ef4444';
+    if (pct >= 70) return '#a72144';
     if (pct >= 50) return '#f59e0b';
-    if (pct >= 30) return '#f97316';
-    return '#22c55e';
+    if (pct >= 30) return '#f37420';
+    return '#1a7444';
 }

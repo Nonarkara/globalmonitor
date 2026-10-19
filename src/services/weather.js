@@ -46,7 +46,7 @@ export const fetchLiveWeather = async () => {
                     temp: temp,
                     type: 'weather',
                     // Color scale: cold = blue, mild = green, hot = red
-                    color: temp > 30 ? '#ef4444' : (temp > 20 ? '#10b981' : '#3b82f6')
+                    color: temp > 30 ? '#a72144' : (temp > 20 ? '#1a7444' : '#006eb8')
                 }
             };
         });

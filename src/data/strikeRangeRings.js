@@ -34,7 +34,7 @@ export const STRIKE_ORIGINS = [
         lng: 51.67,
         lat: 32.65,
         ranges: [500, 1000, 1500, 2000, 2500],
-        color: '#ef4444'
+        color: '#a72144'
     },
     {
         id: 'yemen-sanaa',
@@ -42,7 +42,7 @@ export const STRIKE_ORIGINS = [
         lng: 44.19,
         lat: 15.37,
         ranges: [500, 1000, 1800],
-        color: '#f97316'
+        color: '#f37420'
     },
     {
         id: 'lebanon-south',

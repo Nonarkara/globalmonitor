@@ -3,10 +3,10 @@ import { Radiation, ChevronDown, ChevronUp, MapPin, AlertTriangle } from 'lucide
 import nuclearData from '../data/nuclearProgram.json';
 
 const STATUS_BADGES = {
-    destroyed: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', color: '#ef4444' },
+    destroyed: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', color: '#a72144' },
     damaged: { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', color: '#f59e0b' },
-    intact: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.25)', color: '#22c55e' },
-    unknown: { bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)', color: '#94a3b8' }
+    intact: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.25)', color: '#1a7444' },
+    unknown: { bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)', color: '#6b665e' }
 };
 
 // Hand-maintained reference file — stamp the header with its git date, never "now".
@@ -54,13 +54,13 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <div>
-                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#22c55e', fontFamily: 'var(--font-mono)' }}>
+                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
                                 {nuclearData.breakoutEstimate.postWar}
                             </span>
                             <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>post-war</span>
                         </div>
                         <div>
-                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)', textDecoration: 'line-through', opacity: 0.5 }}>
+                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)', textDecoration: 'line-through', opacity: 0.5 }}>
                                 {nuclearData.breakoutEstimate.preWar}
                             </span>
                             <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)', marginLeft: '4px' }}>pre-war</span>
@@ -75,9 +75,9 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
             {/* KPI strip */}
             <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
                 {[
-                    { label: 'Destroyed', count: destroyed, color: '#ef4444' },
+                    { label: 'Destroyed', count: destroyed, color: '#a72144' },
                     { label: 'Damaged', count: damaged, color: '#f59e0b' },
-                    { label: 'Intact', count: intact, color: '#22c55e' }
+                    { label: 'Intact', count: intact, color: '#1a7444' }
                 ].map(k => (
                     <div key={k.label} style={{
                         flex: 1, textAlign: 'center', padding: '4px',
@@ -161,7 +161,7 @@ const NuclearTrackerPanel = ({ onFlyTo }) => {
                             </span>
                             <div style={{
                                 width: '4px', height: '4px', borderRadius: '50%', marginTop: '3px',
-                                background: t.severity === 'critical' ? '#ef4444' : t.severity === 'high' ? '#f59e0b' : '#38bdf8',
+                                background: t.severity === 'critical' ? '#a72144' : t.severity === 'high' ? '#f59e0b' : '#006eb8',
                                 flexShrink: 0
                             }} />
                             <span style={{ fontSize: '0.4rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>

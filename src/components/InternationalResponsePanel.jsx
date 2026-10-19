@@ -3,8 +3,8 @@ import { Globe, ChevronDown, ChevronUp, Vote } from 'lucide-react';
 import responseData from '../data/internationalResponse.json';
 
 const RESULT_STYLES = {
-    adopted: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e', label: 'ADOPTED' },
-    vetoed: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'VETOED' },
+    adopted: { bg: 'rgba(34,197,94,0.12)', color: '#1a7444', label: 'ADOPTED' },
+    vetoed: { bg: 'rgba(239,68,68,0.12)', color: '#a72144', label: 'VETOED' },
     pending: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', label: 'PENDING' }
 };
 
@@ -32,10 +32,10 @@ const InternationalResponsePanel = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #0ea5e9', paddingLeft: '8px'
+                borderLeft: '2px solid #006eb8', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Globe size={12} style={{ color: '#0ea5e9' }} />
+                    <Globe size={12} style={{ color: '#006eb8' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         International Response
                     </span>
@@ -51,7 +51,7 @@ const InternationalResponsePanel = () => {
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: 'var(--line)', borderRadius: '4px'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0ea5e9', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)' }}>
                         {responseData.unscVotes.length}
                     </div>
                     <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>UNSC votes, {VOTE_WINDOW}</div>
@@ -60,14 +60,14 @@ const InternationalResponsePanel = () => {
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: 'var(--line)', borderRadius: '4px'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#22c55e', fontFamily: 'var(--font-mono)' }}>{adopted}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>{adopted}</div>
                     <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Adopted</div>
                 </div>
                 <div style={{
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: 'var(--line)', borderRadius: '4px'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>{vetoed}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{vetoed}</div>
                     <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Vetoed</div>
                 </div>
             </div>
@@ -82,15 +82,15 @@ const InternationalResponsePanel = () => {
                     UN General Assembly
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#22c55e', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
                         {responseData.generalAssembly.for}
                     </span>
                     <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>for /</span>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>
                         {responseData.generalAssembly.against}
                     </span>
                     <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>against /</span>
-                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#94a3b8', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#6b665e', fontFamily: 'var(--font-mono)' }}>
                         {responseData.generalAssembly.abstain}
                     </span>
                     <span style={{ fontSize: '0.38rem', color: 'var(--ink-3)' }}>abstain</span>

@@ -2,6 +2,9 @@ import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
+// Must be imported before a Map is constructed: it points MapLibre at the
+// bundled worker chunk. Without it no GeoJSON source ever loads.
+import '../services/maplibreWorker.js';
 import { fetchNaturalDisasters } from '../services/nasaEonet';
 import { fetchSar } from '../services/sar';
 import { fetchConflictsAndCrises } from '../services/reliefWeb';
@@ -29,7 +32,6 @@ import { getKineticTrajectoriesGeoJson, generateKineticPulsesGeoJson } from '../
 import { fetchMilitaryFlights, FALLBACK_MILITARY_FLIGHTS } from '../services/militaryFlights.js';
 import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
-import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 import { buildPopupClassName } from '../utils/mapPopup.js';
 
@@ -47,6 +49,8 @@ const TRAFFIC_SESSION_MAX_FLIGHTS = 1200;
 const TRAFFIC_SESSION_MAX_VESSELS = 1200;
 /** Defer heavy traffic GeoJSON until basemap + icons are stable (ms after map load). */
 const TRAFFIC_DEFER_MS = 3000;
+/** How long to wait for MapLibre's `load` before admitting the map is stuck. */
+const MAP_LOAD_STALL_MS = 15000;
 const TRAFFIC_HOVER_THROTTLE_MS = 80;
 
 const EMPTY_TRAFFIC_FC = Object.freeze({ type: 'FeatureCollection', features: [] });
@@ -68,6 +72,50 @@ const formatVesselSourceLabel = (meta) => {
     }
     if (meta?.aisSource === 'static-snapshot') return 'AIS snapshot';
     return meta?.source?.replace('aisstream.io', 'AIS')?.replace('vesselfinder-fleet', 'fleet') || 'AIS';
+};
+
+/** Machine identifiers, said in words. A legend row should read like a
+    source note, not like a log line. */
+const FIRMS_SOURCE_LABELS = {
+    'nasa-firms-public-24h': 'NASA FIRMS public file · 24h',
+    'nasa-firms-live': 'NASA FIRMS live',
+    'no_firms_key': 'no FIRMS key — nothing shown',
+};
+
+/** Month-scale window for the hand-typed demo events. "Mar 2026" says the
+    events are months old without spending a line on six exact days. The
+    full range stays available in the row's tooltip and the ACLED panel. */
+const acledDemoWindow = (features) => {
+    const dates = (features || []).map((f) => f?.properties?.date).filter(Boolean).sort();
+    if (!dates.length) return 'date unknown';
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    const month = (iso) => {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' });
+    };
+    const ma = month(first);
+    const mb = month(last);
+    if (!ma || !mb) return first;
+    if (ma === mb) return `${ma} ${String(last).slice(0, 4)}`;
+    if (first === last) return `${ma} ${String(last).slice(0, 4)}`;
+    if (String(first).slice(0, 4) === String(last).slice(0, 4)) {
+        return `${ma}–${mb} ${String(last).slice(0, 4)}`;
+    }
+    return `${ma} ${String(first).slice(0, 4)} – ${mb} ${String(last).slice(0, 4)}`;
+};
+
+/** Exact UTC, compact. "19 Oct 17:15Z" — no invented precision, no ISO blob. */
+const compactUtc = (iso) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    const day = d.getUTCDate();
+    const mon = d.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' });
+    const hh = String(d.getUTCHours()).padStart(2, '0');
+    const mm = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${day} ${mon} ${hh}:${mm}Z`;
 };
 
 const HOVER_LAYERS = [
@@ -111,8 +159,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[44, 22], [60, 22], [60, 32], [44, 32], [44, 22]]]
             },
             properties: {
-                fill: '#ef4444',
-                line: '#fca5a5'
+                fill: '#a72144',
+                line: '#a72144'
             }
         },
         {
@@ -122,8 +170,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[94, -6], [109, -6], [109, 18], [94, 18], [94, -6]]]
             },
             properties: {
-                fill: '#10b981',
-                line: '#6ee7b7'
+                fill: '#1a7444',
+                line: '#489b6e'
             }
         },
         {
@@ -134,7 +182,7 @@ const STRATEGIC_ZONES = {
             },
             properties: {
                 fill: '#f59e0b',
-                line: '#fcd34d'
+                line: '#8a5a00'
             }
         }
     ]
@@ -150,7 +198,7 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[51.47, 25.28], [55.36, 25.25], [72.88, 19.07], [100.5, 13.75]]
             },
             properties: {
-                color: '#ef4444',
+                color: '#a72144',
                 width: 2.8,
                 glow: 12,
                 label: 'Energy Trade Route (Gulf → India → Bangkok)'
@@ -176,7 +224,7 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[121.47, 31.23], [121.56, 25.03], [120.98, 14.6], [103.82, 1.35]]
             },
             properties: {
-                color: '#38bdf8',
+                color: '#006eb8',
                 width: 2.2,
                 glow: 9,
                 label: 'East Asia Trade Corridor (Shanghai → Singapore)'
@@ -188,11 +236,11 @@ const OPERATIONAL_CORRIDORS = {
 const ANCHOR_POINTS = {
     type: 'FeatureCollection',
     features: [
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [51.47, 25.28] }, properties: { color: '#ef4444', radius: 10 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [55.36, 25.25] }, properties: { color: '#ef4444', radius: 12 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [53.68, 32.42] }, properties: { color: '#ef4444', radius: 11 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [100.5, 13.75] }, properties: { color: '#10b981', radius: 12 } },
-        { type: 'Feature', geometry: { type: 'Point', coordinates: [103.82, 1.35] }, properties: { color: '#38bdf8', radius: 11 } }
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [51.47, 25.28] }, properties: { color: '#a72144', radius: 10 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [55.36, 25.25] }, properties: { color: '#a72144', radius: 12 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [53.68, 32.42] }, properties: { color: '#a72144', radius: 11 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [100.5, 13.75] }, properties: { color: '#1a7444', radius: 12 } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [103.82, 1.35] }, properties: { color: '#006eb8', radius: 11 } }
     ]
 };
 
@@ -206,7 +254,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[99.7, 13.15], [101.45, 13.15], [101.45, 14.55], [99.7, 14.55], [99.7, 13.15]]]
             },
             properties: {
-                color: '#10b981',
+                color: '#1a7444',
                 height: 120000,
                 base: 0
             }
@@ -218,7 +266,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[103.45, 1.05], [104.15, 1.05], [104.15, 1.62], [103.45, 1.62], [103.45, 1.05]]]
             },
             properties: {
-                color: '#38bdf8',
+                color: '#006eb8',
                 height: 140000,
                 base: 0
             }
@@ -230,7 +278,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[54.45, 24.35], [55.85, 24.35], [55.85, 25.65], [54.45, 25.65], [54.45, 24.35]]]
             },
             properties: {
-                color: '#ef4444',
+                color: '#a72144',
                 height: 135000,
                 base: 0
             }
@@ -254,7 +302,7 @@ const URBAN_MEGAREGIONS = {
                 coordinates: [[[106.2, -6.7], [107.25, -6.7], [107.25, -5.8], [106.2, -5.8], [106.2, -6.7]]]
             },
             properties: {
-                color: '#8b5cf6',
+                color: '#4f4086',
                 height: 110000,
                 base: 0
             }
@@ -272,7 +320,7 @@ const CITY_NETWORK = {
                 coordinates: [[54.9, 24.8], [72.88, 19.07], [100.5, 13.75], [103.82, 1.35]]
             },
             properties: {
-                color: '#38bdf8'
+                color: '#006eb8'
             }
         },
         {
@@ -282,7 +330,7 @@ const CITY_NETWORK = {
                 coordinates: [[100.5, 13.75], [106.82, -6.18], [103.82, 1.35], [121.56, 25.03]]
             },
             properties: {
-                color: '#10b981'
+                color: '#1a7444'
             }
         },
         {
@@ -304,17 +352,17 @@ const CITY_BEACONS = {
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [100.5, 13.75] },
-            properties: { name: 'Bangkok', tier: 'policy engine', color: '#10b981', radius: 8 }
+            properties: { name: 'Bangkok', tier: 'policy engine', color: '#1a7444', radius: 8 }
         },
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [103.82, 1.35] },
-            properties: { name: 'Singapore', tier: 'logistics core', color: '#38bdf8', radius: 8 }
+            properties: { name: 'Singapore', tier: 'logistics core', color: '#006eb8', radius: 8 }
         },
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [55.27, 25.2] },
-            properties: { name: 'Dubai', tier: 'airspace hinge', color: '#ef4444', radius: 8 }
+            properties: { name: 'Dubai', tier: 'airspace hinge', color: '#a72144', radius: 8 }
         },
         {
             type: 'Feature',
@@ -324,7 +372,7 @@ const CITY_BEACONS = {
         {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [106.82, -6.18] },
-            properties: { name: 'Jakarta', tier: 'metro scale', color: '#8b5cf6', radius: 7 }
+            properties: { name: 'Jakarta', tier: 'metro scale', color: '#4f4086', radius: 7 }
         }
     ]
 };
@@ -368,8 +416,12 @@ const toFootprintFeature = (preview) => {
     };
 };
 
-const renderSpatialAura = (data, id, color, baseRadius) => {
+// `featureColor` makes the aura take each feature's own colour instead of one
+// flat tone. AQI needs it: the EPA band colour IS the reading, so a single
+// green aura over an Unhealthy city would be a lie.
+const renderSpatialAura = (data, id, color, baseRadius, { featureColor = false } = {}) => {
     if (!data?.features?.length) return null;
+    const fill = featureColor ? ['coalesce', ['get', 'color'], color] : color;
 
     return (
         <Source id={`${id}-aura-source`} type="geojson" data={data}>
@@ -377,11 +429,11 @@ const renderSpatialAura = (data, id, color, baseRadius) => {
                 id={`${id}-aura-layer`}
                 type="circle"
                 paint={{
-                    'circle-color': color,
+                    'circle-color': fill,
                     'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, baseRadius, 8, baseRadius * 2.4],
                     'circle-opacity': 0.08,
                     'circle-blur': 0.75,
-                    'circle-stroke-color': color,
+                    'circle-stroke-color': fill,
                     'circle-stroke-width': 1,
                     'circle-stroke-opacity': 0.14
                 }}
@@ -439,7 +491,7 @@ const OSM_RASTER_STYLE = {
         },
     },
     layers: [
-        { id: 'background', type: 'background', paint: { 'background-color': '#1a1a2e' } },
+        { id: 'background', type: 'background', paint: { 'background-color': '#f7f5ef' } },
         { id: 'osm-raster', type: 'raster', source: 'osm', paint: { 'raster-opacity': 1 } },
     ],
 };
@@ -462,7 +514,7 @@ const ESRI_STREET_STYLE = {
         },
     },
     layers: [
-        { id: 'background', type: 'background', paint: { 'background-color': '#1a1a2e' } },
+        { id: 'background', type: 'background', paint: { 'background-color': '#f7f5ef' } },
         { id: 'esri-street-layer', type: 'raster', source: 'esri-street', paint: { 'raster-opacity': 1 } },
     ],
 };
@@ -523,9 +575,19 @@ const MapContainer = ({
     // user sees what is missing instead of a silently-empty map.
     const [failedSources, setFailedSources] = useState(() => new Set());
     const failedSourcesRef = useRef(new Set());
+    // MapLibre rejects a malformed layer spec by firing an 'error' event and
+    // then carrying on — the layer is simply absent. Nothing tells the user,
+    // so the legend can promise a reading the map never drew. Track it.
+    const [rejectedLayers, setRejectedLayers] = useState(() => new Set());
+    const rejectedLayersRef = useRef(new Set());
 
     const [mapReady, setMapReady] = useState(false);
     const [trafficDeferredReady, setTrafficDeferredReady] = useState(false);
+    // MapLibre's `load` event fires only when every source has resolved. If
+    // the worker cannot start, the basemap still paints but no data layer
+    // ever loads and `load` never arrives. Silence would read as "no events";
+    // this flag says the truth instead.
+    const [mapLoadStalled, setMapLoadStalled] = useState(false);
     const [styleFallbackState, setStyleFallbackState] = useState(() => ({ mapStyleKey: mapStyle, level: 0 }));
     const [rainviewerTiles, setRainviewerTiles] = useState(null);
     const [hoverInfo, setHoverInfo] = useState(null);
@@ -539,6 +601,12 @@ const MapContainer = ({
     const styleFallbackLevel = styleFallbackState.mapStyleKey === mapStyle ? styleFallbackState.level : 0;
     const activeMapStyle = resolveMapStyle(mapStyle, styleFallbackLevel);
     const activeMapStyleKey = styleCacheKey(mapStyle, styleFallbackLevel, activeMapStyle);
+    // Ink for line work drawn ON the basemap. It has to follow the basemap that
+    // is actually painted, not the name of the button: `dark` resolves to the
+    // Esri STREET style, so the old `mapStyle === 'light'` test never matched and
+    // the wind arrows were drawn in pale ink on a light map — invisible.
+    const basemapIsDark = activeMapStyle === ESRI_SATELLITE_STYLE;
+    const basemapInk = basemapIsDark ? '#e8e6df' : '#2b2924';
 
     useEffect(() => {
         const map = mapRef.current?.getMap?.();
@@ -617,6 +685,19 @@ const MapContainer = ({
             }
 
             const message = e?.error?.message || e?.message || '';
+            // "layers.<id>.paint.<prop>: …" — the layer was refused by the
+            // style validator and will never draw.
+            const rejected = /^layers\.([^.\s]+)\./.exec(message);
+            if (rejected) {
+                const layerId = rejected[1];
+                if (!rejectedLayersRef.current.has(layerId)) {
+                    const next = new Set(rejectedLayersRef.current);
+                    next.add(layerId);
+                    rejectedLayersRef.current = next;
+                    setRejectedLayers(next);
+                }
+                return;
+            }
             if (message && /style|stylesheet|glyph/i.test(message)) {
                 advanceStyleFallback();
             }
@@ -665,6 +746,7 @@ const MapContainer = ({
 
     const handleMapLoad = useCallback(() => {
         setMapReady(true);
+        setMapLoadStalled(false);
         const map = mapRef.current?.getMap?.();
         if (map && typeof window !== 'undefined') {
             window.__GM_MAP__ = map;
@@ -678,6 +760,14 @@ const MapContainer = ({
             window.setTimeout(repaint, 1000);
         }
     }, []);
+
+    // Honest failure: a map that never reaches `load` has no data layers.
+    // Say so rather than let an empty theatre imply an empty world.
+    useEffect(() => {
+        if (mapReady) return undefined;
+        const timer = window.setTimeout(() => setMapLoadStalled(true), MAP_LOAD_STALL_MS);
+        return () => window.clearTimeout(timer);
+    }, [mapReady]);
 
     useEffect(() => {
         if (!mapReady) return undefined;
@@ -990,10 +1080,31 @@ const MapContainer = ({
     const acledCount = acledRaw?.features?.length ?? 0;
     const acledSourceLabel = acledLive
         ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
-        : acledCount > 0 ? acledCount + ' DEMO events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
+        : acledCount > 0 ? acledCount + ' sample events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
             : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
+    // The haze reading, stated plainly. A map layer that carries a number has
+    // to carry the number, not just a colour.
+    const worstAqi = useMemo(() => {
+        let worst = null;
+        for (const feature of aqiData?.features || []) {
+            const aqi = feature.properties?.aqi;
+            if (!Number.isFinite(aqi)) continue;
+            if (worst === null || aqi > worst.aqi) {
+                worst = {
+                    aqi,
+                    city: feature.properties?.city,
+                    color: feature.properties?.color,
+                    category: feature.properties?.category
+                };
+            }
+        }
+        return worst;
+    }, [aqiData]);
+    const windMeta = windResource.data?.meta;
+
     const legendVisible = flightsLayerActive || vesselsLayerActive
-        || activeLayers.includes('firms') || activeLayers.includes('conflicts');
+        || activeLayers.includes('firms') || activeLayers.includes('conflicts')
+        || activeLayers.includes('aqi') || activeLayers.includes('wind');
     const prevFlightStatsRef = useRef(null);
     useEffect(() => {
         const next = {
@@ -1309,7 +1420,7 @@ const MapContainer = ({
                     <Source id="sar-footprint" type="geojson"
                         data={{ type: 'Feature', geometry: sarScene.geometry, properties: {} }}>
                         <Layer id="sar-footprint-line" type="line"
-                            paint={{ 'line-color': '#38bdf8', 'line-width': 1, 'line-opacity': 0.7 }} />
+                            paint={{ 'line-color': '#006eb8', 'line-width': 1, 'line-opacity': 0.7 }} />
                     </Source>
                 )}
                 {EO_TILE_LAYERS.map((eoLayer) => {
@@ -1359,7 +1470,7 @@ const MapContainer = ({
                                     id="copernicus-preview-footprint-fill"
                                     type="fill"
                                     paint={{
-                                        'fill-color': copernicusPreview.preset === 'ndvi' ? '#10b981' : '#38bdf8',
+                                        'fill-color': copernicusPreview.preset === 'ndvi' ? '#1a7444' : '#006eb8',
                                         'fill-opacity': 0.08
                                     }}
                                 />
@@ -1367,7 +1478,7 @@ const MapContainer = ({
                                     id="copernicus-preview-footprint-line"
                                     type="line"
                                     paint={{
-                                        'line-color': copernicusPreview.preset === 'ndvi' ? '#10b981' : '#38bdf8',
+                                        'line-color': copernicusPreview.preset === 'ndvi' ? '#1a7444' : '#006eb8',
                                         'line-width': 1.5,
                                         'line-dasharray': [2, 2],
                                         'line-opacity': 0.75
@@ -1390,12 +1501,12 @@ const MapContainer = ({
                                     'step',
                                     ['coalesce', ['get', 'sdgValue'], 0],
                                     'rgba(148, 163, 184, 0.2)', // 0 (or null fallback) = grey
-                                    20, '#fca5a5',             // 0-20% = light red
-                                    40, '#f87171',             // 20-40% = red
-                                    60, '#fcd34d',             // 40-60% = yellow
-                                    80, '#86efac',             // 60-80% = light green
-                                    95, '#4ade80',             // 80-95% = green
-                                    100, '#22c55e'             // >95% = dark green
+                                    20, '#a72144',             // 0-20% = light red
+                                    40, '#a72144',             // 20-40% = red
+                                    60, '#8a5a00',             // 40-60% = yellow
+                                    80, '#489b6e',             // 60-80% = light green
+                                    95, '#1a7444',             // 80-95% = green
+                                    100, '#1a7444'             // >95% = dark green
                                 ],
                                 'fill-opacity': 0.4
                             }}
@@ -1415,16 +1526,29 @@ const MapContainer = ({
                 {/* Surface wind, drawn downwind so each arrow shows where smoke goes.
                     Same basemap-aware ink as the flagship: dark on the light
                     paper, pale on dark and satellite. */}
-                {activeLayers.includes('wind') && windArrowData.features.length > 0 && (
+                {activeLayers.includes('wind') && (
                     <Source id="wind-arrows" type="geojson" data={windArrowData}>
                         <Layer
                             id="wind-arrows-line"
                             type="line"
                             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
                             paint={{
-                                'line-color': mapStyle === 'light' ? '#2b2924' : '#e6edf3',
-                                'line-width': ['interpolate', ['linear'], ['get', 'speedKmh'], 0, 0.7, 15, 1.2, 35, 1.9],
-                                'line-opacity': 0.7
+                                'line-color': basemapInk,
+                                // `zoom` may only be the input of a TOP-LEVEL
+                                // interpolate. Wrapping it in `['*', …]` made
+                                // MapLibre reject the whole layer in silence —
+                                // the legend promised 117 arrows and the map
+                                // drew none. The stroke scales with the map;
+                                // the wind's own strength rides on the arrow
+                                // length (see windArrows) and on opacity.
+                                'line-width': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    3, 0.9, 6, 1.5, 10, 2.2
+                                ],
+                                'line-opacity': [
+                                    'interpolate', ['linear'], ['get', 'speedKmh'],
+                                    0, 0.14, 35, 0.55
+                                ]
                             }}
                         />
                     </Source>
@@ -1460,8 +1584,8 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'case',
-                                    ['==', ['get', 'confidence'], 'high'], '#ff3b30',
-                                    ['==', ['get', 'confidence'], 'h'], '#ff3b30',
+                                    ['==', ['get', 'confidence'], 'high'], '#a72144',
+                                    ['==', ['get', 'confidence'], 'h'], '#a72144',
                                     '#ff8c42'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 8, 4, 12, 8],
@@ -1483,26 +1607,26 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'match', ['get', 'status'],
-                                    'alert', '#ef4444',
-                                    'damaged', '#ef4444',
-                                    'closed', '#dc2626',
+                                    'alert', '#a72144',
+                                    'damaged', '#a72144',
+                                    'closed', '#a72144',
                                     'at_risk', '#f59e0b',
                                     'intermittent', '#f59e0b',
-                                    'monitoring', '#eab308',
-                                    '#22c55e'
+                                    'monitoring', '#8a5a00',
+                                    '#1a7444'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 8, 8],
                                 'circle-opacity': 0.7,
                                 'circle-stroke-width': 1.5,
                                 'circle-stroke-color': [
                                     'match', ['get', 'status'],
-                                    'alert', '#ef4444',
-                                    'damaged', '#ef4444',
-                                    'closed', '#dc2626',
+                                    'alert', '#a72144',
+                                    'damaged', '#a72144',
+                                    'closed', '#a72144',
                                     'at_risk', '#f59e0b',
                                     'intermittent', '#f59e0b',
-                                    'monitoring', '#eab308',
-                                    '#22c55e'
+                                    'monitoring', '#8a5a00',
+                                    '#1a7444'
                                 ],
                                 'circle-stroke-opacity': 0.3
                             }}
@@ -1537,8 +1661,8 @@ const MapContainer = ({
                                 'circle-color': [
                                     'case',
                                     ['==', ['get', 'military'], true],
-                                    '#ef4444',
-                                    '#facc15'
+                                    '#a72144',
+                                    '#f99d1b'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2.1, 5, 3, 8, 4.5],
                                 'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.62, 6, 0.82, 10, 0.9],
@@ -1579,7 +1703,7 @@ const MapContainer = ({
                                     'case',
                                     ['==', ['get', 'type'], 'large_airport'],
                                     '#f59e0b',
-                                    '#f8fafc'
+                                    '#f7f5ef'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 1.5, 5, 2.4, 9, 4.2],
                                 'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.55, 6, 0.82],
@@ -1601,7 +1725,7 @@ const MapContainer = ({
                                 'text-optional': true,
                             }}
                             paint={{
-                                'text-color': '#f8fafc',
+                                'text-color': '#f7f5ef',
                                 'text-halo-color': 'rgba(0,0,0,0.82)',
                                 'text-halo-width': 1,
                             }}
@@ -1639,10 +1763,10 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'match', ['get', 'eventType'],
-                                    'Battles', '#ef4444',
-                                    'Explosions/Remote violence', '#f97316',
-                                    'Violence against civilians', '#dc2626',
-                                    'Strategic developments', '#3b82f6',
+                                    'Battles', '#a72144',
+                                    'Explosions/Remote violence', '#f37420',
+                                    'Violence against civilians', '#a72144',
+                                    'Strategic developments', '#006eb8',
                                     '#f59e0b'
                                 ],
                                 'circle-radius': [
@@ -1667,13 +1791,13 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'match', ['get', 'category'],
-                                    'cargo', '#22c55e',
-                                    'tanker', '#ef4444',
-                                    'passenger', '#3b82f6',
+                                    'cargo', '#1a7444',
+                                    'tanker', '#a72144',
+                                    'passenger', '#006eb8',
                                     'fishing', '#f59e0b',
                                     'tug', '#ea580c',
-                                    'pleasure', '#a855f7',
-                                    '#94a3b8'
+                                    'pleasure', '#b984af',
+                                    '#6b665e'
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2, 5, 2.8, 8, 4.2],
                                 'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.58, 6, 0.78, 10, 0.88],
@@ -1695,7 +1819,7 @@ const MapContainer = ({
                                 'text-optional': true,
                             }}
                             paint={{
-                                'text-color': '#e2e8f0',
+                                'text-color': '#d9d5c9',
                                 'text-halo-color': 'rgba(0,0,0,0.75)',
                                 'text-halo-width': 1,
                             }}
@@ -1703,24 +1827,17 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Submarine Telecom Cables Layer */}
+                {/* Submarine Telecom Cables Layer.
+                    No blurred under-layer: a cable is a line, and a line has
+                    one weight. The glow was a HUD flourish that also made the
+                    route read as a boundary rather than a route. */}
                 {activeLayers.includes('cables') && (
                     <Source id="cables-data" type="geojson" data={SUBMARINE_CABLES_GEOJSON}>
-                        <Layer
-                            id="cables-lines-glow"
-                            type="line"
-                            paint={{
-                                'line-color': '#06b6d4',
-                                'line-width': 4,
-                                'line-opacity': 0.28,
-                                'line-blur': 2
-                            }}
-                        />
                         <Layer
                             id="cables-lines"
                             type="line"
                             paint={{
-                                'line-color': '#22d3ee',
+                                'line-color': '#006eb8',
                                 'line-width': 1.6,
                                 'line-opacity': 0.88
                             }}
@@ -1804,7 +1921,7 @@ const MapContainer = ({
                                 'text-offset': [0, -0.8]
                             }}
                             paint={{
-                                'text-color': '#fca5a5',
+                                'text-color': '#a72144',
                                 'text-halo-color': 'rgba(0,0,0,0.9)',
                                 'text-halo-width': 1.2
                             }}
@@ -1848,7 +1965,7 @@ const MapContainer = ({
                                 'text-anchor': 'top'
                             }}
                             paint={{
-                                'text-color': '#fcd34d',
+                                'text-color': '#8a5a00',
                                 'text-halo-color': 'rgba(0,0,0,0.85)',
                                 'text-halo-width': 1.2
                             }}
@@ -1873,7 +1990,7 @@ const MapContainer = ({
                             type="line"
                             filter={['==', ['get', 'kind'], 'blackout-polygon']}
                             paint={{
-                                'line-color': '#ef4444',
+                                'line-color': '#a72144',
                                 'line-width': 1.6,
                                 'line-opacity': 0.85,
                                 'line-dasharray': [3, 2]
@@ -1884,7 +2001,7 @@ const MapContainer = ({
                             type="circle"
                             filter={['==', ['get', 'kind'], 'blackout-center']}
                             paint={{
-                                'circle-color': '#ef4444',
+                                'circle-color': '#a72144',
                                 'circle-radius': 14,
                                 'circle-opacity': 0.22,
                                 'circle-blur': 0.6
@@ -1897,7 +2014,7 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': '#991b1b',
                                 'circle-radius': 6.5,
-                                'circle-stroke-color': '#fca5a5',
+                                'circle-stroke-color': '#a72144',
                                 'circle-stroke-width': 1.2
                             }}
                         />
@@ -1914,7 +2031,7 @@ const MapContainer = ({
                                 'text-allow-overlap': true
                             }}
                             paint={{
-                                'text-color': '#fca5a5',
+                                'text-color': '#a72144',
                                 'text-halo-color': 'rgba(0,0,0,0.9)',
                                 'text-halo-width': 1.2
                             }}
@@ -2057,12 +2174,12 @@ const MapContainer = ({
                                 if (layerId === 'blackout-center-core' || layerId === 'blackout-zones-fill') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#ef4444' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#a72144' }}>
                                                 {p.name || 'Grid Blackout Zone'}
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Nightlight Loss</span>
-                                                <span style={{ color: '#ef4444', fontWeight: 700 }}>{p.lossPercent ? `-${p.lossPercent}% COLLAPSE` : (p.lossBadge || 'SEVERE')}</span>
+                                                <span style={{ color: '#a72144', fontWeight: 700 }}>{p.lossPercent ? `-${p.lossPercent}% COLLAPSE` : (p.lossBadge || 'SEVERE')}</span>
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Grid Status</span>
@@ -2076,19 +2193,19 @@ const MapContainer = ({
                                             )}
                                             {p.cause && (
                                                 <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
-                                                    <span style={{ color: '#94a3b8' }}>Cause:</span>
+                                                    <span style={{ color: '#6b665e' }}>Cause:</span>
                                                     <span style={{ fontSize: '0.52rem', lineHeight: 1.25 }}>{p.cause}</span>
                                                 </div>
                                             )}
                                             {p.civilianImpact && (
                                                 <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
-                                                    <span style={{ color: '#94a3b8' }}>Impact:</span>
-                                                    <span style={{ fontSize: '0.52rem', lineHeight: 1.25, color: '#fca5a5' }}>{p.civilianImpact}</span>
+                                                    <span style={{ color: '#6b665e' }}>Impact:</span>
+                                                    <span style={{ fontSize: '0.52rem', lineHeight: 1.25, color: '#a72144' }}>{p.civilianImpact}</span>
                                                 </div>
                                             )}
                                             <div className="traffic-tooltip-row">
                                                 <span>Sensor</span>
-                                                <span style={{ color: '#38bdf8' }}>{p.sensor || 'VIIRS Day/Night Band'}</span>
+                                                <span style={{ color: '#006eb8' }}>{p.sensor || 'VIIRS Day/Night Band'}</span>
                                             </div>
                                         </div>
                                     );
@@ -2096,7 +2213,7 @@ const MapContainer = ({
                                 if (layerId === 'kinetic-trajectories-line' || layerId === 'kinetic-targets-core') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#ef4444' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#a72144' }}>
                                                 {p.name || 'Kinetic Strike Corridor'}
                                             </div>
                                             <div className="traffic-tooltip-row">
@@ -2105,11 +2222,11 @@ const MapContainer = ({
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Target</span>
-                                                <span style={{ color: '#f87171' }}>{p.target || 'Monitored'}</span>
+                                                <span style={{ color: '#a72144' }}>{p.target || 'Monitored'}</span>
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Status</span>
-                                                <span style={{ color: '#ef4444', fontWeight: 600 }}>Active Kinetic Vector</span>
+                                                <span style={{ color: '#a72144', fontWeight: 600 }}>Active Kinetic Vector</span>
                                             </div>
                                         </div>
                                     );
@@ -2117,16 +2234,16 @@ const MapContainer = ({
                                 if (layerId === 'kinetic-pulses-centers') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#f97316' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#f37420' }}>
                                                 {p.name || 'Kinetic Engagement Centroid'}
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Activity Type</span>
-                                                <span style={{ color: '#fca5a5' }}>{p.type || 'Strike & Air Defense'}</span>
+                                                <span style={{ color: '#a72144' }}>{p.type || 'Strike & Air Defense'}</span>
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Status</span>
-                                                <span style={{ color: '#ef4444' }}>Expanding Threat Radar</span>
+                                                <span style={{ color: '#a72144' }}>Expanding Threat Radar</span>
                                             </div>
                                         </div>
                                     );
@@ -2134,7 +2251,7 @@ const MapContainer = ({
                                 if (layerId === 'cables-lines') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#22d3ee' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#006eb8' }}>
                                                 {p.name || 'Undersea Fiber Cable'}
                                             </div>
                                             <div className="traffic-tooltip-row">
@@ -2147,7 +2264,7 @@ const MapContainer = ({
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Risk Zone</span>
-                                                <span style={{ color: '#f87171' }}>{p.chokepointRisk || 'Monitored'}</span>
+                                                <span style={{ color: '#a72144' }}>{p.chokepointRisk || 'Monitored'}</span>
                                             </div>
                                             {p.landingPoints && (
                                                 <div className="traffic-tooltip-row">
@@ -2161,7 +2278,7 @@ const MapContainer = ({
                                 if (layerId === 'dams-points') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#38bdf8' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#006eb8' }}>
                                                 {p.name || 'Strategic Dam'}
                                             </div>
                                             <div className="traffic-tooltip-row">
@@ -2178,8 +2295,8 @@ const MapContainer = ({
                                             </div>
                                             {p.geopoliticalImpact && (
                                                 <div className="traffic-tooltip-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
-                                                    <span style={{ color: '#94a3b8' }}>Geopolitical Impact:</span>
-                                                    <span style={{ fontSize: '0.48rem', color: '#e2e8f0' }}>{p.geopoliticalImpact}</span>
+                                                    <span style={{ color: '#6b665e' }}>Geopolitical Impact:</span>
+                                                    <span style={{ fontSize: '0.48rem', color: '#d9d5c9' }}>{p.geopoliticalImpact}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -2188,7 +2305,7 @@ const MapContainer = ({
                                 if (layerId === 'range-rings-lines') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#f87171' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#a72144' }}>
                                                 Strike Range Envelope
                                             </div>
                                             <div className="traffic-tooltip-row">
@@ -2197,7 +2314,7 @@ const MapContainer = ({
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Radius</span>
-                                                <span style={{ color: '#fca5a5', fontWeight: 700 }}>{p.rangeKm || '—'}</span>
+                                                <span style={{ color: '#a72144', fontWeight: 700 }}>{p.rangeKm || '—'}</span>
                                             </div>
                                         </div>
                                     );
@@ -2205,7 +2322,7 @@ const MapContainer = ({
                                 if (layerId === 'strike-origins-points') {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#ef4444' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: '#a72144' }}>
                                                 {p.name || 'Strike Launch Origin'}
                                             </div>
                                             <div className="traffic-tooltip-row">
@@ -2214,7 +2331,7 @@ const MapContainer = ({
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Max Envelope</span>
-                                                <span style={{ color: '#fca5a5', fontWeight: 700 }}>{p.maxRangeKm ? `${p.maxRangeKm} km` : '—'}</span>
+                                                <span style={{ color: '#a72144', fontWeight: 700 }}>{p.maxRangeKm ? `${p.maxRangeKm} km` : '—'}</span>
                                             </div>
                                         </div>
                                     );
@@ -2386,11 +2503,11 @@ const MapContainer = ({
                     );
                 })()}
 
-                {activeLayers.includes('conflicts') && renderSpatialAura(crisesData, 'conflicts', '#ef4444', 16)}
+                {activeLayers.includes('conflicts') && renderSpatialAura(crisesData, 'conflicts', '#a72144', 16)}
                 {activeLayers.includes('disasters') && renderSpatialAura(disastersData, 'disasters', '#f59e0b', 14)}
-                {activeLayers.includes('weather') && renderSpatialAura(weatherData, 'weather', '#38bdf8', 18)}
+                {activeLayers.includes('weather') && renderSpatialAura(weatherData, 'weather', '#006eb8', 18)}
                 {activeLayers.includes('economy') && renderSpatialAura(economyData, 'economy', '#FFC400', 12)}
-                {activeLayers.includes('aqi') && renderSpatialAura(aqiData, 'aqi', '#10b981', 15)}
+                {activeLayers.includes('aqi') && renderSpatialAura(aqiData, 'aqi', '#1a7444', 15, { featureColor: true })}
 
                 {activeLayers.includes('disasters') && renderMarkers(disastersData, 'marker-disaster')}
                 {activeLayers.includes('conflicts') && renderMarkers(crisesData, 'marker-conflict')}
@@ -2417,9 +2534,9 @@ const MapContainer = ({
                                 style={{
                                     width: 14,
                                     height: 14,
-                                    background: f.properties.color || '#38bdf8',
+                                    background: f.properties.color || '#006eb8',
                                     border: '1.5px solid var(--ink)',
-                                    boxShadow: `0 0 12px ${f.properties.color || '#38bdf8'}cc`,
+                                    boxShadow: `0 0 12px ${f.properties.color || '#006eb8'}cc`,
                                     cursor: 'pointer',
                                     transition: 'transform 0.15s'
                                 }}
@@ -2449,11 +2566,14 @@ const MapContainer = ({
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '6px',
                                     // House style is square: radius 0 on anything that is not a
-                                    // true circle, and no outer glow — the 1.5px coloured border
-                                    // already separates the pill from the basemap.
-                                    padding: '4px 8px', borderRadius: 0,
-                                    background: 'rgba(12, 16, 26, 0.92)',
-                                    border: `1.5px solid ${b.properties.color}`,
+                                    // true circle, and no outer glow — the coloured rule
+                                    // already separates the chip from the basemap.
+                                    padding: '3px 7px', borderRadius: 0,
+                                    background: 'rgba(247, 245, 239, 0.94)',
+                                    borderLeft: `3px solid ${b.properties.color}`,
+                                    borderTop: '1px solid rgba(16, 16, 16, 0.14)',
+                                    borderRight: '1px solid rgba(16, 16, 16, 0.14)',
+                                    borderBottom: '1px solid rgba(16, 16, 16, 0.14)',
                                     cursor: 'pointer', transition: 'transform 0.2s ease'
                                 }}
                                 // Middle dot, not a hyphen: name and risk level are two separate
@@ -2464,13 +2584,16 @@ const MapContainer = ({
                                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                             >
                                 <div style={{
-                                    width: 8, height: 8, borderRadius: '50%',
-                                    background: b.properties.color,
-                                    boxShadow: `0 0 8px ${b.properties.color}`
+                                    width: 7, height: 7, borderRadius: 0,
+                                    background: b.properties.color
                                 }} />
                                 {/* 0.5rem rendered at 8px on a phone — these are the primary
                                     labels of the default view, so they get a floor in px. */}
-                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '0.5px' }}>
+                                <span style={{
+                                    fontSize: '11px', fontWeight: 600, color: 'var(--ink)',
+                                    fontFamily: 'var(--font-display)', letterSpacing: '0.06em',
+                                    whiteSpace: 'nowrap'
+                                }}>
                                     {b.properties.shortName}
                                 </span>
                             </div>
@@ -2482,24 +2605,49 @@ const MapContainer = ({
             <div className="map-vignette" aria-hidden="true" />
             <div className="map-grid-overlay" aria-hidden="true" />
 
-            <div className="map-coord-readout" aria-live="polite">
-                <span className="map-coord-readout__label">Cursor position</span>
-                {cursorCoords
-                    ? `${formatCoord(cursorCoords.lat, 'lat')}  ${formatCoord(cursorCoords.lng, 'lng')}`
-                    : 'Move cursor over map'}
-            </div>
-
-            {/* Tile-health badge — only renders when one or more raster sources have failed.
-                Worst-case visibility per Dr Non / §12 (Stoic transparency). */}
-            {failedSources.size > 0 && (
-                <div
-                    className="map-layer-warning"
-                    title="Some map layers could not be loaded"
-                >
-                    <AlertTriangle size={11} />
-                    <span>{failedSources.size} layer{failedSources.size === 1 ? '' : 's'} unavailable</span>
+            {/* Cursor readout — an instrument line, not a developer panel. It
+                appears only when there is a coordinate to report; the old
+                "Move cursor over map" placeholder was instructional copy
+                shipped into production. */}
+            {cursorCoords && (
+                <div className="map-coord-readout" aria-live="polite">
+                    <span className="map-coord-readout__label">Cursor</span>
+                    <span className="map-coord-readout__value">
+                        {formatCoord(cursorCoords.lat, 'lat')}  {formatCoord(cursorCoords.lng, 'lng')}
+                    </span>
                 </div>
             )}
+
+            {/* Honest failure surfaces. A layer that could not load, or a map
+                that never reached `load`, has to say so — an empty theatre
+                must never read as an empty world. */}
+            <div className="map-status-stack">
+                {mapLoadStalled && (
+                    <div
+                        className="map-stall-notice"
+                        role="status"
+                        title="The basemap is painted, but the data layers could not be initialised."
+                    >
+                        <AlertTriangle size={11} />
+                        <span>Data layers unavailable</span>
+                    </div>
+                )}
+                {failedSources.size + rejectedLayers.size > 0 && (
+                    <div
+                        className="map-layer-warning"
+                        title={[
+                            ...Array.from(failedSources).map((id) => `source ${id} failed to load`),
+                            ...Array.from(rejectedLayers).map((id) => `layer ${id} was rejected by the style validator`),
+                        ].join('\n')}
+                    >
+                        <AlertTriangle size={11} />
+                        <span>
+                            {failedSources.size + rejectedLayers.size} layer
+                            {failedSources.size + rejectedLayers.size === 1 ? '' : 's'} not drawn
+                        </span>
+                    </div>
+                )}
+            </div>
 
             <div
                 className="map-legend map-legend--traffic"
@@ -2510,19 +2658,30 @@ const MapContainer = ({
                 aria-live="polite"
                 aria-hidden={!legendVisible}
             >
-                {/* "SOURCES", not "LIVE TRAFFIC" — an item below may read "3d old". */}
+                {/* "SOURCES", not "LIVE TRAFFIC" — an item below may read "2h old".
+                    Two voices per row: the reading in the data face, its
+                    provenance in the micro face underneath. The number is the
+                    fact; the qualification is never hidden inside it. */}
                 <div className="map-legend-title">SOURCES</div>
                 <div
                     className="map-legend-item"
                     style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
                 >
-                    <span className="map-legend-line" style={{ background: '#facc15' }} />
-                    <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
-                        {visibleFlightCount > 0
-                            ? `${formatTrafficLegend({ rendered: visibleFlightCount, total: flightsGlobalTotal, capped: flightsCapped }) || visibleFlightCount.toLocaleString()} · ${flightSourceLabel}`
-                            : globalFlightCount > 0
-                                ? `${globalFlightCount.toLocaleString()} global · ${flightSourceLabel}`
-                                : '… aircraft · ADS-B'}
+                    <span className="map-legend-line" style={{ background: '#f99d1b' }} />
+                    <span className="map-legend-copy">
+                        <span className="map-legend-value">
+                            {visibleFlightCount > 0
+                                ? (flightsCapped && flightsGlobalTotal > visibleFlightCount
+                                    ? `${visibleFlightCount.toLocaleString()} of ${flightsGlobalTotal.toLocaleString()} aircraft`
+                                    : `${visibleFlightCount.toLocaleString()} aircraft`)
+                                : globalFlightCount > 0
+                                    ? `${globalFlightCount.toLocaleString()} aircraft`
+                                    : 'No aircraft'}
+                        </span>
+                        <span className="map-legend-meta">
+                            {flightSourceLabel}
+                            {flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : ''}
+                        </span>
                     </span>
                 </div>
                 <div
@@ -2531,33 +2690,100 @@ const MapContainer = ({
                 >
                     <span
                         className="map-legend-line"
-                        style={{ background: globalVesselCount > 0 ? '#22c55e' : 'rgba(245,158,11,0.35)' }}
+                        style={{ background: globalVesselCount > 0 ? '#1a7444' : 'rgba(245,158,11,0.35)' }}
                     />
-                    <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: '14ch', display: 'inline-block' }}>
-                        {visibleVesselCount > 0
-                            ? `${formatTrafficLegend({ rendered: visibleVesselCount, total: vesselsGlobalTotal, capped: vesselsCapped }) || visibleVesselCount.toLocaleString()} · ${vesselSourceLabel}`
-                            : vesselsResource.isLoading
-                                ? 'Loading ships…'
-                                : globalVesselCount > 0
-                                    ? `${globalVesselCount.toLocaleString()} global · ${vesselSourceLabel}`
-                                    : vesselsNeedKey ? 'AIS key required' : 'Awaiting AIS feed…'}
+                    <span className="map-legend-copy">
+                        <span className="map-legend-value">
+                            {visibleVesselCount > 0
+                                ? (vesselsCapped && vesselsGlobalTotal > visibleVesselCount
+                                    ? `${visibleVesselCount.toLocaleString()} of ${vesselsGlobalTotal.toLocaleString()} vessels`
+                                    : `${visibleVesselCount.toLocaleString()} vessels`)
+                                : vesselsResource.isLoading
+                                    ? 'Loading ships'
+                                    : globalVesselCount > 0
+                                        ? `${globalVesselCount.toLocaleString()} vessels`
+                                        : vesselsNeedKey ? 'AIS key required' : 'No vessels'}
+                        </span>
+                        <span className="map-legend-meta">
+                            {vesselSourceLabel}
+                            {axiomOverwatchActive ? ' · CC-BY 4.0' : ''}
+                            {vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : ''}
+                        </span>
                     </span>
                 </div>
-                {axiomOverwatchActive && vesselsLayerActive && (
-                    <div className="map-legend-item map-legend-item--attribution">
-                        <span>Ships via Axiom Overwatch · CC-BY 4.0</span>
-                    </div>
-                )}
                 {activeLayers.includes('firms') && (
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: firmsLive ? '#ff3b30' : 'rgba(245,158,11,0.35)' }} />
-                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>{firmsSourceLabel}</span>
+                        <span className="map-legend-line" style={{ background: firmsLive ? '#a72144' : 'rgba(245,158,11,0.35)' }} />
+                        <span className="map-legend-copy">
+                            <span className="map-legend-value">
+                                {firmsCount > 0
+                                    ? (firmsMeta?.capped && Number(firmsMeta?.detectedInBox) > firmsCount
+                                        ? `${firmsCount.toLocaleString()} of ${Number(firmsMeta.detectedInBox).toLocaleString()} thermal detections`
+                                        : `${firmsCount.toLocaleString()} thermal detections`)
+                                    : 'No thermal detections'}
+                            </span>
+                            <span className="map-legend-meta">
+                                {firmsLive
+                                    ? `VIIRS · ${ageLabel(firmsMeta?.fetchedAt) || 'age unknown'}`
+                                    : firmsMeta?.source
+                                        ? FIRMS_SOURCE_LABELS[firmsMeta.source] || String(firmsMeta.source).replace(/_/g, ' ')
+                                        : 'no FIRMS key — nothing shown'}
+                            </span>
+                        </span>
                     </div>
                 )}
                 {activeLayers.includes('conflicts') && (
+                    <div
+                        className="map-legend-item"
+                        title={acledCount > 0 && !acledLive
+                            ? `Sample events, ${acledDemoRange(acledRaw?.features)}. ACLED is not connected.`
+                            : undefined}
+                    >
+                        <span className="map-legend-line" style={{ background: acledLive ? '#f37420' : 'var(--ink-3)' }} />
+                        <span className="map-legend-copy">
+                            <span className="map-legend-value">
+                                {acledLive
+                                    ? `${acledCount}${acledRaw?.truncated ? '+' : ''} events`
+                                    : acledCount > 0
+                                        ? `${acledCount} sample events`
+                                        : 'No events'}
+                            </span>
+                            <span className="map-legend-meta">
+                                {acledLive
+                                    ? `ACLED · since ${acledRaw?.since || '—'}`
+                                    : acledCount > 0
+                                        ? `ACLED not connected · ${acledDemoWindow(acledRaw?.features)}`
+                                        : 'no data'}
+                            </span>
+                        </span>
+                    </div>
+                )}
+                {activeLayers.includes('aqi') && (
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: acledLive ? '#f97316' : 'var(--red)' }} />
-                        <span style={{ fontVariantNumeric: 'tabular-nums', color: acledLive ? undefined : 'var(--red)' }}>{acledSourceLabel}</span>
+                        <span className="map-legend-line" style={{ background: worstAqi?.color || 'var(--ink-3)' }} />
+                        <span className="map-legend-copy">
+                            <span className="map-legend-value">
+                                {worstAqi ? `${worstAqi.city} AQI ${worstAqi.aqi}` : 'No AQI reading'}
+                            </span>
+                            <span className="map-legend-meta">
+                                {worstAqi ? `${worstAqi.category} · US EPA band` : 'upstream unavailable'}
+                            </span>
+                        </span>
+                    </div>
+                )}
+                {activeLayers.includes('wind') && (
+                    <div className="map-legend-item">
+                        <span className="map-legend-line" style={{ background: 'var(--ink-2)' }} />
+                        <span className="map-legend-copy">
+                            <span className="map-legend-value">
+                                {windMeta ? `${windMeta.count} points` : 'No wind reading'}
+                            </span>
+                            <span className="map-legend-meta">
+                                {windMeta
+                                    ? `10 m surface${windMeta.partial ? ' · partial' : ''} · ${compactUtc(windMeta.observedAt) || 'time unknown'}`
+                                    : 'upstream unavailable'}
+                            </span>
+                        </span>
                     </div>
                 )}
             </div>
@@ -2572,7 +2798,7 @@ const MapContainer = ({
             >
                 <div className="map-legend-title">STRATEGIC CONTEXT</div>
                 <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: '#ef4444' }} />
+                    <span className="map-legend-line" style={{ background: '#a72144' }} />
                     <span>Energy route reference</span>
                 </div>
                 <div className="map-legend-item">
@@ -2580,20 +2806,20 @@ const MapContainer = ({
                     <span>Shipping lane reference</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: '#38bdf8' }} />
+                    <span className="map-legend-line" style={{ background: '#006eb8' }} />
                     <span>Regional city network</span>
                 </div>
                 <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
                 <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#fca5a5' }} />
+                    <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#a72144' }} />
                     <span>Persian Gulf focus area</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#fcd34d' }} />
+                    <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#8a5a00' }} />
                     <span>Horn of Africa / Yemen</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#6ee7b7' }} />
+                    <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#489b6e' }} />
                     <span>ASEAN urban systems</span>
                 </div>
             </div>

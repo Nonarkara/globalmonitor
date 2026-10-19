@@ -3,8 +3,8 @@
  * Loaded once per style via map.addImage — no DOM markers.
  */
 
-const PLANE_CIVILIAN = '#facc15';
-const PLANE_MILITARY = '#ef4444';
+const PLANE_CIVILIAN = '#f99d1b';
+const PLANE_MILITARY = '#a72144';
 
 /** Nose-up top-down aircraft — narrow fuselage, wide swept wings. */
 const planeSvg = (fill) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
@@ -36,13 +36,13 @@ export const TRAFFIC_ICON_NAMES = {
 };
 
 const VESSEL_COLORS = {
-    [TRAFFIC_ICON_NAMES.vesselCargo]: '#22c55e',
-    [TRAFFIC_ICON_NAMES.vesselTanker]: '#ef4444',
-    [TRAFFIC_ICON_NAMES.vesselPassenger]: '#3b82f6',
+    [TRAFFIC_ICON_NAMES.vesselCargo]: '#1a7444',
+    [TRAFFIC_ICON_NAMES.vesselTanker]: '#a72144',
+    [TRAFFIC_ICON_NAMES.vesselPassenger]: '#006eb8',
     [TRAFFIC_ICON_NAMES.vesselFishing]: '#f59e0b',
     [TRAFFIC_ICON_NAMES.vesselTug]: '#ea580c',
-    [TRAFFIC_ICON_NAMES.vesselPleasure]: '#a855f7',
-    [TRAFFIC_ICON_NAMES.vesselOther]: '#94a3b8',
+    [TRAFFIC_ICON_NAMES.vesselPleasure]: '#b984af',
+    [TRAFFIC_ICON_NAMES.vesselOther]: '#6b665e',
 };
 
 const ICON_SPECS = [

@@ -320,9 +320,9 @@ const Sidebar = ({
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
                             {[
                                 { id: 'standard', label: 'Standard', color: 'var(--ink)' },
-                                { id: 'flir', label: 'FLIR Thermal', color: '#ef4444' },
-                                { id: 'nvg', label: 'NVG Night Vision', color: '#22c55e' },
-                                { id: 'crt', label: 'CRT Scanlines', color: '#38bdf8' },
+                                { id: 'flir', label: 'FLIR Thermal', color: '#a72144' },
+                                { id: 'nvg', label: 'NVG Night Vision', color: '#1a7444' },
+                                { id: 'crt', label: 'CRT Scanlines', color: '#006eb8' },
                             ].map((opt) => {
                                 const isActive = tacticalOptics === opt.id;
                                 return (

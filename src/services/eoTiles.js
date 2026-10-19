@@ -264,30 +264,33 @@ export const EO_TILE_LAYERS = [
         maxzoom: 10
     },
     {
-        // Re-instated as the LAST entry on purpose. MapContainer iterates
+        // Kept as the LAST entry on purpose: MapContainer iterates
         // EO_TILE_LAYERS in array order and MapLibre paints later-added
-        // layers ON TOP. Nightlights (VIIRS Black Marble) is the one
-        // context signal that should be the most visually distinct —
-        // it's the "where are the people" answer on a war-room map —
-        // so it had to beat the other GIBS rasters (aerosol, true-color,
-        // precipitation, etc.) in the stack. Previously it was first,
-        // which meant aerosol painted directly over the city specks.
-        // Matched to MapContainer.jsx's render order so the moving-tiles
-        // path stays intact.
+        // layers ON TOP, so city lights stay legible above the haze and
+        // weather rasters.
+        //
+        // PRODUCT CHANGED (2026-10-19). The layer was called "Nightlights
+        // (BRDF)" but pointed at `VIIRS_SNPP_GapFilled_BRDF_Corrected_
+        // DayNightBand_Radiance` — that is the *surface reflectance* band,
+        // not city lights. On screen it painted the whole landmass as a
+        // bright grey-purple mass and buried the basemap, which is why the
+        // map read as noise. `VIIRS_Black_Marble` (VNP46A2) is the actual
+        // annual city-lights composite: warm settlement specks on black.
+        // Same 256px Level8 tile matrix, so nothing else had to change.
         id: 'eo-nightlights',
-        name: 'Nightlights (BRDF)',
-        description: 'Cloud-free, BRDF-corrected city lights from VIIRS — paints on top of the other GIBS rasters so settlement patterns never get buried by aerosol or weather haze',
+        name: 'City Lights (Black Marble)',
+        description: 'VIIRS Black Marble annual composite — where people actually are, on top of the other GIBS rasters so settlement patterns never get buried by aerosol or weather haze',
         group: 'satellite',
         icon: '',
-        // Switched from `VIIRS_SNPP_DayNightBand_AtSensor_M15` (raw per-orbit
-        // radiance — each swath showed up as a rectangle) to the gap-filled,
-        // BRDF-corrected composite. Same 256px Level8 maxzoom as before.
         tiles: gibsRedundant(
-            gibsTileUrl('VIIRS_SNPP_GapFilled_BRDF_Corrected_DayNightBand_Radiance', 'GoogleMapsCompatible_Level8', 'png')
+            gibsTileUrl('VIIRS_Black_Marble', 'GoogleMapsCompatible_Level8', 'png')
         ),
         tileSize: 256,
         attribution: 'NASA Black Marble / GIBS',
-        opacity: 0.6,
+        // The tile is opaque black outside settlements, so this both mutes
+        // the basemap and lets the lit specks carry. 0.72 keeps the coast
+        // lines legible under it.
+        opacity: 0.72,
         maxzoom: 8
     }
     // 'eo-wind' removed: it pointed at OpenWeatherMap with an API key committed in

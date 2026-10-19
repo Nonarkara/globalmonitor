@@ -53,7 +53,7 @@ class ErrorBoundary extends React.Component {
                         background: 'rgba(239, 68, 68, 0.08)',
                         border: '1px solid rgba(239, 68, 68, 0.2)',
                         borderRadius: '10px',
-                        color: '#94a3b8',
+                        color: '#6b665e',
                         fontSize: '0.78rem',
                         display: 'flex',
                         alignItems: 'center',
@@ -67,7 +67,7 @@ class ErrorBoundary extends React.Component {
                             style={{
                                 background: 'var(--line-2)',
                                 border: '1px solid var(--line-2)',
-                                color: '#f8fafc',
+                                color: '#f7f5ef',
                                 padding: '4px 12px',
                                 borderRadius: '6px',
                                 cursor: 'pointer',
@@ -83,14 +83,14 @@ class ErrorBoundary extends React.Component {
 
             // Full-page fallback
             return (
-                <div style={{ color: '#ef4444', padding: '20px', background: '#050E20', height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                <div style={{ color: '#a72144', padding: '20px', background: '#050E20', height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
                     <h2 style={{ fontSize: '1.5rem' }}>Something went wrong.</h2>
                     <button
                         onClick={this.handleRetry}
                         style={{
                             background: 'var(--line-2)',
                             border: '1px solid var(--ink-3)',
-                            color: '#f8fafc',
+                            color: '#f7f5ef',
                             padding: '8px 24px',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -99,7 +99,7 @@ class ErrorBoundary extends React.Component {
                     >
                         Retry
                     </button>
-                    <details style={{ whiteSpace: 'pre-wrap', color: '#94a3b8', fontSize: '0.8rem', maxWidth: '600px' }}>
+                    <details style={{ whiteSpace: 'pre-wrap', color: '#6b665e', fontSize: '0.8rem', maxWidth: '600px' }}>
                         {this.state.error && this.state.error.toString()}
                         <br />
                         {this.state.errorInfo && this.state.errorInfo.componentStack}

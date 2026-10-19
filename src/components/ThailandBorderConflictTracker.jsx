@@ -25,7 +25,7 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '8px', marginBottom: '10px',
                 borderBottom: '1px solid var(--line-2)',
-                borderLeft: '3px solid #ef4444',
+                borderLeft: '3px solid #a72144',
                 paddingLeft: '8px'
             }}>
                 <div>
@@ -33,7 +33,7 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
-                        <ShieldAlert size={14} style={{ color: '#ef4444' }} />
+                        <ShieldAlert size={14} style={{ color: '#a72144' }} />
                         Thailand Border Conflict Monitor
                     </div>
                     <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
@@ -42,7 +42,7 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                 </div>
                 <span style={{
                     fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
-                    color: '#22c55e', padding: '2px 8px',
+                    color: '#1a7444', padding: '2px 8px',
                     background: 'rgba(34, 197, 94, 0.12)',
                     borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.3)'
                 }}>
@@ -134,7 +134,7 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                                                 </span>
                                                 <span style={{
                                                     fontSize: '0.44rem', fontWeight: 700,
-                                                    color: cp.status === 'ALERT' ? '#ef4444' : cp.status === 'MONITORED' ? '#f59e0b' : '#22c55e'
+                                                    color: cp.status === 'ALERT' ? '#a72144' : cp.status === 'MONITORED' ? '#f59e0b' : '#1a7444'
                                                 }}>
                                                     {cp.status}
                                                 </span>

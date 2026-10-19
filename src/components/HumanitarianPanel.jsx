@@ -133,10 +133,10 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #ec4899', paddingLeft: '8px'
+                borderLeft: '2px solid #b984af', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Heart size={12} style={{ color: '#ec4899' }} />
+                    <Heart size={12} style={{ color: '#b984af' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Humanitarian Impact
                     </span>
@@ -164,7 +164,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                         icon={Users}
                         label="Fatalities"
                         value={formatNumber(totalFatalities)}
-                        color="#ef4444"
+                        color="#a72144"
                         sub={isDemo ? 'demo set' : windowDays ? `reported · ${windowDays}d window` : 'reported'}
                     />
                     <KPI
@@ -174,7 +174,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                         color="#f59e0b"
                         sub={displacedCount == null ? 'no UNHCR rows' : `${unhcrLabel}${humanIsStale ? ' · stale' : ''}`}
                     />
-                    <KPI icon={Building2} label="Facilities" value={damagedCount != null ? damagedCount : '—'} color="#f97316" sub="damaged" />
+                    <KPI icon={Building2} label="Facilities" value={damagedCount != null ? damagedCount : '—'} color="#f37420" sub="damaged" />
                 </div>
 
                 {/* Cumulative fatalities sparkline — never drawn from a demo set */}
@@ -191,9 +191,9 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                             alignItems: 'center',
                             gap: '8px'
                         }}>
-                            <Sparkline data={cumulativeData} color="#ef4444" width={140} height={28} />
+                            <Sparkline data={cumulativeData} color="#a72144" width={140} height={28} />
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>
+                                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>
                                     {totalFatalities.toLocaleString()}
                                 </div>
                                 <div style={{ fontSize: '0.36rem', color: 'var(--ink-3)' }}>total · {windowDays}d</div>
@@ -210,7 +210,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
                     borderRadius: '4px',
                     border: '1px solid rgba(239,68,68,0.1)'
                 }}>
-                    <TrendingUp size={10} style={{ color: '#ef4444' }} />
+                    <TrendingUp size={10} style={{ color: '#a72144' }} />
                     <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)' }}>
                         {isDemo
                             ? 'Demo events — no live ACLED feed configured'

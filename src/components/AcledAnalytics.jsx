@@ -80,7 +80,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
             .map(([label, count]) => ({
                 label: label.replace('Explosions/Remote violence', 'Explosions').replace('Violence against civilians', 'Vs Civilians'),
                 count,
-                color: label.includes('Explosion') ? '#f97316' : label.includes('Battle') ? '#ef4444' : label.includes('Violence') ? '#dc2626' : '#3b82f6'
+                color: label.includes('Explosion') ? '#f37420' : label.includes('Battle') ? '#a72144' : label.includes('Violence') ? '#a72144' : '#006eb8'
             }));
 
         // By country
@@ -89,7 +89,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
         const countryItems = Object.entries(byCountry)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5)
-            .map(([label, count]) => ({ label, count, color: '#38bdf8' }));
+            .map(([label, count]) => ({ label, count, color: '#006eb8' }));
 
         // Actor frequency (top 8)
         const actorCounts = {};
@@ -138,10 +138,10 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '6px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #f97316', paddingLeft: '8px'
+                borderLeft: '2px solid #f37420', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Crosshair size={12} style={{ color: '#f97316' }} />
+                    <Crosshair size={12} style={{ color: '#f37420' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Conflict Analytics
                     </span>
@@ -170,9 +170,9 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                             {/* The window is whatever the API actually queried — never a
                                 caption the code does not enforce. `since` comes back on
                                 every payload; demo payloads carry the curated set's date. */}
-                            <KPI icon={Zap} label="Events" value={analysis.totalEvents} color="#f97316" sub={data?.since ? `since ${data.since}` : '—'} />
-                            <KPI icon={Skull} label="Fatalities" value={analysis.totalFatalities} color="#ef4444" sub="reported" />
-                            <KPI icon={Users} label="Actors" value={analysis.actors.size} color="#3b82f6" sub="unique" />
+                            <KPI icon={Zap} label="Events" value={analysis.totalEvents} color="#f37420" sub={data?.since ? `since ${data.since}` : '—'} />
+                            <KPI icon={Skull} label="Fatalities" value={analysis.totalFatalities} color="#a72144" sub="reported" />
+                            <KPI icon={Users} label="Actors" value={analysis.actors.size} color="#006eb8" sub="unique" />
                         </div>
 
                         {/* Cumulative trend charts — never draw a trajectory from a demo set */}
@@ -186,11 +186,11 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <div style={{ flex: 1 }}>
-                                        <CumulativeChart data={analysis.cumulativeEvents} color="#f97316" />
+                                        <CumulativeChart data={analysis.cumulativeEvents} color="#f37420" />
                                         <div style={{ fontSize: '0.35rem', color: 'var(--ink-3)', marginTop: '2px' }}>Events</div>
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <CumulativeChart data={analysis.cumulativeFatalities} color="#ef4444" />
+                                        <CumulativeChart data={analysis.cumulativeFatalities} color="#a72144" />
                                         <div style={{ fontSize: '0.35rem', color: 'var(--ink-3)', marginTop: '2px' }}>Fatalities</div>
                                     </div>
                                 </div>

@@ -123,7 +123,7 @@ const TimeMachine = ({ onDateChange }) => {
                     flex: 1,
                     height: '3px',
                     cursor: 'pointer',
-                    accentColor: '#3b82f6'
+                    accentColor: '#006eb8'
                 }}
             />
 
@@ -137,7 +137,7 @@ const TimeMachine = ({ onDateChange }) => {
                 <span style={{
                     fontSize: '0.6rem',
                     fontFamily: 'var(--font-mono)',
-                    color: isLive ? '#22c55e' : '#f59e0b',
+                    color: isLive ? '#1a7444' : '#f59e0b',
                     fontWeight: 600,
                     letterSpacing: '0.5px'
                 }}>

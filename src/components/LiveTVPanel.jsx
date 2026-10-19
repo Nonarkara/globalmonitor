@@ -52,7 +52,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
           <span style={{
             marginLeft: 'auto',
             fontSize: '0.5rem',
-            color: '#ef4444',
+            color: '#a72144',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
@@ -62,7 +62,7 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
               width: '5px',
               height: '5px',
               borderRadius: '50%',
-              background: '#ef4444',
+              background: '#a72144',
               animation: 'pulse-dot 1.5s infinite',
             }} />
             ON AIR

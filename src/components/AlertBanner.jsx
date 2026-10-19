@@ -37,7 +37,7 @@ const AlertBanner = () => {
     const borderColor = isCritical
         ? 'rgba(239, 68, 68, 0.4)'
         : 'rgba(245, 158, 11, 0.3)';
-    const textColor = isCritical ? '#ef4444' : '#f59e0b';
+    const textColor = isCritical ? '#a72144' : '#f59e0b';
 
     // Find dominant contributing factor
     const factors = [];

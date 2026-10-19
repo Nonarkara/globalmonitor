@@ -6,10 +6,10 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 
 const THREAT_COLORS = {
-    HIGH: '#ef4444',
+    HIGH: '#a72144',
     ELEVATED: '#f59e0b',
-    MODERATE: '#3b82f6',
-    LOW: '#22c55e'
+    MODERATE: '#006eb8',
+    LOW: '#1a7444'
 };
 
 const WarningItem = ({ warning, expanded, onToggle }) => {
@@ -81,7 +81,7 @@ const MaritimeWarningsPanel = ({ viewMode = 'middleeast' }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {highCount > 0 && (
                         <span style={{
-                            fontSize: '0.42rem', fontWeight: 700, color: '#ef4444',
+                            fontSize: '0.42rem', fontWeight: 700, color: '#a72144',
                             display: 'flex', alignItems: 'center', gap: '3px'
                         }}>
                             <AlertTriangle size={10} /> {highCount} keyword-flagged

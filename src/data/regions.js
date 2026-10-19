@@ -16,7 +16,7 @@ import { buildGoogleNewsSearchUrl } from '../services/liveNews.js';
 
 export const REGION_VIEW_STATES = {
     // Southeast Asia (ASEAN-10) — the home theater.
-    indopacific: { longitude: 110, latitude: 5, zoom: 3.6, pitch: 0, bearing: 0 },
+    indopacific: { longitude: 110, latitude: 6, zoom: 4.4, pitch: 0, bearing: 0 },
     // East Asia — China, Japan, Korea, Taiwan.
     eastasia: { longitude: 122, latitude: 32, zoom: 3.3, pitch: 0, bearing: 0 },
     // South Asia — India, Pakistan, Bangladesh, Sri Lanka, Nepal.
@@ -60,7 +60,7 @@ export const ASEAN_DOTS_GEOJSON = {
             country: c.name,
             countryCode: c.code,
             capital: c.capital,
-            color: '#38bdf8',
+            color: '#006eb8',
             label: c.name.toUpperCase()
         }
     }))
@@ -91,7 +91,7 @@ export const EAST_ASIA_DOTS_GEOJSON = {
             country: c.name,
             countryCode: c.code,
             capital: c.capital,
-            color: '#f472b6',
+            color: '#b984af',
             label: c.name.toUpperCase()
         }
     }))
@@ -165,7 +165,7 @@ export const MIDDLE_EAST_DOTS_GEOJSON = {
             capital: c.capital,
             // SA, YE, IR, IL are the war-theater core — warm amber to read as
             // 'hot' at a glance.  Surrounding states get a calmer cyan.
-            color: ['SA', 'YE', 'IR', 'IL'].includes(c.code) ? '#fb923c' : '#facc15',
+            color: ['SA', 'YE', 'IR', 'IL'].includes(c.code) ? '#fb923c' : '#f99d1b',
             label: c.name.toUpperCase()
         }
     }))
@@ -344,8 +344,8 @@ export const TV_CHANNELS_MIDDLEEAST = [
     { id: 'aljazeera-ar',     name: 'الجزيرة',         lang: 'AR', color: '#D4A843', embedUrl: ytVideo('bNyUyrR0PHo'),                              embedUrlUnmuted: ytVideoUnmuted('bNyUyrR0PHo') },
     { id: 'france24-en',      name: 'France 24',     lang: 'EN', color: '#0055A4', embedUrl: ytChannel('UCQfwfsi5VrQ8yKZ-UWmAEFg'),               embedUrlUnmuted: ytChannelUnmuted('UCQfwfsi5VrQ8yKZ-UWmAEFg') },
     { id: 'sky-news',         name: 'Sky News',      lang: 'EN', color: '#C41230', embedUrl: ytChannel('UCoMdktPbSTixAyNGwb-UYkQ'),               embedUrlUnmuted: ytChannelUnmuted('UCoMdktPbSTixAyNGwb-UYkQ') },
-    { id: 'earthlive-me',     name: 'ME Cams',       lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('gmtlJ_m2r5A'),                            embedUrlUnmuted: ytVideoUnmuted('gmtlJ_m2r5A') },
-    { id: 'earthlive-cctv',   name: 'City CCTV',     lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('2Sl8n9clE8E'),                            embedUrlUnmuted: ytVideoUnmuted('2Sl8n9clE8E') },
+    { id: 'earthlive-me',     name: 'ME Cams',       lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('gmtlJ_m2r5A'),                            embedUrlUnmuted: ytVideoUnmuted('gmtlJ_m2r5A') },
+    { id: 'earthlive-cctv',   name: 'City CCTV',     lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('2Sl8n9clE8E'),                            embedUrlUnmuted: ytVideoUnmuted('2Sl8n9clE8E') },
     { id: 'i24-news',         name: 'i24 News',      lang: 'EN', color: '#0088CC', embedUrl: ytChannel('UCp1VEgMfOGBIIwlMDBJwFgA'),               embedUrlUnmuted: ytChannelUnmuted('UCp1VEgMfOGBIIwlMDBJwFgA') },
     { id: 'trt-world',        name: 'TRT World',     lang: 'EN', color: '#E30A17', embedUrl: ytChannel('UC7fWeaHhqgM4Lba5uttl0SA'),               embedUrlUnmuted: ytChannelUnmuted('UC7fWeaHhqgM4Lba5uttl0SA') }
 ];
@@ -360,7 +360,7 @@ export const TV_CHANNELS_INDOPACIFIC = [
     { id: 'dw-news',      name: 'DW News',        lang: 'EN', color: '#0033A0', embedUrl: ytChannel('UCknLrEdhRCp1aegoMqRaCZg'), embedUrlUnmuted: ytChannelUnmuted('UCknLrEdhRCp1aegoMqRaCZg') },
     { id: 'wion',         name: 'WION',           lang: 'EN', color: '#E94B3C', embedUrl: ytChannel('UC_gUM8rL-Lrg6O3adPW9K1g'), embedUrlUnmuted: ytChannelUnmuted('UC_gUM8rL-Lrg6O3adPW9K1g') },
     { id: 'bloomberg-tv', name: 'Bloomberg',      lang: 'EN', color: '#000000', embedUrl: ytChannel('UCIALMKvObZNtJ6AmdCLP7Lg'), embedUrlUnmuted: ytChannelUnmuted('UCIALMKvObZNtJ6AmdCLP7Lg') },
-    { id: 'bangkok-cam',  name: 'Bangkok Live',   lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('h1wly909BYw'),                embedUrlUnmuted: ytVideoUnmuted('h1wly909BYw') }
+    { id: 'bangkok-cam',  name: 'Bangkok Live',   lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('h1wly909BYw'),                embedUrlUnmuted: ytVideoUnmuted('h1wly909BYw') }
 ];
 
 // East Asia TV — reuses only channel IDs already verified elsewhere in this file.
@@ -387,10 +387,10 @@ export const TV_CHANNELS_THAILAND = [
     { id: 'thai-pbs',       name: 'Thai PBS',       lang: 'TH', color: '#D4A843', embedUrl: ytChannel('UC6QH1HXGl6chl0kZP1KEcUg'), embedUrlUnmuted: ytChannelUnmuted('UC6QH1HXGl6chl0kZP1KEcUg') },
     { id: 'tnn-thailand',   name: 'TNN',            lang: 'TH', color: '#0088CC', embedUrl: ytChannel('UCRijo3ddMTht_IHyNSNXpNQ'), embedUrlUnmuted: ytChannelUnmuted('UCRijo3ddMTht_IHyNSNXpNQ') },
     { id: 'nation-tv',      name: 'Nation TV',      lang: 'TH', color: '#E60023', embedUrl: ytChannel('UC8i4HhYJ-IVSNaNfIM8XaUw'), embedUrlUnmuted: ytChannelUnmuted('UC8i4HhYJ-IVSNaNfIM8XaUw') },
-    { id: 'matichon',       name: 'Matichon TV',    lang: 'TH', color: '#22c55e', embedUrl: ytChannel('UCUKAZ2VDFsmKqV9EmESsdgw'), embedUrlUnmuted: ytChannelUnmuted('UCUKAZ2VDFsmKqV9EmESsdgw') },
+    { id: 'matichon',       name: 'Matichon TV',    lang: 'TH', color: '#1a7444', embedUrl: ytChannel('UCUKAZ2VDFsmKqV9EmESsdgw'), embedUrlUnmuted: ytChannelUnmuted('UCUKAZ2VDFsmKqV9EmESsdgw') },
     { id: 'cna',            name: 'CNA',            lang: 'EN', color: '#E60023', embedUrl: ytChannel('UCXi6CllNFjlb-kiuHNuKPOA'), embedUrlUnmuted: ytChannelUnmuted('UCXi6CllNFjlb-kiuHNuKPOA') },
-    { id: 'bangkok-cam',    name: 'Bangkok Live',   lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('h1wly909BYw'),                embedUrlUnmuted: ytVideoUnmuted('h1wly909BYw') },
-    { id: 'phuket-cam',     name: 'Phuket Cam',     lang: 'LIVE', color: '#22c55e', embedUrl: ytVideo('CL45U17CjIM'),                embedUrlUnmuted: ytVideoUnmuted('CL45U17CjIM') }
+    { id: 'bangkok-cam',    name: 'Bangkok Live',   lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('h1wly909BYw'),                embedUrlUnmuted: ytVideoUnmuted('h1wly909BYw') },
+    { id: 'phuket-cam',     name: 'Phuket Cam',     lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('CL45U17CjIM'),                embedUrlUnmuted: ytVideoUnmuted('CL45U17CjIM') }
 ];
 
 // ---------------------------------------------------------------------------

@@ -15,14 +15,9 @@
   --mf-rail-w: 44px;
   --mf-right-w: min(300px, 26vw);
   --mf-chrome-top: calc(var(--mf-alert-h) + var(--mf-clock-h) + var(--mf-header-h));
-  /* Dark masthead — clock + header read as one instrument strip over the map */
-  --chrome-bg: #0a0e14;
-  --chrome-surface: #0a0e14;
-  --chrome-ink: #e6edf3;
-  --chrome-muted: rgba(230, 237, 243, 0.62);
-  --chrome-dim: rgba(230, 237, 243, 0.38);
-  --chrome-line: rgba(255, 255, 255, 0.1);
-  --chrome-line-2: rgba(255, 255, 255, 0.16);
+  /* The dark masthead tokens (--chrome-bg, --chrome-ink, --chrome-muted,
+     --chrome-dim, --chrome-line, --chrome-line-2) are defined once, in the
+     Palette block in index.css. They are not redefined here. */
 }
 
 /* ── Base: single canvas, map fills center ── */
@@ -52,7 +47,7 @@
   border-radius: 0;
   overflow: hidden;
   pointer-events: auto;
-  background: #1a1a2e;
+  background: #f7f5ef;
 }
 
 .app-container[data-layout="map-first"] .map-wrapper .maplibregl-canvas {
@@ -68,7 +63,7 @@
   width: 100% !important;
   height: 100% !important;
   min-height: 500px;
-  background: #1a1a2e !important;
+  background: #f7f5ef !important;
 }
 
 /* Traffic legend — compact bottom-right overlay, never a side column */
@@ -77,23 +72,23 @@
   top: auto !important;
   left: auto !important;
   right: 10px !important;
-  bottom: 12px !important;
-  max-width: min(240px, 42vw);
+  bottom: 14px !important;
+  max-width: min(268px, 44vw);
   min-height: 0;
-  padding: 8px 10px;
+  padding: 9px 11px;
   z-index: 21;
   contain: none !important;
-  background: rgba(9, 23, 52, 0.92) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: rgba(255, 255, 255, 0.85);
+  background: var(--paper) !important;
+  border: 1px solid var(--line-2) !important;
+  color: var(--ink-2);
 }
 
 .app-container[data-layout="map-first"] .map-legend--traffic .map-legend-title {
-  color: rgba(147, 197, 253, 0.95);
+  color: var(--ink);
 }
 
 .app-container[data-layout="map-first"] .map-legend--traffic .map-legend-item {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--ink-2);
 }
 
 .app-container[data-layout="map-first"] .map-legend--traffic .map-legend-item span {
@@ -184,14 +179,16 @@
 
 .app-container[data-layout="map-first"] .header-title {
   color: var(--chrome-ink);
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  font-family: var(--font-display);
+  font-size: var(--type-body);
+  font-weight: 600;
+  letter-spacing: 0.1em;
 }
 
 .app-container[data-layout="map-first"] .header-subtitle {
-  color: var(--chrome-dim);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
+  color: var(--chrome-muted);
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
   letter-spacing: 0.12em;
 }
 
@@ -326,12 +323,12 @@
 }
 
 .app-container[data-layout="map-first"] .news-item-tag--warm {
-  color: #fbbf24;
+  color: #8a5a00;
 }
 
 .app-container[data-layout="map-first"] .news-item-tag--hot,
 .app-container[data-layout="map-first"] .news-item[data-elevated] .news-item-tag {
-  color: #f87171;
+  color: #a72144;
 }
 
 .app-container[data-layout="map-first"] .news-ticker-wrapper[data-status="sync"] .news-ticker-status {
@@ -339,7 +336,7 @@
 }
 
 .app-container[data-layout="map-first"] .news-ticker-wrapper[data-status="live"] .news-ticker-status {
-  color: #4ade80;
+  color: #1a7444;
 }
 
 /* ── Left sidebar: overlay drawer — hidden until LAYERS toggled ── */
@@ -590,7 +587,7 @@
   border-top: 1px solid var(--line);
   background: var(--panel);
   color: var(--ink-2);
-  font: 600 10px/1 var(--font-mono);
+  font: 600 11px/1 var(--font-display);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;

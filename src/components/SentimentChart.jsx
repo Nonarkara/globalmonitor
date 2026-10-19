@@ -109,7 +109,7 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
     const { tones, zeroY, linePath, posArea, negArea, avg, trend, toX, toY, W, H, PAD } = computed;
     const latest = tones[tones.length - 1];
     const label = trend < -3 ? 'VERY NEGATIVE' : trend < -1 ? 'NEGATIVE' : trend < 1 ? 'NEUTRAL' : 'IMPROVING';
-    const labelColor = trend < -3 ? '#ef4444' : trend < -1 ? '#f59e0b' : trend < 1 ? 'var(--ink-2)' : '#22c55e';
+    const labelColor = trend < -3 ? '#a72144' : trend < -1 ? '#f59e0b' : trend < 1 ? 'var(--ink-2)' : '#1a7444';
     const windowCaption = `${formatDay(timeline[0].date)} – ${formatDay(timeline[timeline.length - 1].date)} · ${timeline.length} points`;
 
     return (
@@ -118,10 +118,10 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '5px', marginBottom: '5px',
                 borderBottom: '1px solid var(--line)',
-                borderLeft: '2px solid #3b82f6', paddingLeft: '8px'
+                borderLeft: '2px solid #006eb8', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Activity size={12} style={{ color: '#3b82f6' }} />
+                    <Activity size={12} style={{ color: '#006eb8' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         Media Sentiment
                     </span>
@@ -150,12 +150,12 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                 <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', maxHeight: '70px' }}>
                     <defs>
                         <linearGradient id="posGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                            <stop offset="0%" stopColor="#1a7444" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#1a7444" stopOpacity="0" />
                         </linearGradient>
                         <linearGradient id="negGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#ef4444" stopOpacity="0" />
-                            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.25" />
+                            <stop offset="0%" stopColor="#a72144" stopOpacity="0" />
+                            <stop offset="100%" stopColor="#a72144" stopOpacity="0.25" />
                         </linearGradient>
                     </defs>
 
@@ -167,10 +167,10 @@ const SentimentChart = ({ viewMode = 'middleeast' }) => {
                     <path d={negArea} fill="url(#negGrad)" />
 
                     {/* Tone line */}
-                    <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={linePath} fill="none" stroke="#006eb8" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
 
                     {/* Latest dot */}
-                    <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#ef4444' : '#22c55e'} stroke="var(--ink-3)" strokeWidth="0.5">
+                    <circle cx={toX(timeline.length - 1)} cy={toY(latest)} r="2.5" fill={latest < 0 ? '#a72144' : '#1a7444'} stroke="var(--ink-3)" strokeWidth="0.5">
                         {!isSample && <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />}
                     </circle>
 

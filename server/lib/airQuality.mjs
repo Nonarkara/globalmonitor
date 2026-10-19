@@ -33,12 +33,12 @@ export const AQI_CITIES = [
 ];
 
 const AQI_BANDS = [
-    { max: 50,  color: '#3b82f6', label: 'Good' },
-    { max: 100, color: '#10b981', label: 'Moderate' },
-    { max: 150, color: '#f59e0b', label: 'Unhealthy for Sensitive Groups' },
-    { max: 200, color: '#ef4444', label: 'Unhealthy' },
-    { max: 300, color: '#b91c1c', label: 'Very Unhealthy' },
-    { max: Infinity, color: '#7f1d1d', label: 'Hazardous' }
+    { max: 50,  color: '#00e400', label: 'Good' },
+    { max: 100, color: '#ffff00', label: 'Moderate' },
+    { max: 150, color: '#ff7e00', label: 'Unhealthy for Sensitive Groups' },
+    { max: 200, color: '#ff0000', label: 'Unhealthy' },
+    { max: 300, color: '#8f3f97', label: 'Very Unhealthy' },
+    { max: Infinity, color: '#7e0023', label: 'Hazardous' }
 ];
 
 const bandFor = (aqi) => AQI_BANDS.find((b) => aqi <= b.max);

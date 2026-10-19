@@ -4,9 +4,9 @@ import sanctionsData from '../data/sanctions.json';
 import { WAR_START } from '../data/warConstants';
 
 const IMPACT_COLORS = {
-    severe: '#ef4444',
+    severe: '#a72144',
     high: '#f59e0b',
-    moderate: '#3b82f6'
+    moderate: '#006eb8'
 };
 
 const TYPE_ICONS = {
@@ -72,7 +72,7 @@ const SanctionsPanel = () => {
                     flex: 1, textAlign: 'center', padding: '4px',
                     background: 'var(--line)', borderRadius: '4px'
                 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#a72144', fontFamily: 'var(--font-mono)' }}>{severeCount}</div>
                     <div style={{ fontSize: '0.38rem', color: 'var(--ink-3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Severe</div>
                 </div>
                 <div style={{
@@ -124,7 +124,7 @@ const SanctionsPanel = () => {
                         </div>
                         <div style={{
                             width: '6px', height: '6px', borderRadius: '50%',
-                            background: IMPACT_COLORS[s.impact] || '#3b82f6',
+                            background: IMPACT_COLORS[s.impact] || '#006eb8',
                             flexShrink: 0
                         }} />
                     </div>

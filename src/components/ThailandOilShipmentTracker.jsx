@@ -30,7 +30,7 @@ const ThailandOilShipmentTracker = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '8px', marginBottom: '10px',
                 borderBottom: '1px solid var(--line-2)',
-                borderLeft: '3px solid #3b82f6',
+                borderLeft: '3px solid #006eb8',
                 paddingLeft: '8px'
             }}>
                 <div>
@@ -38,7 +38,7 @@ const ThailandOilShipmentTracker = () => {
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
-                        <Ship size={14} style={{ color: '#3b82f6' }} />
+                        <Ship size={14} style={{ color: '#006eb8' }} />
                         Thailand Oil Shipment &amp; Maritime Supply Line
                     </div>
                     <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
@@ -47,7 +47,7 @@ const ThailandOilShipmentTracker = () => {
                 </div>
                 <span style={{
                     fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
-                    color: '#3b82f6', padding: '2px 8px',
+                    color: '#006eb8', padding: '2px 8px',
                     background: 'rgba(59, 130, 246, 0.12)',
                     borderRadius: '4px', border: '1px solid rgba(59, 130, 246, 0.3)'
                 }}>
@@ -77,7 +77,7 @@ const ThailandOilShipmentTracker = () => {
                     <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Strategic Reserve
                     </div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#22c55e', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1a7444', fontFamily: 'var(--font-mono)' }}>
                         {OIL_METRICS.strategicReserveDays}
                     </div>
                     <div style={{ fontSize: '0.44rem', color: 'var(--ink-3)' }}>National fuel buffer</div>
@@ -90,7 +90,7 @@ const ThailandOilShipmentTracker = () => {
                     <div style={{ fontSize: '0.46rem', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Active Tankers
                     </div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)' }}>
                         {OIL_METRICS.activeTankersEnRoute}
                     </div>
                     <div style={{ fontSize: '0.44rem', color: 'var(--ink-3)' }}>En route to Thai ports</div>
@@ -107,11 +107,11 @@ const ThailandOilShipmentTracker = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.52rem' }}>
                     <span style={{ color: 'var(--ink-2)' }}>Strait of Hormuz (Origin):</span>
-                    <span style={{ fontWeight: 700, color: '#ef4444' }}>BLOCKADE ALERT</span>
+                    <span style={{ fontWeight: 700, color: '#a72144' }}>BLOCKADE ALERT</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.52rem', marginTop: '2px' }}>
                     <span style={{ color: 'var(--ink-2)' }}>Strait of Malacca (Transit):</span>
-                    <span style={{ fontWeight: 700, color: '#22c55e' }}>OPEN &amp; MONITORED</span>
+                    <span style={{ fontWeight: 700, color: '#1a7444' }}>OPEN &amp; MONITORED</span>
                 </div>
             </div>
 
@@ -130,7 +130,7 @@ const ThailandOilShipmentTracker = () => {
                             <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{port.name}</span>
                             <span style={{ color: 'var(--ink-3)', marginLeft: '6px', fontSize: '0.46rem' }}>{port.type}</span>
                         </div>
-                        <span style={{ fontWeight: 700, color: '#22c55e', fontSize: '0.46rem' }}>{port.status}</span>
+                        <span style={{ fontWeight: 700, color: '#1a7444', fontSize: '0.46rem' }}>{port.status}</span>
                     </div>
                 ))}
             </div>

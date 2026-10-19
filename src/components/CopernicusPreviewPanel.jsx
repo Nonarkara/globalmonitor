@@ -75,7 +75,7 @@ const NasaGibsPreview = ({ viewMode, preset }) => {
                 bottom: '6px',
                 left: '6px',
                 background: 'rgba(0,0,0,0.65)',
-                color: '#94a3b8',
+                color: '#6b665e',
                 fontSize: '0.6rem',
                 padding: '2px 6px',
                 borderRadius: '4px',

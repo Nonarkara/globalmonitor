@@ -35,7 +35,7 @@ const FrontCard = ({ front }) => {
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Icon size={12} style={{ color: front.color === '#ef4444' ? 'var(--red)' : front.color === '#f59e0b' ? 'var(--ink-2)' : 'var(--green)', opacity: 0.9 }} />
+                <Icon size={12} style={{ color: front.color === '#a72144' ? 'var(--red)' : front.color === '#f59e0b' ? 'var(--ink-2)' : 'var(--green)', opacity: 0.9 }} />
                 <span style={{
                     fontSize: '9px',
                     fontWeight: 700,

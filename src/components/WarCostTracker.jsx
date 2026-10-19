@@ -117,7 +117,7 @@ const WarCostTracker = () => {
                         <div style={{
                             fontSize: '0.6rem', fontWeight: 700,
                             fontFamily: 'var(--font-mono)',
-                            color: pct < -5 ? '#ef4444' : pct < -2 ? '#f59e0b' : '#f97316'
+                            color: pct < -5 ? '#a72144' : pct < -2 ? '#f59e0b' : '#f37420'
                         }}>
                             {pct}%
                         </div>

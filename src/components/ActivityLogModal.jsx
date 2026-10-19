@@ -5,10 +5,10 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const TYPE_COLORS = {
-    [LOG_TYPES.DATA_FETCH]: '#3b82f6',
-    [LOG_TYPES.ERROR]: '#ef4444',
-    [LOG_TYPES.USER_ACTION]: '#22c55e',
-    [LOG_TYPES.SYSTEM]: '#94a3b8'
+    [LOG_TYPES.DATA_FETCH]: '#006eb8',
+    [LOG_TYPES.ERROR]: '#a72144',
+    [LOG_TYPES.USER_ACTION]: '#1a7444',
+    [LOG_TYPES.SYSTEM]: '#6b665e'
 };
 
 const TYPE_LABELS = {
@@ -149,9 +149,9 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
                                     </span>
                                     <span style={{
                                         fontSize: '0.34rem', fontWeight: 700,
-                                        color: TYPE_COLORS[entry.type] || '#94a3b8',
+                                        color: TYPE_COLORS[entry.type] || '#6b665e',
                                         padding: '1px 4px', borderRadius: '2px',
-                                        background: `${TYPE_COLORS[entry.type] || '#94a3b8'}15`,
+                                        background: `${TYPE_COLORS[entry.type] || '#6b665e'}15`,
                                         letterSpacing: '0.5px', flexShrink: 0, marginTop: '1px'
                                     }}>
                                         {TYPE_LABELS[entry.type] || entry.type}

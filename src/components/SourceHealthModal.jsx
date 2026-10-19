@@ -26,25 +26,25 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     const getStatus = (sourceId) => {
-        if (!healthData) return { status: 'unknown', color: '#94a3b8' };
+        if (!healthData) return { status: 'unknown', color: '#6b665e' };
         // Try to match health data keys to source IDs
         const health = healthData.loaderHealth;
-        if (!health) return { status: 'unknown', color: '#94a3b8' };
+        if (!health) return { status: 'unknown', color: '#6b665e' };
         const key = Object.keys(health).find(k => k.toLowerCase().includes(sourceId));
-        if (!key) return { status: 'no-data', color: '#94a3b8' };
+        if (!key) return { status: 'no-data', color: '#6b665e' };
         const entry = health[key];
         // A loader that served demo/fallback content made no observation: it is
         // not healthy and must never render green. cache.mjs records status
         // 'demo' plus the payload source for exactly this case.
         if (entry.status === 'demo') return { status: 'demo', color: '#f59e0b', message: entry.source, lastCheck: entry.checkedAt };
-        if (entry.ok) return { status: 'healthy', color: '#22c55e', lastCheck: entry.checkedAt };
-        return { status: 'error', color: '#ef4444', message: entry.message, lastCheck: entry.checkedAt };
+        if (entry.ok) return { status: 'healthy', color: '#1a7444', lastCheck: entry.checkedAt };
+        return { status: 'error', color: '#a72144', message: entry.message, lastCheck: entry.checkedAt };
     };
 
     const reliabilityColor = (score) => {
-        if (score >= 9) return '#22c55e';
+        if (score >= 9) return '#1a7444';
         if (score >= 7) return '#f59e0b';
-        return '#ef4444';
+        return '#a72144';
     };
 
     return (
@@ -67,7 +67,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                     padding: '14px 20px', borderBottom: '1px solid var(--line)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Database size={16} style={{ color: '#3b82f6' }} />
+                        <Database size={16} style={{ color: '#006eb8' }} />
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '1.5px', color: 'var(--ink)', textTransform: 'uppercase' }}>
                             Data Provenance & Source Health
                         </span>
@@ -146,13 +146,13 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                                         <td style={{ padding: '8px 8px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 {health.status === 'healthy' ? (
-                                                    <CheckCircle size={10} style={{ color: '#22c55e' }} />
+                                                    <CheckCircle size={10} style={{ color: '#1a7444' }} />
                                                 ) : health.status === 'demo' ? (
                                                     <AlertCircle size={10} style={{ color: '#f59e0b' }} />
                                                 ) : health.status === 'error' ? (
-                                                    <AlertCircle size={10} style={{ color: '#ef4444' }} />
+                                                    <AlertCircle size={10} style={{ color: '#a72144' }} />
                                                 ) : (
-                                                    <Clock size={10} style={{ color: '#94a3b8' }} />
+                                                    <Clock size={10} style={{ color: '#6b665e' }} />
                                                 )}
                                                 <span style={{
                                                     color: health.color, fontWeight: 600,
@@ -180,7 +180,7 @@ const SourceHealthModal = ({ isOpen, onClose }) => {
                         borderTop: '1px solid var(--line)',
                         fontSize: '0.4rem', color: 'var(--ink-3)'
                     }}>
-                        <span>Reliability: <strong style={{ color: '#22c55e' }}>9-10</strong> Government/Scientific · <strong style={{ color: '#f59e0b' }}>7-8</strong> Vetted OSINT · <strong style={{ color: '#ef4444' }}>&lt;7</strong> Variable</span>
+                        <span>Reliability: <strong style={{ color: '#1a7444' }}>9-10</strong> Government/Scientific · <strong style={{ color: '#f59e0b' }}>7-8</strong> Vetted OSINT · <strong style={{ color: '#a72144' }}>&lt;7</strong> Variable</span>
                         <span>All data is cached server-side with stale fallback. Client caches via localStorage.</span>
                     </div>
                 </div>

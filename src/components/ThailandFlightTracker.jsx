@@ -24,7 +24,7 @@ const ThailandFlightTracker = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '8px', marginBottom: '10px',
                 borderBottom: '1px solid var(--line-2)',
-                borderLeft: '3px solid #38bdf8',
+                borderLeft: '3px solid #006eb8',
                 paddingLeft: '8px'
             }}>
                 <div>
@@ -32,7 +32,7 @@ const ThailandFlightTracker = () => {
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1.2px',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
-                        <Plane size={14} style={{ color: '#38bdf8' }} />
+                        <Plane size={14} style={{ color: '#006eb8' }} />
                         Thailand Flight Tracking &amp; Airspace Monitor
                     </div>
                     <div style={{ fontSize: '0.52rem', color: 'var(--ink-3)', marginTop: '2px' }}>
@@ -41,7 +41,7 @@ const ThailandFlightTracker = () => {
                 </div>
                 <span style={{
                     fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.8px',
-                    color: '#38bdf8', padding: '2px 8px',
+                    color: '#006eb8', padding: '2px 8px',
                     background: 'rgba(56, 189, 248, 0.12)',
                     borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)'
                 }}>
@@ -67,7 +67,7 @@ const ThailandFlightTracker = () => {
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{
-                                fontWeight: 700, color: '#38bdf8', fontFamily: 'var(--font-mono)',
+                                fontWeight: 700, color: '#006eb8', fontFamily: 'var(--font-mono)',
                                 background: 'rgba(56, 189, 248, 0.1)', padding: '1px 4px', borderRadius: '3px'
                             }}>
                                 {hub.code}
@@ -76,7 +76,7 @@ const ThailandFlightTracker = () => {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ color: 'var(--ink-3)', fontFamily: 'var(--font-mono)' }}>{hub.flights}</span>
-                            <span style={{ fontWeight: 700, color: '#22c55e', fontSize: '0.46rem' }}>{hub.status}</span>
+                            <span style={{ fontWeight: 700, color: '#1a7444', fontSize: '0.46rem' }}>{hub.status}</span>
                         </div>
                     </div>
                 ))}
@@ -87,7 +87,7 @@ const ThailandFlightTracker = () => {
                 borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.15)',
                 display: 'flex', alignItems: 'center', gap: '6px'
             }}>
-                <Radio size={12} style={{ color: '#38bdf8', flexShrink: 0 }} />
+                <Radio size={12} style={{ color: '#006eb8', flexShrink: 0 }} />
                 <span style={{ fontSize: '0.48rem', color: 'var(--ink-2)', lineHeight: 1.3 }}>
                     Airspace Status: All civilian flight corridors operating under standard NOTAM protocols. No airspace closures reported in Bangkok FIR.
                 </span>

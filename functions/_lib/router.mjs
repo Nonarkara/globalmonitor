@@ -335,12 +335,37 @@ export async function handleApiRequest(request, env, next) {
 
         if (url.pathname === '/api/sentiment') {
             const theater = url.searchParams.get('theater') || 'middleeast';
-            const result = await useCached(
-                `gdelt:${theater}`,
-                30 * 60 * 1000,
-                () => fetchGdeltSentiment(theater),
-                (p) => Array.isArray(p?.timeline) && p.timeline.length > 0
-            );
+            let result;
+            try {
+                result = await useCached(
+                    `gdelt:${theater}`,
+                    30 * 60 * 1000,
+                    () => fetchGdeltSentiment(theater),
+                    (p) => Array.isArray(p?.timeline) && p.timeline.length > 0
+                );
+            } catch (err) {
+                // GDELT is rate limited per IP and Cloudflare's egress is
+                // shared, so this fails routinely. A 500 told the client
+                // "the endpoint is broken"; the truth is "the upstream
+                // reading is unavailable right now". Say that, with 200 and
+                // an empty timeline the panel can render honestly.
+                console.error('sentiment unavailable:', err.message);
+                return jsonResponse(
+                    {
+                        timeline: [],
+                        query: null,
+                        fetchedAt: null,
+                        note: 'GDELT tone timeline unavailable — upstream rate limit or timeout.'
+                    },
+                    200,
+                    {
+                        status: 'stale',
+                        source: 'gdelt-unavailable',
+                        updatedAt: new Date().toISOString(),
+                        cache: 'miss'
+                    }
+                );
+            }
             if (result.meta.cache !== 'hit') upsertSentimentReadings(result.payload).catch(() => {});
             return jsonResponse(result.payload, 200, result.meta);
         }

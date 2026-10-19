@@ -96,9 +96,12 @@ const RegionalNewsPanel = ({ regionName, title }) => {
     }, [fetchNews]);
 
     const badge = resolveBadge({ hasFeed, isRefreshing, news, meta });
+    // The DEPA feed is served in Thai. Mark the block so the non-looped Thai
+    // face and Thai line-breaking apply instead of the Latin fallback.
+    const langAttr = regionName === 'DEPA' ? { lang: 'th' } : { lang: 'en' };
 
     return (
-        <div lang={regionName === 'DEPA' ? 'th' : 'en'} className="bottom-card flex-column">
+        <div {...langAttr} className="bottom-card flex-column">
             <div className="panel-header">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Rss size={14} /> {title}

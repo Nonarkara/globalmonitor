@@ -3,12 +3,12 @@ import { Shield, ChevronDown, ChevronUp, Crosshair } from 'lucide-react';
 import armsData from '../data/armsDefense.json';
 
 const STATUS_COLORS = {
-    active: '#22c55e',
+    active: '#1a7444',
     degraded: '#f59e0b',
-    destroyed: '#ef4444',
-    surge: '#3b82f6',
+    destroyed: '#a72144',
+    surge: '#006eb8',
     covert: '#f59e0b',
-    restricted: '#f97316'
+    restricted: '#f37420'
 };
 
 // Hand-maintained reference file — stamp the header with its git date, never "now".
@@ -58,9 +58,9 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                     {/* Arsenal usage KPIs */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px', marginBottom: '6px' }}>
                         {[
-                            { label: 'Iran Missiles', value: arsenalUsage.iraniMissilesLaunched, color: '#ef4444' },
-                            { label: 'Iran Drones', value: arsenalUsage.iraniDronesLaunched, color: '#f97316' },
-                            { label: 'Intercepted', value: arsenalUsage.interceptionsTotal, color: '#3b82f6' }
+                            { label: 'Iran Missiles', value: arsenalUsage.iraniMissilesLaunched, color: '#a72144' },
+                            { label: 'Iran Drones', value: arsenalUsage.iraniDronesLaunched, color: '#f37420' },
+                            { label: 'Intercepted', value: arsenalUsage.interceptionsTotal, color: '#006eb8' }
                         ].map(k => (
                             <div key={k.label} style={{
                                 textAlign: 'center', padding: '4px',
@@ -101,7 +101,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 0' }}>
                                 <div style={{
                                     width: '5px', height: '5px', borderRadius: '50%',
-                                    background: STATUS_COLORS[sys.status] || '#94a3b8', flexShrink: 0
+                                    background: STATUS_COLORS[sys.status] || '#6b665e', flexShrink: 0
                                 }} />
                                 <span style={{ fontSize: '0.42rem', color: 'var(--ink-2)', flex: 1 }}>
                                     {sys.name}
@@ -111,7 +111,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                                 </span>
                                 <span style={{
                                     fontSize: '0.34rem', fontWeight: 700, fontFamily: 'var(--font-mono)',
-                                    color: STATUS_COLORS[sys.status] || '#94a3b8'
+                                    color: STATUS_COLORS[sys.status] || '#6b665e'
                                 }}>
                                     {sys.interceptRate}
                                 </span>
@@ -145,7 +145,7 @@ const ArmsDefensePanel = ({ viewMode = 'middleeast' }) => {
                                     <span style={{ fontSize: '0.34rem', color: 'var(--ink-3)', flex: 1 }}>{flow.type}</span>
                                     <span style={{
                                         fontSize: '0.3rem', fontWeight: 700,
-                                        color: STATUS_COLORS[flow.status] || '#94a3b8',
+                                        color: STATUS_COLORS[flow.status] || '#6b665e',
                                         letterSpacing: '0.3px', textTransform: 'uppercase'
                                     }}>
                                         {flow.status}

@@ -3,6 +3,11 @@
  * Shaft length and the reader's sense of strength both scale with speed; a calm
  * point becomes a short stub rather than disappearing, because "calm here" is
  * itself information during a haze episode (smoke pools where the wind stops).
+ *
+ * The grid is 4° apart, so a shaft longer than about half that makes the
+ * field collide with itself. The arrows are supporting evidence for the
+ * fires, not the subject; they stay short enough to read as a texture and
+ * leave the ground — and the ground's own labels — legible.
  */
 export const windArrows = (collection) => {
     const features = [];
@@ -10,7 +15,7 @@ export const windArrows = (collection) => {
         const [lon, lat] = f.geometry.coordinates;
         const { speedKmh, fromDeg } = f.properties;
         const toRad = ((fromDeg + 180) % 360) * Math.PI / 180; // downwind bearing
-        const len = Math.min(3.2, 0.7 + speedKmh * 0.085);      // degrees; grid is 4
+        const len = Math.min(1.7, 0.35 + speedKmh * 0.045);      // degrees; grid is 4
         const cosLat = Math.cos(lat * Math.PI / 180) || 1;
         const step = (from, bearing, d) => [
             from[0] + (d * Math.sin(bearing)) / cosLat,

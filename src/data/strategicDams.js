@@ -19,7 +19,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 1285,
                 reservoirMcm: 1300,
                 geopoliticalImpact: 'Lower Mekong mainstream flow controller, impacting Thai fishing and Isaan agriculture.',
-                color: '#38bdf8',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -34,7 +34,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 1750,
                 reservoirMcm: 1140,
                 geopoliticalImpact: 'Controls water releases from China into Myanmar, Laos, and Northern Thailand (Chiang Saen).',
-                color: '#38bdf8',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -49,7 +49,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 5850,
                 reservoirMcm: 21749,
                 geopoliticalImpact: 'Largest dam on the Mekong/Lancang river cascade; major seasonal water retention capacity.',
-                color: '#38bdf8',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -64,7 +64,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 260,
                 reservoirMcm: 25,
                 geopoliticalImpact: 'Located at Khone Phapheng Falls near Cambodia border; impacts fish migration.',
-                color: '#38bdf8',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -79,7 +79,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 779,
                 reservoirMcm: 13462,
                 geopoliticalImpact: 'Thailand\'s largest concrete arch dam, regulating Central Plains irrigation and Bangkok flood control.',
-                color: '#22c55e',
+                color: '#1a7444',
                 status: 'OPERATIONAL'
             }
         },
@@ -96,7 +96,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 2400,
                 reservoirMcm: 48700,
                 geopoliticalImpact: 'Controls 90% of Euphrates water flowing into downstream Syria and Iraq; central to regional water leverage.',
-                color: '#06b6d4',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -126,7 +126,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 1052,
                 reservoirMcm: 11100,
                 geopoliticalImpact: 'Built on soluble gypsum karst; critical structural monitoring to prevent catastrophic downstream flooding of Baghdad.',
-                color: '#ef4444',
+                color: '#a72144',
                 status: 'HIGH ALERT'
             }
         },
@@ -141,7 +141,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 1200,
                 reservoirMcm: 10400,
                 geopoliticalImpact: 'Reduces Tigris flow to Iraqi marshlands (Mesopotamia) by ~50%; major Baghdad-Ankara diplomatic dispute.',
-                color: '#06b6d4',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -156,7 +156,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 520,
                 reservoirMcm: 3340,
                 geopoliticalImpact: 'Key power and irrigation source for oil-rich Khuzestan province; sensitive to regional drought unrest.',
-                color: '#06b6d4',
+                color: '#006eb8',
                 status: 'OPERATIONAL'
             }
         },
@@ -173,7 +173,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 5150,
                 reservoirMcm: 74000,
                 geopoliticalImpact: 'Major geopolitical flashpoint between Ethiopia, Egypt, and Sudan regarding Nile water quotas.',
-                color: '#ef4444',
+                color: '#a72144',
                 status: 'OPERATIONAL / DISPUTED'
             }
         },
@@ -188,7 +188,7 @@ export const STRATEGIC_DAMS_GEOJSON = {
                 capacityMw: 2100,
                 reservoirMcm: 162000,
                 geopoliticalImpact: 'Secures Egypt\'s entire agricultural and municipal water supply from Lake Nasser.',
-                color: '#22c55e',
+                color: '#1a7444',
                 status: 'OPERATIONAL'
             }
         }

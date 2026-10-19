@@ -5,11 +5,11 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 
 const getMagColor = (mag) => {
-    if (mag >= 6) return '#dc2626';
-    if (mag >= 5) return '#ef4444';
+    if (mag >= 6) return '#a72144';
+    if (mag >= 5) return '#a72144';
     if (mag >= 4) return '#f59e0b';
-    if (mag >= 3) return '#eab308';
-    return '#22c55e';
+    if (mag >= 3) return '#8a5a00';
+    return '#1a7444';
 };
 
 const timeAgo = (timestamp) => {
@@ -102,7 +102,7 @@ const SeismicPanel = ({ viewMode = 'middleeast' }) => {
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {summary.significant > 0 && (
-                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: '#ef4444' }}>
+                        <span style={{ fontSize: '0.42rem', fontWeight: 700, color: '#a72144' }}>
                             {summary.significant} M4.5+
                         </span>
                     )}
