@@ -34,7 +34,14 @@ try {
     assert.equal(await page.locator('header').evaluate(el => el.getBoundingClientRect().height), 233);
     phase = 'without-migration';
     await page.evaluate(async () => {
-        const changed = new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
+        const changed = new Promise((resolve, reject) => {
+            const done = () => { clearTimeout(timer); resolve(); };
+            const timer = setTimeout(() => {
+                navigator.serviceWorker.removeEventListener('controllerchange', done);
+                reject(new Error('Updated worker did not claim the legacy tab within20s'));
+            }, 20000);
+            navigator.serviceWorker.addEventListener('controllerchange', done, { once: true });
+        });
         await (await navigator.serviceWorker.getRegistration()).update();
         await changed;
     });
