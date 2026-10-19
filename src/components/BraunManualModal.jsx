@@ -12,7 +12,7 @@ const BraunManualModal = ({ isOpen, onClose, theaters = 'Middle East, Indo-Pacif
             position: 'fixed', inset: 0, zIndex: 10000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(10px)',
+            backdropFilter: 'none',
             pointerEvents: 'auto'
         }} onClick={onClose}>
             <div style={{

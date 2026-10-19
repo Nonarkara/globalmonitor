@@ -1050,6 +1050,7 @@ const MapContainer = ({
     return (
         <div className="map-wrapper" ref={wrapperRef}>
             <Map
+                attributionControl={{ compact: true }}
                 ref={mapRef}
                 mapLib={maplibregl}
                 minZoom={viewMode === 'global' ? 1.5 : MAP_MIN_ZOOM}

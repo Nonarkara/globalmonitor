@@ -55,12 +55,12 @@ const ActivityLogModal = ({ isOpen, onClose }) => {
         <div style={{
             position: 'fixed', inset: 0, zIndex: 10000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)'
+            background: 'rgba(0,0,0,0.7)', backdropFilter: 'none'
         }} onClick={onClose}>
             <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Session Activity Log" style={{
                 width: '640px', maxWidth: '95vw', maxHeight: '80vh',
                 background: 'rgba(14, 18, 28, 0.95)',
-                backdropFilter: 'blur(24px)',
+                backdropFilter: 'none',
                 borderRadius: '16px',
                 border: '1px solid var(--line-2)',
                 overflow: 'hidden', display: 'flex', flexDirection: 'column'

@@ -83,7 +83,7 @@ const TimeMachine = ({ onDateChange }) => {
             borderRadius: '12px',
             background: 'rgba(22, 28, 40, 0.85)',
             border: '1px solid var(--line-2)',
-            backdropFilter: 'blur(16px)',
+            backdropFilter: 'none',
             minWidth: '380px'
         }}>
             <Clock size={13} style={{ color: 'var(--ink-2)', flexShrink: 0 }} />
