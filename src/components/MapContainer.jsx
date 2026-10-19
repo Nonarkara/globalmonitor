@@ -945,11 +945,6 @@ const MapContainer = ({
         return `${Math.floor(hrs / 24)}d old`;
     };
     const firmsMeta = firmsData?.meta;
-    const ageLabel = (iso) => {
-        const minutes = Math.floor((Date.now() - Date.parse(iso || '')) / 60000);
-        if (!Number.isFinite(minutes) || minutes < 0) return null;
-        return minutes < 60 ? minutes + 'm old' : Math.floor(minutes / 60) + 'h old';
-    };
     const firmsLive = firmsMeta?.source === 'nasa-firms-live';
     const firmsCount = firmsData?.features?.length ?? 0;
     const firmsSourceLabel = firmsLive
