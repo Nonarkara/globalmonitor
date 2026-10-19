@@ -22,7 +22,11 @@ const SourceHealthModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
             else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         };
         dialog?.addEventListener('keydown', trap);
-        return () => { dialog?.removeEventListener('keydown', trap); previous?.focus?.(); };
+        return () => {
+            dialog?.removeEventListener('keydown', trap);
+            const target = previous?.isConnected && previous !== document.body ? previous : document.querySelector('[aria-label="Tools and advanced options"]');
+            target?.focus?.();
+        };
     }, [isOpen]);
 
     const fetchHealth = useCallback(() => {

@@ -62,6 +62,7 @@ function App() {
   const [isInstallOpen, setIsInstallOpen] = useState(false);
   useEscapeKey(isAboutOpen, () => setIsAboutOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [mobileDrawer, setMobileDrawer] = useState('none');
   const toolsRef = useRef(null);
   useEffect(() => {
     const onDocClick = (e) => {
@@ -88,11 +89,7 @@ function App() {
   }, []);
 
   const [viewTarget, setViewTarget] = useState({
-    longitude: 53,
-    latitude: 30,
-    zoom: 4.5,
-    pitch: 25,
-    bearing: -8
+    ...REGIONS[DEFAULT_THEATER].viewState
   });
 
   const [timeMachineDate, setTimeMachineDate] = useState(null);
@@ -153,7 +150,7 @@ function App() {
         </ErrorBoundary>
       )}
 
-      <div className="app-container" id="main-content" role="main">
+      <div className="app-container" data-shell="compact" data-mobile-drawer={mobileDrawer} id="main-content" role="main">
         {/* Full-screen map underneath */}
         <ErrorBoundary label="Map">
           <Suspense fallback={<div className="map-loading" /> }>
@@ -216,12 +213,16 @@ function App() {
               <button className="gw-availability" onClick={() => setIsInstallOpen(true)}>Android &amp; iPhone web app</button>
             </div>
             </div>
-            <ErrorBoundary inline label="Escalation">
-              <EscalationGauge viewMode={viewMode} />
-            </ErrorBoundary>
           </div>
           {/* Right: Controls */}
           <div className="header-controls">
+            <select className="compact-region-select" aria-label="Choose theater" value={viewMode} onChange={event => { const id = event.target.value; setViewMode(id); setViewTarget({ ...(REGIONS[id].viewState || REGIONS[id]), transitionDuration: 800 }); setActiveSources(getDefaultSourceIdsForRegion(id)); setSelectedCountryCode(null); }}>{Object.values(REGIONS).map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</select>
+            {['layers', 'intel', 'markets'].map(panel => (
+              <button key={panel} className={`header-icon-button map-first-header-${panel}`} aria-label={`Toggle ${panel} panel`} title={`Open ${panel}`} aria-pressed={mobileDrawer === panel} onClick={() => setMobileDrawer(prev => prev === panel ? 'none' : panel)}>
+                {panel === 'layers' ? <Menu size={16} /> : panel === 'intel' ? <Network size={16} /> : <Database size={16} />}
+                <span className="header-icon-label">{panel === 'intel' ? 'Intelligence' : panel === 'layers' ? 'Layers' : 'Markets'}</span>
+              </button>
+            ))}
             <button
               onClick={() => setIsManualOpen(true)}
               aria-label="Open System Manual"
@@ -281,6 +282,8 @@ function App() {
               </button>
               {toolsOpen && (
                 <div className="header-tools-menu" role="menu">
+                  <label className="compact-region-menu">Choose theater <select aria-label="Choose theater from tools" value={viewMode} onChange={event => { const id = event.target.value; setViewMode(id); setViewTarget({ ...(REGIONS[id].viewState || REGIONS[id]), transitionDuration: 800 }); setActiveSources(getDefaultSourceIdsForRegion(id)); setSelectedCountryCode(null); }}>{Object.values(REGIONS).map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</select></label>
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); setIsManualOpen(true); }}>System manual</button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsPapersOpen(true); }}>
                     <FileText size={12} aria-hidden="true" /> Papers
                   </button>
@@ -313,13 +316,7 @@ function App() {
         </div>
 
         {/* Row 3: Multi-Front Status Board */}
-        {viewMode === 'middleeast' && (
-          <div className="multi-front-row">
-            <ErrorBoundary inline label="Multi-Front Board">
-              <LazyPanel name="MultiFrontBoard" viewMode={viewMode} />
-            </ErrorBoundary>
-          </div>
-        )}
+
 
         {/* Row 3-5: Left sidebar — spans down to bottom bar */}
         <div className="left-sidebar">
@@ -351,6 +348,14 @@ function App() {
 
         {/* Row 3: Right sidebar */}
         <div className="right-sidebar">
+              <ErrorBoundary inline label="Escalation"><EscalationGauge viewMode={viewMode} /></ErrorBoundary>
+              {viewMode === 'middleeast' && (
+          <div className="compact-front-board">
+            <ErrorBoundary inline label="Multi-Front Board">
+              <LazyPanel name="MultiFrontBoard" viewMode={viewMode} />
+            </ErrorBoundary>
+          </div>
+        )}
           {selectedEvent && (
             <LazyPanel
               name="EventDetailsPanel"

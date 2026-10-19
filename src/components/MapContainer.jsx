@@ -2350,18 +2350,14 @@ const MapContainer = ({
                 const activeEoLayers = EO_TILE_LAYERS.filter(l => activeLayers.includes(l.id));
                 if (activeEoLayers.length === 0) return null;
                 return (
-                    <div style={{
+                    <div className="map-eo-labels" style={{
                         position: 'absolute',
-                        bottom: '12px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
                         display: 'flex',
-                        gap: '6px',
                         zIndex: 10,
                         pointerEvents: 'none'
                     }}>
                         {activeEoLayers.map(layer => (
-                            <div key={layer.id} style={{
+                            <div className="map-eo-label" key={layer.id} style={{
                                 background: 'var(--panel)',
                                 padding: '4px 10px',
                                 border: '1px solid var(--line-2)',

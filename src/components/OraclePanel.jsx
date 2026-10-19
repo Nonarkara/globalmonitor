@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Sparkles, TrendingUp, TrendingDown, Minus, Cpu, Sliders } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Cpu, Sliders } from 'lucide-react';
 import { fetchOracle } from '../services/oracle';
 import { useLiveResource } from '../hooks/useLiveResource';
 import OracleTrajectory from './OracleTrajectory';
@@ -49,7 +49,7 @@ const OraclePanel = ({ viewMode = 'middleeast', onOpenSandbox }) => {
                 borderLeft: '2px solid var(--green)', paddingLeft: '8px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Sparkles size={13} style={{ color: 'var(--green)' }} />
+                    <Cpu size={13} style={{ color: 'var(--green)' }} />
                     <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ink)' }}>
                         GPD Oracle
                     </span>

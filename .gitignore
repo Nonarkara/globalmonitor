@@ -34,3 +34,6 @@ dist-ssr
 .dev.vars
 .netlify/
 .qa/globewatch/
+
+# non-slop render screenshots
+non-slop-shots/

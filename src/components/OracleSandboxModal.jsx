@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { X, Sparkles, RotateCcw, Cpu, Zap, Loader2 } from 'lucide-react';
+import { X, RotateCcw, Cpu, Zap, Loader2 } from 'lucide-react';
 import { fetchOracle } from '../services/oracle';
 import OracleTrajectory from './OracleTrajectory';
 
@@ -142,7 +142,7 @@ const OracleSandboxModal = ({ isOpen, onClose, theater = 'middleeast' }) => {
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--line)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                        <Sparkles size={17} style={{ color: 'var(--ink)' }} />
+                        <Cpu size={17} style={{ color: 'var(--ink)' }} />
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontSize: '0.82rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--ink)' }}>GPD Oracle — War-Game Sandbox</span>
                             <span style={{ fontSize: '0.5rem', color: 'var(--ink-3)', letterSpacing: '0.5px' }}>

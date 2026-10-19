@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8-20261002-credibility';
+const CACHE_NAME = 'gpd-v8-20261019-non-slop';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

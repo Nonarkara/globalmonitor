@@ -74,7 +74,7 @@ const RegionalNewsPanel = ({ regionName, title, activeSourceIds, viewMode = 'mid
     }, [fetchNews]);
 
     return (
-        <div className="bottom-card flex-column">
+        <div lang={regionName === 'DEPA' ? 'th' : 'en'} className="bottom-card flex-column">
             <div className="panel-header">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Rss size={14} /> {title}
