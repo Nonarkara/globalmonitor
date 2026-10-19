@@ -948,6 +948,7 @@ const MapContainer = ({
             <Map
                 ref={mapRef}
                 mapLib={maplibregl}
+                attributionControl={{ compact: true }}
                 minZoom={minZoom}
                 maxZoom={maxZoom}
                 maxBounds={maxBounds}

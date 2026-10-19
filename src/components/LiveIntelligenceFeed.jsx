@@ -39,6 +39,7 @@ const LiveIntelligenceFeed = ({ activeSourceIds }) => {
                 </span>
                 <button
                     onClick={refresh}
+                    aria-label="Refresh headline wire"
                     style={{ background: 'transparent', border: 'none', color: 'var(--ink-2)', cursor: 'pointer', display: 'flex', padding: 0 }}
                     title="Force Refresh Data"
                 >

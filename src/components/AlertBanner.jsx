@@ -36,7 +36,7 @@ const AlertBanner = () => {
     }
 
     return (
-        <div style={{
+        <div className="operational-alert" role="status" style={{
             position: 'fixed',
             top: 18,
             left: 0,
@@ -72,6 +72,7 @@ const AlertBanner = () => {
             )}
             <button
                 onClick={() => setDismissed(true)}
+                aria-label="Dismiss escalation alert"
                 style={{
                     background: 'transparent',
                     border: 'none',
