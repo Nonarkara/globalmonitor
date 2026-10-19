@@ -58,6 +58,16 @@ function App() {
   }, []);
   useEscapeKey(isLegalOpen, () => setIsLegalOpen(false));
   const [toolsOpen, setToolsOpen] = useState(false);
+  useEffect(() => {
+    if (!toolsOpen) return undefined;
+    const closeTools = event => {
+      if (event.key !== 'Escape') return;
+      setToolsOpen(false);
+      document.querySelector('[aria-label="Tools and advanced options"]')?.focus();
+    };
+    document.addEventListener('keydown', closeTools);
+    return () => document.removeEventListener('keydown', closeTools);
+  }, [toolsOpen]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileDrawer, setMobileDrawer] = useState('none');
   const toolsRef = useRef(null);

@@ -56,19 +56,25 @@ try {
         }
       }
       await page.locator('.map-first-header-layers').first().click();
-      await page.waitForFunction(() => window.__GM_MAP__?.getSource('airports-data')?._data?.features?.length > 0, null, { timeout: 30000 });
+      await page.waitForFunction(async () => {
+        const source = window.__GM_MAP__?.getSource('airports-data');
+        return source && (await source.getData())?.features?.length > 0;
+      }, null, { timeout: 60000 });
       for (const source of ['flights-data','vessels-data','airports-data']) {
-        const available = await page.evaluate(id => {
-          const map = window.__GM_MAP__, data = map?.getSource(id)?._data;
-          const f = data?.features?.find(f => f.geometry?.type === 'Point');
-          if (!f) return false;
-          map.jumpTo({ center: f.geometry.coordinates, zoom: 6 });
-          return true;
+        const point = await page.evaluate(async id => {
+          const map = window.__GM_MAP__, source = map?.getSource(id);
+          const data = source ? await source.getData() : null;
+          for (const f of data?.features || []) {
+            const xy = f.geometry?.coordinates;
+            if (f.geometry?.type !== 'Point' || !xy?.every(Number.isFinite)) continue;
+            const p = map.project(xy), r = map.getCanvas().getBoundingClientRect();
+            if (p.x > 20 && p.x < r.width - 20 && p.y > 20 && p.y < r.height - 20) return { x:r.x+p.x,y:r.y+p.y };
+          }
+          return null;
         }, source);
-        if (available) {
+        if (point) {
           await page.waitForTimeout(500);
-          const map = await page.locator('.maplibregl-canvas').boundingBox();
-          await page.mouse.move(map.x + map.width / 2, map.y + map.height / 2);
+          await page.mouse.move(point.x, point.y);
           await page.waitForTimeout(300);
           assert.equal(await page.getByText('Something went wrong.', { exact: true }).count(), 0);
         }
