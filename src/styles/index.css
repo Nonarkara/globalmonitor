@@ -458,25 +458,20 @@ body {
 
 
 /* ═══════════════════════════════════════════
-   ROW 1: Clock — full width, transparent
+   ROW 1: Clock — an instrument INSIDE the chrome row
    ═══════════════════════════════════════════ */
 
+/* The reference clock, the theater it keeps time for and the index of the
+   world's time around it. They are cells in the one chrome row, not a band
+   of their own — a band earns its height, and this one earned none. */
 .top-bar-clock {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
   column-gap: 12px;
-  padding: 2px 14px;
+  min-width: 0;
   background: var(--paper);
   color: var(--text-main);
-  z-index: 20;
   pointer-events: auto;
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
-  overflow: hidden;
   position: relative;
   isolation: isolate;
 }
@@ -549,23 +544,24 @@ body {
 
 
 /* ═══════════════════════════════════════════
-   ROW 2: Header bar — full width
+   ROW 2: Header bar — ONE row of chrome
    ═══════════════════════════════════════════ */
 
+/* The whole top chrome is this one row: partners, name, reference clock,
+   world clocks, theater tabs, controls. Nothing wraps and nothing sits in a
+   second band above it. */
 .header-bar {
   grid-column: 1 / -1;
-  grid-row: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 260px) minmax(220px, 1fr) minmax(0, auto);
+  grid-row: 1;
+  display: flex;
   align-items: center;
-  justify-content: stretch;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
   flex-wrap: nowrap;
-  padding: 6px 14px;
+  padding: 0 8px;
   border-radius: 0;
-  height: 56px;
-  min-height: 56px;
-  max-height: 56px;
+  min-height: 0;
+  max-height: none;
   overflow: visible;
   contain: layout style;
   position: relative;
@@ -2347,21 +2343,14 @@ body {
    WORLD CLOCK
    ═══════════════════════════════════════════ */
 
+/* The index of the world's time. One row of clocks, packed from the left:
+   the cell that gives way is the tail, never half of a clock. */
 .secondary-clocks-side {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(64px, 1fr));
-  gap: 4px 8px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
   min-width: 0;
-  overflow: hidden;
   align-items: center;
-}
-
-.secondary-clocks-side.left-side {
-  justify-items: start;
-}
-
-.secondary-clocks-side.right-side {
-  justify-items: end;
 }
 
 .secondary-clock-h {
@@ -2413,8 +2402,8 @@ body {
 .primary-clock-center {
   flex-shrink: 0;
   width: auto;
-  min-width: 9.5rem;
-  max-width: 12rem;
+  min-width: 0;
+  max-width: none;
   display: flex;
   justify-content: center;
   z-index: 2;
@@ -2424,7 +2413,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
+  gap: 1px;
+  width: auto;
   overflow: hidden;
 }
 

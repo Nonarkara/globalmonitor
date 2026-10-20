@@ -9,6 +9,8 @@ import { fetchBriefingPayload, fetchTickerPayload } from '../../server/lib/intel
 import { fetchMarketPayload } from '../../server/lib/marketData.mjs';
 import { fetchFirmsPayload } from '../../server/lib/firms.mjs';
 import { fetchWindField } from '../../server/lib/windField.mjs';
+import { fetchJmaTyphoon } from '../../server/lib/jmaTyphoon.mjs';
+import { fetchCityFeeds, fetchCityImage } from '../../server/lib/cityFeeds.mjs';
 import { fetchAirQualityPayload } from '../../server/lib/airQuality.mjs';
 import { computeEscalation } from '../../server/lib/escalation.mjs';
 import { computeStrikeStats } from '../../server/lib/strikeStats.mjs';
@@ -195,19 +197,119 @@ export async function handleApiRequest(request, env, next) {
 
         if (url.pathname === '/api/wind') {
             const theater = url.searchParams.get('theater') || 'indopacific';
-            // An hour: a regional 10 m wind field barely moves in that time, the
-            // legend states the observation age, and Open-Meteo bills per grid point.
+            // Two levels, one shape. 10 m is the surface field the haze legend
+            // already names; 850 hPa (~1500 m) is the transport level, which is
+            // the air that actually carries the smoke. The 10 m cache key is
+            // left exactly as it was so the live layer keeps its warm entry
+            // across a deploy.
+            const level = String(url.searchParams.get('level') || '10m').toLowerCase() === '850hpa'
+                ? '850hPa'
+                : '10m';
+            const cacheKey = level === '10m' ? `wind:${theater}` : `wind:${theater}:${level}`;
+            // Fifteen minutes: the model's own `current` block is a 900-second
+            // interval, so a longer cache only ever serves a field that has
+            // already been superseded by the next cycle. It also means a
+            // throttled fetch — the one that comes back with holes in it —
+            // heals on its own within a quarter of an hour instead of sitting
+            // on the map for an hour.
             const result = await useCached(
-                `wind:${theater}`,
-                60 * 60 * 1000,
-                () => fetchWindField(theater),
+                cacheKey,
+                15 * 60 * 1000,
+                () => fetchWindField(theater, { level }),
                 (p) => Array.isArray(p?.features) && p.features.length > 0
             );
-            recordHealth('wind', Boolean(result.payload?.features?.length), null);
+            recordHealth(level === '10m' ? 'wind' : `wind:${level}`, Boolean(result.payload?.features?.length), null);
             return jsonResponse(result.payload, 200, {
                 ...result.meta,
                 updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
             });
+        }
+
+        if (url.pathname === '/api/city-feeds') {
+            // ONE route, TWO behaviours: JSON by default, and the camera
+            // frame's bytes when `image=` is present. The proxy exists because
+            // one source sends `Cross-Origin-Resource-Policy: same-origin`
+            // and a browser then refuses the image outright; the server can
+            // fetch it. The host list is closed — a proxy that fetches any URL
+            // is a request-forger.
+            const image = url.searchParams.get('image');
+            if (image) {
+                const frame = await fetchCityImage(image);
+                if (!frame.ok) {
+                    return jsonResponse(
+                        { error: frame.error || 'the camera did not answer' },
+                        frame.status || 502,
+                        { source: 'city-image', cache: 'miss' }
+                    );
+                }
+                return new Response(frame.body, {
+                    status: 200,
+                    headers: {
+                        'content-type': frame.contentType,
+                        'cache-control': 'public, max-age=20',
+                        'x-tech-status': 'live',
+                        'x-tech-source': 'city-image'
+                    }
+                });
+            }
+            const result = await useCached(
+                'city-feeds',
+                5 * 60 * 1000,
+                () => fetchCityFeeds(),
+                (p) => Array.isArray(p?.cities) && p.cities.length > 0
+            );
+            recordHealth('city-feeds', true, null);
+            return jsonResponse(result.payload, 200, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.probedAt || result.meta.updatedAt
+            });
+        }
+
+        if (url.pathname === '/api/typhoon') {
+            try {
+                // JMA issues its analysis about four times a day, so half an
+                // hour is well inside the gap between bulletins.
+                const result = await useCached(
+                    'jma-typhoon',
+                    30 * 60 * 1000,
+                    () => fetchJmaTyphoon(),
+                    (p) => p?.type === 'FeatureCollection'
+                );
+                recordHealth('jma-typhoon', Boolean(result.payload?.features?.length), null);
+                return jsonResponse(result.payload, 200, {
+                    ...result.meta,
+                    updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+                });
+            } catch (error) {
+                // An unreachable bulletin is an outage, not an absence of
+                // storms. Say so and draw nothing — a 500 would read as a
+                // crash, and a quiet sky would read as "no storm today".
+                recordHealth('jma-typhoon', false, error.message);
+                return jsonResponse(
+                    {
+                        type: 'FeatureCollection',
+                        features: [],
+                        meta: {
+                            source: 'JMA',
+                            stormId: null,
+                            stormName: null,
+                            category: null,
+                            maxWindMs: null,
+                            maxWindKt: null,
+                            gustMs: null,
+                            pressureHpa: null,
+                            observedAt: null,
+                            fetchedAt: new Date().toISOString(),
+                            isForecast: false,
+                            quadrantRadii: true,
+                            storms: [],
+                            note: 'JMA typhoon bulletin unavailable — the upstream feed could not be read. No storm is drawn.'
+                        }
+                    },
+                    200,
+                    { status: 'error', source: 'JMA', updatedAt: new Date().toISOString(), cache: 'miss' }
+                );
+            }
         }
 
         if (url.pathname === '/api/air-quality') {

@@ -1,0 +1,303 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   THE CITY WALL — one CCTV screen and one broadcast screen per city.
+
+   The composition is asymmetric on purpose. The camera is the evidence the
+   operator came for, so it takes the full width of the rail. The channel
+   is a second kind of evidence — a broadcast, not a view of the street — so
+   it sits beside its caption at a quarter of the width. Two tiles of the
+   same size would claim the two are worth the same, and they are not.
+
+   Nothing decorative: hairlines, the paper ground, three type sizes, no
+   radius, no shadow, no glass.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.city-wall {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(600px, 62vh);
+  border-radius: 0;
+}
+
+.city-wall__bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border-color);
+  flex: 0 0 auto;
+}
+
+.city-wall__title {
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.city-wall__bar-meta {
+  font-family: var(--font-data);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+  text-align: right;
+}
+
+.city-wall__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ── one city ─────────────────────────────────────────────────────────── */
+
+.city-wall__city {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.city-wall__city-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.city-wall__city-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-body);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.city-wall__city-cc {
+  font-family: var(--font-data);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}
+
+/* ── the camera screen: the primary evidence ─────────────────────────── */
+
+.city-wall__frame {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  overflow: hidden;
+}
+
+.city-wall__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.city-wall__frame-failed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+  text-align: center;
+}
+
+/* No camera is said in words. There is no tile here that could be mistaken
+   for a working camera. */
+.city-wall__no-camera {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 6px 8px;
+}
+
+.city-wall__no-camera-title {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.city-wall__no-camera-note {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}
+
+/* ── the caption: the tier, the source, the measurement ──────────────── */
+
+.city-wall__tier {
+  margin: 5px 0 0;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.city-wall__facts {
+  margin: 1px 0 0;
+  font-family: var(--font-data);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}
+
+.city-wall__source {
+  font-family: var(--font-body);
+  color: var(--ink-2);
+}
+
+.city-wall__note {
+  margin: 2px 0 0;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}
+
+/* ── the channel screen: secondary evidence, beside its caption ──────── */
+
+.city-wall__channel {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+
+.city-wall__channel-screen {
+  flex: 0 0 auto;
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  background: var(--paper);
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.city-wall__channel-screen.is-live {
+  border-color: var(--ink-2);
+}
+
+.city-wall__channel-screen img,
+.city-wall__channel-screen iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: cover;
+}
+
+.city-wall__channel-screen:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+.city-wall__channel-blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 4px;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.city-wall__channel-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.city-wall__channel-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.city-wall__channel-state {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* Green is the signal colour and only the signal colour: a channel that is
+   on air says so in green, everything else says what it is in ink. */
+.city-wall__channel-state--live {
+  color: var(--green);
+}
+
+.city-wall__channel-state--dormant,
+.city-wall__channel-state--stale {
+  color: var(--ink-3);
+}
+
+.city-wall__channel-note {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}
+
+.city-wall__alternates {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.city-wall__alternates li {
+  display: block;
+  border-top: 1px solid var(--line);
+  padding-top: 2px;
+}
+
+.city-wall__alternate-name {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-2);
+}
+
+.city-wall__alternate-state {
+  display: block;
+  font-family: var(--font-data);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}
+
+/* ── the foot: what the wall is and is not ───────────────────────────── */
+
+.city-wall__foot {
+  margin: 0;
+  padding: 7px 10px 9px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-body);
+  font-size: var(--type-micro);
+  color: var(--ink-3);
+}

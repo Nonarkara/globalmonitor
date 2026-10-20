@@ -352,22 +352,29 @@ export const TV_CHANNELS_MIDDLEEAST = [
 
 // Indo-Pacific TV — Channel News Asia (SG), NHK World (JP), KBS World (KR),
 // ABC News Australia, DW (Asia coverage), WION (India/Asia), Bloomberg TV.
+//
+// Every id below was verified on 2026-10-20 against YouTube's keyless feed
+// API (HTTP 200 and the channel's own title) and against the channel's live
+// tab. The 'Bangkok Live' tile that used to sit at the end of this list was
+// video h1wly909BYw — a public webcam of Zagorodny Avenue, St Petersburg,
+// labelled as Bangkok. A tile that shows the wrong city is worse than no
+// tile, so it is gone; the Southeast Asia panel now shows the city wall
+// (see src/data/cityFeeds.js), which names the city it is showing.
 export const TV_CHANNELS_INDOPACIFIC = [
-    { id: 'cna',          name: 'CNA',            lang: 'EN', color: '#E60023', embedUrl: ytChannel('UCXi6CllNFjlb-kiuHNuKPOA'), embedUrlUnmuted: ytChannelUnmuted('UCXi6CllNFjlb-kiuHNuKPOA') },
+    { id: 'cna',          name: 'CNA',            lang: 'EN', color: '#E60023', embedUrl: ytChannel('UC83jt4dlz1Gjl58fzQrrKZg'), embedUrlUnmuted: ytChannelUnmuted('UC83jt4dlz1Gjl58fzQrrKZg') },
     { id: 'nhk-world',    name: 'NHK World',      lang: 'EN', color: '#FF0000', embedUrl: ytChannel('UCSPEjw8F2nQDtmUKPFNF7_A'), embedUrlUnmuted: ytChannelUnmuted('UCSPEjw8F2nQDtmUKPFNF7_A') },
     { id: 'kbs-world',    name: 'KBS World',      lang: 'EN', color: '#0046A6', embedUrl: ytChannel('UC5BMQOsAB8hKUyHu9KI6yig'), embedUrlUnmuted: ytChannelUnmuted('UC5BMQOsAB8hKUyHu9KI6yig') },
     { id: 'abc-au',       name: 'ABC News AU',    lang: 'EN', color: '#FFCC00', embedUrl: ytChannel('UCVgO39Bk5sMo66-6o6Spn6Q'), embedUrlUnmuted: ytChannelUnmuted('UCVgO39Bk5sMo66-6o6Spn6Q') },
     { id: 'dw-news',      name: 'DW News',        lang: 'EN', color: '#0033A0', embedUrl: ytChannel('UCknLrEdhRCp1aegoMqRaCZg'), embedUrlUnmuted: ytChannelUnmuted('UCknLrEdhRCp1aegoMqRaCZg') },
     { id: 'wion',         name: 'WION',           lang: 'EN', color: '#E94B3C', embedUrl: ytChannel('UC_gUM8rL-Lrg6O3adPW9K1g'), embedUrlUnmuted: ytChannelUnmuted('UC_gUM8rL-Lrg6O3adPW9K1g') },
-    { id: 'bloomberg-tv', name: 'Bloomberg',      lang: 'EN', color: '#000000', embedUrl: ytChannel('UCIALMKvObZNtJ6AmdCLP7Lg'), embedUrlUnmuted: ytChannelUnmuted('UCIALMKvObZNtJ6AmdCLP7Lg') },
-    { id: 'bangkok-cam',  name: 'Bangkok Live',   lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('h1wly909BYw'),                embedUrlUnmuted: ytVideoUnmuted('h1wly909BYw') }
+    { id: 'bloomberg-tv', name: 'Bloomberg',      lang: 'EN', color: '#000000', embedUrl: ytChannel('UCIALMKvObZNtJ6AmdCLP7Lg'), embedUrlUnmuted: ytChannelUnmuted('UCIALMKvObZNtJ6AmdCLP7Lg') }
 ];
 
 // East Asia TV — reuses only channel IDs already verified elsewhere in this file.
 export const TV_CHANNELS_EASTASIA = [
     { id: 'nhk-world',    name: 'NHK World',  lang: 'EN', color: '#FF0000', embedUrl: ytChannel('UCSPEjw8F2nQDtmUKPFNF7_A'), embedUrlUnmuted: ytChannelUnmuted('UCSPEjw8F2nQDtmUKPFNF7_A') },
     { id: 'kbs-world',    name: 'KBS World',  lang: 'EN', color: '#0046A6', embedUrl: ytChannel('UC5BMQOsAB8hKUyHu9KI6yig'), embedUrlUnmuted: ytChannelUnmuted('UC5BMQOsAB8hKUyHu9KI6yig') },
-    { id: 'cna',          name: 'CNA',        lang: 'EN', color: '#E60023', embedUrl: ytChannel('UCXi6CllNFjlb-kiuHNuKPOA'), embedUrlUnmuted: ytChannelUnmuted('UCXi6CllNFjlb-kiuHNuKPOA') },
+    { id: 'cna',          name: 'CNA',        lang: 'EN', color: '#E60023', embedUrl: ytChannel('UC83jt4dlz1Gjl58fzQrrKZg'), embedUrlUnmuted: ytChannelUnmuted('UC83jt4dlz1Gjl58fzQrrKZg') },
     { id: 'bloomberg-tv', name: 'Bloomberg',  lang: 'EN', color: '#000000', embedUrl: ytChannel('UCIALMKvObZNtJ6AmdCLP7Lg'), embedUrlUnmuted: ytChannelUnmuted('UCIALMKvObZNtJ6AmdCLP7Lg') },
     { id: 'dw-news',      name: 'DW News',    lang: 'EN', color: '#0033A0', embedUrl: ytChannel('UCknLrEdhRCp1aegoMqRaCZg'), embedUrlUnmuted: ytChannelUnmuted('UCknLrEdhRCp1aegoMqRaCZg') }
 ];
@@ -378,19 +385,34 @@ export const TV_CHANNELS_SOUTHASIA = [
     { id: 'dw-news',    name: 'DW News',    lang: 'EN', color: '#0033A0', embedUrl: ytChannel('UCknLrEdhRCp1aegoMqRaCZg'), embedUrlUnmuted: ytChannelUnmuted('UCknLrEdhRCp1aegoMqRaCZg') },
     { id: 'france24-en',name: 'France 24',  lang: 'EN', color: '#0055A4', embedUrl: ytChannel('UCQfwfsi5VrQ8yKZ-UWmAEFg'), embedUrlUnmuted: ytChannelUnmuted('UCQfwfsi5VrQ8yKZ-UWmAEFg') },
     { id: 'aljazeera-en', name: 'Al Jazeera', lang: 'EN', color: '#D4A843', embedUrl: ytVideo('gCNeDWCI0vo'),               embedUrlUnmuted: ytVideoUnmuted('gCNeDWCI0vo') },
-    { id: 'cna',        name: 'CNA',        lang: 'EN', color: '#E60023', embedUrl: ytChannel('UCXi6CllNFjlb-kiuHNuKPOA'), embedUrlUnmuted: ytChannelUnmuted('UCXi6CllNFjlb-kiuHNuKPOA') }
+    { id: 'cna',        name: 'CNA',        lang: 'EN', color: '#E60023', embedUrl: ytChannel('UC83jt4dlz1Gjl58fzQrrKZg'), embedUrlUnmuted: ytChannelUnmuted('UC83jt4dlz1Gjl58fzQrrKZg') }
 ];
 
 // Thailand-only TV — Thai PBS World + regional channels + Thai-language anchors.
+//
+// The ids in this list were re-verified on 2026-10-20 against YouTube's
+// keyless feed API (HTTP 200 plus the channel's own title) and against each
+// channel's live tab. Four of them were dead and one was the wrong channel:
+//   - 'CNA'      UCXi6CllNFjlb-kiuHNuKPOA  404
+//   - 'Thai PBS' UC6QH1HXGl6chl0kZP1KEcUg  404
+//   - 'Thai PBS World' UCb6lpMAyRvWtltkChxIjwUg  404
+//   - 'Nation TV'  UC8i4HhYJ-IVSNaNfIM8XaUw  404
+//   - 'Matichon TV' UCUKAZ2VDFsmKqV9EmESsdgw  404
+//   - 'TNN'      UCRijo3ddMTht_IHyNSNXpNQ  200, but the channel is "Dude Perfect",
+//               a US comedy channel — not a Thai broadcaster at all.
+// The replacements are the channels that answer under their own names:
+// Thai PBS World (UCBSqKmHzetiveSeYTm_ngtw), Thai PBS (UC5TOFhyb_LxL2VG_Zenhpzw),
+// PPTV HD 36 (UC7FCQJFK1sfwD_uobB45Xng) and Matichon TV (UC3S5gtXjd522gCtjOkYRUwg).
+// Two entries were dropped rather than re-pointed: 'Nation TV' — @NationTV
+// answers 404 and @NationChannel's newest upload is from 2007, so there is no
+// working Nation TV channel to show — and the 'Phuket Cam' video, whose id
+// resolves to nothing. A missing tile is honest; a wrong tile is not.
 export const TV_CHANNELS_THAILAND = [
-    { id: 'thai-pbs-world', name: 'Thai PBS World', lang: 'EN', color: '#D4A843', embedUrl: ytChannel('UCb6lpMAyRvWtltkChxIjwUg'), embedUrlUnmuted: ytChannelUnmuted('UCb6lpMAyRvWtltkChxIjwUg') },
-    { id: 'thai-pbs',       name: 'Thai PBS',       lang: 'TH', color: '#D4A843', embedUrl: ytChannel('UC6QH1HXGl6chl0kZP1KEcUg'), embedUrlUnmuted: ytChannelUnmuted('UC6QH1HXGl6chl0kZP1KEcUg') },
-    { id: 'tnn-thailand',   name: 'TNN',            lang: 'TH', color: '#0088CC', embedUrl: ytChannel('UCRijo3ddMTht_IHyNSNXpNQ'), embedUrlUnmuted: ytChannelUnmuted('UCRijo3ddMTht_IHyNSNXpNQ') },
-    { id: 'nation-tv',      name: 'Nation TV',      lang: 'TH', color: '#E60023', embedUrl: ytChannel('UC8i4HhYJ-IVSNaNfIM8XaUw'), embedUrlUnmuted: ytChannelUnmuted('UC8i4HhYJ-IVSNaNfIM8XaUw') },
-    { id: 'matichon',       name: 'Matichon TV',    lang: 'TH', color: '#1a7444', embedUrl: ytChannel('UCUKAZ2VDFsmKqV9EmESsdgw'), embedUrlUnmuted: ytChannelUnmuted('UCUKAZ2VDFsmKqV9EmESsdgw') },
-    { id: 'cna',            name: 'CNA',            lang: 'EN', color: '#E60023', embedUrl: ytChannel('UCXi6CllNFjlb-kiuHNuKPOA'), embedUrlUnmuted: ytChannelUnmuted('UCXi6CllNFjlb-kiuHNuKPOA') },
-    { id: 'bangkok-cam',    name: 'Bangkok Live',   lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('h1wly909BYw'),                embedUrlUnmuted: ytVideoUnmuted('h1wly909BYw') },
-    { id: 'phuket-cam',     name: 'Phuket Cam',     lang: 'LIVE', color: '#1a7444', embedUrl: ytVideo('CL45U17CjIM'),                embedUrlUnmuted: ytVideoUnmuted('CL45U17CjIM') }
+    { id: 'thai-pbs-world', name: 'Thai PBS World', lang: 'EN', color: '#D4A843', embedUrl: ytChannel('UCBSqKmHzetiveSeYTm_ngtw'), embedUrlUnmuted: ytChannelUnmuted('UCBSqKmHzetiveSeYTm_ngtw') },
+    { id: 'thai-pbs',       name: 'Thai PBS',       lang: 'TH', color: '#D4A843', embedUrl: ytChannel('UC5TOFhyb_LxL2VG_Zenhpzw'), embedUrlUnmuted: ytChannelUnmuted('UC5TOFhyb_LxL2VG_Zenhpzw') },
+    { id: 'pptv-hd-36',    name: 'PPTV HD 36',     lang: 'TH', color: '#e30a17', embedUrl: ytChannel('UC7FCQJFK1sfwD_uobB45Xng'), embedUrlUnmuted: ytChannelUnmuted('UC7FCQJFK1sfwD_uobB45Xng') },
+    { id: 'matichon',       name: 'Matichon TV',    lang: 'TH', color: '#1a7444', embedUrl: ytChannel('UC3S5gtXjd522gCtjOkYRUwg'), embedUrlUnmuted: ytChannelUnmuted('UC3S5gtXjd522gCtjOkYRUwg') },
+    { id: 'cna',            name: 'CNA',            lang: 'EN', color: '#E60023', embedUrl: ytChannel('UC83jt4dlz1Gjl58fzQrrKZg'), embedUrlUnmuted: ytChannelUnmuted('UC83jt4dlz1Gjl58fzQrrKZg') }
 ];
 
 // ---------------------------------------------------------------------------

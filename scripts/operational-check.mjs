@@ -30,22 +30,62 @@ try {
         // screen (root 16.56px → a 3.5rem masthead is 58px, not 56).
         rootPx: parseFloat(getComputedStyle(document.documentElement).fontSize),
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
+        // The chrome row must FIT its own width. A row that overflows does
+        // not scroll — it clips, and the buttons past the edge are gone. The
+        // first one-row bar was built on a ladder of viewport widths and it
+        // overflowed at every width from 320 to 1920, with the last two
+        // buttons pushed off the side where nobody can reach them.
+        rowOverflow: (() => {
+          const row = document.querySelector('.header-bar');
+          if (!row) return 0;
+          return Math.round(row.scrollWidth - row.clientWidth);
+        })(),
+        // How much of the SOURCES plate is scrolled out of sight. On a desktop
+        // the contract is that every reading and every qualification is
+        // visible at once, so this must be zero. On a phone the plate is a
+        // scrollable list by design and says so.
+        plateHidden: (() => {
+          const plate = document.querySelector('.map-legend--traffic');
+          if (!plate) return 0;
+          return Math.round(plate.scrollHeight - plate.clientHeight);
+        })(),
         defaultPanels: visible('.left-sidebar,.right-sidebar,.bottom-bar'), failed: /Something went wrong|Map failed to render/.test(document.body.innerText),
         sponsors: [...document.querySelectorAll('.header-brand-logo')].map(i => i.complete && i.naturalWidth > 0) };
     });
     if (width <= 720) {
-      // The phone's rows are fixed pixels, and the contract fixes them:
-      // one 44px masthead row, a 24px instrument band, and 86px of chrome
-      // for the whole stack. A band earns its height.
-      assert.ok(geometry.header.height <= 44.1, `the phone masthead is ${geometry.header.height}px — it carries one row`);
-      assert.ok(geometry.clock.height <= 24.1, `the phone instrument band is ${geometry.clock.height}px`);
+      // The phone's row is fixed pixels, and the contract fixes it: one 44px
+      // line of chrome carrying partners, name, reference clock and controls,
+      // plus the 18px legal marking above it. A band earns its height.
+      assert.ok(geometry.header.height <= 44.1, `the phone chrome row is ${geometry.header.height}px — it carries one line`);
       if (width <= 430) {
-        assert.ok(geometry.chrome <= 88.1, `the top chrome is ${geometry.chrome}px — the phone budget is 88px`);
+        assert.ok(geometry.chrome <= 62.1, `the top chrome is ${geometry.chrome}px — the phone budget is 62px`);
       }
     } else {
       const rem = (n) => n * geometry.rootPx;
-      assert.ok(geometry.header.height <= rem(3.5) + 0.1, `masthead exceeds 3.5rem (${rem(3.5).toFixed(1)}px)`);
-      assert.ok(geometry.clock.height <= rem(1.75) + 0.1, `clock exceeds 1.75rem (${rem(1.75).toFixed(1)}px)`);
+      // The row is sized in rem so it scales with the fluid root. A budget in
+      // fixed pixels measures the wrong thing on a 1440px screen (root
+      // 16.56px → a 3.25rem row is 53.8px, not 52).
+      assert.ok(geometry.header.height <= rem(3.5) + 0.1, `the chrome row exceeds 3.5rem (${rem(3.5).toFixed(1)}px)`);
+      assert.ok(geometry.chrome <= 74.1, `the top chrome is ${geometry.chrome}px — the desktop budget is 74px`);
+    }
+    // ONE band. The clock is an instrument INSIDE the row, not a band above
+    // it: if the clock ever moves out of the row, the chrome is two bands
+    // again and everything the owner asked for is undone. The row brackets
+    // the clock, so this fails the day the clock is hoisted back out.
+    assert.ok(geometry.clock, 'the reference clock must be in the DOM');
+    assert.ok(geometry.clock.top >= geometry.header.top - 1
+      && geometry.clock.bottom <= geometry.header.bottom + 1,
+      `the clock is not inside the chrome row (clock ${geometry.clock.top}–${geometry.clock.bottom}, row ${geometry.header.top}–${geometry.header.bottom}) — the chrome must be ONE line`);
+    assert.ok(geometry.clock.height <= geometry.header.height + 0.1,
+      'the clock is taller than the row it sits in');
+    assert.ok(geometry.rowOverflow <= 1,
+      `the chrome row overflows by ${geometry.rowOverflow}px — a control is off the side of the screen`);
+    if (width > 720) {
+      // Every reading and every qualification visible at once. The plate used
+      // to be capped at 384px and silently scrolled the cable registry and
+      // the cyclone — the two rows that say what the new marks ARE.
+      assert.ok(geometry.plateHidden <= 1,
+        `the SOURCES plate hides ${geometry.plateHidden}px of its content — a qualifier is scrolled out of sight`);
     }
     assert.ok(geometry.map.height * geometry.map.width >= width * 900 * .6, 'map loses first screen');
     assert.equal(geometry.defaultPanels, false);

@@ -73,6 +73,38 @@ field on paper — and never a rainbow that prints its densest cells brighter
 than the ground. The old red→yellow ramp made the fires brighter than the
 paper and contradicted the red swatch the legend promised.
 
+**The cables have their own colour, and they did not.** Ten undersea telecom
+cables crossed the map in the same mid-blue as the Shanghai → Singapore
+corridor, the Singapore anchor, the Jakarta megaregion and the passenger
+vessels — painted with a raw `#006eb8` literal rather than a named role, and
+appearing in **no plate at all**. A reader who asked "what are the blue lines?"
+had no answer, because the answer was spread across four unrelated things
+wearing one colour. The cables now wear **Dark Tyrian Blue `#12354e`**, the
+navy a chart draws a cable in, with a casing of the ground's own ink so the
+core stays readable on the dark and satellite grounds. They are named on the
+map from zoom 3 — their names used to wait for zoom 5 while the Southeast
+Asia view sits at 4.4, so the one thing that would have told the reader what
+they were was switched off — and they have a row in the plate.
+
+**The wind is drawn as barbs, and the barb says its own convention.** The
+shaft runs from the station circle in the direction the air is moving — the
+way the haze is pushed — and the feathers at its outer end carry the speed:
+one full feather is 10 knots, the half feather 5. The circle is the place the
+reading belongs to; without it the staff floats and the reader has to guess
+which end is the origin. A calm point is a circle and a staff and no feathers,
+because "the wind stops here" is the single most useful thing a haze map can
+say. The plate says the convention in words, because a barb is a convention.
+
+**The cyclone is an analysis and the map says so.** The storm's centre, the
+analyst's gale and storm wind radii and the observed track are JMA's. The
+radius is a quadrant figure an analyst assigned, not a measured wind swath;
+the track is a forecast after the last observed centre, and the map draws the
+two halves differently. The plate says "JMA analysis — not a raw satellite
+retrieval" because it is not one: it is built from satellite imagery,
+aircraft, buoys and a numerical model. There is no free, current,
+satellite-derived surface-wind field for Southeast Asia, and the map does not
+pretend otherwise.
+
 **No blurred glows.** Every mark that carried a blurred under-layer lost it:
 corridors, anchors, beacons, strike origins, crisis zones, kinetic targets and
 the trajectory glow. A crisis zone is a flat translucent fill with a clean
@@ -99,13 +131,19 @@ names are the key; a row with one or two colours keeps its strip, which is
 legible at that size, and the mark's own popup names the class on tap.
 
 **What the key rule covers.** The SOURCES plate answers for the live
-readings (aircraft, vessels, thermal detections, conflict events) and the
-STRATEGIC CONTEXT plate answers for the reference routes and areas. The city
-and tier marks — the anchors, the megaregions, the city network, the
-beacons — carry their own categorical colouring and are described in the
-LAYERS panel; the strategic plate does not claim them, and the rule does
-not hold it to them. A rule that claims to check everything and checks four
-of six sources is a rule that will be believed and will not hold.
+readings (aircraft, vessels, thermal detections, conflict events, the wind
+field, the cyclone and the cable registry) and the STRATEGIC CONTEXT plate
+answers for the reference routes and areas. The city and tier marks — the
+anchors, the megaregions, the city network, the beacons — carry their own
+categorical colouring and are described in the LAYERS panel; the strategic
+plate does not claim them, and the rule does not hold it to them. A rule that
+claims to check everything and checks four of six sources is a rule that will
+be believed and will not hold. The cables and the cyclone were exactly that
+gap for a wave: two layers on the map that no rule looked at.
+
+**A key entry that no plate renders is not a key.** The key and the drawing
+agreeing is only half the contract; the reader has to be shown the row. The
+guard requires the plate to reach for every key list it owns.
 
 **A control may not lie about what it does.** The basemap picker's "Dark"
 option pointed at the bright Esri street map: the label promised a low-glare
@@ -116,29 +154,48 @@ rejected: without an API key it returns tiles watermarked "API KEY REQUIRED"
 across the whole map, which is worse than no option at all.
 
 ## Layout
-The live map is the operating table. Compact clock (24–28px), 56px masthead and 44px ticker; no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.
+The live map is the operating table. **One line of chrome**, a 44px ticker, no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.
 
-**A band earns its height.** On a wide screen the clock rail carries nine
-clocks and the masthead carries six region tabs, so both are full and both
-earn their pixels. On a phone the rail carried one clock in a 390px strip and
-the masthead was a two-row grid — a 30px title row above a 26px partner row —
-so 56px of chrome held one word and four small logos. The phone is now
-**86px of chrome in three bands** (18px legal marking, 24px instrument band,
-44px masthead), every one of them at its content floor, and the masthead is
-one row: partners, name, controls. The live check fails the release if the
-phone's stack grows past **88px**.
+**A band earns its height.** The chrome is **ONE row**: partners, product
+name, the reference clock, the theater it keeps time for, the index of the
+world's time, the theater tabs, and the controls. There is no second band
+above it and none below it. The legal marking (18px) sits above the row and
+is not chrome.
 
-The instrument band is two cells on a phone: the reference clock, and the
-theater it is keeping time for. On a wide screen the region tabs say the
-theater and the band is full; on a phone the tabs are gone and the band would
-otherwise be half empty. A region's short label may only shorten its full
-label — never rename it — and the guard enforces that.
+It used to be three bands — 18px legal marking, 24px instrument band, 44px
+masthead — and the owner asked for exactly this: *"All the information should
+be on one line only in the top bar."* A 390px phone carried **86px** of
+chrome for one word and four small logos. It now carries **62px**: the 18px
+legal marking and one 44px row. A 1440px desktop carried 106px and now
+carries **74px**. The live check fails the release if either grows, and it
+fails it if the clock ever leaves the row — the chrome being one line is the
+rule, not a picture of it.
 
-The clock rail is **centred**: the reference clock is the focal point of the
-strip and the eight flanking clocks are an index around it. The rail used to be
-left-packed, which left 740px of empty margin on the right while the primary
-clock was squeezed into a 240px cell and truncated its own city name. A rail
-may not truncate a label.
+**What gives way, in what order.** The row is fixed content in a variable
+width, so something has to go when the width runs out. The order is fixed,
+and the amount is **measured at run time** — the row is asked what it has:
+
+1. The world-clock index goes first, **from the tail, whole clocks and never
+   half of one.** It is ordered by what a clock still says to an operator
+   watching this theater, so the far-flung ones (Washington, Honolulu,
+   Canberra) go before the theater's own cities do. A clock is never clipped
+   and never scrolled.
+2. Then the theater's name beside the reference clock — dropped whole.
+3. Then the product subtitle.
+4. Then the partner marks. **PMUA stays**; it is the anchor.
+
+The reference clock is the instrument and it is **never** the thing that is
+sacrificed. It keeps its seconds and it is never truncated.
+
+This is measured rather than a ladder of viewport widths, because a ladder is
+wrong the moment the title grows a word, the theater gains a tab, or a phone
+is 390px wide instead of 393. The first one-row bar was built on such a
+ladder and it overflowed at **every** width from 320 to 1920, with the last
+two buttons pushed off the side of the screen where nobody can reach them.
+The live check now fails the release if the row overflows its own width.
+
+A region's short label may only shorten its full label — never rename it —
+and the guard enforces that.
 
 The masthead subtitle names the product, not the build. The version is a build
 fact and it is read in the LAYERS panel and in the legal notice; a truncated
@@ -194,6 +251,45 @@ qualification is visible at once, and the plate is wide and tall enough to
 hold them. A qualifier is never scrolled out of sight. Machine identifiers
 are said in words — "NASA FIRMS public file · 24h", not "nasa-firms-public-24h".
 
+The plate earns its height by being big enough. It was capped at 384px, which
+held five rows and silently scrolled the rest — and the rows that went missing
+were the cable registry and the cyclone, the two that say what the new marks
+ARE. It is capped at 620px now, which holds all eight rows at 1440, and the
+live check measures that nothing is hidden.
+
+**On a phone the plate is a list that scrolls, and it says so.** A 196px
+plate on a 390px phone cannot hold eight stacked readings and their
+qualifications without covering the map it is annotating. The desktop promise
+is the one that binds — every reading and every qualification visible at once
+— and on a phone the plate is a scrollable list of the same rows. The scroll
+is the honest form of that trade: the plate does not claim to show
+everything at once at that width, and it does not pretend the rows it is
+holding are the only readings there are.
+
+**"Live" has three degrees, and a camera screen names the one it is.**
+An HLS stream is video. A snapshot is a **refreshing JPEG and not video**,
+and is never called "live video" or "streaming". A city with no verified
+public camera says so **in words** — there is no placeholder tile that looks
+like a working camera, because a placeholder is a claim. The same applies to
+a broadcast: a channel running live, a VOD with no stream running, a dormant
+channel and a stale one are four different labels, and the wall says which.
+
+**A frame is measured, not assumed.** The Thai camera network answers HTTP
+200 with a 43-byte blank for a camera that does not exist, and a real frame
+is about 3,000 bytes at 320×240. A status code is not a liveness test. The
+wall fetches the frame, checks the byte count and the dimensions, and
+rejects a frame that more than one camera returns — the placeholder. A frame
+that did not change between two probes six seconds apart is reported as
+exactly that, because a still frame in a tile labelled "refreshing" is a
+smaller lie but still a lie.
+
+**The wall says how little of it there is.** Five of eleven cities carry a
+verified camera and three of eleven have a channel streaming live at the
+probe time, and the wall says so at the top. A panel that shows five working
+screens next to six honest absences is telling the truth about the coverage;
+a panel that hid the six absences would be telling the reader that six
+cities are quiet.
+
 ## Protected voice
 - marker "GlobeWatch": the supplied project identity
 - marker "AsiaWatch": the pan-Asian project identity
@@ -226,6 +322,14 @@ places, each answering a question the others cannot:
    control against its effect, a reading against its provenance, a colour
    against the palette. The gate answers each of those, and it is wired into
    `prebuild`, so a build that lies does not ship.
+4. **The live release check** (`scripts/operational-check.mjs`, run against
+   the deployed URL). *Does it hold together in a browser?* The gates read
+   files; this one measures the shipped page: that the chrome is **one row**
+   and that the clock is inside it, that the row does not overflow its own
+   width, that the chrome stays inside its budget, and that nothing in the
+   plate is scrolled out of sight. A file can satisfy every gate and still
+   put a control off the side of the screen; that is what the one-row bar
+   did, at every width, for a whole wave.
 
 Every rule in the gate is a FUNCTION that takes the subject it judges and
 returns its problems, and the rules that guard a shipped defect have a

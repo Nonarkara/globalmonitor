@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Tv, Volume2, VolumeX } from 'lucide-react';
 import { getRegion } from '../data/regions.js';
+import { CITY_WALL_THEATERS } from '../data/cityFeeds.js';
+import CityWallPanel from './CityWallPanel.jsx';
 
 const CHANNELS_PER_PAGE = 4;
 
@@ -8,6 +10,12 @@ const CHANNELS_PER_PAGE = 4;
  * Region-aware live-TV grid. Reads channel list from the region registry.
  * Switching viewMode swaps channels with no remount-flicker because we
  * keep the iframe `src` keyed by channel id, not by region.
+ *
+ * The Southeast Asia and Thailand theaters do not get a grid of channel
+ * tiles: they get the CITY WALL — one CCTV screen and one broadcast screen
+ * per city, each labelled with what it actually is. A grid of broadcasters
+ * says "this is what the region looks like"; a wall of cameras says where
+ * the operator is looking. The other theaters keep the grid, unchanged.
  */
 const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
   const channels = useMemo(() => getRegion(viewMode).channels, [viewMode]);
@@ -24,6 +32,10 @@ const LiveTVPanel = ({ viewMode = 'middleeast' }) => {
       channel: prev.viewMode === viewMode && prev.channel === channelId ? null : channelId,
     }));
   }, [viewMode]);
+
+  if (CITY_WALL_THEATERS.includes(viewMode)) {
+    return <CityWallPanel />;
+  }
 
   return (
     <div className="grid-panel" style={{

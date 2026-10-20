@@ -47,7 +47,19 @@ export const MARK = {
     routeEast: '#006eb8',       // the Shanghai → Singapore corridor
     zoneGulf: '#a72144',        // the Gulf area wash
     zoneRedSea: '#f59e0b',      // the Red Sea area wash
-    zoneSouthEast: '#1a7444'    // the Southeast Asia theatre wash
+    zoneSouthEast: '#1a7444',   // the Southeast Asia theatre wash
+
+    // Infrastructure and weather
+    //
+    // The cables were painted a raw '#006eb8' literal — the same Blue as the
+    // Shanghai → Singapore corridor, the Singapore anchor, the Jakarta
+    // megaregion and the passenger vessels — and appeared in no plate at all.
+    // Ten blue lines with nothing to decode them is why the reader could not
+    // answer "what are the blue lines?". They now have their own role, in the
+    // dark navy a chart draws a cable in, which reads as a different kind of
+    // thing from the mid-blue corridor even though both are blue families.
+    cable: '#12354e',           // Dark Tyrian Blue — undersea telecom cable
+    storm: '#a72144'            // Wada Red — a tropical cyclone's wind field
 };
 
 /**
@@ -83,6 +95,12 @@ export const LEGEND_KEY = {
     ],
     conflicts: [
         { mark: 'conflict', label: 'event' }
+    ],
+    cables: [
+        { mark: 'cable', label: 'submarine telecom cable' }
+    ],
+    storm: [
+        { mark: 'storm', label: 'cyclone wind field' }
     ]
 };
 
@@ -107,7 +125,7 @@ export const STRATEGIC_KEY = {
     routes: [
         { mark: 'routeEnergy', label: 'Energy route reference' },
         { mark: 'routeLane', label: 'Shipping lane reference' },
-        { mark: 'routeEast', label: 'Regional city network' }
+        { mark: 'routeEast', label: 'East Asia trade corridor' }
     ],
     zones: [
         { mark: 'zoneGulf', label: 'Persian Gulf focus area' },

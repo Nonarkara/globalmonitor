@@ -11,6 +11,9 @@ import {
 import { fetchBriefingPayload, fetchTickerPayload } from './lib/intelligence.mjs';
 import { fetchMarketPayload } from './lib/marketData.mjs';
 import { fetchFirmsPayload } from './lib/firms.mjs';
+import { fetchWindField } from './lib/windField.mjs';
+import { fetchJmaTyphoon } from './lib/jmaTyphoon.mjs';
+import { fetchCityFeeds, fetchCityImage } from './lib/cityFeeds.mjs';
 import { computeEscalation } from './lib/escalation.mjs';
 import { computeStrikeStats } from './lib/strikeStats.mjs';
 import { fetchHumanitarianPayload } from './lib/humanitarian.mjs';
@@ -300,6 +303,105 @@ const server = http.createServer(async (request, response) => {
             );
             if (result.meta.cache !== 'hit' && result.payload?.meta?.source === 'nasa-firms-live') upsertFirmsHotspots(result.payload, theater).catch(() => {});
             json(response, 200, result.payload, result.meta);
+            return;
+        }
+
+        if (url.pathname === '/api/city-feeds') {
+            // ONE route, TWO behaviours: JSON by default, and the camera
+            // frame's bytes when `image=` is present. The proxy exists because
+            // one source sends `Cross-Origin-Resource-Policy: same-origin`
+            // and a browser then refuses the image outright; the server can
+            // fetch it. The host list is closed — a proxy that fetches any URL
+            // is a request-forger.
+            const image = url.searchParams.get('image');
+            if (image) {
+                const frame = await fetchCityImage(image);
+                if (!frame.ok) {
+                    json(response, frame.status || 502, { error: frame.error || 'the camera did not answer' }, { status: 'error', cache: 'miss' });
+                    return;
+                }
+                response.writeHead(200, {
+                    'content-type': frame.contentType,
+                    'cache-control': 'public, max-age=20',
+                    'x-tech-status': 'live',
+                    'x-tech-source': 'city-image'
+                });
+                response.end(frame.body);
+                return;
+            }
+            const result = await useCached(
+                'city-feeds',
+                5 * 60 * 1000,
+                () => fetchCityFeeds(),
+                (payload) => Array.isArray(payload?.cities) && payload.cities.length > 0
+            );
+            json(response, 200, result.payload, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.probedAt || result.meta.updatedAt
+            });
+            return;
+        }
+
+        if (url.pathname === '/api/wind') {
+            const theater = url.searchParams.get('theater') || 'indopacific';
+            // The same two levels the Pages function serves. The local server
+            // used to have no wind route at all, so the wind layer could only
+            // ever be verified against production — a route that exists in one
+            // runtime and not the other is a route that will rot in the one
+            // nobody watches.
+            const level = String(url.searchParams.get('level') || '10m').toLowerCase() === '850hpa'
+                ? '850hPa'
+                : '10m';
+            const cacheKey = level === '10m' ? `wind:${theater}` : `wind:${theater}:${level}`;
+            const result = await useCached(
+                cacheKey,
+                15 * 60 * 1000,
+                () => fetchWindField(theater, { level }),
+                (payload) => Array.isArray(payload?.features) && payload.features.length > 0
+            );
+            json(response, 200, result.payload, {
+                ...result.meta,
+                updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+            });
+            return;
+        }
+
+        if (url.pathname === '/api/typhoon') {
+            try {
+                const result = await useCached(
+                    'jma-typhoon',
+                    30 * 60 * 1000,
+                    () => fetchJmaTyphoon(),
+                    (payload) => payload?.type === 'FeatureCollection'
+                );
+                json(response, 200, result.payload, {
+                    ...result.meta,
+                    updatedAt: result.payload?.meta?.observedAt || result.meta.updatedAt
+                });
+            } catch (error) {
+                // An unreachable bulletin is an outage, not an absence of
+                // storms. Say so and draw nothing.
+                json(response, 200, {
+                    type: 'FeatureCollection',
+                    features: [],
+                    meta: {
+                        source: 'JMA',
+                        stormId: null,
+                        stormName: null,
+                        category: null,
+                        maxWindMs: null,
+                        maxWindKt: null,
+                        gustMs: null,
+                        pressureHpa: null,
+                        observedAt: null,
+                        fetchedAt: new Date().toISOString(),
+                        isForecast: false,
+                        quadrantRadii: true,
+                        storms: [],
+                        note: 'JMA typhoon bulletin unavailable — the upstream feed could not be read. No storm is drawn.'
+                    }
+                }, { status: 'error', source: 'JMA', updatedAt: new Date().toISOString(), cache: 'miss' });
+            }
             return;
         }
 

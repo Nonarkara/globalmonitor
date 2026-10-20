@@ -32,8 +32,22 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { MARK, wash, groundInk } from '../src/data/mapPalette.js';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
+
+/**
+ * The names a paint block may legitimately call that are not array constants
+ * and not local variables: the palette itself and the two helpers that turn
+ * a palette role into an ink.
+ *
+ * Without these the checker resolved `wash` to 0, called it, and gave up on
+ * the WHOLE paint block — so a block that called `wash()` was never checked
+ * for a bad zoom expression at all. Resolving them for real means those
+ * blocks are now inspected instead of skipped.
+ */
+const KNOWN = { MARK, wash, groundInk };
 
 const collectFiles = (dir, out = []) => {
     for (const entry of readdirSync(dir)) {
@@ -145,6 +159,7 @@ const evaluateObject = (literal, constArrays = new Map(), depth = 0) => {
         has: () => true,
         get: (_t, prop) => {
             if (typeof prop !== 'string') return 0;
+            if (Object.prototype.hasOwnProperty.call(KNOWN, prop)) return KNOWN[prop];
             const raw = constArrays.get(prop);
             if (raw === undefined || depth > 3) return 0;
             try {

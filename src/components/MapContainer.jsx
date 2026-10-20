@@ -12,8 +12,9 @@ import { fetchLiveWeather } from '../services/weather';
 import { fetchMacroEconomy } from '../services/worldBank';
 import { fetchAirQuality } from '../services/airQuality';
 import { fetchFirmsData } from '../services/firms';
-import { fetchWind } from '../services/wind';
-import { windArrows } from '../utils/windArrows';
+import { fetchWind, fetchTransportWind } from '../services/wind';
+import { fetchTyphoon } from '../services/typhoon';
+import { windBarbs } from '../utils/windBarbs';
 import { fetchInfrastructure } from '../services/infrastructure';
 import { fetchAirportLocations } from '../services/airports.js';
 import { fetchFlights } from '../services/flights.js';
@@ -107,6 +108,10 @@ const FIRMS_SOURCE_LABELS = {
     'nasa-firms-live': 'NASA FIRMS live',
     'no_firms_key': 'no FIRMS key — nothing shown',
 };
+
+/** How many named cables the registry holds. Counted from the data, not typed
+    in, so the plate cannot claim a number the map does not draw. */
+const CABLE_COUNT = SUBMARINE_CABLES_GEOJSON?.features?.length || 0;
 
 /** Month-scale window for the hand-typed demo events. "Mar 2026" says the
     events are months old without spending a line on six exact days. The
@@ -946,7 +951,28 @@ const MapContainer = ({
         intervalMs: 15 * 60 * 1000,
         isUsable: hasFeatureData
     });
-    const windArrowData = useMemo(() => windArrows(windResource.data), [windResource.data]);
+    // The transport level — 850 hPa, about 1500 m up — is the air that actually
+    // carries the haze, so it is the level the map draws when it has it. The
+    // surface field is the fallback, and the plate says which one is on the
+    // map: a level swap that nobody states would be the map quietly changing
+    // what it is telling you.
+    const transportWindResource = useLiveResource(useCallback(() => fetchTransportWind(viewMode), [viewMode]), {
+        cacheKey: `map:wind850:${viewMode}`,
+        enabled: activeLayers.includes('wind'),
+        intervalMs: 30 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
+    const windDrawnData = transportWindResource.data?.features?.length
+        ? transportWindResource.data
+        : windResource.data;
+    const windDrawnIsTransport = windDrawnData === transportWindResource.data;
+    const windBarbData = useMemo(() => windBarbs(windDrawnData), [windDrawnData]);
+    const typhoonResource = useLiveResource(useCallback(() => fetchTyphoon(), []), {
+        cacheKey: 'map:typhoon',
+        enabled: activeLayers.includes('typhoon'),
+        intervalMs: 30 * 60 * 1000,
+        isUsable: hasFeatureData
+    });
     const infraResource = useLiveResource(useCallback(() => fetchInfrastructure(), []), {
         cacheKey: 'map:infrastructure',
         enabled: activeLayers.includes('infrastructure'),
@@ -1165,11 +1191,13 @@ const MapContainer = ({
         }
         return worst;
     }, [aqiData]);
-    const windMeta = windResource.data?.meta;
+    const windMeta = windDrawnData?.meta;
+    const typhoonMeta = typhoonResource.data?.meta;
 
     const legendVisible = flightsLayerActive || vesselsLayerActive
         || activeLayers.includes('firms') || activeLayers.includes('conflicts')
-        || activeLayers.includes('aqi') || activeLayers.includes('wind');
+        || activeLayers.includes('aqi') || activeLayers.includes('wind')
+        || activeLayers.includes('cables') || activeLayers.includes('typhoon');
     const prevFlightStatsRef = useRef(null);
     useEffect(() => {
         const next = {
@@ -1549,14 +1577,37 @@ const MapContainer = ({
                     </Source>
                 )}
 
-                {/* Surface wind, drawn downwind so each arrow shows where smoke goes.
-                    Same basemap-aware ink as the flagship: dark on the light
-                    paper, pale on dark and satellite. */}
+                {/* WIND BARBS — the synoptic glyph. The shaft points downwind:
+                    the way the air moves, the way the haze is pushed. The
+                    feathers carry the strength, one full feather per 10 knots.
+                    Same basemap-aware ink the wind has always had: dark on the
+                    light paper, pale on dark and satellite. */}
                 {activeLayers.includes('wind') && (
-                    <Source id="wind-arrows" type="geojson" data={windArrowData}>
+                    <Source id="wind-barbs" type="geojson" data={windBarbData}>
+                        {/* The circle is the place the reading belongs to. Without
+                            it the staff floats and the reader has to guess which
+                            end is the origin. */}
                         <Layer
-                            id="wind-arrows-line"
+                            id="wind-barbs-station"
+                            type="circle"
+                            filter={['==', ['get', 'kind'], 'station']}
+                            paint={{
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.6, 6, 2.4, 10, 3.2],
+                                'circle-color': basemapInk,
+                                'circle-opacity': [
+                                    'interpolate', ['linear'], ['get', 'speedKmh'],
+                                    0, 0.5, 35, 0.95
+                                ]
+                            }}
+                        />
+                        {/* The staff is drawn heavier than the feathers, as a
+                            barb is. Two layers, because one line layer carries
+                            one weight, and a field of uniform hair is not the
+                            glyph anyone recognises. */}
+                        <Layer
+                            id="wind-barbs-staff"
                             type="line"
+                            filter={['==', ['get', 'kind'], 'shaft']}
                             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
                             paint={{
                                 'line-color': basemapInk,
@@ -1564,17 +1615,113 @@ const MapContainer = ({
                                 // interpolate. Wrapping it in `['*', …]` made
                                 // MapLibre reject the whole layer in silence —
                                 // the legend promised 117 arrows and the map
-                                // drew none. The stroke scales with the map;
-                                // the wind's own strength rides on the arrow
-                                // length (see windArrows) and on opacity.
+                                // drew none.
                                 'line-width': [
                                     'interpolate', ['linear'], ['zoom'],
-                                    3, 0.9, 6, 1.5, 10, 2.2
+                                    3, 1.5, 6, 2.1, 10, 2.9
                                 ],
                                 'line-opacity': [
                                     'interpolate', ['linear'], ['get', 'speedKmh'],
-                                    0, 0.14, 35, 0.55
+                                    0, 0.4, 35, 0.9
                                 ]
+                            }}
+                        />
+                        <Layer
+                            id="wind-barbs-feathers"
+                            type="line"
+                            filter={['==', ['get', 'kind'], 'barbs']}
+                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+                            paint={{
+                                'line-color': basemapInk,
+                                'line-width': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    3, 1.1, 6, 1.6, 10, 2.2
+                                ],
+                                'line-opacity': [
+                                    'interpolate', ['linear'], ['get', 'speedKmh'],
+                                    0, 0.4, 35, 0.95
+                                ]
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* THE DEPRESSION — JMA's analysed tropical cyclone.
+                    The gale and storm areas are the analyst's quadrant radii,
+                    not a measured wind swath; the track is a forecast after
+                    the last observed centre. The plate says which is which. */}
+                {activeLayers.includes('typhoon') && typhoonResource.data?.features?.length > 0 && (
+                    <Source id="typhoon-data" type="geojson" data={typhoonResource.data}>
+                        <Layer
+                            id="typhoon-gale-fill"
+                            type="fill"
+                            filter={['==', ['get', 'kind'], 'galeArea']}
+                            paint={{
+                                'fill-color': wash(MARK.storm, 0.18),
+                                'fill-outline-color': MARK.storm,
+                                'fill-opacity': 0.9
+                            }}
+                        />
+                        <Layer
+                            id="typhoon-storm-fill"
+                            type="fill"
+                            filter={['==', ['get', 'kind'], 'stormArea']}
+                            paint={{
+                                'fill-color': wash(MARK.storm, 0.36),
+                                'fill-outline-color': MARK.storm,
+                                'fill-opacity': 0.95
+                            }}
+                        />
+                        <Layer
+                            id="typhoon-track-past"
+                            type="line"
+                            filter={['==', ['get', 'kind'], 'trackPast']}
+                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+                            paint={{
+                                'line-color': MARK.storm,
+                                'line-width': 2.2,
+                                'line-opacity': 0.9
+                            }}
+                        />
+                        <Layer
+                            id="typhoon-track-forecast"
+                            type="line"
+                            filter={['==', ['get', 'kind'], 'trackForecast']}
+                            layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
+                            paint={{
+                                'line-color': MARK.storm,
+                                'line-width': 1.6,
+                                'line-opacity': 0.6,
+                                'line-dasharray': [3, 3]
+                            }}
+                        />
+                        <Layer
+                            id="typhoon-centre"
+                            type="circle"
+                            filter={['==', ['get', 'kind'], 'centre']}
+                            paint={{
+                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 4, 6, 7, 10, 10],
+                                'circle-color': MARK.storm,
+                                'circle-stroke-color': labelHalo,
+                                'circle-stroke-width': 1.6
+                            }}
+                        />
+                        <Layer
+                            id="typhoon-centre-label"
+                            type="symbol"
+                            filter={['==', ['get', 'kind'], 'centre']}
+                            layout={{
+                                'text-field': ['concat', ['get', 'name'], ' · ', ['to-string', ['get', 'maxWindKt']], ' kt'],
+                                'text-size': 11,
+                                'text-font': ['Noto Sans Regular'],
+                                'text-offset': [0, 1.6],
+                                'text-anchor': 'top',
+                                'text-allow-overlap': false
+                            }}
+                            paint={{
+                                'text-color': labelInk,
+                                'text-halo-color': labelHalo,
+                                'text-halo-width': 1.4
                             }}
                         />
                     </Source>
@@ -1866,22 +2013,51 @@ const MapContainer = ({
                 {/* Submarine Telecom Cables Layer.
                     No blurred under-layer: a cable is a line, and a line has
                     one weight. The glow was a HUD flourish that also made the
-                    route read as a boundary rather than a route. */}
+                    route read as a boundary rather than a route.
+
+                    The cables now wear their OWN mark — the dark navy a chart
+                    draws a cable in — instead of the same mid-blue as the
+                    Shanghai → Singapore corridor. Ten blue lines that shared a
+                    colour with everything else blue, and appeared in no plate
+                    at all, are why "what are the blue lines?" had no answer.
+
+                    The casing under the cable is the ground's own ink, so the
+                    navy core stays readable on the dark and satellite grounds
+                    as well as on the paper one. It is a halo, not a second
+                    colour of the mark: the key shows the navy, the map draws
+                    the navy. */}
                 {activeLayers.includes('cables') && (
                     <Source id="cables-data" type="geojson" data={SUBMARINE_CABLES_GEOJSON}>
                         <Layer
-                            id="cables-lines"
+                            id="cables-casing"
                             type="line"
+                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
                             paint={{
-                                'line-color': '#006eb8',
-                                'line-width': 1.6,
-                                'line-opacity': 0.88
+                                'line-color': basemapInk,
+                                'line-width': 3.4,
+                                'line-opacity': 0.35
                             }}
                         />
                         <Layer
+                            id="cables-lines"
+                            type="line"
+                            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+                            paint={{
+                                'line-color': MARK.cable,
+                                'line-width': 1.6,
+                                'line-opacity': 0.95
+                            }}
+                        />
+                        {/* The cable names used to wait for zoom 5, and the
+                            Southeast Asia view sits at 4.4 — so the one thing
+                            that would have told the reader what the blue
+                            lines were was switched off. The names are drawn
+                            from zoom 3 and MapLibre drops the ones that would
+                            collide. */}
+                        <Layer
                             id="cables-labels"
                             type="symbol"
-                            minzoom={5}
+                            minzoom={3}
                             layout={{
                                 'text-field': ['get', 'name'],
                                 'text-size': 10,
@@ -2251,10 +2427,10 @@ const MapContainer = ({
                                         </div>
                                     );
                                 }
-                                if (layerId === 'cables-lines') {
+                                if (layerId.startsWith('cables')) {
                                     return (
                                         <div className="traffic-tooltip-content">
-                                            <div className="traffic-tooltip-header" style={{ color: '#006eb8' }}>
+                                            <div className="traffic-tooltip-header" style={{ color: MARK.cable }}>
                                                 {p.name || 'Undersea Fiber Cable'}
                                             </div>
                                             <div className="traffic-tooltip-row">
@@ -2275,6 +2451,139 @@ const MapContainer = ({
                                                     <span style={{ fontSize: 'var(--type-micro)' }}>{p.landingPoints}</span>
                                                 </div>
                                             )}
+                                        </div>
+                                    );
+                                }
+                                if (layerId.startsWith('typhoon')) {
+                                    const quadrant = p.radiiKm
+                                        ? ['NE', 'SE', 'SW', 'NW']
+                                            .filter((q) => Number.isFinite(p.radiiKm[q]))
+                                            .map((q) => `${q} ${p.radiiKm[q]} km`)
+                                            .join(' · ')
+                                        : '—';
+                                    const isArea = p.kind === 'galeArea' || p.kind === 'stormArea';
+                                    const isTrack = String(p.kind || '').startsWith('track');
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header" style={{ color: MARK.storm }}>
+                                                {p.name ? `${p.name} · ${p.categoryEn || p.category || 'TC'}` : 'Tropical cyclone'}
+                                            </div>
+                                            {isArea && (
+                                                <>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Area</span>
+                                                        {/* The Japanese JMA term is not repeated here: the
+                                                            reader needs to know the radius is the analyst's,
+                                                            not the script it was written in. */}
+                                                        <span>{p.kind === 'galeArea' ? 'Gale radius' : 'Storm radius'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Quadrants</span>
+                                                        <span>{quadrant}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Source</span>
+                                                        <span>JMA analyst radii</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            {!isArea && !isTrack && (
+                                                <>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Max wind</span>
+                                                        <span>{p.maxWindKt ? `${p.maxWindKt} kt · ${p.maxWindMs} m/s` : '—'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Gust</span>
+                                                        <span>{p.gustKt ? `${p.gustKt} kt · ${p.gustMs} m/s` : '—'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Pressure</span>
+                                                        <span>{p.pressureHpa ? `${p.pressureHpa} hPa` : '—'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Movement</span>
+                                                        <span>{p.movement || '—'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Position</span>
+                                                        <span>{p.locationEn || p.location || '—'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Intensity</span>
+                                                        <span>{p.intensityEn || p.intensity || '—'}</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Issued</span>
+                                                        <span>{p.validAt || p.observedAt || '—'}</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            {isTrack && (
+                                                <>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Track</span>
+                                                        <span>
+                                                            {p.forecast
+                                                                ? 'Forecast centres — dashed'
+                                                                : 'Observed centres — solid'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Observed</span>
+                                                        <span>{p.pastPoints ?? 0} centres</span>
+                                                    </div>
+                                                    <div className="traffic-tooltip-row">
+                                                        <span>Forecast</span>
+                                                        <span>{p.forecastPoints ?? 0} centres</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            <div className="traffic-tooltip-row">
+                                                <span>Source</span>
+                                                <span>JMA analysis — not a raw satellite retrieval</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                if (layerId.startsWith('wind-barbs')) {
+                                    const fromDeg = Number(p.fromDeg);
+                                    const kt = Number(p.speedKt);
+                                    const COMPASS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+                                    const bearing = Number.isFinite(fromDeg)
+                                        ? COMPASS[Math.round(((fromDeg % 360) + 360) % 360 / 22.5) % 16]
+                                        : '—';
+                                    const toward = Number.isFinite(fromDeg)
+                                        ? COMPASS[Math.round((((fromDeg + 180) % 360) + 360) % 360 / 22.5) % 16]
+                                        : '—';
+                                    return (
+                                        <div className="traffic-tooltip-content">
+                                            <div className="traffic-tooltip-header">
+                                                Wind {Number.isFinite(kt) ? `${kt} kt` : '—'}
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>From</span>
+                                                <span>{bearing}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Pushing toward</span>
+                                                <span>{toward}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Speed</span>
+                                                <span>{Number.isFinite(p.speedKmh) ? `${p.speedKmh} km/h` : '—'}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Feathers</span>
+                                                <span>
+                                                    {p.barbsFull || 0} full · {p.barbsHalf || 0} half
+                                                    <span> (1 full = 10 kt)</span>
+                                                </span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
+                                                <span>Source</span>
+                                                <span>Open-Meteo model — not an observation</span>
+                                            </div>
                                         </div>
                                     );
                                 }
@@ -2802,7 +3111,7 @@ const MapContainer = ({
                         <span className="map-legend-line" style={{ background: groundInk(basemapIsDark) }} />
                         <span className="map-legend-copy">
                             <span className="map-legend-value">
-                                {windMeta ? `${windMeta.count} points` : 'No wind reading'}
+                                {windMeta ? `${windMeta.count} barbs` : 'No wind reading'}
                             </span>
                             <span className="map-legend-meta">
                                 {windMeta ? (
@@ -2811,12 +3120,76 @@ const MapContainer = ({
                                             accidental wrap makes the plate look
                                             broken; a deliberate second line makes
                                             it look like an instrument. */}
-                                        <span>10 m surface{windMeta.partial ? ' · partial' : ''}</span>
-                                        <span>{compactUtc(windMeta.observedAt) || 'time unknown'}</span>
+                                        <span>
+                                            {windMeta.level || '10 m above ground'}
+                                            {windMeta.partial ? ' · partial' : ''}
+                                        </span>
+                                        {/* The level is named because the map draws
+                                            the transport field when it has it and
+                                            falls back to the surface field when it
+                                            does not, and a silent swap would be the
+                                            map changing what it is telling you.
+                                            The convention is named because a barb
+                                            is read by its feathers and by which
+                                            way it points, and the reader has to be
+                                            told which way this one points. */}
+                                        <span>
+                                            Open-Meteo model · barb points downwind
+                                            {windDrawnIsTransport ? '' : ' · surface fallback'}
+                                        </span>
+                                        <span>
+                                            1 feather = 10 kt
+                                            {compactUtc(windMeta.observedAt) ? ` · ${compactUtc(windMeta.observedAt)}` : ' · time unknown'}
+                                        </span>
                                     </>
                                 ) : (
                                     <span>upstream unavailable</span>
                                 )}
+                            </span>
+                        </span>
+                    </div>
+                )}
+                {activeLayers.includes('typhoon') && (
+                    <div className="map-legend-item">
+                        <span
+                            className="map-legend-zone"
+                            style={{ background: wash(MARK.storm, 0.3), borderColor: MARK.storm }}
+                        />
+                        <span className="map-legend-copy">
+                            <span className="map-legend-value">
+                                {typhoonMeta?.stormName
+                                    ? `${typhoonMeta.stormName} · ${typhoonMeta.maxWindKt ?? '—'} kt`
+                                    : typhoonResource.error
+                                        ? 'Cyclone bulletin unavailable'
+                                        : 'No tropical cyclone'}
+                            </span>
+                            <span className="map-legend-meta">
+                                {typhoonMeta?.stormName ? (
+                                    <>
+                                        <span>
+                                            {typhoonMeta.category || 'TC'} · {typhoonMeta.pressureHpa ?? '—'} hPa
+                                            {typhoonMeta.observedAt ? ` · ${compactUtc(typhoonMeta.observedAt)}` : ''}
+                                        </span>
+                                        <LegendClasses marks={LEGEND_KEY.storm} />
+                                        <span>JMA analysis — not a raw satellite retrieval</span>
+                                    </>
+                                ) : (
+                                    <span>{typhoonMeta?.note || 'JMA bulletin unavailable'}</span>
+                                )}
+                            </span>
+                        </span>
+                    </div>
+                )}
+                {activeLayers.includes('cables') && (
+                    <div className="map-legend-item">
+                        <span className="map-legend-line" style={{ background: MARK.cable }} />
+                        <span className="map-legend-copy">
+                            <span className="map-legend-value">
+                                {CABLE_COUNT} submarine cables
+                            </span>
+                            <span className="map-legend-meta">
+                                <LegendClasses marks={LEGEND_KEY.cables} />
+                                <span>reference registry · not a live feed</span>
                             </span>
                         </span>
                     </div>

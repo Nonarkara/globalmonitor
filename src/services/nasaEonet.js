@@ -10,8 +10,14 @@ export const fetchNaturalDisasters = async () => {
         const features = response.data.events
             .filter(event => event.geometry && event.geometry.length > 0)
             .map(event => {
-                // Handle both points and polygons, extracting a single point for the marker
-                const geom = event.geometry[0];
+                // Handle both points and polygons, extracting a single point for the marker.
+                //
+                // The LAST point is the current position, not the first. EONET's
+                // geometry array runs oldest → newest, so `geometry[0]` put the
+                // marker where the storm was days ago: Super Typhoon Champi
+                // sat at 157.4°E / 11.0°N (2026-10-15) instead of 134.4°E /
+                // 16.5°N (2026-10-20) — about 2,300 km of stale map.
+                const geom = event.geometry[event.geometry.length - 1];
                 let coords = null;
 
                 if (geom.type === 'Point') {

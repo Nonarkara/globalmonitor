@@ -39,6 +39,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { MARK, LEGEND_KEY, STRATEGIC_KEY, VESSEL_CLASSES, groundInk } from '../src/data/mapPalette.js';
+import { CITY_FEEDS, CAMERA_TIER, CHANNEL_STATE } from '../src/data/cityFeeds.js';
 import { MAP_STYLES, MAP_STYLE_FALLBACKS, ESRI_STREET_STYLE, ESRI_SATELLITE_STYLE } from '../src/data/basemaps.js';
 import { REGIONS } from '../src/data/regions.js';
 
@@ -200,13 +201,30 @@ function plateLiteralProblems(source, plateClasses = PLATE_CLASSES) {
  * bracket walker swallows everything up to the next ']' in the file, which
  * is how an ink hairline two properties away ended up inside a mark's colour.
  */
-const paintValue = (block, property) => {
-    const at = block.indexOf(`'${property}':`);
-    if (at === -1) return '';
-    const rest = block.slice(at + property.length + 3).trimStart();
-    if (rest.startsWith('[')) return balancedBlock(block, `'${property}':`);
-    const m = rest.match(/^[^,\n]+/);
-    return m ? m[0] : '';
+/**
+ * EVERY value a block paints for one paint property.
+ *
+ * The first version of this read only the FIRST occurrence of a property, so a
+ * Source with two layers that both set 'line-color' had only the first layer
+ * checked. A second layer painting a colour the key did not name passed the
+ * gate. Every occurrence is collected now.
+ */
+const paintValues = (block, property) => {
+    const out = [];
+    const needle = `'${property}':`;
+    let from = 0;
+    for (;;) {
+        const at = block.indexOf(needle, from);
+        if (at === -1) break;
+        const rest = block.slice(at + needle.length).trimStart();
+        if (rest.startsWith('[')) out.push(balancedBlock(block, needle, at));
+        else {
+            const m = rest.match(/^[^,\n]+/);
+            out.push(m ? m[0] : '');
+        }
+        from = at + needle.length;
+    }
+    return out;
 };
 
 /**
@@ -243,7 +261,7 @@ const coloursPaintedBy = (source, open, close, { paintPropsOnly = true } = {}) =
     }
     for (const m of block.matchAll(/'([a-z-]*color)':/g)) {
         if (m[1].includes('stroke')) continue;
-        take(paintValue(block, m[1]));
+        for (const value of paintValues(block, m[1])) take(value);
     }
     return { marks, values };
 };
@@ -267,6 +285,12 @@ const KEY_GROUPS = [
     { key: 'vessels', subjects: [SOURCE('vessels-data')] },
     { key: 'thermal', subjects: [SOURCE('firms-data')] },
     { key: 'conflicts', subjects: [SOURCE('acled-data')] },
+    // The cables were outside every group, so the rule that says "the key names
+    // every colour the map paints" never looked at them: ten blue lines with
+    // no key entry, painted with a raw literal. The cyclone was the same — a
+    // layer with no entry, so nothing checked it.
+    { key: 'cables', subjects: [SOURCE('cables-data')] },
+    { key: 'storm', subjects: [SOURCE('typhoon-data')] },
     { key: 'strategic', subjects: [CONST('OPERATIONAL_CORRIDORS'), CONST('STRATEGIC_ZONES')] }
 ];
 
@@ -298,6 +322,133 @@ function keyAgainstDrawingProblems(source, key = LEGEND_KEY, strategicKey = STRA
         for (const value of paintedValues) {
             if (!namedValues.has(value)) problems.push(`${name}: the map paints ${value} but the key does not name it`);
         }
+    }
+    return problems;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RULE 12 — a key entry must be rendered
+   ───────────────────────────────────────────────────────────────────────── */
+
+/**
+ * A key the reader never sees is a key that does not exist.
+ *
+ * Rule 3 checks that the key and the DRAWING agree. It does not check that
+ * the PLATE renders the key at all — and that is exactly the gap the cables
+ * fell through: a key entry could be written, the drawing could agree with
+ * it, and no row would ever appear on the reader's screen. The rule is that
+ * the map component has to reach for the key list by name, so dropping the
+ * row out of the plate fails the build.
+ */
+function keyIsRenderedProblems(source, groups = KEY_GROUPS) {
+    const problems = [];
+    for (const { key } of groups) {
+        if (key === 'strategic') {
+            for (const list of ['routes', 'zones']) {
+                if (!source.includes(`STRATEGIC_KEY.${list}`)) {
+                    problems.push(`the strategic plate does not render STRATEGIC_KEY.${list}`);
+                }
+            }
+            continue;
+        }
+        if (!source.includes(`LEGEND_KEY.${key}`)) {
+            problems.push(`the plate does not render LEGEND_KEY.${key}`);
+        }
+    }
+    return problems;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RULE 13 — a layer must keep the qualifier the drawing cannot make
+   ───────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Some of the claims on this map live in words, not in colour: a model is not
+ * an observation, an analysis is not a satellite retrieval, a reference
+ * registry is not a live feed, and a barb has to say which way it points.
+ * Words are the easiest thing in a codebase to delete in passing, so the
+ * words that carry the claim are checked here.
+ */
+const QUALIFIER_CLAIMS = [
+    {
+        needle: 'JMA analysis — not a raw satellite retrieval',
+        why: 'the cyclone is an analysis, not a satellite wind retrieval'
+    },
+    {
+        needle: 'Open-Meteo model',
+        why: 'the wind field is a model, not an observation'
+    },
+    {
+        needle: 'barb points downwind',
+        why: 'the barb convention has to be stated, or a reader who knows barbs reads it backwards'
+    },
+    {
+        needle: 'not a live feed',
+        why: 'the cable registry is a reference dataset, not a live feed'
+    }
+];
+
+function qualifierClaimProblems(source, claims = QUALIFIER_CLAIMS) {
+    const problems = [];
+    for (const { needle, why } of claims) {
+        if (!source.includes(needle)) problems.push(`the plate is missing "${needle}" — ${why}`);
+    }
+    return problems;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RULE 14 — the city wall keeps its degrees of "live"
+   ───────────────────────────────────────────────────────────────────────── */
+
+/**
+ * A camera screen is one of three things — a video stream, a refreshing
+ * JPEG, or nothing — and a broadcast is one of four — live, VOD, dormant,
+ * stale. The wall says which, in words, and the words are keyed to the data.
+ *
+ * The rule is on the DATA, because that is where the claim is made: every
+ * city must carry a camera kind and a channel state that have a label, and
+ * every camera must name the source it came from. A city with no verified
+ * camera is a `none` with a label, not a missing entry — a missing entry
+ * would read as a city that was forgotten.
+ */
+function cityFeedProblems(feeds = CITY_FEEDS) {
+    const problems = [];
+    if (!Array.isArray(feeds) || feeds.length === 0) {
+        problems.push('the city wall has no cities');
+        return problems;
+    }
+    const ids = new Set();
+    for (const city of feeds) {
+        const id = city?.id || '(no id)';
+        if (!city?.id) problems.push('a city has no id');
+        if (ids.has(city?.id)) problems.push(`the city "${id}" appears twice`);
+        ids.add(city?.id);
+
+        const kind = city?.camera?.kind;
+        if (!kind) problems.push(`${id}: no camera kind`);
+        else if (!CAMERA_TIER[kind]) problems.push(`${id}: camera kind "${kind}" has no label`);
+        if (!city?.camera?.label) problems.push(`${id}: the camera carries no label`);
+        if (!city?.camera?.source) problems.push(`${id}: the camera names no source`);
+        // The label has to say what the KIND is, in words. A camera whose
+        // kind is 'snapshot' and whose label does not say "snapshot" is a
+        // screen the reader will read as video.
+        if (kind === 'snapshot' && !/snapshot/i.test(city?.camera?.label || '')) {
+            problems.push(`${id}: a snapshot camera does not say it is a snapshot`);
+        }
+        if (kind === 'snapshot' && /live\s*video/i.test(city?.camera?.label || '')) {
+            problems.push(`${id}: a snapshot camera claims to be live video`);
+        }
+        if (kind === 'none' && !/no verified public camera/i.test(city?.camera?.label || '')) {
+            problems.push(`${id}: a city with no camera does not say so`);
+        }
+        if (kind === 'hls' && !/stream/i.test(city?.camera?.label || '')) {
+            problems.push(`${id}: an HLS camera does not say it is a stream`);
+        }
+
+        const state = city?.channel?.state;
+        if (!state) problems.push(`${id}: no channel state`);
+        else if (!CHANNEL_STATE[state]) problems.push(`${id}: channel state "${state}" has no label`);
+        if (!city?.channel?.label) problems.push(`${id}: the channel carries no label`);
     }
     return problems;
 }
@@ -450,8 +601,8 @@ function labelVoiceProblems(source) {
    ───────────────────────────────────────────────────────────────────────── */
 
 /** The balanced-bracket block that follows a marker. */
-const balancedBlock = (text, marker) => {
-    const at = text.indexOf(marker);
+const balancedBlock = (text, marker, from = 0) => {
+    const at = text.indexOf(marker, from);
     if (at === -1) return '';
     const start = at + marker.length;
     let depth = 0;
@@ -632,6 +783,42 @@ test('the key names every colour the map paints for that source, and no others',
     assert.deepEqual(keyAgainstDrawingProblems(mapContainer), []);
 });
 
+test('every key the house owns is actually rendered by a plate', () => {
+    assert.deepEqual(keyIsRenderedProblems(mapContainer), []);
+});
+
+test('a layer keeps the qualifier its drawing cannot make for it', () => {
+    assert.deepEqual(qualifierClaimProblems(mapContainer), []);
+});
+
+test('every city in the wall names its camera tier and its channel state', () => {
+    assert.deepEqual(cityFeedProblems(), []);
+});
+
+test('mutation: a city whose camera tier has no label is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0 ? { ...city, camera: { ...city.camera, kind: 'videostream' } } : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a camera kind with no label must be reported');
+});
+
+test('mutation: a city with no camera source is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0 ? { ...city, camera: { ...city.camera, source: '' } } : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a camera with no source must be reported');
+});
+
+test('mutation: a snapshot camera whose label calls it live video is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0 ? { ...city, camera: { ...city.camera, label: 'Live video feed' } } : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a snapshot that claims to be live video must be reported');
+});
+
 test('each basemap option is a different ground, and none of them is another one renamed', () => {
     assert.deepEqual(basemapDistinctProblems(), []);
 });
@@ -697,6 +884,43 @@ test('mutation: a key that names a colour nobody paints is caught', () => {
     const brokenKey = { ...LEGEND_KEY, conflicts: [{ mark: 'vesselCargo', label: 'event' }] };
     const problems = keyAgainstDrawingProblems(mapContainer, brokenKey);
     assert.ok(problems.length > 0, 'a key naming a mark nobody paints must be reported');
+});
+
+test('mutation: a SECOND layer in one source painting an unnamed colour is caught', () => {
+    // A Source with two layers that both set 'line-color'. The first names a
+    // mark the key knows; the second paints a colour nobody named. The first
+    // version of the rule read only the FIRST occurrence of a paint property,
+    // so the second layer was invisible to it and this defect shipped twice.
+    const synthetic = [
+        '<Source id="cables-data" type="geojson" data={CABLES}>',
+        "<Layer id='cables-lines' type='line' paint={{ 'line-color': MARK.cable }} />",
+        "<Layer id='cables-casing' type='line' paint={{ 'line-color': '#837e31' }} />",
+        '</Source>'
+    ].join('\n');
+    const problems = keyAgainstDrawingProblems(synthetic, LEGEND_KEY, STRATEGIC_KEY, [
+        { key: 'cables', subjects: [SOURCE('cables-data')] }
+    ]);
+    assert.ok(problems.length > 0, 'a second layer painting an unnamed colour must be reported');
+});
+
+test('mutation: a key entry that no plate renders is caught', () => {
+    const broken = mapContainer.replace(
+        '<LegendClasses marks={LEGEND_KEY.cables} />',
+        '<span>cables</span>'
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must change the plate');
+    const problems = keyIsRenderedProblems(broken);
+    assert.ok(problems.length > 0, 'a key entry that no plate renders must be reported');
+});
+
+test('mutation: a layer that drops its qualifier is caught', () => {
+    // EVERY occurrence: the qualifier appears on the plate and again in the
+    // layer's own popup, and dropping it from one of them is not the same as
+    // dropping it from the map.
+    const broken = mapContainer.replaceAll('Open-Meteo model', 'Wind data');
+    assert.notEqual(broken, mapContainer, 'the fixture must change the plate');
+    const problems = qualifierClaimProblems(broken);
+    assert.ok(problems.length > 0, 'a layer that stops saying what it is must be reported');
 });
 
 test('mutation: the strategic plate naming the wrong route colour is caught', () => {

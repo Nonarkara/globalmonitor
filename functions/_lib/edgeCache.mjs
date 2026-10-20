@@ -54,6 +54,11 @@ const KEY_PARAMS = new Set([
     'datetime', 'maxCloudCover', 'source', 'url', 'limit', 'days', 'lat',
     'lon', 'zoom', 'width', 'height', 'preset', 'date', 'from', 'to', 'mode',
     'layer', 'country', 'id',
+    // `level` selects the wind level (10 m surface vs 850 hPa transport).
+    // Without it the two routes share one edge-cache key and the 850 hPa
+    // payload is served to the live 10 m layer — a 30-minute TTL of the wrong
+    // field, on the map, with no error anywhere.
+    'level',
 ]);
 
 // Copernicus / COG previews parse arbitrary option names; keep every param.

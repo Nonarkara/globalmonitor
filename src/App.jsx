@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useLayoutEffect, useRef, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
 import WorldClock from './components/WorldClock';
 import LiveIntelligenceFeed from './components/LiveIntelligenceFeed';
@@ -34,7 +34,7 @@ import './styles/tactical-optics.css';
 // Air quality and surface wind ARE on by default: they are the live haze
 // reading for the theater, and a map that omits them is not answering the
 // question the dashboard is opened to answer.
-const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'aqi', 'wind'];
+const DEFAULT_MAP_LAYERS = ['conflicts', 'firms', 'kinetic', 'blackouts', 'cables', 'dams', 'range-rings', 'military', 'vessels', 'flights', 'aqi', 'wind', 'typhoon'];
 // Derived from the region registry rather than hardcoded, so the opening camera
 // can never drift away from the opening theater again (it was pinned to the Gulf
 // while the default tab said Southeast Asia).
@@ -43,6 +43,77 @@ const DEFAULT_VIEW_TARGET = { ...REGION_VIEW_STATES.indopacific };
 function App() {
   // First paint should read as a composed war-room map. Dense live traffic stays opt-in.
   const [activeLayers, setActiveLayers] = useState(DEFAULT_MAP_LAYERS);
+  const headerRef = useRef(null);
+
+  /**
+   * The chrome row fits itself.
+   *
+   * ONE line carries partners, name, the reference clock, the theater it
+   * keeps time for, the index of the world's time, the theater tabs and the
+   * controls. When there is not enough room, something gives way — and the
+   * order is fixed and MEASURED at run time.
+   *
+   * Not by a ladder of viewport widths: that is wrong the moment the title
+   * grows a word, the theater gains a tab, or a phone is 390px wide instead
+   * of 393. The first version of this row was built on such a ladder and it
+   * overflowed at EVERY width from 320 to 1920, with the last two buttons
+   * pushed off the side of the screen where nobody can reach them. The row
+   * now asks what it has and is told the truth.
+   *
+   * The order of sacrifice: the world-clock index goes first, from the tail,
+   * WHOLE clocks and never half of one — the far-flung clocks are the ones
+   * that say least about the theater being watched. Then the theater's name.
+   * Then the subtitle. Then the partner marks, and PMUA last because it is
+   * the anchor. The reference clock is the instrument and it is never the
+   * thing that is sacrificed.
+   */
+  useLayoutEffect(() => {
+    const row = headerRef.current;
+    if (!row) return undefined;
+
+    const fit = () => {
+      row.querySelectorAll('[data-chrome-drop]').forEach((el) => { el.style.display = ''; });
+
+      const rowStyle = getComputedStyle(row);
+      const padX = (parseFloat(rowStyle.paddingLeft) || 0) + (parseFloat(rowStyle.paddingRight) || 0);
+      const gap = parseFloat(rowStyle.columnGap) || 0;
+      const rowInner = row.clientWidth - padX;
+
+      // Only the cells that are actually laid out take part: a cell that is
+      // display:none makes no gap either, so counting it would overstate the
+      // row by one gap and hide a clock that would have fitted.
+      const visibleCells = () => [...row.children]
+        .filter((child) => child.getBoundingClientRect().width > 0);
+
+      const overflows = () => {
+        const cells = visibleCells();
+        let total = 0;
+        for (const cell of cells) total += cell.getBoundingClientRect().width;
+        return total + gap * Math.max(0, cells.length - 1) > rowInner + 0.5;
+      };
+
+      const clocks = [...row.querySelectorAll('[data-chrome-drop="clock"]')].reverse();
+      for (const el of clocks) {
+        if (!overflows()) break;
+        el.style.display = 'none';
+      }
+      for (const kind of ['theater', 'subtitle', 'brand']) {
+        if (!overflows()) break;
+        for (const el of row.querySelectorAll(`[data-chrome-drop="${kind}"]`)) {
+          if (!overflows()) break;
+          el.style.display = 'none';
+        }
+      }
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(row);
+    for (const child of row.children) observer.observe(child);
+    if (document.fonts?.ready) document.fonts.ready.then(fit).catch(() => {});
+    return () => observer.disconnect();
+  }, []);
+
   const [mapStyle, setMapStyle] = useState('topographic');
   const [tacticalOptics, setTacticalOptics] = useState('standard');
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -257,32 +328,68 @@ function App() {
           </Suspense>
         </ErrorBoundary>
 
-        {/* Row 1: World Clock */}
-        <ErrorBoundary inline label="World Clock">
-          <WorldClock viewMode={viewMode} theaterLabel={REGIONS[viewMode]?.shortLabel || ''} />
-        </ErrorBoundary>
-
-        {/* Row 2: Header bar — 3-section layout: logos | center title | controls */}
-        <div className="header-bar grid-panel">
+        {/* The chrome is ONE row: partners, name, reference clock, world
+            clocks, theater tabs, controls. The clock is an instrument inside
+            that row, not a band above it. */}
+        <div className="header-bar grid-panel" ref={headerRef}>
           {/* Left: Sponsor logos in white pill */}
           <div className="header-brand-strip" aria-label="Project partners">
             <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" className="header-brand-logo header-brand-logo-pmua" />
-            <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
-            <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" className="header-brand-logo header-brand-logo-axiom" />
-            <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" className="header-brand-logo header-brand-logo-retl" />
+            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
+            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" className="header-brand-logo header-brand-logo-axiom" />
+            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" className="header-brand-logo header-brand-logo-retl" />
           </div>
 
-          {/* Center: Title + Escalation */}
+          {/* Center: Title */}
           <div className="header-status">
             <div className="header-title-lockup">
               <span className="header-title">
                 AsiaWatch
               </span>
-              <span className="header-subtitle">
+              <span className="header-subtitle" data-chrome-drop="subtitle">
                 Pan-Asian Sentinel · Chokepoints
               </span>
             </div>
           </div>
+
+          {/* The reference clock, the theater it keeps time for, and the index
+              of the world's time around it — instruments in the row. */}
+          <ErrorBoundary inline label="World Clock">
+            <WorldClock viewMode={viewMode} theaterLabel={REGIONS[viewMode]?.shortLabel || ''} />
+          </ErrorBoundary>
+
+          {/* The theater tabs. They carry the short label so the row holds its
+              line; the full label stays in the accessible name and the
+              tooltip, so nothing is lost. */}
+          <div
+            className="header-region-tabs"
+            role="tablist"
+            aria-label="Theater region selector"
+          >
+            {Object.values(REGIONS).map((r) => {
+              const isActive = viewMode === r.id;
+              return (
+                <button
+                  key={r.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Switch dashboard to ${r.label}`}
+                  title={r.label}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => {
+                    setViewMode(r.id);
+                    setViewTarget({ ...r.viewState, transitionDuration: 1200 });
+                    setActiveSources(getDefaultSourceIdsForRegion(r.id));
+                    setSelectedCountryCode(null);
+                  }}
+                  className={`header-region-tab ${isActive ? 'is-active' : ''}`}
+                >
+                  {r.shortLabel || r.label}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Right: Controls */}
           <div className="header-controls">
             <select className="compact-region-select" aria-label="Choose theater" value={viewMode} onChange={event => { const id = event.target.value; setViewMode(id); setViewTarget({ ...(REGIONS[id].viewState || REGIONS[id]), transitionDuration: 800 }); setActiveSources(getDefaultSourceIdsForRegion(id)); setSelectedCountryCode(null); }}>{Object.values(REGIONS).map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</select>
@@ -340,33 +447,6 @@ function App() {
             >
               <FileText size={11} aria-hidden="true" /> About
             </button>
-            <div
-              className="header-region-tabs"
-              role="tablist"
-              aria-label="Theater region selector"
-            >
-              {Object.values(REGIONS).map((r) => {
-                const isActive = viewMode === r.id;
-                return (
-                  <button
-                    key={r.id}
-                    role="tab"
-                    aria-selected={isActive}
-                    aria-label={`Switch dashboard to ${r.label}`}
-                    tabIndex={isActive ? 0 : -1}
-                    onClick={() => {
-                      setViewMode(r.id);
-                      setViewTarget({ ...r.viewState, transitionDuration: 1200 });
-                      setActiveSources(getDefaultSourceIdsForRegion(r.id));
-                      setSelectedCountryCode(null);
-                    }}
-                    className={`header-region-tab ${isActive ? 'is-active' : ''}`}
-                  >
-                    {r.label}
-                  </button>
-                );
-              })}
-            </div>
 
             {/* Tools dropdown — collapses secondary operator actions to reduce header noise */}
             <div className="header-tools-dropdown" ref={toolsRef}>

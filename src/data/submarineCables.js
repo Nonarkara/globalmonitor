@@ -25,7 +25,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 24,
                 landingPoints: 'Suez (EG), Djibouti (DJ), Yanbu (SA), Zafarana (EG), Mumbai (IN), Singapore (SG)',
                 chokepointRisk: 'CRITICAL (Bab el-Mandeb / Houthi zone)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -46,7 +45,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 40,
                 landingPoints: 'Marseille (FR), Alexandria (EG), Djibouti (DJ), Karachi (PK), Mumbai (IN), Satun (TH), Singapore (SG)',
                 chokepointRisk: 'CRITICAL (Red Sea)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -66,7 +64,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 96,
                 landingPoints: 'Zafarana (EG), Port Sudan (SD), Djibouti (DJ), Gwadar (PK), Karachi (PK), Marseille (FR)',
                 chokepointRisk: 'HIGH (Red Sea / Gulf of Aden)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -86,7 +83,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 2.56,
                 landingPoints: 'Suez (EG), Jeddah (SA), Hodeidah (YE), Muscat (OM), Dubai (AE), Manama (BH), Doha (QA), Kuwait City (KW)',
                 chokepointRisk: 'CRITICAL (Strait of Hormuz & Red Sea)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -108,7 +104,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 3.84,
                 landingPoints: 'Satun (TH), Singapore (SG), Vung Tau (VN), Hong Kong (HK), Tokyo (JP)',
                 chokepointRisk: 'ELEVATED (Malacca Chokepoint)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -128,7 +123,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 54.8,
                 landingPoints: 'Songkhla (TH), Da Nang (VN), Kuantan (MY), Tanah Merah (SG), Hong Kong (HK), Toucheng (TW), Shima (JP)',
                 chokepointRisk: 'ELEVATED (South China Sea / Gulf of Thailand)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -148,7 +142,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 126,
                 landingPoints: 'Rayong (TH), Tuas (SG), Batam (ID), Vung Tau (VN), Hong Kong (HK), Tamsui (TW), Chikura (JP)',
                 chokepointRisk: 'MONITORED (Gulf of Thailand & Malacca)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -168,7 +161,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 20,
                 landingPoints: 'Singapore (SG), Davao (PH), Piti (GU), Honolulu (US), Los Angeles (US)',
                 chokepointRisk: 'MONITORED (Luzon Strait bypass)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -190,7 +182,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 5.12,
                 landingPoints: 'Shanghai (CN), Qingdao (CN), Toucheng (TW), Geoje (KR), Maruyama (JP), Nedonna Beach (US)',
                 chokepointRisk: 'CRITICAL (Taiwan Strait Demarcation)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         },
@@ -210,7 +201,6 @@ export const SUBMARINE_CABLES_GEOJSON = {
                 capacityTbps: 80,
                 landingPoints: 'Toucheng (TW), Chongming (CN), Nanhui (CN), Pusan (KR), Maruyama (JP), Hillsboro (US)',
                 chokepointRisk: 'HIGH (East China Sea)',
-                color: '#006eb8',
                 status: 'ACTIVE'
             }
         }

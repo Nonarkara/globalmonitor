@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useMemo, useRef, memo } from 'react';
 import { formatDayCount } from '../data/warConstants.js';
 
 const formatWarDate = (date) => date
@@ -79,8 +79,28 @@ const uniqueTimezoneCities = (cities) => {
     });
 };
 
-const SecondaryClock = memo(({ city, timeRef, tzRef }) => (
-    <div className="secondary-clock-h">
+/**
+ * The drop order for the world-clock index. The row has one line and the
+ * clocks are the first thing to give way, so the index is ordered by how much
+ * a clock still says to an operator watching this theater: the theater's own
+ * cities first, the far-flung ones last. The tail is what disappears — whole
+ * clocks, never half of one. A clock thirteen hours away says less about the
+ * Gulf than the local one, so Washington goes before Bangkok does.
+ */
+const CLOCK_KEEP_ORDER = [
+    'Bangkok', 'Jakarta', 'Manila', 'Singapore', 'Delhi', 'Tokyo', 'Taipei', 'Seoul',
+    'Colombo', 'Dhaka', 'Islamabad', 'Beijing', 'Jerusalem', 'Beirut', 'Riyadh',
+    'Tehran', 'Dubai', 'Kyiv', 'Moscow', 'London', 'Canberra', 'Sydney', 'Honolulu',
+    'Washington',
+];
+
+const keepRank = (name) => {
+    const index = CLOCK_KEEP_ORDER.indexOf(name);
+    return index === -1 ? CLOCK_KEEP_ORDER.length : index;
+};
+
+const SecondaryClock = memo(({ city, rank, timeRef, tzRef }) => (
+    <div className={`secondary-clock-h clock-rank-${rank}`} data-chrome-drop="clock">
         <span className="clock-city-small">{city.name}</span>
         <span className="clock-tz-small" ref={tzRef} aria-hidden="true">—</span>
         <span className="clock-time-small" ref={timeRef} aria-live="off">--:--</span>
@@ -149,9 +169,15 @@ const WorldClock = ({ viewMode = 'middleeast', theaterLabel = '' }) => {
     const primaryTimeRef = useRef(null);
     const primaryDateRef = useRef(null);
     const secondaryTimeRefs = useRef([]);
+    const cellRef = useRef(null);
 
     const primaryCity = cities.find((city) => city.primary) || cities[0];
-    const secondaryCities = uniqueTimezoneCities(cities);
+    // The index is ordered by what it still says, so the clocks that give way
+    // are the tail — the far-flung ones.
+    const secondaryCities = useMemo(
+        () => uniqueTimezoneCities(cities).sort((a, b) => keepRank(a.name) - keepRank(b.name)),
+        [cities]
+    );
     const secondaryTzRefs = useRef([]);
 
     useEffect(() => {
@@ -198,35 +224,27 @@ const WorldClock = ({ viewMode = 'middleeast', theaterLabel = '' }) => {
     }, [primaryCity.tz, secondaryCities]);
 
     return (
-        <div className="top-bar-clock">
-            <div className="secondary-clocks-side left-side">
-                {secondaryCities.slice(0, 4).map((city, index) => (
-                    <SecondaryClock
-                        key={cityKey(city)}
-                        city={city}
-                        timeRef={(el) => { secondaryTimeRefs.current[index] = el; }}
-                        tzRef={(el) => { secondaryTzRefs.current[index] = el; }}
-                    />
-                ))}
-            </div>
-
+        /* One instrument cell inside the chrome row: the reference clock, the
+           theater it is keeping time for, and the index of the world's time
+           around it. None of them is a band of its own. */
+        <div className="top-bar-clock" ref={cellRef}>
             <div className="primary-clock-center">
                 <PrimaryClock city={primaryCity} timeRef={primaryTimeRef} dateRef={primaryDateRef} />
             </div>
 
-            {/* The theater the reference clock is keeping time for. On a wide
-                screen the region tabs already say it and the band is full. On a
-                phone the tabs are gone and the band was 46% empty, holding one
-                clock in a 390px strip — so the band says what it is for. */}
-            {theaterLabel ? <div className="clock-theater-ref">{theaterLabel}</div> : null}
+            {/* The theater the reference clock is keeping time for. It is
+                never truncated: on a wide screen the row has room for it, and
+                when the row runs out it is dropped whole. */}
+            {theaterLabel ? <div className="clock-theater-ref" data-chrome-drop="theater">{theaterLabel}</div> : null}
 
-            <div className="secondary-clocks-side right-side">
-                {secondaryCities.slice(4).map((city, index) => (
+            <div className="secondary-clocks-side">
+                {secondaryCities.map((city, index) => (
                     <SecondaryClock
                         key={cityKey(city)}
                         city={city}
-                        timeRef={(el) => { secondaryTimeRefs.current[index + 4] = el; }}
-                        tzRef={(el) => { secondaryTzRefs.current[index + 4] = el; }}
+                        rank={index + 1}
+                        timeRef={(el) => { secondaryTimeRefs.current[index] = el; }}
+                        tzRef={(el) => { secondaryTzRefs.current[index] = el; }}
                     />
                 ))}
             </div>
