@@ -167,9 +167,9 @@ masthead — and the owner asked for exactly this: *"All the information should
 be on one line only in the top bar."* A 390px phone carried **86px** of
 chrome for one word and four small logos. It now carries **62px**: the 18px
 legal marking and one 44px row. A 1440px desktop carried 106px and now
-carries **74px**. The live check fails the release if either grows, and it
-fails it if the clock ever leaves the row — the chrome being one line is the
-rule, not a picture of it.
+carries **72px**, against a budget of 74. The live check fails the release
+if either grows, and it fails it if the clock ever leaves the row — the
+chrome being one line is the rule, not a picture of it.
 
 **What gives way, in what order.** The row is fixed content in a variable
 width, so something has to go when the width runs out. The order is fixed,
