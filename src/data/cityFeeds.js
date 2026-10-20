@@ -41,7 +41,11 @@ export const CHANNEL_STATE = {
     live: 'LIVE',
     vod: 'VOD — no live stream running at the probe time',
     dormant: 'Dormant',
-    stale: 'Stale'
+    stale: 'Stale',
+    // The state the REGISTRY carries, and the only state a static file may
+    // carry: the condition of a channel is measured, never asserted. Until
+    // the probe answers, the wall says it does not know.
+    unconfirmed: 'Unconfirmed — the probe has not answered yet'
 };
 
 /** YouTube embeds. Muted first for autoplay compliance; the operator unmutes. */
@@ -77,17 +81,17 @@ export const CITY_FEEDS = [
         channel: {
             name: 'Thai PBS',
             channelId: 'UC5TOFhyb_LxL2VG_Zenhpzw',
-            state: 'live',
-            label: 'LIVE',
-            note: 'Live stream verified running on the channel\'s own live tab.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'National public broadcaster; its live tab carries a stream when it is on air.',
             posterVideoId: 'VZ81OVNlBV4',
             embedKind: 'channel',
             alternates: [
                 {
                     name: 'PPTV HD 36',
                     channelId: 'UC7FCQJFK1sfwD_uobB45Xng',
-                    state: 'live',
-                    label: 'LIVE',
+                    state: 'unconfirmed',
+                    label: CHANNEL_STATE.unconfirmed,
                     posterVideoId: 'FFtyZpRmu1M',
                     embedKind: 'channel'
                 }
@@ -111,9 +115,9 @@ export const CITY_FEEDS = [
         channel: {
             name: 'CNA',
             channelId: 'UC83jt4dlz1Gjl58fzQrrKZg',
-            state: 'live',
-            label: 'LIVE',
-            note: '24/7 live news channel.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'National news channel; its live tab carries a stream when it is on air.',
             posterVideoId: '-PWMxjBgr0k',
             embedKind: 'channel'
         }
@@ -135,9 +139,9 @@ export const CITY_FEEDS = [
         channel: {
             name: 'VTV24',
             channelId: 'UCabsTV34JwALXKGMqHpvUiA',
-            state: 'vod',
-            label: 'VOD — no live stream running at the probe time',
-            note: 'National channel; publishes continuously but was not streaming live when the probe ran.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'National channel; publishes continuously; its live tab carries a stream when it is on air.',
             posterVideoId: '_Cm-1vAdxTY',
             embedKind: 'video'
         }
@@ -163,8 +167,8 @@ export const CITY_FEEDS = [
         channel: {
             name: 'BERNAMA TV',
             channelId: 'UCcZg5r9hBqK_VPUT2I7eYVw',
-            state: 'live',
-            label: 'LIVE',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
             note: 'National news agency channel.',
             posterVideoId: 'l2EPY8ueb28',
             embedKind: 'channel'
@@ -191,8 +195,8 @@ export const CITY_FEEDS = [
         channel: {
             name: 'TVRI Nasional',
             channelId: 'UCyIMsCzDRm8_y_6wM26_PWQ',
-            state: 'vod',
-            label: 'VOD — no live stream running at the probe time',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
             note: 'National broadcaster; its live tab carries a stream when it is on air.',
             posterVideoId: 'v05O2sHoNrk',
             embedKind: 'video'
@@ -215,9 +219,9 @@ export const CITY_FEEDS = [
         channel: {
             name: 'VTV24',
             channelId: 'UCabsTV34JwALXKGMqHpvUiA',
-            state: 'vod',
-            label: 'VOD — no live stream running at the probe time',
-            note: 'National channel; publishes continuously but was not streaming live when the probe ran.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'National channel; publishes continuously; its live tab carries a stream when it is on air.',
             posterVideoId: '_Cm-1vAdxTY',
             embedKind: 'video'
         }
@@ -239,17 +243,17 @@ export const CITY_FEEDS = [
         channel: {
             name: 'ABS-CBN News',
             channelId: 'UCE2606prvXQc_noEqKxVJXA',
-            state: 'vod',
-            label: 'VOD — no live stream running at the probe time',
-            note: 'Publishes rolling coverage of live events; no 24/7 live stream was running at the probe time.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'Publishes rolling coverage of live events; its live tab carries a stream when it is on air.',
             posterVideoId: 'fgCjv-GnPck',
             embedKind: 'video',
             alternates: [
                 {
                     name: 'GMA News',
                     channelId: 'UCqYw-CTd1dU2yGI71sEyqNw',
-                    state: 'live',
-                    label: 'LIVE',
+                    state: 'unconfirmed',
+                    label: CHANNEL_STATE.unconfirmed,
                     posterVideoId: 'mCNSZyIjflw',
                     embedKind: 'channel'
                 }
@@ -273,17 +277,17 @@ export const CITY_FEEDS = [
         channel: {
             name: 'CTN',
             channelId: 'UCRROxgVGEihlQyjKtk3Sx9Q',
-            state: 'dormant',
-            label: 'Dormant — newest upload March 2015',
-            note: 'The channel feed still answers, but the newest upload is from 2015.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'National broadcaster with its own upload archive.',
             posterVideoId: '2NX8c9pNfPQ',
             embedKind: 'video',
             alternates: [
                 {
                     name: 'tvk',
                     channelId: 'UCMS6vi61Tz4DBbrU-dnGBTA',
-                    state: 'dormant',
-                    label: 'Dormant — newest upload March 2018',
+                    state: 'unconfirmed',
+                    label: CHANNEL_STATE.unconfirmed,
                     posterVideoId: 'UAzyYF5gDt0',
                     embedKind: 'video'
                 }
@@ -307,8 +311,8 @@ export const CITY_FEEDS = [
         channel: {
             name: 'MRTV4',
             channelId: 'UCoJrrvs_-HV2L0TWuPwggdw',
-            state: 'vod',
-            label: 'VOD — no live stream running at the probe time',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
             note: 'State broadcaster; publishes scheduled programming.',
             posterVideoId: 'zVVMFY1nGYc',
             embedKind: 'video'
@@ -331,8 +335,8 @@ export const CITY_FEEDS = [
         channel: {
             name: 'RTB',
             channelId: 'UClGuLDuraHQvUnUYIdW1j-w',
-            state: 'vod',
-            label: 'VOD — no live stream running at the probe time',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
             note: 'State broadcaster; the feed carries promos and scheduled programming.',
             posterVideoId: 'YO8yPQofBSk',
             embedKind: 'video'
@@ -355,9 +359,9 @@ export const CITY_FEEDS = [
         channel: {
             name: 'Lao National TV',
             channelId: 'UCRjLkhW6rVF-KPKTxRxB3pA',
-            state: 'stale',
-            label: 'Stale — newest upload May 2026',
-            note: 'The feed answers, but the newest upload is five months old.',
+            state: 'unconfirmed',
+            label: CHANNEL_STATE.unconfirmed,
+            note: 'State broadcaster with its own upload archive.',
             posterVideoId: 'ozkln-vTA6M',
             embedKind: 'video'
         }

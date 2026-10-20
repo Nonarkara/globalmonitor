@@ -665,6 +665,29 @@ const stateLabel = (state, feed) => {
     }
 };
 
+/**
+ * What the probe SAW, in words. The registry says what a channel IS; the
+ * probe says what it is DOING, and only the probe may say that: the two
+ * files are read by the same tile, and a static note claiming a live state
+ * outlives the measurement that made it. Bangkok's tile once read "VOD — no
+ * live stream running at the probe time" directly above "Live stream
+ * verified running" — two claims, one of them false.
+ */
+const probeNote = (state, feed) => {
+    const newest = monthName(feed?.latestPublished);
+    switch (state) {
+        case 'live':
+            return 'A stream was running on the live tab at the probe time.';
+        case 'vod':
+            return `The feed answers; the newest upload is ${newest || 'of an unknown date'}.`;
+        case 'dormant':
+        case 'stale':
+            return 'The feed still answers with its own uploads.';
+        default:
+            return 'The channel did not answer the probe.';
+    }
+};
+
 const probeChannel = async (entry) => {
     const [feed, live] = await Promise.all([
         probeChannelFeed(entry.channelId),
@@ -682,7 +705,7 @@ const probeChannel = async (entry) => {
         channelId: entry.channelId,
         state,
         label: stateLabel(state, feed),
-        note: entry.note,
+        note: [entry.note, probeNote(state, feed)].filter(Boolean).join(' '),
         embedUrl,
         posterVideoId,
         liveVideoId: state === 'live' ? (live?.videoId || null) : null,

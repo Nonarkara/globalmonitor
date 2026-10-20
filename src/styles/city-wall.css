@@ -253,7 +253,8 @@
 }
 
 .city-wall__channel-state--dormant,
-.city-wall__channel-state--stale {
+.city-wall__channel-state--stale,
+.city-wall__channel-state--unconfirmed {
   color: var(--ink-3);
 }
 

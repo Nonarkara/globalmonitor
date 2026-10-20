@@ -313,6 +313,22 @@ screens next to six honest absences is telling the truth about the coverage;
 a panel that hid the six absences would be telling the reader that six
 cities are quiet.
 
+**A static file may not claim what a probe measured.** The registry
+(`src/data/cityFeeds.js`) says what a channel **is** — the broadcaster, the
+feed, the archive. The probe says what it is **doing now**, and only the
+probe may say that. Two claims about the same channel, one measured and one
+asserted, will eventually disagree: one tile carried *"VOD — no live stream
+running at the probe time"* directly above *"Live stream verified running"*,
+and the second line was a research finding written down weeks earlier, still
+on the tile because the file had no way to know it was stale.
+
+So every registry channel carries the state `unconfirmed` — the only state a
+static file may carry — and its note describes the channel, never its
+condition. The probe supplies the state, the label and a sentence of its own
+about what it saw. The gate checks the rule in both directions: a note that
+claims a stream is running, or that none is, is reported, and so is a
+registry that names any state other than `unconfirmed`.
+
 ## Protected voice
 - marker "GlobeWatch": the supplied project identity
 - marker "AsiaWatch": the pan-Asian project identity

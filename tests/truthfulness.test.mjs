@@ -449,6 +449,30 @@ function cityFeedProblems(feeds = CITY_FEEDS) {
         if (!state) problems.push(`${id}: no channel state`);
         else if (!CHANNEL_STATE[state]) problems.push(`${id}: channel state "${state}" has no label`);
         if (!city?.channel?.label) problems.push(`${id}: the channel carries no label`);
+
+        // A STATIC FILE MAY NOT CLAIM WHAT THE PROBE MEASURES. The registry
+        // says what a channel IS; the condition of a channel is measured.
+        // A note that says a stream is running — or that none is — is a
+        // claim about the present that a file cannot make, and it outlives
+        // the measurement that made it: one tile carried "VOD — no live
+        // stream running at the probe time" directly above "Live stream
+        // verified running". Two claims, one of them false.
+        const note = city?.channel?.note || '';
+        if (state !== 'live' && /(verified running|running a stream|streaming live|is live\b)/i.test(note)) {
+            problems.push(`${id}: the channel note claims a live state — only the probe may say that`);
+        }
+        if (state === 'live' && /(no stream was running|no live stream|not streaming live|was not streaming)/i.test(note)) {
+            problems.push(`${id}: the channel note claims no stream is running — only the probe may say that`);
+        }
+        // And a registry that names any condition other than "unconfirmed"
+        // is asserting a measurement it never made. The probe owns the
+        // state; the file owns the channel.
+        if (state !== 'unconfirmed') {
+            problems.push(`${id}: the registry claims the channel state "${state}" — a static file may only say "unconfirmed"`);
+        }
+        if (state === 'unconfirmed' && !/not answered|did not answer|unconfirmed/i.test(city?.channel?.label || '')) {
+            problems.push(`${id}: an unconfirmed channel does not say it is unconfirmed`);
+        }
     }
     return problems;
 }
@@ -817,6 +841,44 @@ test('mutation: a snapshot camera whose label calls it live video is caught', ()
     ));
     const problems = cityFeedProblems(broken);
     assert.ok(problems.length > 0, 'a snapshot that claims to be live video must be reported');
+});
+
+test('mutation: a channel note that claims a live state is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0
+            ? { ...city, channel: { ...city.channel, note: 'Live stream verified running on the channel\'s own live tab.' } }
+            : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a static file claiming a live state must be reported');
+});
+
+test('mutation: a channel note that claims no stream is running is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0
+            ? {
+                ...city,
+                channel: {
+                    ...city.channel,
+                    state: 'live',
+                    label: 'LIVE',
+                    note: 'No stream was running on the live tab at the probe time.'
+                }
+            }
+            : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a note contradicting the channel state must be reported');
+});
+
+test('mutation: a registry that claims a measured channel state is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0
+            ? { ...city, channel: { ...city.channel, state: 'live', label: 'LIVE' } }
+            : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a static file asserting a measured state must be reported');
 });
 
 test('each basemap option is a different ground, and none of them is another one renamed', () => {
