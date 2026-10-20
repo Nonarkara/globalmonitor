@@ -593,11 +593,14 @@ body {
 }
 
 .header-brand-logo-axiom {
+  /* Square 3D app icon on the white chip. Compact shell sets the live height
+     (17px, 12px on a phone) and PMUA stays the tallest mark. */
   height: 16px;
   width: auto;
-  max-width: 72px;
+  max-width: 18px;
+  aspect-ratio: 1;
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
 }
 
 .header-status {
