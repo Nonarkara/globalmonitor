@@ -195,12 +195,13 @@
      to hold every qualification: the cap gives way to the content, and only
      scrolls when the screen genuinely has no room left. */
   .app-container[data-shell="compact"] .map-legend--traffic {max-width:196px!important;max-height:min(268px, calc(100% - 150px))!important;right:4px!important;bottom:44px!important;padding:4px!important;}
-  /* The strip stays on a phone — it shows every colour the map paints for
-     that source. The class names do not fit beside a 196px reading without
-     scrolling, and a qualifier that is scrolled out of sight is a qualifier
-     that is not there; they are in the mark's own popup, which is what a tap
-     is for. */
-  .app-container[data-shell="compact"] .map-legend-classes {display:none!important;}
+  /* On a phone the key is WORDS, not a strip. Twenty pixels divided seven
+     ways is a mark of two point eight pixels: a smear, not a key. The class
+     names are the key, and the mark's own popup names the class on tap. A
+     row with one or two colours keeps its strip, which is legible at that
+     size. */
+  .app-container[data-shell="compact"] .map-legend-key--dense {display:none!important;}
+  .app-container[data-shell="compact"] .map-legend-classes {display:block!important;}
   .app-container[data-shell="compact"] .map-coord-readout {display:none;}
   .app-container[data-shell="compact"] .map-eo-labels {left:4px;right:172px;bottom:30px;flex-direction:column;align-items:flex-start;}
   .app-container[data-shell="compact"] .map-first-layers-rail {display:none!important;}
@@ -228,7 +229,7 @@
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
 }
-:focus-visible {outline:2px solid var(--green,#1f6e43)!important;outline-offset:2px;}
+:focus-visible {outline:2px solid var(--green,#2c6e4b)!important;outline-offset:2px;}
 .operational-alert {position:fixed!important;top:110px!important;left:72px!important;right:auto!important;max-width:calc(100vw - 88px);z-index:24!important;background:var(--panel)!important;flex-wrap:wrap;justify-content:flex-start!important;backdrop-filter:none!important;animation:none!important;}
 .operational-alert button {min-width:44px;min-height:44px;}
 .app-container[data-shell="compact"] .header-subtitle {color:var(--chrome-muted,var(--ink-2))!important;}

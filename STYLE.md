@@ -93,6 +93,20 @@ one module, so a key cannot drift from a drawing because they are the same
 fact. A plate may not carry a colour literal of its own — no hex, no
 `rgba()`, no `var()`.
 
+**On a phone the key is words, not a strip.** Twenty pixels divided seven
+ways is a mark of two point eight pixels: a smear, not a key. The class
+names are the key; a row with one or two colours keeps its strip, which is
+legible at that size, and the mark's own popup names the class on tap.
+
+**What the key rule covers.** The SOURCES plate answers for the live
+readings (aircraft, vessels, thermal detections, conflict events) and the
+STRATEGIC CONTEXT plate answers for the reference routes and areas. The city
+and tier marks — the anchors, the megaregions, the city network, the
+beacons — carry their own categorical colouring and are described in the
+LAYERS panel; the strategic plate does not claim them, and the rule does
+not hold it to them. A rule that claims to check everything and checks four
+of six sources is a rule that will be believed and will not hold.
+
 **A control may not lie about what it does.** The basemap picker's "Dark"
 option pointed at the bright Esri street map: the label promised a low-glare
 operations map and delivered a white one. It is now the Esri Dark Gray
@@ -213,11 +227,20 @@ places, each answering a question the others cannot:
    against the palette. The gate answers each of those, and it is wired into
    `prebuild`, so a build that lies does not ship.
 
-The gate is mutation-tested: each rule has a test that puts the shipped
-defect back and requires the rule to fail. A rule that goes blind fails its
-own mutation test. The colours the interface still owes the Palette are
-recorded in `tests/fixtures/palette-debt.json` — the build may not add to that
-list, and the debt may only shrink.
+Every rule in the gate is a FUNCTION that takes the subject it judges and
+returns its problems, and the rules that guard a shipped defect have a
+mutation test that calls that same function with the defect in place and
+requires a problem. A rule that goes blind fails its own mutation test — and
+that is checked, not assumed: neutering any one rule makes its mutation test
+fail. (The first version of this file put the rules inline in their tests
+and wrote "mutation" tests that asserted on fixtures built inside the test
+body. They could not reach a rule at all. Five neutered rules passed every
+test, and a reviewer proved it.)
+
+The colours the interface still owes the Palette are written down in the
+gate itself, beside the rule that holds them, with a ceiling above them.
+The debt may only shrink; raising the ceiling is a one-line change in the
+rule file, where a reviewer sees it.
 
 **How new work joins the contract.** Three questions, in this order:
 1. *What does this claim?* If it states a fact, it must come from a feed and

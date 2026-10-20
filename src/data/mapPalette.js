@@ -98,6 +98,25 @@ export const wash = (hex, alpha) => {
 };
 
 /**
+ * The STRATEGIC CONTEXT plate's rows. The plate is generated from this list
+ * rather than hand-written, so a row cannot name a colour the key does not
+ * carry — the defect the verifier found, where the network row was swapped
+ * for the energy route's colour and nothing failed.
+ */
+export const STRATEGIC_KEY = {
+    routes: [
+        { mark: 'routeEnergy', label: 'Energy route reference' },
+        { mark: 'routeLane', label: 'Shipping lane reference' },
+        { mark: 'routeEast', label: 'Regional city network' }
+    ],
+    zones: [
+        { mark: 'zoneGulf', label: 'Persian Gulf focus area' },
+        { mark: 'zoneRedSea', label: 'Horn of Africa / Yemen' },
+        { mark: 'zoneSouthEast', label: 'ASEAN urban systems' }
+    ]
+};
+
+/**
  * The wind field is supporting evidence and it is drawn in the ground's ink:
  * ink-2 on paper, paper on a dark ground. The legend swatch must be the
  * same ink as the arrows — a swatch that keeps the paper-ground value on a

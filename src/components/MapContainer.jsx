@@ -34,7 +34,7 @@ import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 import { buildPopupClassName } from '../utils/mapPopup.js';
-import { MARK, LEGEND_KEY, VESSEL_CLASSES, groundInk, wash } from '../data/mapPalette.js';
+import { MARK, LEGEND_KEY, STRATEGIC_KEY, VESSEL_CLASSES, groundInk, wash } from '../data/mapPalette.js';
 import { ESRI_SATELLITE_STYLE, OSM_RASTER_STYLE, ESRI_STREET_STYLE, ESRI_DARK_STYLE, MAP_STYLES, MAP_STYLE_FALLBACKS, MAP_STYLE_ULTIMATE } from '../data/basemaps';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
@@ -47,7 +47,10 @@ import { ESRI_SATELLITE_STYLE, OSM_RASTER_STYLE, ESRI_STREET_STYLE, ESRI_DARK_ST
  * twenty pixels the bar occupied, segmented once per colour the map draws.
  */
 const LegendKey = ({ marks }) => (
-    <span className="map-legend-key" aria-hidden="true">
+    <span
+        className={`map-legend-key${marks.length > 2 ? ' map-legend-key--dense' : ''}`}
+        aria-hidden="true"
+    >
         {marks.map((m) => (
             <span key={m.mark} className="map-legend-chip" style={{ background: MARK[m.mark] }} />
         ))}
@@ -2829,31 +2832,22 @@ const MapContainer = ({
                 aria-hidden={!showStrategicContext}
             >
                 <div className="map-legend-title">STRATEGIC CONTEXT</div>
-                <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: MARK.routeEnergy }} />
-                    <span>Energy route reference</span>
-                </div>
-                <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: MARK.routeLane }} />
-                    <span>Shipping lane reference</span>
-                </div>
-                <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: MARK.routeEast }} />
-                    <span>Regional city network</span>
-                </div>
+                {STRATEGIC_KEY.routes.map((m) => (
+                    <div className="map-legend-item" key={m.mark}>
+                        <span className="map-legend-line" style={{ background: MARK[m.mark] }} />
+                        <span>{m.label}</span>
+                    </div>
+                ))}
                 <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
-                <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: wash(MARK.zoneGulf, 0.3), borderColor: MARK.zoneGulf }} />
-                    <span>Persian Gulf focus area</span>
-                </div>
-                <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: wash(MARK.zoneRedSea, 0.3), borderColor: MARK.zoneRedSea }} />
-                    <span>Horn of Africa / Yemen</span>
-                </div>
-                <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: wash(MARK.zoneSouthEast, 0.3), borderColor: MARK.zoneSouthEast }} />
-                    <span>ASEAN urban systems</span>
-                </div>
+                {STRATEGIC_KEY.zones.map((m) => (
+                    <div className="map-legend-item" key={m.mark}>
+                        <span
+                            className="map-legend-zone"
+                            style={{ background: wash(MARK[m.mark], 0.3), borderColor: MARK[m.mark] }}
+                        />
+                        <span>{m.label}</span>
+                    </div>
+                ))}
             </div>
 
             {/* Active EO Layer Labels */}
