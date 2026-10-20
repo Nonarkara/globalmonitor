@@ -403,6 +403,10 @@ export const REGIONS = {
     indopacific: {
         id: 'indopacific',
         label: 'Southeast Asia / Straits',
+        // The short form is the same fact, said in fewer words: it may
+        // never name something the full label does not. The truthfulness guard
+        // asserts that the short label is a prefix of the full one.
+        shortLabel: 'Southeast Asia',
         viewState: REGION_VIEW_STATES.indopacific,
         dots: ASEAN_DOTS_GEOJSON,
         channels: TV_CHANNELS_INDOPACIFIC
@@ -410,6 +414,10 @@ export const REGIONS = {
     eastasia: {
         id: 'eastasia',
         label: 'East Asia / Taiwan',
+        // The short form is the same fact, said in fewer words: it may
+        // never name something the full label does not. The truthfulness guard
+        // asserts that the short label is a prefix of the full one.
+        shortLabel: 'East Asia',
         viewState: REGION_VIEW_STATES.eastasia,
         dots: EAST_ASIA_DOTS_GEOJSON,
         channels: TV_CHANNELS_EASTASIA
@@ -417,6 +425,10 @@ export const REGIONS = {
     southasia: {
         id: 'southasia',
         label: 'South Asia / Himalayas',
+        // The short form is the same fact, said in fewer words: it may
+        // never name something the full label does not. The truthfulness guard
+        // asserts that the short label is a prefix of the full one.
+        shortLabel: 'South Asia',
         viewState: REGION_VIEW_STATES.southasia,
         dots: SOUTH_ASIA_DOTS_GEOJSON,
         channels: TV_CHANNELS_SOUTHASIA
@@ -424,6 +436,10 @@ export const REGIONS = {
     thailand: {
         id: 'thailand',
         label: 'Thailand IOC',
+        // The short form is the same fact, said in fewer words: it may
+        // never name something the full label does not. The truthfulness guard
+        // asserts that the short label is a prefix of the full one.
+        shortLabel: 'Thailand',
         viewState: REGION_VIEW_STATES.thailand,
         dots: THAILAND_DOTS_GEOJSON,
         channels: TV_CHANNELS_THAILAND
@@ -434,6 +450,10 @@ export const REGIONS = {
     middleeast: {
         id: 'middleeast',
         label: 'Gulf Lifeline',
+        // The short form is the same fact, said in fewer words: it may
+        // never name something the full label does not. The truthfulness guard
+        // asserts that the short label is a prefix of the full one.
+        shortLabel: 'Gulf',
         viewState: REGION_VIEW_STATES.middleeast,
         dots: MIDDLE_EAST_DOTS_GEOJSON,
         channels: TV_CHANNELS_MIDDLEEAST

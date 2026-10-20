@@ -3025,6 +3025,30 @@ body {
   flex-shrink: 0;
 }
 
+/* The key strip — one segment per colour the map paints for that source.
+   It occupies exactly the twenty pixels the single bar used to, so the plate
+   does not grow to say more. */
+.map-legend-key {
+  display: inline-flex;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.map-legend-chip {
+  display: block;
+  flex: 1 1 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 0;
+}
+/* The names the strip stands for, said in words under the reading. */
+.map-legend-classes {
+  color: var(--ink-3);
+  letter-spacing: 0.03em;
+}
+
 .map-legend-zone {
   display: inline-block;
   width: 14px;

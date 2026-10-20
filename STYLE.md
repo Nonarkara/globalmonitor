@@ -48,6 +48,7 @@ Closed set. Every colour on the page is a named role.
 - **Red #a72144 (Wada Red) — signal loss, severity, brand.**
 - Categorical data series: Blue #006eb8 · Violet #4f4086 · Lilac #b984af · Orange #f37420 · Yellow-Orange #f99d1b · Olive #837e31 · Brown #7c4226.
 - Tailwind's default palette and the VibeCode purples are **not** in the system. Do not reintroduce them; use a named series token instead.
+- The interface still carries legacy Tailwind-derived washes and dark panel grounds. They are **recorded, not hidden** — `tests/fixtures/palette-debt.json` names them one by one, the build fails if a new one appears, and the list may only shrink. An empty list is the goal; a silent list is not.
 - US-EPA AQI band colours are a domain standard, not interface chrome: the six published EPA hexes are used verbatim, so an AQI reading means what it means to a reader anywhere.
 - Hairlines only. No gradient, no glow, no glass, no drop shadow, zero radius on every container. A 50% circle is a shape, not a radius.
 
@@ -82,6 +83,16 @@ is the colour the map actually paints; the provenance — API or public file,
 live or sample — is said underneath it in words. A key that disagrees with the
 map is worse than no key.
 
+**The key names every colour the map paints for that source.** One bar cannot
+speak for six vessel classes, and a bar that speaks for one of them is a key
+that lies about the other five. The plate therefore carries a *strip* — one
+segment per colour, in the twenty pixels the single bar used to occupy — and
+the class names underneath it in words. The colours live in
+`src/data/mapPalette.js`; the map's paint blocks and the plate both read that
+one module, so a key cannot drift from a drawing because they are the same
+fact. A plate may not carry a colour literal of its own — no hex, no
+`rgba()`, no `var()`.
+
 **A control may not lie about what it does.** The basemap picker's "Dark"
 option pointed at the bright Esri street map: the label promised a low-glare
 operations map and delivered a white one. It is now the Esri Dark Gray
@@ -92,6 +103,22 @@ across the whole map, which is worse than no option at all.
 
 ## Layout
 The live map is the operating table. Compact clock (24–28px), 56px masthead and 44px ticker; no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.
+
+**A band earns its height.** On a wide screen the clock rail carries nine
+clocks and the masthead carries six region tabs, so both are full and both
+earn their pixels. On a phone the rail carried one clock in a 390px strip and
+the masthead was a two-row grid — a 30px title row above a 26px partner row —
+so 56px of chrome held one word and four small logos. The phone is now
+**86px of chrome in three bands** (18px legal marking, 24px instrument band,
+44px masthead), every one of them at its content floor, and the masthead is
+one row: partners, name, controls. The live check fails the release if the
+phone's stack grows past **88px**.
+
+The instrument band is two cells on a phone: the reference clock, and the
+theater it is keeping time for. On a wide screen the region tabs say the
+theater and the band is full; on a phone the tabs are gone and the band would
+otherwise be half empty. A region's short label may only shorten its full
+label — never rename it — and the guard enforces that.
 
 The clock rail is **centred**: the reference clock is the focal point of the
 strip and the eight flanking clocks are an index around it. The rail used to be
@@ -168,3 +195,37 @@ are said in words — "NASA FIRMS public file · 24h", not "nasa-firms-public-24
 Non-Slop by Non Arkaraprasertkul, MIT, https://github.com/Nonarkara/Non-Slop .
 Vendored rules/scanner in .non-slop; original licence and credits retained.
 Build gates scan source and changed interface files; rendered geometry and an independent reviewer check the deployed release. A static scan is not a visual verdict.
+
+### The three gates
+The contract is only worth what enforces it, so it is enforced in three
+places, each answering a question the others cannot:
+
+1. **The written contract — this file.** Why a rule exists. Every rule added
+   here names the failure that produced it.
+2. **`npm run design:check` — the Non-Slop scanner.** *Does it look like the
+   house style?* Type, colour, depth, layout, copy, accessibility. It reads
+   the Allow list above, so a deliberate exception is recorded here or it is
+   not allowed.
+3. **`npm run guard` — the truthfulness gate** (`tests/truthfulness.test.mjs`).
+   *Does it tell the truth?* A scanner cannot ask that, because it is a
+   question about agreement between files: the key against the drawing, a
+   control against its effect, a reading against its provenance, a colour
+   against the palette. The gate answers each of those, and it is wired into
+   `prebuild`, so a build that lies does not ship.
+
+The gate is mutation-tested: each rule has a test that puts the shipped
+defect back and requires the rule to fail. A rule that goes blind fails its
+own mutation test. The colours the interface still owes the Palette are
+recorded in `tests/fixtures/palette-debt.json` — the build may not add to that
+list, and the debt may only shrink.
+
+**How new work joins the contract.** Three questions, in this order:
+1. *What does this claim?* If it states a fact, it must come from a feed and
+   name its provenance. If it states a colour, that colour must come from
+   `src/data/mapPalette.js` and the plate must name it.
+2. *Which gate catches it if it drifts?* A new claim wants a rule in the
+   truthfulness gate; a new look wants a rule here and in the scanner's
+   vocabulary. A rule nobody can fail is a comment.
+3. *What did it break?* Add the failure to this file as the reason, and add
+   the mutation test. A rule with no story behind it gets deleted by the next
+   reviewer.

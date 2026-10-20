@@ -21,12 +21,20 @@ try {
       const rect = selector => document.querySelector(selector)?.getBoundingClientRect().toJSON();
       const visible = selector => [...document.querySelectorAll(selector)].some(el => el.getClientRects().length > 0);
       return { header: rect('.header-bar'), clock: rect('.top-bar-clock'), map: rect('.maplibregl-canvas'),
+        // The chrome above the map: the legal marking, the instrument band
+        // and the masthead. A band earns its height — on a phone the whole
+        // stack may not exceed the budget the contract sets.
+        chrome: Math.round(document.querySelector('.maplibregl-canvas')?.getBoundingClientRect().top || 0),
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
         defaultPanels: visible('.left-sidebar,.right-sidebar,.bottom-bar'), failed: /Something went wrong|Map failed to render/.test(document.body.innerText),
         sponsors: [...document.querySelectorAll('.header-brand-logo')].map(i => i.complete && i.naturalWidth > 0) };
     });
     assert.ok(geometry.header.height <= 56.1, 'masthead exceeds 56px');
     assert.ok(geometry.clock.height <= 28.1, 'clock exceeds 28px');
+    if (width <= 430) {
+      assert.ok(geometry.chrome <= 88.1, `the top chrome is ${geometry.chrome}px — a band earns its height, and the phone budget is 88px`);
+      assert.ok(geometry.header.height <= 44.1, `the phone masthead is ${geometry.header.height}px — it carries one row`);
+    }
     assert.ok(geometry.map.height * geometry.map.width >= width * 900 * .6, 'map loses first screen');
     assert.equal(geometry.defaultPanels, false);
     assert.equal(geometry.overflow, false);

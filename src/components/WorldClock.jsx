@@ -143,7 +143,7 @@ const CITIES_BY_THEATER = {
     middleeast: ME_CITIES,
 };
 
-const WorldClock = ({ viewMode = 'middleeast' }) => {
+const WorldClock = ({ viewMode = 'middleeast', theaterLabel = '' }) => {
     const cities = CITIES_BY_THEATER[viewMode] || INDO_PACIFIC_CITIES;
 
     const primaryTimeRef = useRef(null);
@@ -213,6 +213,12 @@ const WorldClock = ({ viewMode = 'middleeast' }) => {
             <div className="primary-clock-center">
                 <PrimaryClock city={primaryCity} timeRef={primaryTimeRef} dateRef={primaryDateRef} />
             </div>
+
+            {/* The theater the reference clock is keeping time for. On a wide
+                screen the region tabs already say it and the band is full. On a
+                phone the tabs are gone and the band was 46% empty, holding one
+                clock in a 390px strip — so the band says what it is for. */}
+            {theaterLabel ? <div className="clock-theater-ref">{theaterLabel}</div> : null}
 
             <div className="secondary-clocks-side right-side">
                 {secondaryCities.slice(4).map((city, index) => (

@@ -34,9 +34,31 @@ import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 import { buildPopupClassName } from '../utils/mapPopup.js';
+import { MARK, LEGEND_KEY, VESSEL_CLASSES, groundInk, wash } from '../data/mapPalette.js';
+import { ESRI_SATELLITE_STYLE, OSM_RASTER_STYLE, ESRI_STREET_STYLE, ESRI_DARK_STYLE, MAP_STYLES, MAP_STYLE_FALLBACKS, MAP_STYLE_ULTIMATE } from '../data/basemaps';
 
 /** Static traffic snapshot — one fetch per session, frozen until tab close. */
 // Hand-typed demo events must show how old they are, not read as current.
+/**
+ * A row's key: every colour the map paints for that source, in order.
+ *
+ * One bar cannot speak for six vessel classes, and a bar that speaks for one
+ * of them is a key that lies about the other five. The strip is the same
+ * twenty pixels the bar occupied, segmented once per colour the map draws.
+ */
+const LegendKey = ({ marks }) => (
+    <span className="map-legend-key" aria-hidden="true">
+        {marks.map((m) => (
+            <span key={m.mark} className="map-legend-chip" style={{ background: MARK[m.mark] }} />
+        ))}
+    </span>
+);
+
+/** The names of the marks a strip stands for, said in words under the reading. */
+const LegendClasses = ({ marks }) => (
+    <span className="map-legend-classes">{marks.map((m) => m.label).join(' · ')}</span>
+);
+
 const acledDemoRange = (features) => {
     const dates = (features || []).map((f) => f?.properties?.date).filter(Boolean).sort();
     if (!dates.length) return 'undated';
@@ -162,8 +184,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[44, 22], [60, 22], [60, 32], [44, 32], [44, 22]]]
             },
             properties: {
-                fill: '#a72144',
-                line: '#a72144'
+                fill: MARK.zoneGulf,
+                line: MARK.zoneGulf
             }
         },
         {
@@ -173,8 +195,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[94, -6], [109, -6], [109, 18], [94, 18], [94, -6]]]
             },
             properties: {
-                fill: '#1a7444',
-                line: '#489b6e'
+                fill: MARK.zoneSouthEast,
+                line: MARK.zoneSouthEast
             }
         },
         {
@@ -184,8 +206,8 @@ const STRATEGIC_ZONES = {
                 coordinates: [[[32, 11], [45, 11], [45, 22], [32, 22], [32, 11]]]
             },
             properties: {
-                fill: '#f59e0b',
-                line: '#8a5a00'
+                fill: MARK.zoneRedSea,
+                line: MARK.zoneRedSea
             }
         }
     ]
@@ -201,9 +223,8 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[51.47, 25.28], [55.36, 25.25], [72.88, 19.07], [100.5, 13.75]]
             },
             properties: {
-                color: '#a72144',
+                color: MARK.routeEnergy,
                 width: 2.8,
-                glow: 12,
                 label: 'Energy Trade Route (Gulf → India → Bangkok)'
             }
         },
@@ -214,9 +235,8 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[40.0, 16.5], [56.0, 18.2], [72.0, 14.6], [90.0, 8.3], [103.82, 1.35]]
             },
             properties: {
-                color: '#f59e0b',
+                color: MARK.routeLane,
                 width: 2.4,
-                glow: 10,
                 label: 'Maritime Shipping Lane (Red Sea → Singapore)'
             }
         },
@@ -227,9 +247,8 @@ const OPERATIONAL_CORRIDORS = {
                 coordinates: [[121.47, 31.23], [121.56, 25.03], [120.98, 14.6], [103.82, 1.35]]
             },
             properties: {
-                color: '#006eb8',
+                color: MARK.routeEast,
                 width: 2.2,
-                glow: 9,
                 label: 'East Asia Trade Corridor (Shanghai → Singapore)'
             }
         }
@@ -451,138 +470,7 @@ const renderSpatialAura = (data, id, color, baseRadius, { featureColor = false }
 // Inline MapLibre style spec for ESRI World Imagery — no API key required.
 // Used as the satellite basemap because the MapTiler "hybrid" placeholder key that
 // previously lived here was the literal docs example and rendered blank in production.
-const ESRI_SATELLITE_STYLE = {
-    version: 8,
-    sources: {
-        'esri-world-imagery': {
-            type: 'raster',
-            tiles: [
-                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-            ],
-            tileSize: 256,
-            maxzoom: 19,
-            attribution: 'Esri, Maxar, Earthstar Geographics, USDA, USGS, AeroGRID, IGN'
-        },
-        'esri-reference': {
-            type: 'raster',
-            tiles: [
-                'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
-            ],
-            tileSize: 256,
-            maxzoom: 19
-        }
-    },
-    layers: [
-        { id: 'esri-world-imagery-layer', type: 'raster', source: 'esri-world-imagery' },
-        { id: 'esri-reference-layer', type: 'raster', source: 'esri-reference', paint: { 'raster-opacity': 0.85 } }
-    ],
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
-};
 
-/** Inline OSM raster — always paints opaque pixels; survives Opera / lazy-mount resize. */
-const OSM_RASTER_STYLE = {
-    version: 8,
-    sources: {
-        osm: {
-            type: 'raster',
-            // Entries in `tiles` are MIRRORS of one imagery set — MapLibre round-robins
-            // tiles across them. Mixing OSM/Esri in here painted a patchwork of three
-            // different maps. Voyager a/b/c only.
-            tiles: [
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            ],
-            tileSize: 256,
-            maxzoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        },
-    },
-    layers: [
-        { id: 'background', type: 'background', paint: { 'background-color': '#f7f5ef' } },
-        { id: 'osm-raster', type: 'raster', source: 'osm', paint: { 'raster-opacity': 1 } },
-    ],
-    // Without a glyphs endpoint no symbol layer can draw text at all — the
-    // layer is accepted and the label simply never appears.
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
-};
-
-/** Key-free last resort — inline OSM raster, never a remote style.json URL. */
-const MAP_STYLE_ULTIMATE = OSM_RASTER_STYLE;
-
-/** ESRI World Street — inline raster, same pattern as satellite; reliable on Cloudflare Pages. */
-const ESRI_STREET_STYLE = {
-    version: 8,
-    sources: {
-        'esri-street': {
-            type: 'raster',
-            tiles: [
-                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-            ],
-            tileSize: 256,
-            maxzoom: 19,
-            attribution: 'Esri, HERE, Garmin, OpenStreetMap',
-        },
-    },
-    layers: [
-        { id: 'background', type: 'background', paint: { 'background-color': '#f7f5ef' } },
-        { id: 'esri-street-layer', type: 'raster', source: 'esri-street', paint: { 'raster-opacity': 1 } },
-    ],
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
-};
-
-/** ESRI World Dark Gray Canvas — keyless, low-glare raster.
- *  The "Dark" option in the basemap picker used to point at the bright Esri
- *  street map: the label promised a low-glare operations map and delivered a
- *  white one. A control that lies about what it does is worse than no
- *  control, so the dark option now really is dark.
- *  CARTO's dark raster was tried first and rejected: without an API key it
- *  returns tiles watermarked "API KEY REQUIRED" across the whole map. */
-const ESRI_DARK_STYLE = {
-    version: 8,
-    sources: {
-        'esri-dark-base': {
-            type: 'raster',
-            tiles: [
-                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-            ],
-            tileSize: 256,
-            maxzoom: 16,
-            attribution: 'Esri, HERE, Garmin, OpenStreetMap',
-        },
-        'esri-dark-ref': {
-            type: 'raster',
-            tiles: [
-                'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
-            ],
-            tileSize: 256,
-            maxzoom: 16
-        }
-    },
-    layers: [
-        { id: 'background', type: 'background', paint: { 'background-color': '#101010' } },
-        { id: 'esri-dark-base-layer', type: 'raster', source: 'esri-dark-base', paint: { 'raster-opacity': 1 } },
-        { id: 'esri-dark-ref-layer', type: 'raster', source: 'esri-dark-ref', paint: { 'raster-opacity': 0.85 } }
-    ],
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf'
-};
-
-// Each entry can be a URL string or an inline style object — MapLibre accepts both.
-// Fallback chain (per style): if the primary URL fails (CORS / 5xx / DNS), the
-// onStyleError handler in <Map> will swap to the fallback so the map never goes blank.
-// The default is the light Esri street raster: it is the paper ground the whole
-// interface is built on, and it is reliable on Cloudflare Pages.
-const MAP_STYLES = {
-    topographic: ESRI_STREET_STYLE,
-    satellite: ESRI_SATELLITE_STYLE,
-    dark: ESRI_DARK_STYLE,
-};
-
-const MAP_STYLE_FALLBACKS = {
-    // The dark map falls back to imagery, not to the bright street map: a
-    // dark ground is the promise, and a white one would break it.
-    dark: ESRI_SATELLITE_STYLE,
-    topographic: ESRI_STREET_STYLE,
-    satellite: OSM_RASTER_STYLE,
-};
 
 /** Basemap source ids — tile failures here trigger style fallback (not overlay layers). */
 const BASEMAP_SOURCE_PATTERN = /^(carto|esri|openmaptiles|composite|basemap|demotiles|protomaps|osm)/i;
@@ -659,7 +547,8 @@ const MapContainer = ({
     const basemapIsDark = activeMapStyle === ESRI_SATELLITE_STYLE || activeMapStyle === ESRI_DARK_STYLE;
     // The wind legend's swatch is --ink-2, so the arrows have to be ink-2 too
     // on the paper basemap. On the dark satellite basemap they are paper.
-    const basemapInk = basemapIsDark ? '#f7f5ef' : '#57534b';
+    // The same ink the legend swatch uses: groundInk() is the single fact.
+    const basemapInk = groundInk(basemapIsDark);
 
     /* The label voice follows the ground it sits on. On paper: ink #101010
        with a paper halo. On a dark ground: paper #f7f5ef with an ink halo.
@@ -1723,13 +1612,16 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'case',
-                                    ['==', ['get', 'confidence'], 'high'], '#a72144',
-                                    ['==', ['get', 'confidence'], 'h'], '#a72144',
-                                    '#f37420'
+                                    ['==', ['get', 'confidence'], 'high'], MARK.thermal,
+                                    ['==', ['get', 'confidence'], 'h'], MARK.thermal,
+                                    MARK.thermalLow
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 8, 4, 12, 8],
                                 'circle-opacity': 0.8,
-                                'circle-blur': 0.3,
+                                /* No blur. A mark is drawn once, at one weight:
+                                   a soft-edged detection is a glow with a
+                                   smaller budget, and the plate's key claims a
+                                   flat red. */
                                 'circle-stroke-width': 0.5,
                                 'circle-stroke-color': '#6b665e'
                             }}
@@ -1800,8 +1692,8 @@ const MapContainer = ({
                                 'circle-color': [
                                     'case',
                                     ['==', ['get', 'military'], true],
-                                    '#a72144',
-                                    '#f99d1b'
+                                    MARK.military,
+                                    MARK.aircraft
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2.1, 5, 3, 8, 4.5],
                                 'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.62, 6, 0.82, 10, 0.9],
@@ -1909,7 +1801,7 @@ const MapContainer = ({
                                    map and its own key disagreed. The type is
                                    read in the popup, where there is room for a
                                    sentence; on the map an event is an event. */
-                                'circle-color': '#a72144',
+                                'circle-color': MARK.conflict,
                                 'circle-radius': [
                                     'interpolate', ['linear'],
                                     ['coalesce', ['get', 'fatalities'], 0],
@@ -1932,13 +1824,13 @@ const MapContainer = ({
                             paint={{
                                 'circle-color': [
                                     'match', ['get', 'category'],
-                                    'cargo', '#1a7444',
-                                    'tanker', '#a72144',
-                                    'passenger', '#006eb8',
-                                    'fishing', '#f59e0b',
-                                    'tug', '#f37420',
-                                    'pleasure', '#b984af',
-                                    '#6b665e'
+                                    'cargo', MARK.vesselCargo,
+                                    'tanker', MARK.vesselTanker,
+                                    'passenger', MARK.vesselPassenger,
+                                    'fishing', MARK.vesselFishing,
+                                    'tug', MARK.vesselTug,
+                                    'pleasure', MARK.vesselPleasure,
+                                    MARK.vesselOther
                                 ],
                                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 2, 5, 2.8, 8, 4.2],
                                 'circle-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.58, 6, 0.78, 10, 0.88],
@@ -2088,7 +1980,7 @@ const MapContainer = ({
                             id="military-flights-icons"
                             type="circle"
                             paint={{
-                                'circle-color': '#f59e0b',
+                                'circle-color': MARK.military,
                                 'circle-radius': 5,
                                 'circle-stroke-color': '#101010',
                                 'circle-stroke-width': 1.4,
@@ -2776,7 +2668,7 @@ const MapContainer = ({
                     className="map-legend-item"
                     style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
                 >
-                    <span className="map-legend-line" style={{ background: '#f99d1b' }} />
+                    <LegendKey marks={LEGEND_KEY.aircraft} />
                     <span className="map-legend-copy">
                         <span className="map-legend-value">
                             {visibleFlightCount > 0
@@ -2790,8 +2682,11 @@ const MapContainer = ({
                                         : 'No aircraft'}
                         </span>
                         <span className="map-legend-meta">
-                            {flightSourceLabel}
-                            {flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : ''}
+                            <LegendClasses marks={LEGEND_KEY.aircraft} />
+                            <span>
+                                {flightSourceLabel}
+                                {flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : ''}
+                            </span>
                         </span>
                     </span>
                 </div>
@@ -2799,10 +2694,7 @@ const MapContainer = ({
                     className="map-legend-item"
                     style={{ visibility: vesselsLayerActive ? 'visible' : 'hidden' }}
                 >
-                    <span
-                        className="map-legend-line"
-                        style={{ background: globalVesselCount > 0 ? '#1a7444' : 'rgba(245,158,11,0.35)' }}
-                    />
+                    <LegendKey marks={LEGEND_KEY.vessels} />
                     <span className="map-legend-copy">
                         <span className="map-legend-value">
                             {visibleVesselCount > 0
@@ -2818,9 +2710,12 @@ const MapContainer = ({
                                             : vesselsNeedKey ? 'AIS key required' : 'No vessels'}
                         </span>
                         <span className="map-legend-meta">
-                            {vesselSourceLabel}
-                            {axiomOverwatchActive ? ' · CC-BY 4.0' : ''}
-                            {vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : ''}
+                            <LegendClasses marks={LEGEND_KEY.vessels} />
+                            <span>
+                                {vesselSourceLabel}
+                                {axiomOverwatchActive ? ' · CC-BY 4.0' : ''}
+                                {vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : ''}
+                            </span>
                         </span>
                     </span>
                 </div>
@@ -2831,7 +2726,7 @@ const MapContainer = ({
                             detections are still painted — in Wada red. The key
                             and the drawing disagreed; the provenance belongs in
                             the words underneath. */}
-                        <span className="map-legend-line" style={{ background: '#a72144' }} />
+                        <LegendKey marks={LEGEND_KEY.thermal} />
                         <span className="map-legend-copy">
                             <span className="map-legend-value">
                                 {firmsCount > 0
@@ -2841,6 +2736,7 @@ const MapContainer = ({
                                     : 'No thermal detections'}
                             </span>
                             <span className="map-legend-meta">
+                                <LegendClasses marks={LEGEND_KEY.thermal} />
                                 {firmsLive
                                     ? `VIIRS · ${ageLabel(firmsMeta?.fetchedAt) || 'age unknown'}`
                                     : firmsMeta?.source
@@ -2862,7 +2758,7 @@ const MapContainer = ({
                             painted the sample events in four other colours — the
                             key and the drawing disagreed. The sample/live
                             distinction belongs in the words underneath. */}
-                        <span className="map-legend-line" style={{ background: '#a72144' }} />
+                        <LegendKey marks={LEGEND_KEY.conflicts} />
                         <span className="map-legend-copy">
                             <span className="map-legend-value">
                                 {acledLive
@@ -2872,6 +2768,7 @@ const MapContainer = ({
                                         : 'No events'}
                             </span>
                             <span className="map-legend-meta">
+                                <LegendClasses marks={LEGEND_KEY.conflicts} />
                                 {acledLive
                                     ? `ACLED · since ${acledRaw?.since || '—'}`
                                     : acledCount > 0
@@ -2883,7 +2780,10 @@ const MapContainer = ({
                 )}
                 {activeLayers.includes('aqi') && (
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: worstAqi?.color || 'var(--ink-3)' }} />
+                        <span
+                            className="map-legend-line"
+                            style={{ background: worstAqi?.color || MARK.aqiNone }}
+                        />
                         <span className="map-legend-copy">
                             <span className="map-legend-value">
                                 {worstAqi ? `${worstAqi.city} AQI ${worstAqi.aqi}` : 'No AQI reading'}
@@ -2896,7 +2796,7 @@ const MapContainer = ({
                 )}
                 {activeLayers.includes('wind') && (
                     <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: 'var(--ink-2)' }} />
+                        <span className="map-legend-line" style={{ background: groundInk(basemapIsDark) }} />
                         <span className="map-legend-copy">
                             <span className="map-legend-value">
                                 {windMeta ? `${windMeta.count} points` : 'No wind reading'}
@@ -2930,28 +2830,28 @@ const MapContainer = ({
             >
                 <div className="map-legend-title">STRATEGIC CONTEXT</div>
                 <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: '#a72144' }} />
+                    <span className="map-legend-line" style={{ background: MARK.routeEnergy }} />
                     <span>Energy route reference</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: '#f59e0b' }} />
+                    <span className="map-legend-line" style={{ background: MARK.routeLane }} />
                     <span>Shipping lane reference</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-line" style={{ background: '#006eb8' }} />
+                    <span className="map-legend-line" style={{ background: MARK.routeEast }} />
                     <span>Regional city network</span>
                 </div>
                 <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
                 <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: 'rgba(239,68,68,0.3)', borderColor: '#a72144' }} />
+                    <span className="map-legend-zone" style={{ background: wash(MARK.zoneGulf, 0.3), borderColor: MARK.zoneGulf }} />
                     <span>Persian Gulf focus area</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: 'rgba(245,158,11,0.3)', borderColor: '#8a5a00' }} />
+                    <span className="map-legend-zone" style={{ background: wash(MARK.zoneRedSea, 0.3), borderColor: MARK.zoneRedSea }} />
                     <span>Horn of Africa / Yemen</span>
                 </div>
                 <div className="map-legend-item">
-                    <span className="map-legend-zone" style={{ background: 'rgba(16,185,129,0.3)', borderColor: '#489b6e' }} />
+                    <span className="map-legend-zone" style={{ background: wash(MARK.zoneSouthEast, 0.3), borderColor: MARK.zoneSouthEast }} />
                     <span>ASEAN urban systems</span>
                 </div>
             </div>

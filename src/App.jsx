@@ -259,7 +259,7 @@ function App() {
 
         {/* Row 1: World Clock */}
         <ErrorBoundary inline label="World Clock">
-          <WorldClock viewMode={viewMode} />
+          <WorldClock viewMode={viewMode} theaterLabel={REGIONS[viewMode]?.shortLabel || ''} />
         </ErrorBoundary>
 
         {/* Row 2: Header bar — 3-section layout: logos | center title | controls */}

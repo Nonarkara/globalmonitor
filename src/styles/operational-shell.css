@@ -40,6 +40,11 @@
 .app-container[data-shell="compact"] .clock-city-small {font-size: var(--type-micro)!important;line-height:1.1!important;}
 .app-container[data-shell="compact"] :is(.clock-city,.clock-city-small) {color:var(--chrome-ink,var(--ink))!important;}
 .app-container[data-shell="compact"] .clock-war-date {display:none;}
+/* The theater the reference clock is keeping time for. On a wide screen the
+   region tabs already say it and the band is full, so the label is hidden;
+   on a phone the tabs are gone and the band was 46% empty — one clock in a
+   390px strip. The band says what it is for. */
+.app-container[data-shell="compact"] .clock-theater-ref {display:none;}
 .app-container[data-shell="compact"] .clock-time-small {font-size: var(--type-body)!important;line-height:1!important;}
 .app-container[data-shell="compact"] .header-bar {
   position:absolute!important; top:var(--op-clock)!important; left:0;right:0;
@@ -111,7 +116,12 @@
    and 170px tall, which held 168px of a 444px column — two thirds of the
    provenance sat behind a scrollbar nobody scrolled. Wider, taller, and
    lifted clear of the MapLibre attribution it used to cover. */
-.app-container[data-shell="compact"] .map-legend--traffic {contain:none!important;width:300px!important;max-width:calc(100vw - 16px)!important;left:auto!important;right:8px!important;top:auto!important;bottom:46px!important;max-height:min(360px, calc(100% - 120px));overflow:auto;font-size: var(--type-micro);}
+/* The plate is wide and tall enough to hold every reading and every
+   qualification at once. It grew by five lines when the key started naming
+   the class each colour stands for — a plate that is too small for its
+   content scrolls a qualification out of sight, which is the same as not
+   having it. */
+.app-container[data-shell="compact"] .map-legend--traffic {contain:none!important;width:300px!important;max-width:calc(100vw - 16px)!important;left:auto!important;right:8px!important;top:auto!important;bottom:46px!important;max-height:min(384px, calc(100% - 120px));overflow:auto;font-size: var(--type-micro);}
 .app-container[data-shell="compact"] .map-coord-readout {left:8px;bottom:80px;padding:4px 6px;}
 .app-container[data-shell="compact"] .map-eo-labels {left:8px;right:240px;bottom:26px;transform:none;max-width:none;justify-content:flex-start;gap:2px;}
 .app-container[data-shell="compact"] .map-eo-label {padding:2px 4px;border:0;gap:4px;flex-wrap:wrap;}
@@ -138,19 +148,27 @@
   .app-container[data-shell="compact"] .header-status > :not(.header-title-lockup):not(.gw-header-identity) {display:none;}
 }
 @media(max-width:720px) {
-  .app-container[data-shell="compact"] {--op-clock:24px;}
-  .app-container[data-shell="compact"] .header-bar {display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:30px 26px!important;gap:0 6px!important;}
-  .app-container[data-shell="compact"] .header-status {grid-column:1;grid-row:1;width:100%!important;align-self:end;}
-  .app-container[data-shell="compact"] .header-brand-strip {grid-column:1;grid-row:2;width:124px!important;max-width:124px!important;padding:0!important;gap:5px!important;align-self:center;}
-  .app-container[data-shell="compact"] .header-brand-logo {height:12px!important;max-width:24px!important;}
-  .app-container[data-shell="compact"] .header-brand-logo-pmua {height:16px!important;max-width:36px!important;}
-  .app-container[data-shell="compact"] .header-brand-strip {max-width:100%!important;min-width:0;}
-  .app-container[data-shell="compact"] .header-brand-logo {min-width:0;}
-  .app-container[data-shell="compact"] .header-controls {grid-column:2;grid-row:1/3;align-self:center;gap:2px!important;}
+  .app-container[data-shell="compact"] {--op-clock:24px; --op-header:44px;}
+  /* The phone masthead was a two-row grid — a 30px title row above a 26px
+     partner row — so 56px of chrome held one word and four small logos.
+     It is now one 44px row: partners, name, controls. A band earns its
+     height; this one was carrying a row and a half of nothing. */
+  .app-container[data-shell="compact"] .header-bar {
+    display:flex!important; flex-direction:row!important; align-items:center!important;
+    gap:8px!important; height:var(--op-header)!important; padding:0 8px!important;
+  }
+  .app-container[data-shell="compact"] .header-brand-strip {
+    flex:0 0 auto!important; width:auto!important; max-width:none!important;
+    padding:0 3px!important; gap:4px!important; background:#fff;
+  }
+  .app-container[data-shell="compact"] .header-brand-logo {height:12px!important;max-width:21px!important;min-width:0!important;}
+  .app-container[data-shell="compact"] .header-brand-logo-pmua {height:15px!important;max-width:26px!important;}
+  .app-container[data-shell="compact"] .header-status {flex:0 0 auto!important;width:auto!important;}
   .app-container[data-shell="compact"] .header-title {font-size: var(--type-body)!important;}
   .app-container[data-shell="compact"] .header-subtitle,
   .app-container[data-shell="compact"] .gw-availability,
   .app-container[data-shell="compact"] .gw-header-mark {display:none;}
+  .app-container[data-shell="compact"] .header-controls {flex:1 1 auto!important;justify-content:flex-end!important;gap:2px!important;}
   .app-container[data-shell="compact"] .header-icon-button {min-width:44px!important;padding:4px!important;}
   .app-container[data-shell="compact"] .header-controls .header-icon-label {display:none;}
   .app-container[data-shell="compact"] .header-region-tab {font-size: var(--type-micro)!important;}
@@ -158,15 +176,42 @@
   .app-container[data-shell="compact"] .compact-region-select {display:none;}
   .app-container[data-shell="compact"] .header-controls .header-button {display:none!important;}
   .app-container[data-shell="compact"] .secondary-clocks-side {display:none!important;}
-  .app-container[data-shell="compact"] .top-bar-clock {justify-content:center!important;}
+  /* The band is two cells on a phone: the reference clock, and the theater
+     it is keeping time for. The rail is a three-column grid on a wide
+     screen; with the eight flanking clocks hidden, the two cells take the
+     place of the grid's columns and the pair is centred as one group. */
+  .app-container[data-shell="compact"] .top-bar-clock {
+    display:grid!important; grid-template-columns:auto auto!important;
+    justify-content:center!important; column-gap:10px!important;
+  }
+  .app-container[data-shell="compact"] .clock-theater-ref {
+    display:flex!important; align-items:center!important;
+    font-family:var(--font-display); font-size:var(--type-micro)!important;
+    letter-spacing:.09em; text-transform:uppercase; font-weight:500;
+    color:var(--chrome-muted,var(--ink-2))!important;
+    white-space:nowrap; padding-left:2px;
+  }
   /* On a phone the plate is narrower, so the copy stacks taller. It still has
      to hold every qualification: the cap gives way to the content, and only
      scrolls when the screen genuinely has no room left. */
   .app-container[data-shell="compact"] .map-legend--traffic {max-width:196px!important;max-height:min(268px, calc(100% - 150px))!important;right:4px!important;bottom:44px!important;padding:4px!important;}
+  /* The strip stays on a phone — it shows every colour the map paints for
+     that source. The class names do not fit beside a 196px reading without
+     scrolling, and a qualifier that is scrolled out of sight is a qualifier
+     that is not there; they are in the mark's own popup, which is what a tap
+     is for. */
+  .app-container[data-shell="compact"] .map-legend-classes {display:none!important;}
   .app-container[data-shell="compact"] .map-coord-readout {display:none;}
   .app-container[data-shell="compact"] .map-eo-labels {left:4px;right:172px;bottom:30px;flex-direction:column;align-items:flex-start;}
   .app-container[data-shell="compact"] .map-first-layers-rail {display:none!important;}
   .app-container[data-shell="compact"] .header-tools-trigger svg:last-child {display:none;}
+}
+/* Below 340px the band cannot hold both cells without squeezing the clock:
+   the reference clock keeps its room and the theater label is dropped rather
+   than truncated. A label that is cut off says something different from what
+   it says in full. */
+@media(max-width:340px) {
+  .app-container[data-shell="compact"] .clock-theater-ref {display:none!important;}
 }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}

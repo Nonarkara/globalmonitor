@@ -8,8 +8,8 @@
     "design:check": "node .non-slop/bin/non-slop.mjs scan src --fail-on=P1",
     "design:render": "node .non-slop/bin/non-slop.mjs render",
     "verify:live": "node scripts/operational-check.mjs",
-    "prebuild": "npm run design:check",
-    "prebuild:pages": "npm run design:check",
+    "prebuild": "npm run design:check && npm run guard",
+    "prebuild:pages": "npm run design:check && npm run guard",
     "api": "node server/index.mjs",
     "dev": "vite",
     "dev:stack": "node scripts/dev-stack.mjs",
@@ -24,7 +24,8 @@
     "deploy:pages:ais": "npm run refresh:ais && npm run deploy:pages",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server/index.mjs"
+    "start": "node server/index.mjs",
+    "guard": "node --test tests/truthfulness.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.0",
