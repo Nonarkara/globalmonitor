@@ -25,15 +25,27 @@ try {
         // and the masthead. A band earns its height — on a phone the whole
         // stack may not exceed the budget the contract sets.
         chrome: Math.round(document.querySelector('.maplibregl-canvas')?.getBoundingClientRect().top || 0),
+        // The chrome rows are sized in rem so they scale with the fluid root.
+        // A budget in fixed pixels measures the wrong thing on a 1440px
+        // screen (root 16.56px → a 3.5rem masthead is 58px, not 56).
+        rootPx: parseFloat(getComputedStyle(document.documentElement).fontSize),
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
         defaultPanels: visible('.left-sidebar,.right-sidebar,.bottom-bar'), failed: /Something went wrong|Map failed to render/.test(document.body.innerText),
         sponsors: [...document.querySelectorAll('.header-brand-logo')].map(i => i.complete && i.naturalWidth > 0) };
     });
-    assert.ok(geometry.header.height <= 56.1, 'masthead exceeds 56px');
-    assert.ok(geometry.clock.height <= 28.1, 'clock exceeds 28px');
-    if (width <= 430) {
-      assert.ok(geometry.chrome <= 88.1, `the top chrome is ${geometry.chrome}px — a band earns its height, and the phone budget is 88px`);
+    if (width <= 720) {
+      // The phone's rows are fixed pixels, and the contract fixes them:
+      // one 44px masthead row, a 24px instrument band, and 86px of chrome
+      // for the whole stack. A band earns its height.
       assert.ok(geometry.header.height <= 44.1, `the phone masthead is ${geometry.header.height}px — it carries one row`);
+      assert.ok(geometry.clock.height <= 24.1, `the phone instrument band is ${geometry.clock.height}px`);
+      if (width <= 430) {
+        assert.ok(geometry.chrome <= 88.1, `the top chrome is ${geometry.chrome}px — the phone budget is 88px`);
+      }
+    } else {
+      const rem = (n) => n * geometry.rootPx;
+      assert.ok(geometry.header.height <= rem(3.5) + 0.1, `masthead exceeds 3.5rem (${rem(3.5).toFixed(1)}px)`);
+      assert.ok(geometry.clock.height <= rem(1.75) + 0.1, `clock exceeds 1.75rem (${rem(1.75).toFixed(1)}px)`);
     }
     assert.ok(geometry.map.height * geometry.map.width >= width * 900 * .6, 'map loses first screen');
     assert.equal(geometry.defaultPanels, false);

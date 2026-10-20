@@ -213,6 +213,18 @@
 @media(max-width:340px) {
   .app-container[data-shell="compact"] .clock-theater-ref {display:none!important;}
 }
+/* Below 350px the row cannot hold four partners, the name and four 44px
+   touch targets: the controls overflowed their box and sat on top of the
+   title. The partners give way — PMUA, the anchor, stays. */
+@media(max-width:349px) {
+  .app-container[data-shell="compact"] .header-brand-strip {
+    gap:0!important; padding:0!important; background:transparent;
+  }
+  .app-container[data-shell="compact"] .header-brand-logo {display:none!important;}
+  .app-container[data-shell="compact"] .header-brand-logo-pmua {
+    display:block!important; height:15px!important; max-width:26px!important;
+  }
+}
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
 }
