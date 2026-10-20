@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const CACHE_NAME = 'gpd-v8-20261019-non-slop';
+const CACHE_NAME = 'gpd-v8-20261020-axiom-icon';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

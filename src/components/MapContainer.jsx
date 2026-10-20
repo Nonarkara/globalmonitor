@@ -1238,23 +1238,12 @@ const MapContainer = ({
         : formatVesselSourceLabel(vesselMeta);
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
-    // FIRMS and ACLED sit on the same map as traffic with no provenance line of
-    // their own. Same format as the traffic rows: count · source · age.
     const firmsMeta = firmsData?.meta;
     const firmsLive = firmsMeta?.source === 'nasa-firms-live';
     const firmsCount = firmsData?.features?.length ?? 0;
-    const firmsSourceLabel = firmsLive
-        ? firmsCount + ' thermal · VIIRS · ' + (ageLabel(firmsMeta?.fetchedAt) || 'age unknown')
-        : firmsMeta?.source === 'no_firms_key' ? 'Thermal: no FIRMS key — nothing shown'
-            : firmsResource.isLoading ? 'Loading thermal…'
-                : firmsMeta?.source ? 'Thermal: ' + String(firmsMeta.source).replace(/_/g, ' ') : 'Thermal: no data';
     const acledRaw = acledResource.data;
     const acledLive = acledRaw?.source === 'acled';
     const acledCount = acledRaw?.features?.length ?? 0;
-    const acledSourceLabel = acledLive
-        ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
-        : acledCount > 0 ? acledCount + ' sample events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
-            : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
     // The haze reading, stated plainly. A map layer that carries a number has
     // to carry the number, not just a colour.
     const worstAqi = useMemo(() => {
