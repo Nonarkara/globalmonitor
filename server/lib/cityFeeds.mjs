@@ -279,7 +279,7 @@ const probeBangkok = async (city) => {
     return {
         kind: 'snapshot',
         url: `${ITIC_SNAPSHOT}${encodeURIComponent(chosen.camid)}`,
-        label: 'Snapshot — refreshing JPEG, not video',
+        label: snapshotTier(changed),
         source: 'iTIC / Longdo',
         sourceUrl: 'https://camera.longdo.com/',
         probeFailed: false,
@@ -346,10 +346,12 @@ const probeSingapore = async () => {
         };
     }
 
+    const changed = second.ok ? second.hash !== first.hash : null;
+
     return {
         kind: 'snapshot',
         url: chosen.camera.image,
-        label: 'Snapshot — JPEG frame published by the operator, not video',
+        label: snapshotTier(changed),
         source: 'data.gov.sg (LTA)',
         sourceUrl: 'https://data.gov.sg/collections/1381/view',
         probeFailed: false,
@@ -361,10 +363,10 @@ const probeSingapore = async () => {
         width: first.dims.width,
         height: first.dims.height,
         contentType: first.contentType,
-        frameChanged: second.ok ? second.hash !== first.hash : null,
+        frameChanged: changed,
         publishedAt: chosen.camera.timestamp || item?.timestamp || null,
         probedAt: nowIso(),
-        note: `Camera at ${chosen.camera.location?.latitude?.toFixed(2)} N, ${chosen.camera.location?.longitude?.toFixed(2)} E — the nearest of the ${cameras.length} the operator publishes to the city centre. The file at this address is a capture, not a stream: the feed publishes a new one.`,
+        note: `Camera at ${chosen.camera.location?.latitude?.toFixed(2)} N, ${chosen.camera.location?.longitude?.toFixed(2)} E — the nearest of the ${cameras.length} the operator publishes to the city centre. The frame ${changed ? 'changed' : 'did not change'} between two probes ${Math.round(PROBE_GAP_MS / 1000)} s apart. The file at this address is a capture, not a stream: the feed publishes a new one.`,
     };
 };
 
@@ -420,7 +422,7 @@ const probeHoChiMinh = async () => {
     return {
         kind: 'snapshot',
         url,
-        label: 'Snapshot — refreshing JPEG, not video',
+        label: snapshotTier(second.ok ? second.hash !== first.hash : null),
         source: 'api.notis.vn (traffic operator)',
         sourceUrl: 'https://api.notis.vn/',
         probeFailed: false,
@@ -470,7 +472,11 @@ const probeJakarta = async () => {
     return {
         kind: 'snapshot',
         url: JAKARTA_STILL,
-        label: 'Snapshot — aggregator frame of a live camera, not video',
+        // "of a live camera" is a claim about a third party's camera. The
+        // HLS probe confirms it when the playlist answers with live
+        // segments, and the HLS note reports that in words; the tier line
+        // says only what the frame itself did.
+        label: snapshotTier(second.ok ? second.hash !== first.hash : null),
         source: 'opencctv.org (third-party aggregator)',
         sourceUrl: 'https://opencctv.org/',
         probeFailed: false,
@@ -516,7 +522,7 @@ const probeKualaLumpur = async () => {
     return {
         kind: 'snapshot',
         url: chosen.url,
-        label: 'Snapshot — refreshing JPEG, not video',
+        label: snapshotTier(changed),
         source: 'Selangor state government (Info Banjir JPS)',
         sourceUrl: 'https://infobanjirjps.selangor.gov.my/',
         probeFailed: false,
@@ -688,6 +694,29 @@ const probeNote = (state, feed) => {
     }
 };
 
+/**
+ * The tier label has to AGREE WITH THE MEASUREMENT. A frame that did not
+ * change between two probes is not a refreshing image, and a tile labelled
+ * "refreshing" over a still frame is a lie in nine-point type: the
+ * contract names this exact case — "a still frame in a tile labelled
+ * 'refreshing' is a smaller lie but still a lie". So the label is written
+ * from the measurement, not from the kind:
+ *
+ *   changed      the frame differs between the two probes → it refreshes
+ *   unchanged    the frame is identical → it does NOT refresh
+ *   null         the second probe did not answer → nothing can be said
+ *
+ * The source, the byte count and the dimensions live in their own line;
+ * the tier line says one thing and says it about the freshness.
+ */
+const snapshotTier = (changed) => {
+    if (changed === true) return 'Snapshot — refreshing JPEG, not video';
+    if (changed === false) {
+        return `Snapshot — frame unchanged between two probes ${Math.round(PROBE_GAP_MS / 1000)} s apart, not video`;
+    }
+    return 'Snapshot — a still JPEG, not video; the second probe did not answer';
+};
+
 const probeChannel = async (entry) => {
     const [feed, live] = await Promise.all([
         probeChannelFeed(entry.channelId),
@@ -720,6 +749,43 @@ const probeChannel = async (entry) => {
 
 let cameraCache = { at: 0, payload: null };
 let channelCache = { at: 0, payload: null };
+let cameraRefresh = null;
+let channelRefresh = null;
+
+// A cold probe takes seconds — the frame gate needs two fetches six
+// seconds apart, and a slow source can stretch it. A reader who arrives
+// while the cache is cold waits for all of it, and the browser's own
+// timeout can beat the answer to the door. So a payload that is past its
+// TTL but still within STALE_MS is served IMMEDIATELY and refreshed in the
+// background. The panel prints the probe time on every tile, so a stale
+// answer says how old it is; a blank wall says nothing.
+const STALE_MS = 30 * 60 * 1000;
+
+const refreshCameras = async () => {
+    if (!cameraRefresh) {
+        cameraRefresh = probeCameras(CITY_FEEDS)
+            .then((probed) => { cameraCache = { at: Date.now(), payload: probed }; })
+            .finally(() => { cameraRefresh = null; });
+    }
+    return cameraRefresh;
+};
+
+const refreshChannels = async () => {
+    if (!channelRefresh) {
+        channelRefresh = Promise.all(
+            CITY_FEEDS.map(async (city) => {
+                const primary = await probeChannel(city.channel);
+                const alternates = city.channel.alternates
+                    ? await Promise.all(city.channel.alternates.map((alt) => probeChannel(alt)))
+                    : [];
+                return { [city.id]: { primary, alternates } };
+            })
+        )
+            .then((probed) => { channelCache = { at: Date.now(), payload: Object.assign({}, ...probed) }; })
+            .finally(() => { channelRefresh = null; });
+    }
+    return channelRefresh;
+};
 
 /* ── the probe ─────────────────────────────────────────────────────────── */
 
@@ -774,6 +840,13 @@ export const fetchCityFeeds = async (options = {}) => {
         if (!force && cameraCache.payload && now - cameraCache.at < CAMERA_CACHE_TTL_MS) {
             return cameraCache.payload;
         }
+        // Past its TTL but not ancient: serve it now and refresh it behind
+        // the reader's back. The tiles carry the probe time, so the age is
+        // on the screen; a blank wall says nothing.
+        if (!force && cameraCache.payload && now - cameraCache.at < STALE_MS) {
+            refreshCameras();
+            return cameraCache.payload;
+        }
         const probed = await probeCameras(CITY_FEEDS);
         cameraCache = { at: Date.now(), payload: probed };
         return probed;
@@ -783,18 +856,12 @@ export const fetchCityFeeds = async (options = {}) => {
         if (!force && channelCache.payload && now - channelCache.at < CHANNEL_CACHE_TTL_MS) {
             return channelCache.payload;
         }
-        const probed = await Promise.all(
-            CITY_FEEDS.map(async (city) => {
-                const primary = await probeChannel(city.channel);
-                const alternates = city.channel.alternates
-                    ? await Promise.all(city.channel.alternates.map((alt) => probeChannel(alt)))
-                    : [];
-                return { [city.id]: { primary, alternates } };
-            })
-        );
-        const payload = Object.assign({}, ...probed);
-        channelCache = { at: Date.now(), payload };
-        return payload;
+        if (!force && channelCache.payload && now - channelCache.at < STALE_MS) {
+            refreshChannels();
+            return channelCache.payload;
+        }
+        await refreshChannels();
+        return channelCache.payload;
     };
 
     const [cities, channels] = await Promise.all([cameraJob(), channelJob()]);

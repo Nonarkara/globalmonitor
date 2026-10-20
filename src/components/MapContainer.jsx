@@ -2570,6 +2570,17 @@ const MapContainer = ({
                                                 <span>{toward}</span>
                                             </div>
                                             <div className="traffic-tooltip-row">
+                                                {/* The glyph and the numbers have to
+                                                    agree: the staff points at
+                                                    where the wind comes FROM,
+                                                    the way a chart barb does,
+                                                    so the reader who is looking
+                                                    at both is looking at the
+                                                    same fact twice. */}
+                                                <span>Barb</span>
+                                                <span>points into the wind — from {bearing}</span>
+                                            </div>
+                                            <div className="traffic-tooltip-row">
                                                 <span>Speed</span>
                                                 <span>{Number.isFinite(p.speedKmh) ? `${p.speedKmh} km/h` : '—'}</span>
                                             </div>
@@ -3132,9 +3143,13 @@ const MapContainer = ({
                                             The convention is named because a barb
                                             is read by its feathers and by which
                                             way it points, and the reader has to be
-                                            told which way this one points. */}
+                                            told which way this one points. The
+                                            staff points INTO the wind, the way a
+                                            chart barb does — at where the wind
+                                            comes FROM — and the air, and the haze
+                                            with it, is carried the other way. */}
                                         <span>
-                                            Open-Meteo model · barb points downwind
+                                            Open-Meteo model · staff points into the wind — the haze rides the other way
                                             {windDrawnIsTransport ? '' : ' · surface fallback'}
                                         </span>
                                         <span>

@@ -87,13 +87,23 @@ Asia view sits at 4.4, so the one thing that would have told the reader what
 they were was switched off — and they have a row in the plate.
 
 **The wind is drawn as barbs, and the barb says its own convention.** The
-shaft runs from the station circle in the direction the air is moving — the
-way the haze is pushed — and the feathers at its outer end carry the speed:
-one full feather is 10 knots, the half feather 5. The circle is the place the
-reading belongs to; without it the staff floats and the reader has to guess
-which end is the origin. A calm point is a circle and a staff and no feathers,
-because "the wind stops here" is the single most useful thing a haze map can
-say. The plate says the convention in words, because a barb is a convention.
+shaft runs from the station circle **into the wind** — toward where the wind
+comes FROM — and the feathers at its outer end carry the speed: one full
+feather is 10 knots, the half feather 5. That is the chart convention, and it
+is the convention a reader of a synoptic chart already has in their hands:
+*"winds are depicted as blowing from the direction the flags are facing."* The
+circle is the place the reading belongs to; without it the staff floats and
+the reader has to guess which end is the origin. A calm point is a circle and
+a staff and no feathers, because "the wind stops here" is the single most
+useful thing a haze map can say.
+
+**The plate says the convention in words, because a barb is a convention** —
+and it says both halves of the question. The staff points at the source; the
+air, and the haze with it, is carried the other way. A glyph that points the
+wrong way is not a barb that reads differently, it is a barb that reads
+**wrong**: every direction in the field inverted, for exactly the reader who
+knows what a barb is. A disclaimer in nine-point type under a row of numbers
+does not undo a glyph that looks like a barb.
 
 **The cyclone is an analysis and the map says so.** The storm's centre, the
 analyst's gale and storm wind radii and the observed track are JMA's. The
@@ -258,8 +268,16 @@ so, and a layer the style validator refused is counted as not drawn.
 Evidence is weighted by what it is for. The wind field is **supporting**
 evidence for the fires, not the subject: the shafts stay short against the 4°
 grid, and calm reads as faint rather than loud. The subsea cable routes are
-drawn as lines with one weight — no blurred under-layer, because a glow makes
-a route read as a boundary.
+drawn as lines of **one weight** — no blurred under-layer, because a glow
+makes a route read as a boundary.
+
+**A halo is not a second colour.** The cable is one mark in one named colour,
+Dark Tyrian Blue `#12354e`, drawn at one weight. Under it sits a **casing** —
+paper on a dark or satellite ground, ink on paper — so the navy core keeps
+its edge against whatever is underneath. The casing is the halo round a mark,
+not another mark: the key names one colour and the map paints one colour
+inside a casing. The plate says so in the same words. A route that needed a
+second colour to be legible needed a different colour, not a halo.
 
 ## Voice
 Keep authored titles, event identifiers, credits and source names. Say stale, sample, reference or unavailable plainly. No claims of complete global coverage.
@@ -290,12 +308,33 @@ everything at once at that width, and it does not pretend the rows it is
 holding are the only readings there are.
 
 **"Live" has three degrees, and a camera screen names the one it is.**
-An HLS stream is video. A snapshot is a **refreshing JPEG and not video**,
-and is never called "live video" or "streaming". A city with no verified
-public camera says so **in words** — there is no placeholder tile that looks
-like a working camera, because a placeholder is a claim. The same applies to
-a broadcast: a channel running live, a VOD with no stream running, a dormant
-channel and a stale one are four different labels, and the wall says which.
+An HLS stream is video. A snapshot is a **JPEG and not video**, and is never
+called "live video" or "streaming". Whether a snapshot **refreshes** is
+measured, not assumed: the probe fetches the frame twice, six seconds apart,
+and the tier line says what it found — "refreshing JPEG" when the two frames
+differ, and "frame unchanged between two probes 6 s apart" when they do not.
+A still frame in a tile labelled "refreshing" is a smaller lie but still a
+lie, so the tier is written from the measurement and the kind. A city with
+no verified public camera says so **in words** — there is no placeholder tile
+that looks like a working camera. The same applies to a broadcast: a channel
+running live, a VOD with no stream running, a dormant channel and a stale
+one are four different labels, and the wall says which.
+
+**A static file may not claim what a probe measured.** The registry
+(`src/data/cityFeeds.js`) says what a channel **is** — the broadcaster, the
+feed, the archive. The probe says what it is **doing now**, and only the
+probe may say that. Two claims about the same channel, one measured and one
+asserted, will eventually disagree: one tile carried *"VOD — no live stream
+running at the probe time"* directly above *"Live stream verified running"*,
+and the second line was a research finding written down weeks earlier, still
+on the tile because the file had no way to know it was stale.
+
+So every registry channel carries the state `unconfirmed` — the only state a
+static file may carry — and its note describes the channel, never its
+condition. The probe supplies the state, the label and a sentence of its own
+about what it saw. The gate checks the rule in both directions: a note that
+claims a stream is running, or that none is, is reported, and so is a
+registry that names any state other than `unconfirmed`.
 
 **A frame is measured, not assumed.** The Thai camera network answers HTTP
 200 with a 43-byte blank for a camera that does not exist, and a real frame
@@ -306,12 +345,15 @@ that did not change between two probes six seconds apart is reported as
 exactly that, because a still frame in a tile labelled "refreshing" is a
 smaller lie but still a lie.
 
-**The wall says how little of it there is.** Five of eleven cities carry a
-verified camera and three of eleven have a channel streaming live at the
-probe time, and the wall says so at the top. A panel that shows five working
-screens next to six honest absences is telling the truth about the coverage;
-a panel that hid the six absences would be telling the reader that six
-cities are quiet.
+**The wall says how little of it there is.** Five of the eleven cities carry a
+verified camera and a couple of them have a channel streaming live at any
+given probe. **The wall states the current count at the top**, because the
+top is where the reader looks first, and it says nothing at all until the
+probe has answered: a number taken from the registry is a registry constant
+wearing a measurement's clothes. A panel that shows five working screens
+next to six honest absences is telling the truth about the coverage; a panel
+that hid the six absences would be telling the reader that six cities are
+quiet.
 
 **A static file may not claim what a probe measured.** The registry
 (`src/data/cityFeeds.js`) says what a channel **is** — the broadcaster, the

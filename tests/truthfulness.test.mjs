@@ -342,16 +342,21 @@ function keyAgainstDrawingProblems(source, key = LEGEND_KEY, strategicKey = STRA
  */
 function keyIsRenderedProblems(source, groups = KEY_GROUPS) {
     const problems = [];
+    // A COMMENT IS NOT A RENDER. `{/* LEGEND_KEY.cables */}` used to satisfy
+    // the rule: the identifier was in the file, but nothing drew a row. The
+    // identifier has to appear where a value is taken out of it — inside a
+    // brace, as JSX hands it to a prop or an expression.
+    const rendered = (identifier) => new RegExp(`\\{\\s*${identifier.replace('.', '\\.')}`).test(source);
     for (const { key } of groups) {
         if (key === 'strategic') {
             for (const list of ['routes', 'zones']) {
-                if (!source.includes(`STRATEGIC_KEY.${list}`)) {
+                if (!rendered(`STRATEGIC_KEY.${list}`)) {
                     problems.push(`the strategic plate does not render STRATEGIC_KEY.${list}`);
                 }
             }
             continue;
         }
-        if (!source.includes(`LEGEND_KEY.${key}`)) {
+        if (!rendered(`LEGEND_KEY.${key}`)) {
             problems.push(`the plate does not render LEGEND_KEY.${key}`);
         }
     }
@@ -372,26 +377,44 @@ function keyIsRenderedProblems(source, groups = KEY_GROUPS) {
 const QUALIFIER_CLAIMS = [
     {
         needle: 'JMA analysis — not a raw satellite retrieval',
-        why: 'the cyclone is an analysis, not a satellite wind retrieval'
+        why: 'the cyclone is an analysis, not a satellite wind retrieval',
+        atLeast: 2,
+        where: 'the plate and the popup'
     },
     {
         needle: 'Open-Meteo model',
-        why: 'the wind field is a model, not an observation'
+        why: 'the wind field is a model, not an observation',
+        atLeast: 2,
+        where: 'the plate and the popup'
     },
     {
-        needle: 'barb points downwind',
-        why: 'the barb convention has to be stated, or a reader who knows barbs reads it backwards'
+        needle: 'points into the wind',
+        why: 'the barb convention has to be stated, or a reader who knows barbs reads it backwards',
+        atLeast: 2,
+        where: 'the plate and the popup'
     },
     {
         needle: 'not a live feed',
-        why: 'the cable registry is a reference dataset, not a live feed'
+        why: 'the cable registry is a reference dataset, not a live feed',
+        atLeast: 1,
+        where: 'the plate'
     }
 ];
 
+/**
+ * EVERY occurrence, not one. The words that carry the claim appear on the
+ * plate AND in the layer's own popup — dropping them from one of them is
+ * not the same as dropping them from the map, and a rule that only asks
+ * "is this string anywhere in the file?" cannot tell the two apart. The
+ * count is the claim: the qualifier has to survive everywhere it is said.
+ */
 function qualifierClaimProblems(source, claims = QUALIFIER_CLAIMS) {
     const problems = [];
-    for (const { needle, why } of claims) {
-        if (!source.includes(needle)) problems.push(`the plate is missing "${needle}" — ${why}`);
+    for (const { needle, why, atLeast = 1, where } of claims) {
+        const count = source.split(needle).length - 1;
+        if (count < atLeast) {
+            problems.push(`the qualifier "${needle}" appears ${count} time(s) and must appear ${atLeast} — ${why} (${where})`);
+        }
     }
     return problems;
 }
@@ -443,6 +466,13 @@ function cityFeedProblems(feeds = CITY_FEEDS) {
         }
         if (kind === 'hls' && !/stream/i.test(city?.camera?.label || '')) {
             problems.push(`${id}: an HLS camera does not say it is a stream`);
+        }
+        // A static file may not claim the frame REFRESHES. Whether the image
+        // changes is measured by probing it twice; the registry cannot know,
+        // and a tile labelled "refreshing" over a still frame is a lie in
+        // nine-point type — the contract names the case.
+        if (/refreshing/i.test(city?.camera?.label || '')) {
+            problems.push(`${id}: the registry claims the frame refreshes — only a probe may say that`);
         }
 
         const state = city?.channel?.state;
@@ -650,9 +680,18 @@ const balancedBlock = (text, marker, from = 0) => {
 
 function densityRampProblems(source) {
     const problems = [];
-    let at = source.indexOf("'heatmap-color'");
+    const marker = "'heatmap-color':";
+    let at = source.indexOf(marker);
+    let examined = 0;
     while (at !== -1) {
-        const block = balancedBlock(source, "'heatmap-color':");
+        // The block has to be read FROM HERE. Read from the start, the
+        // reader finds the FIRST occurrence every time: the loop walked
+        // past the second ramp and re-read the first, so a blue second
+        // ramp passed a rule written to catch it. The occurrence count is
+        // checked at the end so the next occurrence cannot be skipped
+        // either.
+        const block = balancedBlock(source, marker, at);
+        examined += 1;
         const stops = [...block.matchAll(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-9.]+)\s*\)/g)];
         if (stops.length >= 2) {
             const rgb = new Set(stops.map((s) => `${s[1]},${s[2]},${s[3]}`));
@@ -666,7 +705,14 @@ function densityRampProblems(source) {
         } else if (stops.length === 1) {
             problems.push('a density ramp has a single stop — it cannot deepen with density');
         }
-        at = source.indexOf("'heatmap-color'", at + 1);
+        at = source.indexOf(marker, at + marker.length);
+    }
+    // The rule must have looked at every ramp the source paints. If the
+    // count of ramps examined is short of the count present, a ramp was
+    // skipped and the rule proved nothing about it.
+    const present = source.split(marker).length - 1;
+    if (examined !== present) {
+        problems.push(`the density rule read ${examined} ramp(s) but the source paints ${present}`);
     }
     return problems;
 }
@@ -975,6 +1021,18 @@ test('mutation: a key entry that no plate renders is caught', () => {
     assert.ok(problems.length > 0, 'a key entry that no plate renders must be reported');
 });
 
+test('mutation: a key that is only mentioned in a comment is caught', () => {
+    // A comment is not a render. The identifier has to be somewhere a value
+    // is taken out of it — inside a brace, as JSX hands it to a prop.
+    const broken = mapContainer.replace(
+        '<LegendClasses marks={LEGEND_KEY.cables} />',
+        '{/* LEGEND_KEY.cables */}'
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must comment the render out');
+    const problems = keyIsRenderedProblems(broken);
+    assert.ok(problems.length > 0, 'a key that only appears in a comment must be reported');
+});
+
 test('mutation: a layer that drops its qualifier is caught', () => {
     // EVERY occurrence: the qualifier appears on the plate and again in the
     // layer's own popup, and dropping it from one of them is not the same as
@@ -983,6 +1041,19 @@ test('mutation: a layer that drops its qualifier is caught', () => {
     assert.notEqual(broken, mapContainer, 'the fixture must change the plate');
     const problems = qualifierClaimProblems(broken);
     assert.ok(problems.length > 0, 'a layer that stops saying what it is must be reported');
+});
+
+test('mutation: dropping the qualifier from ONE of its two places is caught', () => {
+    // The plate keeps its copy; the popup loses it. "Is this string in the
+    // file?" could not tell the difference — the claim was still there, on
+    // the plate, and the reader who opens the popup saw nothing.
+    const broken = mapContainer.replace(
+        'Open-Meteo model — not an observation',
+        'Model output'
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must change one copy only');
+    const problems = qualifierClaimProblems(broken);
+    assert.ok(problems.length > 0, 'a qualifier dropped from one of its two places must be reported');
 });
 
 test('mutation: the strategic plate naming the wrong route colour is caught', () => {
@@ -1041,6 +1112,18 @@ test('mutation: a rainbow density ramp is caught', () => {
     );
     assert.notEqual(broken, mapContainer, 'the fixture must change the ramp');
     assert.ok(densityRampProblems(broken).length > 0, 'a two-hue ramp must be reported');
+});
+
+test('mutation: a rainbow ramp in the SECOND density field is caught', () => {
+    // The second ramp, not the first. The rule used to read the FIRST
+    // occurrence every time, so it walked past this one and never looked
+    // at it — and a blue ramp here passed a rule written to catch it.
+    const broken = mapContainer.replace(
+        "'rgba(167,33,68,0.54)'",
+        "'rgba(0,110,184,0.54)'"
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must change the second ramp');
+    assert.ok(densityRampProblems(broken).length > 0, 'a two-hue ramp in the second field must be reported');
 });
 
 test('mutation: a hardcoded reading on the plate is caught', () => {

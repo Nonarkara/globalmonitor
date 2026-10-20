@@ -54,6 +54,7 @@ const CityWallPanel = () => {
     const [active, setActive] = useState({});
     const [frameFailed, setFrameFailed] = useState({});
     const [frameSrc, setFrameSrc] = useState({});
+    const [posterFailed, setPosterFailed] = useState({});
     const mounted = useRef(true);
 
     // The flag is set on mount as well as cleared on unmount: React's
@@ -69,7 +70,11 @@ const CityWallPanel = () => {
     // honest about being out of date, which a silent fallback is not.
     const load = useCallback(async () => {
         try {
-            const data = await fetchBackendJson('/api/city-feeds');
+            // The probe is the slow route: a cold cache fetches every frame
+            // twice, six seconds apart. The timeout has to outlast it, or
+            // the client gives up while the server is still measuring and
+            // the wall sits on "Measuring…" for a whole poll.
+            const data = await fetchBackendJson('/api/city-feeds', {}, { timeout: 45000 });
             if (!mounted.current) return;
             setPayload(data);
             setProbeFailed(false);
@@ -117,9 +122,18 @@ const CityWallPanel = () => {
             <div className="city-wall__bar">
                 <span className="city-wall__title">City Wall</span>
                 <span className="city-wall__bar-meta">
+                    {/* The bar is where the reader looks first, so BOTH
+                        counts live here — and neither of them is a number
+                        until it has been measured. The registry says which
+                        cities are wired; the probe says what is actually
+                        running now. Presenting the registry's count as a
+                        measurement is the same mistake as the label that
+                        said "refreshing" over a still frame. */}
                     {probeFailed
                         ? 'Probe did not answer — registry labels'
-                        : `${cameraCount} of ${cities.length} cities carry a camera`}
+                        : payload
+                            ? `${cameraCount} of ${cities.length} cities carry a camera · ${liveCount} of ${cities.length} have a channel streaming live`
+                            : 'Measuring…'}
                 </span>
             </div>
 
@@ -176,10 +190,15 @@ const CityWallPanel = () => {
                                     </figure>
                                     <p className="city-wall__tier">{camera.label}</p>
                                     <p className="city-wall__facts">
+                                        {/* These are the SERVER'S numbers — its own
+                                            fetch, at its own moment. The picture
+                                            beside them is the browser's fetch and
+                                            it can differ, so the line says whose
+                                            measurement it is. */}
                                         <span className="city-wall__source">{camera.source}</span>
+                                        {camera.probedAt ? ` · probe ${clockText(camera.probedAt)} ICT` : ''}
                                         {bytesText(camera.bytes) ? ` · ${bytesText(camera.bytes)} B` : ''}
                                         {camera.width ? ` · ${camera.width}×${camera.height}` : ''}
-                                        {camera.probedAt ? ` · probed ${clockText(camera.probedAt)} ICT` : ''}
                                     </p>
                                     <p className="city-wall__note">{camera.note}</p>                                </>
                             )}
@@ -199,10 +218,23 @@ const CityWallPanel = () => {
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowFullScreen
                                         />
-                                    ) : poster ? (
-                                        <img src={poster} alt="" loading="lazy" />
+                                    ) : poster && !posterFailed[city.id] ? (
+                                        // The poster is a thumbnail of the channel,
+                                        // and a thumbnail can 404. A broken-image
+                                        // glyph in the one panel where "no
+                                        // placeholder that looks like a working
+                                        // camera" is the rule is a placeholder
+                                        // too — so it says what happened.
+                                        <img
+                                            src={poster}
+                                            alt=""
+                                            loading="lazy"
+                                            onError={() => setPosterFailed((prev) => ({ ...prev, [city.id]: true }))}
+                                        />
                                     ) : (
-                                        <span className="city-wall__channel-blank">{channel.name}</span>
+                                        <span className="city-wall__channel-blank">
+                                            {posterFailed[city.id] ? 'No poster — the thumbnail did not load' : channel.name}
+                                        </span>
                                     )}
                                 </button>
 
@@ -234,7 +266,6 @@ const CityWallPanel = () => {
                         : 'Camera screens are measured frames, not streams. A city with no verified public camera says so in words.'}
                     {payload?.meta?.cameraCoverage ? ` ${payload.meta.cameraCoverage}.` : ''}
                     {payload?.meta?.channelCoverage ? ` ${payload.meta.channelCoverage}.` : ''}
-                    {liveCount > 0 ? '' : ''}
                 </p>
             </div>
         </div>

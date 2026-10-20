@@ -32,7 +32,10 @@
 /** The three degrees, spelled out. The panel uses these words, not "LIVE". */
 export const CAMERA_TIER = {
     hls: 'HLS stream — live video',
-    snapshot: 'Snapshot — refreshing JPEG, not video',
+    // The KIND, in neutral words. Whether the frame REFRESHES is measured,
+    // never assumed: the probe writes the freshness onto the label, and a
+    // static file may not claim it.
+    snapshot: 'Snapshot — a JPEG, not video',
     none: 'No verified public camera'
 };
 
@@ -70,7 +73,7 @@ export const CITY_FEEDS = [
         lon: 100.5018,
         camera: {
             kind: 'snapshot',
-            label: 'Snapshot — refreshing JPEG, not video',
+            label: 'Snapshot — a JPEG, not video; the probe has not answered yet',
             source: 'iTIC / Longdo',
             sourceUrl: 'https://camera.longdo.com/',
             // The iTIC feed publishes 162 cameras; only the ones carrying a
@@ -107,7 +110,7 @@ export const CITY_FEEDS = [
         lon: 103.8501,
         camera: {
             kind: 'snapshot',
-            label: 'Snapshot — JPEG frame published by the operator, not video',
+            label: 'Snapshot — a JPEG published by the operator, not video; the probe has not answered yet',
             source: 'data.gov.sg (LTA)',
             sourceUrl: 'https://data.gov.sg/collections/1381/view',
             note: 'The operator publishes a new file per capture; the panel reloads the frame on a timer.'
@@ -131,7 +134,7 @@ export const CITY_FEEDS = [
         lon: 106.7009,
         camera: {
             kind: 'snapshot',
-            label: 'Snapshot — refreshing JPEG, not video',
+            label: 'Snapshot — a JPEG, not video; the probe has not answered yet',
             source: 'api.notis.vn (traffic operator)',
             sourceUrl: 'https://api.notis.vn/',
             note: 'Operator feed; the probe reports the camera name and district it answered from.'
@@ -155,7 +158,7 @@ export const CITY_FEEDS = [
         lon: 101.6869,
         camera: {
             kind: 'snapshot',
-            label: 'Snapshot — refreshing JPEG, not video',
+            label: 'Snapshot — a JPEG, not video; the probe has not answered yet',
             source: 'Selangor state government (Info Banjir JPS)',
             sourceUrl: 'https://infobanjirjps.selangor.gov.my/',
             // Honesty point: these cameras are in the Klang Valley, Shah Alam
@@ -183,7 +186,7 @@ export const CITY_FEEDS = [
         lon: 106.8456,
         camera: {
             kind: 'snapshot',
-            label: 'Snapshot — aggregator frame of a live camera, not video',
+            label: 'Snapshot — an aggregator frame, not video; the probe has not answered yet',
             source: 'opencctv.org (third-party aggregator)',
             sourceUrl: 'https://opencctv.org/',
             // Honesty point: this is an aggregator's still of a live camera on

@@ -9,9 +9,14 @@
  *   - A small circle at the grid point. That is the PLACE — the station the
  *     reading belongs to. Without it the staff floats and the reader has to
  *     guess which end is the origin.
- *   - The STAFF runs from that circle in the direction the air is MOVING —
- *     downwind. It points the way the haze is pushed, which is the question
- *     this layer is on the map to answer.
+ *   - The STAFF runs from that circle in the direction the wind comes FROM —
+ *     INTO the wind, upwind. That is the chart convention and it is the
+ *     convention a reader of a synoptic chart already has in their hands:
+ *     "winds are depicted as blowing from the direction the flags are
+ *     facing", so the staff points at the source and the flags sit on the
+ *     far end. A staff that points the other way is not a barb that reads
+ *     differently, it is a barb that reads WRONG — every direction in the
+ *     field inverted, for exactly the reader who knows what a barb is.
  *   - The FEATHERS sit at the outer end of the staff, the way they do on a
  *     synoptic chart. One full feather is 10 knots; the half feather is half
  *     as long and is worth 5. The full feathers are all the same length, as
@@ -20,7 +25,10 @@
  *
  * The convention is stated in words in the plate, because a barb is a
  * convention and a reader who knows barbs reads them in one second while a
- * reader who does not needs to be told which way the staff points.
+ * reader who does not needs to be told which way the staff points. The
+ * plate says where the wind comes FROM and that the air — and the haze with
+ * it — is carried the other way, because that is the question this layer is
+ * on the map to answer and the glyph alone only answers half of it.
  *
  * A CALM point (0 km/h) draws the circle and the staff and NO feathers.
  * That is not a missing glyph: "the wind stops here" is the single most
@@ -62,7 +70,12 @@ export const windBarbs = (collection) => {
         const full = Math.floor(speedKt / 10);
         const half = speedKt - full * 10 >= 5 ? 1 : 0;
 
-        const toRad = ((fromDeg + 180) % 360) * Math.PI / 180; // downwind bearing
+        // The bearing the wind comes FROM — the staff points INTO the wind,
+        // upwind, and the feathers ride the outer end of it. The flags point
+        // toward the low pressure, which puts them on this side of the
+        // staff in the Northern Hemisphere: the same +90° that drew the
+        // feathers before now draws them on the correct side.
+        const toRad = (fromDeg % 360) * Math.PI / 180;
         const cosLat = Math.cos(lat * Math.PI / 180) || 1;
         const step = (from, bearing, d) => [
             from[0] + (d * Math.sin(bearing)) / cosLat,

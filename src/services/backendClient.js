@@ -14,10 +14,14 @@ const attachMeta = (payload, meta) => {
     return payload;
 };
 
-export const fetchBackendJson = async (path, params = {}) => {
+export const fetchBackendJson = async (path, params = {}, options = {}) => {
     const response = await axios.get(`${API_BASE_URL}${path}`, {
         params,
-        timeout: 15000
+        // The city wall's probe is the slow one: the frame gate needs two
+        // fetches six seconds apart, so a cold cache can take longer than
+        // the default timeout and the client would give up while the
+        // server was still working. That timeout has to outlast the probe.
+        timeout: options.timeout || 15000
     });
 
     return attachMeta(response.data, {
