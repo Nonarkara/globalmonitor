@@ -63,16 +63,27 @@ function App() {
    * The order of sacrifice: the world-clock index goes first, from the tail,
    * WHOLE clocks and never half of one — the far-flung clocks are the ones
    * that say least about the theater being watched. Then the theater's name.
-   * Then the subtitle. Then the partner marks, and PMUA last because it is
-   * the anchor. The reference clock is the instrument and it is never the
-   * thing that is sacrificed.
+   * Then the subtitle, then the product's own wordmark, then the partner
+   * marks, and PMUA last because it is the anchor. The reference clock is
+   * the instrument and it is never the thing that is sacrificed.
+   *
+   * A DROP HAS TO WIN. The theater label is styled `display:flex!important`
+   * in the compact shell, and a plain inline `display:none` LOSES to an
+   * important stylesheet declaration: the label stayed in the row, the row
+   * kept measuring it, the fit kept giving things up, and the last control
+   * sat off the side of the screen at every width from 721 to 840. The
+   * drop is therefore an IMPORTANT inline declaration, which outranks the
+   * stylesheet — and the row is measured again after each one.
    */
   useLayoutEffect(() => {
     const row = headerRef.current;
     if (!row) return undefined;
 
+    const drop = (el) => el.style.setProperty('display', 'none', 'important');
+    const undrop = (el) => el.style.removeProperty('display');
+
     const fit = () => {
-      row.querySelectorAll('[data-chrome-drop]').forEach((el) => { el.style.display = ''; });
+      row.querySelectorAll('[data-chrome-drop]').forEach(undrop);
 
       const rowStyle = getComputedStyle(row);
       const padX = (parseFloat(rowStyle.paddingLeft) || 0) + (parseFloat(rowStyle.paddingRight) || 0);
@@ -95,13 +106,13 @@ function App() {
       const clocks = [...row.querySelectorAll('[data-chrome-drop="clock"]')].reverse();
       for (const el of clocks) {
         if (!overflows()) break;
-        el.style.display = 'none';
+        drop(el);
       }
-      for (const kind of ['theater', 'subtitle', 'brand']) {
+      for (const kind of ['theater', 'subtitle', 'wordmark', 'brand']) {
         if (!overflows()) break;
         for (const el of row.querySelectorAll(`[data-chrome-drop="${kind}"]`)) {
           if (!overflows()) break;
-          el.style.display = 'none';
+          drop(el);
         }
       }
     };
@@ -342,7 +353,13 @@ function App() {
 
           {/* Center: Title */}
           <div className="header-status">
-            <div className="header-title-lockup">
+            {/* The wordmark is the next thing to give way. Between 341 and
+                390 pixels a phone row cannot hold the mark, the name, the
+                reference clock and four 44px touch targets — the row was
+                14 to 48 pixels too wide there, with the last button off the
+                side of the screen. The name goes; the sponsor's anchor
+                mark, the instrument and the controls stay. */}
+            <div className="header-title-lockup" data-chrome-drop="wordmark">
               <span className="header-title">
                 AsiaWatch
               </span>

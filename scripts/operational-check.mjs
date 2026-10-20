@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { sweepChromeFit } from './chrome-fit.mjs';
 
 const url = process.argv[2];
 if (!url || !/^https:\/\//.test(url)) throw new Error('Pass the deployed HTTPS URL');
@@ -40,6 +41,16 @@ try {
           if (!row) return 0;
           return Math.round(row.scrollWidth - row.clientWidth);
         })(),
+        // Every control in the row must be REACHABLE. A control pushed past
+        // the edge of the screen is not on the product any more, and it does
+        // not show up as an overflow of the document — the row clips.
+        offScreen: [...document.querySelectorAll('.header-controls button, .header-controls select')]
+          .filter(el => {
+            const r = el.getBoundingClientRect();
+            if (r.width === 0 && r.height === 0) return false;
+            return r.right > innerWidth + 1 || r.left < -1;
+          })
+          .map(el => (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 30)),
         // How much of the SOURCES plate is scrolled out of sight. On a desktop
         // the contract is that every reading and every qualification is
         // visible at once, so this must be zero. On a phone the plate is a
@@ -66,7 +77,13 @@ try {
       // fixed pixels measures the wrong thing on a 1440px screen (root
       // 16.56px → a 3.25rem row is 53.8px, not 52).
       assert.ok(geometry.header.height <= rem(3.5) + 0.1, `the chrome row exceeds 3.5rem (${rem(3.5).toFixed(1)}px)`);
-      assert.ok(geometry.chrome <= 74.1, `the top chrome is ${geometry.chrome}px — the desktop budget is 74px`);
+      // The chrome is the legal marking PLUS the row, and the row is sized in
+      // rem because the type inside it is. A fixed pixel budget for the
+      // chrome only holds at one width: the old 74px was true at 1440 and
+      // false at 1920, where the root type is 22.08px and the row is 71.8px.
+      // The budget is the row's own rule, in the row's own unit.
+      assert.ok(geometry.chrome <= 18 + rem(3.5) + 0.1,
+        `the top chrome is ${geometry.chrome}px — its budget is ${(18 + rem(3.5)).toFixed(1)}px`);
     }
     // ONE band. The clock is an instrument INSIDE the row, not a band above
     // it: if the clock ever moves out of the row, the chrome is two bands
@@ -80,6 +97,8 @@ try {
       'the clock is taller than the row it sits in');
     assert.ok(geometry.rowOverflow <= 1,
       `the chrome row overflows by ${geometry.rowOverflow}px — a control is off the side of the screen`);
+    assert.deepEqual(geometry.offScreen, [],
+      `a control is off the side of the screen: ${geometry.offScreen.join(', ')}`);
     if (width > 720) {
       // Every reading and every qualification visible at once. The plate used
       // to be capped at 384px and silently scrolled the cable registry and
@@ -167,5 +186,17 @@ try {
     results.push({ width, status: response.status(), geometry, download: download.suggestedFilename(), errors });
     await context.close();
   }
-  console.log(JSON.stringify({ url, results }, null, 2));
+
+  // ── The fit sweep ──────────────────────────────────────────────
+  // The four widths above are the widths this gate has always looked at,
+  // and they are the widths that worked: the row overflowed at every width
+  // from 721 to 840 and from 341 to 390, with the last control pushed off
+  // the side of the screen, and this gate passed it. A gate that only looks
+  // where it already looked is a decoration. The row is fitted at RUN TIME,
+  // so it is checked at RUN TIME, at every width in between.
+  const sweep = await sweepChromeFit(browser, url);
+  assert.deepEqual(sweep.failures, [],
+    `the chrome row does not hold at every width:\n${sweep.failures.map(f => `  ${f.width}px  ${f.why}`).join('\n')}`);
+
+  console.log(JSON.stringify({ url, sweep: { checked: sweep.checked, failures: 0 }, results }, null, 2));
 } finally { await browser.close(); }

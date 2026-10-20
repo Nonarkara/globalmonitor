@@ -167,9 +167,17 @@ masthead — and the owner asked for exactly this: *"All the information should
 be on one line only in the top bar."* A 390px phone carried **86px** of
 chrome for one word and four small logos. It now carries **62px**: the 18px
 legal marking and one 44px row. A 1440px desktop carried 106px and now
-carries **72px**, against a budget of 74. The live check fails the release
-if either grows, and it fails it if the clock ever leaves the row — the
-chrome being one line is the rule, not a picture of it.
+carries **72px**. The live check fails the release if either grows, and it
+fails it if the clock ever leaves the row — the chrome being one line is the
+rule, not a picture of it.
+
+**The budget is in rem, because the row is.** The row is sized in rem so the
+type inside it scales with the fluid root — the root is 16.56px at 1440 and
+22.08px at 1920 — so the row is 53.8px at 1440 and 71.8px at 1920, and the
+chrome with it is 72px and 90px. A fixed budget of 74px was true at one width
+and false at the next: the same category of error as the breakpoint ladder,
+one level up. The budget is the row's own rule, **3.5rem**, plus the 18px
+legal marking, measured in the unit the row is sized in.
 
 **What gives way, in what order.** The row is fixed content in a variable
 width, so something has to go when the width runs out. The order is fixed,
@@ -182,17 +190,32 @@ and the amount is **measured at run time** — the row is asked what it has:
    and never scrolled.
 2. Then the theater's name beside the reference clock — dropped whole.
 3. Then the product subtitle.
-4. Then the partner marks. **PMUA stays**; it is the anchor.
+4. Then the product's own wordmark. Between 341 and 390 pixels a phone row
+   cannot hold the mark, the name, the reference clock and four 44px touch
+   targets: the row was 14 to 48 pixels too wide there, with the last button
+   off the side of the screen. The name goes; the sponsor's anchor mark, the
+   instrument and the controls stay.
+5. Then the partner marks. **PMUA stays**; it is the anchor.
 
 The reference clock is the instrument and it is **never** the thing that is
 sacrificed. It keeps its seconds and it is never truncated.
+
+**A drop has to WIN.** The theater's name is styled `display:flex!important`
+in the compact shell, and a plain inline `display:none` LOSES to an important
+stylesheet declaration. The label stayed in the row, the row kept measuring
+it, the fit kept giving up things that were never freed, and the last
+control sat off the side of the screen at every width from 721 to 840 — the
+one thing this row exists to prevent. The drop is therefore an **important
+inline declaration**, which outranks the stylesheet, and the release check
+fails if any element carries a drop that did not take.
 
 This is measured rather than a ladder of viewport widths, because a ladder is
 wrong the moment the title grows a word, the theater gains a tab, or a phone
 is 390px wide instead of 393. The first one-row bar was built on such a
 ladder and it overflowed at **every** width from 320 to 1920, with the last
 two buttons pushed off the side of the screen where nobody can reach them.
-The live check now fails the release if the row overflows its own width.
+The live check now fails the release if the row overflows its own width,
+and the fit sweep fails it if the row overflows at **any** width.
 
 A region's short label may only shorten its full label — never rename it —
 and the guard enforces that.
@@ -306,8 +329,8 @@ Non-Slop by Non Arkaraprasertkul, MIT, https://github.com/Nonarkara/Non-Slop .
 Vendored rules/scanner in .non-slop; original licence and credits retained.
 Build gates scan source and changed interface files; rendered geometry and an independent reviewer check the deployed release. A static scan is not a visual verdict.
 
-### The three gates
-The contract is only worth what enforces it, so it is enforced in three
+### The gates
+The contract is only worth what enforces it, so it is enforced in five
 places, each answering a question the others cannot:
 
 1. **The written contract — this file.** Why a rule exists. Every rule added
@@ -326,10 +349,22 @@ places, each answering a question the others cannot:
    the deployed URL). *Does it hold together in a browser?* The gates read
    files; this one measures the shipped page: that the chrome is **one row**
    and that the clock is inside it, that the row does not overflow its own
-   width, that the chrome stays inside its budget, and that nothing in the
-   plate is scrolled out of sight. A file can satisfy every gate and still
-   put a control off the side of the screen; that is what the one-row bar
-   did, at every width, for a whole wave.
+   width, that no control sits off the side of the screen, that the chrome
+   stays inside its budget, and that nothing in the plate is scrolled out of
+   sight. A file can satisfy every gate and still put a control off the side
+   of the screen; that is what the one-row bar did, at every width, for a
+   whole wave.
+5. **The fit sweep** (`scripts/chrome-fit.mjs`, called by the release check,
+   and runnable on its own with `npm run verify:fit`). *Does the row hold at
+   every width?* The row is fitted at run time, so it is checked at run time:
+   one page is resized through 411 widths from 320 to 1920 and the row is
+   measured at each one, for overflow, for reachable controls, for a drop
+   that did not take, and for the height of the row in its own rem. The
+   release check used to look at four widths — 1440, 1024, 390, 320 — and it
+   passed a release whose row overflowed at every width from 721 to 840 and
+   from 341 to 390, with the last control off the side of the screen.
+   **Those four widths were the four widths that worked.** A gate that only
+   looks where it has already looked is a decoration, not a gate.
 
 Every rule in the gate is a FUNCTION that takes the subject it judges and
 returns its problems, and the rules that guard a shipped defect have a

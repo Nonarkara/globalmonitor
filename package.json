@@ -8,6 +8,7 @@
     "design:check": "node .non-slop/bin/non-slop.mjs scan src --fail-on=P1",
     "design:render": "node .non-slop/bin/non-slop.mjs render",
     "verify:live": "node scripts/operational-check.mjs",
+    "verify:fit": "node scripts/chrome-fit.mjs",
     "prebuild": "npm run design:check && npm run guard",
     "prebuild:pages": "npm run design:check && npm run guard",
     "api": "node server/index.mjs",
