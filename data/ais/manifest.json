@@ -4,9 +4,8 @@
     "file": "ais-snapshot.json",
     "label": "AIS vessel positions",
     "aoi": "global",
-    "collectedAt": "2026-10-11T23:51:44.075Z",
-    "vesselCount": 29775,
-    "asiaVesselCount": 21280,
+    "collectedAt": "2026-06-23T01:10:19.825Z",
+    "vesselCount": 20000,
     "refreshHint": "node scripts/refresh-ais-snapshot.mjs (cron every 15 min recommended)"
   }
 ]
