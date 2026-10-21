@@ -379,68 +379,126 @@ const QUALIFIER_CLAIMS = [
         id: 'wind-model',
         needle: 'Open-Meteo model',
         why: 'the wind field is a model, not an observation',
-        atLeast: 2,
+        surfaces: ['popup', 'plate'],
         where: 'the plate and the popup'
     },
     {
         id: 'wind-convention',
         needle: 'points into the wind',
         why: 'the barb convention has to be stated, or a reader who knows barbs reads it backwards',
-        atLeast: 2,
+        surfaces: ['popup', 'plate'],
         where: 'the plate and the popup'
     },
     {
         id: 'cyclone-provenance',
         needle: 'JMA analysis — not a raw satellite retrieval',
         why: 'the cyclone is an analysis, not a satellite wind retrieval',
-        atLeast: 2,
+        surfaces: ['popup', 'plate'],
         where: 'the plate and the popup'
     },
     {
         id: 'cables-registry',
         needle: 'not a live feed',
         why: 'the cable registry is a reference dataset, not a live feed',
-        atLeast: 1,
+        surfaces: ['plate'],
         where: 'the plate'
     }
 ];
 
 /**
+ * The surfaces a claim can be made in. A claim is not "somewhere in the
+ * file" — it is made in the popup the reader opens on the layer, or on the
+ * plate. The class name is what tells the two apart.
+ */
+const CLAIM_SURFACES = {
+    popup: 'traffic-tooltip',
+    plate: 'map-legend'
+};
+
+/**
  * Every place that makes a claim, and the words it must use.
  *
- * A COUNT is not a place. The first version of this rule asked "does the
- * file contain this string at least N times?" — which cannot tell the
- * plate saying it from the popup saying it, and a reviewer proved it:
- * move both copies to one place, the count stays at two, and the rule
- * passes while the popup has stopped qualifying anything.
+ * A COUNT is not a place, and a MARKER is not a place either. The first
+ * version of this rule asked "does the file contain this string at least
+ * N times?" — which cannot tell the plate saying it from the popup saying
+ * it. The second counted elements carrying `data-claim` — which a reader
+ * could satisfy by marking a dead constant somewhere in the file, because
+ * a marker is only a marker.
  *
- * So every element that makes a claim says so — `data-claim="wind-model"`
- * — and the rule checks EACH of them: the claim must be made in at least
- * as many places as it should be, and every one of those places must
- * carry the words. A qualifier cannot be deleted from one surface
- * without the rule noticing, and it cannot be moved to the other one
- * either.
+ * So each claim is bound to the SURFACES it must be made in, and a marked
+ * element only counts for the surface it actually sits in: the nearest
+ * enclosing surface marker before it. A forged marker outside a popup or
+ * the plate counts for nothing, and moving both copies of a claim into
+ * one surface leaves the other surface with no claim at all.
  */
+const elementText = (source, tag, from) => {
+    const open = new RegExp(`<${tag}(?=[\\s/>])`, 'g');
+    const close = new RegExp(`</${tag}\\s*>`, 'g');
+    let depth = 1;
+    let at = from;
+    let end = -1;
+    while (depth > 0) {
+        open.lastIndex = at;
+        close.lastIndex = at;
+        const o = open.exec(source);
+        const c = close.exec(source);
+        if (!c) return { text: null, unterminated: true };
+        if (o && o.index < c.index) {
+            depth += 1;
+            at = o.index + 1;
+        } else {
+            depth -= 1;
+            at = c.index + c[0].length;
+            if (depth === 0) end = c.index + c[0].length;
+        }
+    }
+    return { text: source.slice(from, end).replace(/<\/[^>]+>\s*$/, ''), unterminated: false };
+};
+
 const claimSites = (source, id) => {
     const sites = [];
-    const re = /data-claim="([^"]*)"[^>]*>([\s\S]{0,600}?)<\//g;
+    const re = /<(\w+)\b[^>]*data-claim="([^"]*)"[^>]*>/g;
     let m;
     while ((m = re.exec(source)) !== null) {
-        if (m[1].split(/\s+/).includes(id)) sites.push(m[2]);
+        if (!m[2].split(/\s+/).includes(id)) continue;
+        // The surface this site sits in: the NEAREST surface marker before
+        // it. A marker with no surface in front of it is in nothing a
+        // reader ever sees.
+        let surface = null;
+        for (const [name, marker] of Object.entries(CLAIM_SURFACES)) {
+            const at = source.lastIndexOf(marker, m.index);
+            if (at === -1) continue;
+            if (!surface || at > surface.at) surface = { name, at };
+        }
+        const { text, unterminated } = elementText(source, m[1], m.index + m[0].length);
+        sites.push({ surface: surface?.name || null, text, unterminated, at: m.index });
     }
     return sites;
 };
 
 function qualifierClaimProblems(source, claims = QUALIFIER_CLAIMS) {
     const problems = [];
-    for (const { id, needle, why, atLeast = 1, where } of claims) {
+    for (const { id, needle, why, surfaces = [], where } of claims) {
         const sites = claimSites(source, id);
-        if (sites.length < atLeast) {
-            problems.push(`the claim "${id}" is made in ${sites.length} place(s) and must be made in ${atLeast} — ${why} (${where})`);
+        for (const surface of surfaces) {
+            const inSurface = sites.filter((s) => s.surface === surface);
+            if (!inSurface.length) {
+                problems.push(`the claim "${id}" is not made in the ${surface} — ${why} (${where})`);
+                continue;
+            }
+            for (const site of inSurface) {
+                if (site.unterminated) {
+                    problems.push(`a ${surface} that makes the claim "${id}" is never closed — the rule cannot read it — ${why}`);
+                } else if (!site.text.includes(needle)) {
+                    problems.push(`a ${surface} that makes the claim "${id}" does not say "${needle}" — ${why} (${where})`);
+                }
+            }
         }
         for (const site of sites) {
-            if (!site.includes(needle)) {
-                problems.push(`a place that makes the claim "${id}" does not say "${needle}" — ${why} (${where})`);
+            if (!site.surface) {
+                problems.push(`the claim "${id}" is marked where no reader sees it — ${why}`);
+            } else if (!surfaces.includes(site.surface)) {
+                problems.push(`the claim "${id}" is marked in the ${site.surface}, which does not carry it — ${why}`);
             }
         }
     }
@@ -1104,17 +1162,38 @@ test('mutation: dropping the qualifier from ONE of its two places is caught', ()
 });
 
 test('mutation: moving BOTH copies to one place is caught', () => {
-    // A count cannot see this: the string still appears twice, so an
-    // "at least N" rule passes while the popup has stopped qualifying
-    // anything. The rule has to know WHERE each copy is.
+    // The count stays at two — the popup's copy is deleted and the plate's
+    // is duplicated, so the file still contains the string twice and still
+    // has two marked elements — and the popup has stopped qualifying
+    // anything. A count cannot see it; a SURFACE can.
     const broken = mapContainer
-        .replace('data-claim="wind-model">Open-Meteo model — not an observation',
-            'data-claim="wind-model">Model output')
-        .replace('data-claim="wind-model wind-convention"',
-            'data-claim="wind-convention"');
+        .replace('<span data-claim="wind-model">Open-Meteo model — not an observation</span>', '')
+        .replace(
+            '<span data-claim="wind-model wind-convention">',
+            '<span data-claim="wind-model">Open-Meteo model — not an observation</span>\n                                        <span data-claim="wind-model wind-convention">'
+        );
     assert.notEqual(broken, mapContainer, 'the fixture must move the claim');
+    assert.equal(
+        broken.split('data-claim="wind-model"').length - 1 +
+        broken.split('data-claim="wind-model wind-convention"').length - 1,
+        2,
+        'the fixture must keep the number of marked sites the same'
+    );
     const problems = qualifierClaimProblems(broken);
     assert.ok(problems.length > 0, 'a claim that survives in one place only must be reported');
+});
+
+test('mutation: a FORGED claim marker outside any surface is caught', () => {
+    // A marker is only a marker. A dead constant at the top of the file,
+    // marked as if it were the popup's claim, satisfies a rule that counts
+    // markers — and the popup has stopped saying anything.
+    const broken = mapContainer.replace(
+        "import { fetchNaturalDisasters } from '../services/nasaEonet';",
+        "import { fetchNaturalDisasters } from '../services/nasaEonet';\nconst forged = <span data-claim=\"wind-model\">Open-Meteo model — not an observation</span>;"
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must forge a marker');
+    const problems = qualifierClaimProblems(broken);
+    assert.ok(problems.length > 0, 'a claim marked where no reader sees it must be reported');
 });
 
 test('mutation: unmarking a claim site is caught', () => {

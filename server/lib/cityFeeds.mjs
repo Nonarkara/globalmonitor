@@ -838,33 +838,45 @@ export const fetchCityFeeds = async (options = {}) => {
 
     const cameraJob = async () => {
         if (!force && cameraCache.payload && now - cameraCache.at < CAMERA_CACHE_TTL_MS) {
-            return cameraCache.payload;
+            return cameraCache;
         }
         // Past its TTL but not ancient: serve it now and refresh it behind
         // the reader's back. The tiles carry the probe time, so the age is
         // on the screen; a blank wall says nothing.
+        //
+        // The CACHE is returned, not just its payload. The stamp has to be
+        // the one that came with the payload: if the background refresh
+        // finishes before the response is assembled, reading the cache's
+        // timestamp at assembly time would stamp the OLD payload with the
+        // NEW time — a fresh timestamp on a half-hour-old measurement,
+        // which is the lie this whole mechanism exists to refuse. The
+        // window is small (the probe gap is six seconds) and it is
+        // unreachable in practice today, but it is one line to make
+        // unreachable forever.
         if (!force && cameraCache.payload && now - cameraCache.at < STALE_MS) {
             refreshCameras();
-            return cameraCache.payload;
+            return cameraCache;
         }
         const probed = await probeCameras(CITY_FEEDS);
         cameraCache = { at: Date.now(), payload: probed };
-        return probed;
+        return cameraCache;
     };
 
     const channelJob = async () => {
         if (!force && channelCache.payload && now - channelCache.at < CHANNEL_CACHE_TTL_MS) {
-            return channelCache.payload;
+            return channelCache;
         }
         if (!force && channelCache.payload && now - channelCache.at < STALE_MS) {
             refreshChannels();
-            return channelCache.payload;
+            return channelCache;
         }
         await refreshChannels();
-        return channelCache.payload;
+        return channelCache;
     };
 
-    const [cities, channels] = await Promise.all([cameraJob(), channelJob()]);
+    const [camera, channel] = await Promise.all([cameraJob(), channelJob()]);
+    const cities = camera.payload;
+    const channels = channel.payload;
 
     const out = cities.map((city) => {
         const channel = channels[city.id];
@@ -905,12 +917,14 @@ export const fetchCityFeeds = async (options = {}) => {
         meta: {
             note: 'Camera screens are measured frames, not streams. A city with no verified public camera says so in words — no placeholder tile.',
             // The OLDEST measurement in the payload, not the moment the
-            // response was built. A fresh timestamp on a stale payload is
-            // the lie this project exists to refuse: the reader must be
-            // able to tell how old a number is.
-            probedAt: new Date(Math.min(cameraCache.at, channelCache.at)).toISOString(),
-            cameraProbedAt: new Date(cameraCache.at).toISOString(),
-            channelProbedAt: new Date(channelCache.at).toISOString(),
+            // response was built, and not the moment the cache was last
+            // written — the stamp that came WITH the payload. A fresh
+            // timestamp on a half-hour-old payload is the lie this project
+            // exists to refuse: the reader must be able to tell how old a
+            // number is.
+            probedAt: new Date(Math.min(camera.at, channel.at)).toISOString(),
+            cameraProbedAt: new Date(camera.at).toISOString(),
+            channelProbedAt: new Date(channel.at).toISOString(),
             cameraCoverage: `${withCamera} of ${out.length} cities have a verified public camera`,
             channelCoverage: `${liveChannels} of ${out.length} cities have a channel streaming live at the probe time`,
             probeGapMs: PROBE_GAP_MS,

@@ -299,13 +299,17 @@ are said in words — "NASA FIRMS public file · 24h", not "nasa-firms-public-24
 those places are.** The wind field is a model on the plate *and* in the popup
 that opens on the layer; the barb convention is stated in both; the cyclone's
 provenance is in both. So every element that carries one of those claims says
-so — `data-claim="wind-model"` — and the rule checks **each** marked place:
-the claim must be made in at least as many places as it should be, and every
-one of them must carry the words. A count is not a place: "does the file
-contain this string at least N times?" cannot tell the plate saying it from
-the popup saying it, so both copies could be moved to one place and the
-count would stay at two while the popup had stopped qualifying anything.
-The marker is how the gate knows the difference.
+so — `data-claim="wind-model"` — and each claim is bound to the **surfaces**
+it must be made in: the popup, the plate. A marked element counts for the
+surface it actually sits in, the nearest enclosing surface marker before it.
+
+Three things are not a place, and the rule was wrong three times before it
+was right. A count is not a place: "does the file contain this string at
+least N times?" cannot tell the plate saying it from the popup saying it. A
+marker is not a place either: a dead constant marked as if it were the
+popup's claim satisfies a rule that counts markers, and the popup has
+stopped saying anything. So the binding is to the surface, and a marker
+that sits in no surface a reader ever sees counts for nothing.
 
 The plate earns its height by being big enough. It was capped at 384px, which
 held five rows and silently scrolled the rest — and the rows that went missing
