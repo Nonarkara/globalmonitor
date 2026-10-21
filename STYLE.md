@@ -20,6 +20,8 @@ Scientific map categories and supplied partner/GlobeWatch artwork keep their sou
 The live map is the operating table. Compact clock (24–28px), 56px masthead and 44px ticker; no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.
 
 ## Voice
+The Android/iPhone install action is in Tools, with a 44px target and focus returned to Tools when the dialog closes. It is not a third line in the compact title. Tablet theater selection reserves readable width; labels on adjacent instrument buttons give way before the selected theater does.
+
 Keep authored titles, event identifiers, credits and source names. Say stale, sample, reference or unavailable plainly. No claims of complete global coverage.
 
 ## Protected voice

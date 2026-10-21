@@ -11,6 +11,9 @@ test('every changed entry produces a different stamped service worker', async ()
     assert.notEqual(stampWorker(source, html('one')), stampWorker(source, html('two')));
     assert.notEqual(stampWorker(source, html('one') + '<link rel="stylesheet" href="/assets/one.css">'), stampWorker(source, html('one') + '<link rel="stylesheet" href="/assets/two.css">'));
     assert.ok(!stampWorker(source, html('one')).includes('__APP_ENTRY__'));
+    const backup = stampWorker(source, '<script type="module" src="/globalmonitor/assets/index-one.js"></script>');
+    assert.match(backup, /const APP_BASE = '\/globalmonitor\/'/);
+    assert.ok(!backup.includes('__APP_BASE__'));
     assert.throws(() => stampWorker(source, '<html>no entry</html>'));
 });
 
@@ -56,4 +59,18 @@ test('activation refreshes legacy/mismatched tabs but does not reload current ta
     await completed;
     assert.deepEqual(navigated.sort(), ['https://example.test/legacy', 'https://example.test/old']);
     assert.deepEqual(deleted, ['gpd-old']);
+});
+
+test('backup service worker precaches only its own base and does not migrate a sister site', async () => {
+    const handlers = {}, navigated = [], assets = [];
+    const source = stampWorker(await fs.readFile(new URL('../public/sw.js', import.meta.url), 'utf8'), '<script type="module" src="/globalmonitor/assets/new.js"></script>');
+    vm.runInNewContext(source, { URL, MessageChannel, clearTimeout, setTimeout: fn => setTimeout(fn, 5),
+        self: { skipWaiting: async () => {}, addEventListener: (n,h) => { handlers[n]=h; }, clients: {
+            claim: async () => {}, matchAll: async () => ['/globalmonitor/','/mem-by-non/'].map(path => ({url:'https://example.test'+path,postMessage(){},navigate:async url=>navigated.push(url)}))
+        } }, caches: {open:async()=>({addAll:async urls=>assets.push(...urls)}),keys:async()=>[]} });
+    let completed;
+    handlers.install({waitUntil:value=>{completed=value;}}); await completed;
+    assert.ok(assets.length > 5 && assets.every(path=>path.startsWith('/globalmonitor/')));
+    handlers.activate({waitUntil:value=>{completed=value;}}); await completed;
+    assert.deepEqual(navigated, ['https://example.test/globalmonitor/']);
 });

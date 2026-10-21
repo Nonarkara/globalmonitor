@@ -18,6 +18,7 @@
     "build": "vite build",
     "build:pages": "vite build",
     "deploy:pages": "npm run refresh:flights && npm run build:pages && npx wrangler pages deploy dist --project-name globalmonitor --branch=main --commit-dirty=true",
+    "deploy:backup": "VITE_API_BASE_URL=https://globalmonitor.nonarkara.org npm run build -- --base=/globalmonitor/ && cp dist/index.html dist/404.html && npx gh-pages -d dist",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node scripts/globewatch-browser-check.mjs",
     "test:updates": "node scripts/returning-session-check.mjs",

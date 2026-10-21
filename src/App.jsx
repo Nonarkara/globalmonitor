@@ -220,7 +220,6 @@ function App() {
               <span className="header-subtitle">
                 Planetary Comparative & Macro Intelligence · {DASHBOARD_VERSION}
               </span>
-              <button className="gw-availability" onClick={() => setIsInstallOpen(true)}>Android &amp; iPhone web app</button>
             </div>
             </div>
           </div>
@@ -313,7 +312,7 @@ function App() {
                     <Info size={12} aria-hidden="true" /> About
                   </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsInstallOpen(true); }}>
-                    <Info size={12} aria-hidden="true" /> Install web app
+                    <Info size={12} aria-hidden="true" /> Android &amp; iPhone web app
                   </button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); handleRefreshAll(); }} disabled={isRefreshingAll}>
                     <RefreshCw size={12} aria-hidden="true" className={isRefreshingAll ? 'spin-anim' : ''} /> Refresh data

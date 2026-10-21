@@ -5,6 +5,7 @@
  */
 
 const APP_ENTRY = '__APP_ENTRY__';
+const APP_BASE = '__APP_BASE__';
 const CACHE_NAME = 'gpd-v8-release-' + APP_ENTRY;
 const STATIC_ASSETS = [
     '/',
@@ -21,7 +22,7 @@ const STATIC_ASSETS = [
     '/brand/globewatch-mark.png',
     '/brand/globewatch-lockup.png',
     '/brand/globewatch-monochrome.png'
-];
+].map(path => APP_BASE + path.slice(1));
 
 // Cache static assets on install
 self.addEventListener('install', (event) => {
@@ -36,7 +37,8 @@ self.addEventListener('install', (event) => {
 // not replace its already-executing JavaScript or CSS. Legacy tabs cannot reply.
 const refreshOutdatedClients = async () => {
     if (!APP_ENTRY.startsWith('/')) return;
-    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const windows = (await self.clients.matchAll({ type: 'window', includeUncontrolled: true }))
+        .filter(client => new URL(client.url).pathname.startsWith(APP_BASE));
     await Promise.all(windows.map(async client => {
         const entry = await new Promise(resolve => {
             const channel = new MessageChannel();
@@ -101,11 +103,11 @@ self.addEventListener('fetch', (event) => {
 
     // Always fetch the HTML shell from the network first. A cache-first shell can
     // trap users on a bad deployment even after Cloudflare has been corrected.
-    if (request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+    if (request.mode === 'navigate' || url.pathname === APP_BASE || url.pathname === APP_BASE + 'index.html') {
         event.respondWith(
             fetch(request)
                 .then(response => cacheResponse(request, response))
-                .catch(() => caches.match(request).then(cached => cached || caches.match('/index.html')))
+                .catch(() => caches.match(request).then(cached => cached || caches.match(APP_BASE + 'index.html')))
         );
         return;
     }

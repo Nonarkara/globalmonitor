@@ -8,7 +8,8 @@ export function stampWorker(source, html) {
     const styles = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)]
         .map(match => match[1]).filter(href => href.startsWith('/') && href.includes('/assets/'));
     // Include CSS so a CSS-only release also advances already-open tabs.
-    return source.replace('__APP_ENTRY__', [script, ...styles].sort().join('|'));
+    const base = script.slice(0, script.indexOf('/assets/') + 1);
+    return source.replace('__APP_ENTRY__', [script, ...styles].sort().join('|')).replace('__APP_BASE__', base);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

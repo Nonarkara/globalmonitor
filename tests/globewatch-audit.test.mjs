@@ -7,6 +7,7 @@ import { fetchFlightSnapshot } from '../functions/_lib/router.mjs';
 import { fetchVesselsPayload } from '../functions/_lib/vessels.mjs';
 import { getSharedCache, useCached } from '../functions/_lib/cache.mjs';
 import { readLiveState } from '../server/lib/oracle/state.mjs';
+import { stampWorker } from '../scripts/stamp-service-worker.mjs';
 
 test('Oracle baseline never treats demo features as observed input', () => {
     const cache = new Map([['acled:middleeast', { payload: { source: 'demo_offline_no_acled_key', features: Array.from({ length: 16 }, () => ({})) } }]]);
@@ -20,7 +21,7 @@ test('install manifest has real PNG sizes and permits portrait phones', async ()
     assert.equal(manifest.short_name, 'GlobeWatch');
     assert.equal(manifest.orientation, 'any');
     for (const icon of manifest.icons) {
-        const png = await fs.readFile(new URL(`../public${icon.src}`, import.meta.url));
+        const png = await fs.readFile(new URL(`../public/${icon.src.replace(/^\//, '')}`, import.meta.url));
         const [width, height] = icon.sizes.split('x').map(Number);
         assert.equal(png.readUInt32BE(16), width);
         assert.equal(png.readUInt32BE(20), height);
@@ -48,7 +49,7 @@ const worker = async ({ cached = null, network = async () => { throw new Error('
         self: { location: { origin: 'https://example.test' }, addEventListener: (event, handler) => { handlers[event] = handler; } },
         caches: { match: async () => cached, open: async () => ({ put: async () => {}, keys: async () => [] }) }
     });
-    vm.runInContext(await fs.readFile(new URL('../public/sw.js', import.meta.url), 'utf8'), context);
+    vm.runInContext(stampWorker(await fs.readFile(new URL('../public/sw.js', import.meta.url), 'utf8'), '<script type="module" src="/assets/test.js"></script>'), context);
     return { handlers, context };
 };
 

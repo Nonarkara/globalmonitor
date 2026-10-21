@@ -36,7 +36,12 @@ export default function WebAppInstall({ open, onClose }) {
             }
         };
         dialog?.addEventListener('keydown', trap);
-        return () => { dialog?.removeEventListener('keydown', trap); previous?.focus?.(); };
+        return () => {
+            dialog?.removeEventListener('keydown', trap);
+            const target = previous?.isConnected && previous !== document.body
+                ? previous : document.querySelector('[aria-label="Tools and advanced options"]');
+            target?.focus?.();
+        };
     }, [open]);
 
     const install = async () => {

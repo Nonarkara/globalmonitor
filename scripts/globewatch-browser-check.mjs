@@ -61,12 +61,15 @@ try {
             await page.emulateMedia({ media: 'screen' });
         }
 
-        await page.getByRole('button', { name: 'Android & iPhone web app' }).click();
+        await page.getByRole('button', { name: 'Tools and advanced options' }).click();
+        await page.getByRole('menuitem', { name: 'Android & iPhone web app' }).click();
         const install = page.getByRole('dialog', { name: 'GlobeWatch on your home screen' });
         await install.waitFor({ state: 'visible' });
         assert.match(await install.innerText(), /Available on Android and iPhone as a web app/);
         await page.screenshot({ path: `.qa/globewatch/install-${width}.png` });
         await page.keyboard.press('Escape');
+        await install.waitFor({ state: 'hidden' });
+        assert.equal(await page.getByRole('button', { name: 'Tools and advanced options' }).evaluate(el => document.activeElement === el), true);
 
         await page.getByRole('button', { name: 'Tools and advanced options' }).click();
         await page.getByRole('menuitem', { name: 'Data health', exact: true }).click();

@@ -58,7 +58,7 @@
 .app-container[data-shell="compact"] .header-region-tab {font-size:11px!important;letter-spacing:0!important;}
 .app-container[data-shell="compact"] .header-button-manual,
 .app-container[data-shell="compact"] .header-button-papers {display:none;}
-.compact-region-select {display:none;min-width:0;max-width:155px;height:44px;font:inherit;font-size:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line-2);}
+.compact-region-select {display:none;flex:0 0 155px;min-width:155px;max-width:155px;height:44px;font:inherit;font-size:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line-2);}
 .compact-region-menu {display:block;padding:8px;font-size:12px;}
 .compact-region-menu select {display:block;width:100%;height:44px;background:var(--panel);color:var(--ink);font:inherit;}
 .app-container[data-shell="compact"] .header-tools-menu {max-height:calc(100dvh - 140px);overflow-y:auto;z-index:80;}
@@ -113,7 +113,7 @@ body:has(.legal-footer-links) .app-container[data-shell="compact"] .news-ticker-
 @media(max-width:720px) {
   .app-container[data-shell="compact"] {--op-clock:24px;}
   .app-container[data-shell="compact"] .header-bar {display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:30px 26px!important;gap:0 6px!important;}
-  .app-container[data-shell="compact"] .header-status {grid-column:1;grid-row:1;width:100%!important;align-self:end;}
+  .app-container[data-shell="compact"] .header-status {grid-column:1;grid-row:1;width:100%!important;align-self:end;min-height:0!important;height:auto!important;max-height:28px!important;}
   .app-container[data-shell="compact"] .header-brand-strip {grid-column:1;grid-row:2;width:124px!important;max-width:124px!important;padding:0!important;gap:5px!important;align-self:center;}
   .app-container[data-shell="compact"] .header-brand-logo {height:12px!important;max-width:24px!important;}
   .app-container[data-shell="compact"] .header-brand-logo-pmua {height:16px!important;max-width:36px!important;}
@@ -137,6 +137,22 @@ body:has(.legal-footer-links) .app-container[data-shell="compact"] .news-ticker-
   .app-container[data-shell="compact"] .map-eo-labels {left:4px;right:172px;bottom:30px;flex-direction:column;align-items:flex-start;}
   .app-container[data-shell="compact"] .map-first-layers-rail {display:none!important;}
   .app-container[data-shell="compact"] .header-tools-trigger svg:last-child {display:none;}
+}
+/* At tablet widths the theater must remain a word, not a clipped initial.
+   The install action stays in Tools; a 44px action cannot be a third title line. */
+.app-container[data-shell="compact"] .gw-header-identity {min-width:0;max-height:44px;}
+.app-container[data-shell="compact"] .header-title-lockup {display:flex;flex-direction:column;justify-content:center;max-height:44px;}
+@media(min-width:721px) and (max-width:1000px) {
+  .app-container[data-shell="compact"] .header-status {flex:1 1 120px;}
+  .app-container[data-shell="compact"] .header-controls {flex:0 0 auto;}
+  .app-container[data-shell="compact"] .header-controls .header-icon-label {display:none;}
+  .app-container[data-shell="compact"] .header-icon-button {min-width:44px!important;}
+  .app-container[data-shell="compact"] .header-subtitle {display:none;}
+}
+@media(max-width:720px) {
+  .app-container[data-shell="compact"] .signal-item-meta {display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;line-height:1.4;}
+  .app-container[data-shell="compact"] .signal-item {display:block;padding:10px 0;}
+  .app-container[data-shell="compact"] .signal-item-title {display:block;line-height:1.45;margin-top:4px;}
 }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
