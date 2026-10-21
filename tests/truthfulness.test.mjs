@@ -34,7 +34,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync, writeFileSync, unlinkSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -1158,7 +1158,13 @@ test('mutation: a short label that renames its region is caught', () => {
 
 test('mutation: a new colour outside the palette is caught', () => {
     // the rule reads files from disk, so the fixture is written and removed
-    const probe = path.join(ROOT, 'tests', 'fixtures', 'probe-colour.jsx');
+    const probeDir = path.join(ROOT, 'tests', 'fixtures');
+    // The scratch directory is created if it is not there. It is not
+    // tracked in git, and a gate that only passes on the machine that
+    // happened to create the directory is decoration: a fresh clone ran
+    // `npm test` and failed on ENOENT before this line.
+    mkdirSync(probeDir, { recursive: true });
+    const probe = path.join(probeDir, 'probe-colour.jsx');
     writeFileSync(probe, 'const c = "#ff00ff";\n');
     let problems;
     try {
