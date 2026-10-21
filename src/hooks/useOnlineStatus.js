@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { resolveBackendUrl } from '../services/backendClient.js';
 
-const HEALTH_PATH = '/api/health';
+const HEALTH_PATH = resolveBackendUrl('/api/health');
 const PING_INTERVAL = 60000; // 1 minute
 const PING_TIMEOUT = 8000;
 

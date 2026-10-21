@@ -3,8 +3,8 @@ import { Crosshair, Skull, Zap, Users, ChevronDown, ChevronUp, BarChart3 } from 
 import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 import { WAR_START } from '../data/warConstants';
+import { fetchAcledEvents } from '../services/acled';
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 
 const KPI = ({ icon, label, value, color, sub }) => (
     <div style={{
@@ -56,8 +56,7 @@ const AcledAnalytics = ({ viewMode = 'middleeast' }) => {
     const [showActors, setShowActors] = useState(false);
     const showTrend = true;
 
-    const fetcher = useCallback(() =>
-        fetch(`${API_BASE}/api/acled?theater=${encodeURIComponent(viewMode)}`).then(r => r.json()), [viewMode]);
+    const fetcher = useCallback(() => fetchAcledEvents(viewMode), [viewMode]);
 
     const { data, isLoading, isRefreshing, isStale, error, retryCount, refresh } = useLiveResource(fetcher, {
         cacheKey: `acled-analytics:${viewMode}`,

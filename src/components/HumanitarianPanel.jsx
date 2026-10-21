@@ -4,6 +4,7 @@ import { useLiveResource } from '../hooks/useLiveResource';
 import DataStatus from './DataStatus';
 import { fetchAcledEvents } from '../services/acled';
 import { fetchHumanitarian } from '../services/humanitarian';
+import { fetchInfrastructure } from '../services/infrastructure';
 
 const KPI = ({ icon, label, value, color, sub }) => (
     <div style={{
@@ -41,7 +42,6 @@ const Sparkline = ({ data, color, width = 160, height = 32 }) => {
     );
 };
 
-const API_BASE = import.meta.env.DEV ? 'http://localhost:8802' : '';
 const DAY_MS = 86400000;
 
 const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
@@ -49,8 +49,7 @@ const HumanitarianPanel = ({ viewMode = 'middleeast' }) => {
     // hook and demo or fallback payloads get badged instead of read as live.
     const acledFetcher = useCallback(() => fetchAcledEvents(viewMode), [viewMode]);
     const humanFetcher = useCallback(() => fetchHumanitarian(viewMode).catch(() => null), [viewMode]);
-    const infraFetcher = useCallback(() =>
-        fetch(`${API_BASE}/api/infrastructure`).then(r => r.json()).catch(() => null), []);
+    const infraFetcher = useCallback(() => fetchInfrastructure(viewMode).catch(() => null), [viewMode]);
 
     const {
         data: acledData, isLoading, isRefreshing, isStale, error, retryCount, refresh, isSample: acledIsSample

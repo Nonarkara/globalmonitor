@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '';
+export const resolveBackendUrl = (path, base = API_BASE_URL) => `${base.replace(/\/$/, '')}${path}`;
 
 const attachMeta = (payload, meta) => {
     if (!payload || typeof payload !== 'object') return payload;
@@ -19,7 +20,7 @@ const attachMeta = (payload, meta) => {
 const SLOW_PATHS = new Set(['/api/flights', '/api/vessels']);
 
 export const fetchBackendJson = async (path, params = {}) => {
-    const response = await axios.get(`${API_BASE_URL}${path}`, {
+    const response = await axios.get(resolveBackendUrl(path), {
         params,
         timeout: SLOW_PATHS.has(path) ? 30000 : 15000
     });
