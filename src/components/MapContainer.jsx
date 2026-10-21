@@ -928,7 +928,7 @@ const MapContainer = ({
         : (flightsResource.isLoading ? 'Loading ADS-B…' : (flightsResource.isStale ? 'ADS-B stale' : 'ADS-B'));
     const vesselsNeedKey = globalVesselsData?.meta?.requiresKey;
     const vesselMeta = vesselsSnapshot.meta.sourceMeta || globalVesselsData?.meta;
-    const vesselSourceLabel = `${formatVesselSourceLabel(vesselMeta)} · ${observationAge(vesselsSnapshot.meta.observedAt || trafficObservationAt(vesselMeta))}`;
+    const vesselSourceLabel = `${formatVesselSourceLabel(vesselMeta)} · capture ${observationAge(vesselsSnapshot.meta.observedAt || trafficObservationAt(vesselMeta))}`;
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
     // FIRMS and ACLED sit on the same map as traffic with no provenance line of

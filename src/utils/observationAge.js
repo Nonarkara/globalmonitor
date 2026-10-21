@@ -1,7 +1,10 @@
 // Observation clocks precede response clocks. A response assembled now must
 // never make an older cached snapshot look newly measured.
-export const trafficObservationAt = (meta) => meta?.observationAt || meta?.observedAt
-    || meta?.staticSnapshotAt || meta?.collectedAt || meta?.fetchedAt || null;
+export const trafficObservationAt = (meta) => {
+    const snapshot = meta?.staticSnapshot || meta?.aisSource === 'static-snapshot' || /snapshot/.test(meta?.source || '');
+    return meta?.observationAt || meta?.observedAt || (snapshot ? meta?.staticSnapshotAt : null)
+        || meta?.collectedAt || meta?.fetchedAt || null;
+};
 
 export const observationAge = (value, now = Date.now()) => {
     if (!value) return 'age unavailable';
