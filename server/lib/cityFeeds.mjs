@@ -894,11 +894,21 @@ export const fetchCityFeeds = async (options = {}) => {
     const liveChannels = out.filter((c) => c.channel.state === 'live').length;
 
     return {
-        generatedAt: nowIso(),
+        // The moment this payload was ASSEMBLED. It is not the moment the
+        // data was measured, and it must not be mistaken for one: the
+        // stale-while-revalidate path assembles a payload that can be half
+        // an hour old. It is not the moment it was served either — a
+        // cached response carries the assembly time of the response that
+        // was cached.
+        assembledAt: nowIso(),
         cities: out,
         meta: {
             note: 'Camera screens are measured frames, not streams. A city with no verified public camera says so in words — no placeholder tile.',
-            probedAt: nowIso(),
+            // The OLDEST measurement in the payload, not the moment the
+            // response was built. A fresh timestamp on a stale payload is
+            // the lie this project exists to refuse: the reader must be
+            // able to tell how old a number is.
+            probedAt: new Date(Math.min(cameraCache.at, channelCache.at)).toISOString(),
             cameraProbedAt: new Date(cameraCache.at).toISOString(),
             channelProbedAt: new Date(channelCache.at).toISOString(),
             cameraCoverage: `${withCamera} of ${out.length} cities have a verified public camera`,

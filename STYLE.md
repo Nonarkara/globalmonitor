@@ -334,7 +334,21 @@ static file may carry — and its note describes the channel, never its
 condition. The probe supplies the state, the label and a sentence of its own
 about what it saw. The gate checks the rule in both directions: a note that
 claims a stream is running, or that none is, is reported, and so is a
-registry that names any state other than `unconfirmed`.
+registry that names any state other than `unconfirmed`. The same rule covers
+the camera's note: *"the HLS stream behind this camera was verified live"* is
+a claim about a stream that only a probe can make, and it outlives the
+verification that made it.
+
+**The payload carries the age of the measurement, not the age of the
+response.** A cold probe takes seconds — the frame gate fetches every frame
+twice, six seconds apart — so a payload that is past its TTL but still under
+thirty minutes old is served **immediately** and refreshed behind the
+reader's back. Which means the stamp on it must be the time it was MEASURED,
+the oldest thing in the payload, not the moment the response was assembled. A
+fresh timestamp on a half-hour-old payload is the lie this project exists to
+refuse: the reader must be able to tell how old a number is. The response
+also carries the moment the payload was assembled, under that name, so the
+two can never be confused.
 
 **A frame is measured, not assumed.** The Thai camera network answers HTTP
 200 with a 43-byte blank for a camera that does not exist, and a real frame
@@ -355,21 +369,6 @@ next to six honest absences is telling the truth about the coverage; a panel
 that hid the six absences would be telling the reader that six cities are
 quiet.
 
-**A static file may not claim what a probe measured.** The registry
-(`src/data/cityFeeds.js`) says what a channel **is** — the broadcaster, the
-feed, the archive. The probe says what it is **doing now**, and only the
-probe may say that. Two claims about the same channel, one measured and one
-asserted, will eventually disagree: one tile carried *"VOD — no live stream
-running at the probe time"* directly above *"Live stream verified running"*,
-and the second line was a research finding written down weeks earlier, still
-on the tile because the file had no way to know it was stale.
-
-So every registry channel carries the state `unconfirmed` — the only state a
-static file may carry — and its note describes the channel, never its
-condition. The probe supplies the state, the label and a sentence of its own
-about what it saw. The gate checks the rule in both directions: a note that
-claims a stream is running, or that none is, is reported, and so is a
-registry that names any state other than `unconfirmed`.
 
 ## Protected voice
 - marker "GlobeWatch": the supplied project identity

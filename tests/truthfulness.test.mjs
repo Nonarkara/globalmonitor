@@ -474,6 +474,15 @@ function cityFeedProblems(feeds = CITY_FEEDS) {
         if (/refreshing/i.test(city?.camera?.label || '')) {
             problems.push(`${id}: the registry claims the frame refreshes — only a probe may say that`);
         }
+        // The same rule for the camera's NOTE: "was verified live" is a
+        // claim about a stream that only the probe can make, and it
+        // outlives the verification that made it. One tile carried
+        // "The HLS stream behind this camera was verified live" for weeks
+        // after the probe had stopped agreeing.
+        const cameraNote = city?.camera?.note || '';
+        if (/(was verified live|verified running|running a stream|is live\b|streaming live now)/i.test(cameraNote)) {
+            problems.push(`${id}: the camera note claims a live state — only a probe may say that`);
+        }
 
         const state = city?.channel?.state;
         if (!state) problems.push(`${id}: no channel state`);
@@ -925,6 +934,16 @@ test('mutation: a registry that claims a measured channel state is caught', () =
     ));
     const problems = cityFeedProblems(broken);
     assert.ok(problems.length > 0, 'a static file asserting a measured state must be reported');
+});
+
+test('mutation: a camera note that claims a live state is caught', () => {
+    const broken = CITY_FEEDS.map((city, index) => (
+        index === 0
+            ? { ...city, camera: { ...city.camera, note: 'The HLS stream behind this camera was verified live.' } }
+            : city
+    ));
+    const problems = cityFeedProblems(broken);
+    assert.ok(problems.length > 0, 'a static file claiming a live stream must be reported');
 });
 
 test('each basemap option is a different ground, and none of them is another one renamed', () => {

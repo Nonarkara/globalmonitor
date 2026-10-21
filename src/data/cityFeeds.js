@@ -189,11 +189,12 @@ export const CITY_FEEDS = [
             label: 'Snapshot — an aggregator frame, not video; the probe has not answered yet',
             source: 'opencctv.org (third-party aggregator)',
             sourceUrl: 'https://opencctv.org/',
-            // Honesty point: this is an aggregator's still of a live camera on
-            // the Jakarta ring road, not a primary operator feed. The HLS
-            // stream behind it was verified live; the still is the frame the
-            // aggregator publishes, and it refreshes slowly.
-            note: 'Third-party aggregator, not a primary operator feed. The HLS stream behind this camera was verified live.'
+            // Honesty point: this is an aggregator's still of a camera on the
+            // Jakarta ring road, not a primary operator feed. Whether the
+            // stream behind it is running is MEASURED by the probe and
+            // reported in the note it writes; a static file must not assert
+            // it, because "was verified live" outlives the verification.
+            note: 'Third-party aggregator, not a primary operator feed; the panel serves the still through the server.'
         },
         channel: {
             name: 'TVRI Nasional',
