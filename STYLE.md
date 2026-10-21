@@ -276,8 +276,11 @@ Dark Tyrian Blue `#12354e`, drawn at one weight. Under it sits a **casing** —
 paper on a dark or satellite ground, ink on paper — so the navy core keeps
 its edge against whatever is underneath. The casing is the halo round a mark,
 not another mark: the key names one colour and the map paints one colour
-inside a casing. The plate says so in the same words. A route that needed a
-second colour to be legible needed a different colour, not a halo.
+inside a casing, and the gate reports a second layer in that source that
+paints anything the key has not named. The plate's row names the mark and
+says the registry is not a live feed; it does not carry design prose, because
+a plate is an instrument. A route that needed a second colour to be legible
+needed a different colour, not a halo.
 
 ## Voice
 Keep authored titles, event identifiers, credits and source names. Say stale, sample, reference or unavailable plainly. No claims of complete global coverage.
