@@ -2903,7 +2903,7 @@ const MapContainer = ({
                                 // Middle dot, not a hyphen: name and risk level are two separate
                                 // facts, not a compound. The en dash inside the name
                                 // (Thailand–Myanmar) already means "between".
-                                title={`${b.properties.name} · ${b.properties.riskLevel} RISK`}
+                                title={`${b.properties.name} · undated, unverified reference: ${b.properties.riskLevel}`}
                                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                             >

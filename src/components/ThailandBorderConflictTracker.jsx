@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ShieldAlert, MapPin, AlertTriangle, ChevronRight, Navigation, CheckCircle2 } from 'lucide-react';
-import { THAILAND_BORDER_ZONES } from '../data/thailandBorders.js';
+import { ShieldAlert, Navigation } from 'lucide-react';
+import { THAILAND_BORDER_ZONES, THAILAND_BORDER_PROVENANCE } from '../data/thailandBorders.js';
 
 /**
  * Thailand 3-Border Conflict Monitor & Early Warning HUD
@@ -20,9 +20,9 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
     };
 
     return (
-        <div className="bottom-card" style={{ padding: '12px 14px', background: 'rgba(12, 16, 26, 0.85)', backdropFilter: 'none' }}>
+        <div className="bottom-card border-reference-panel" data-tier="reference" style={{ padding: '12px 14px', background: 'var(--panel)', color: 'var(--ink)', backdropFilter: 'none' }}>
             <div className="panel-header" style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'space-between',
                 paddingBottom: '8px', marginBottom: '10px',
                 borderBottom: '1px solid var(--line-2)',
                 borderLeft: '3px solid #a72144',
@@ -30,25 +30,29 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
             }}>
                 <div>
                     <div style={{
-                        fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '1.2px',
+                        fontSize: 'var(--type-body)', fontWeight: 700, letterSpacing: '0.02em',
                         textTransform: 'uppercase', color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '6px'
                     }}>
                         <ShieldAlert size={14} style={{ color: '#a72144' }} />
                         Thailand Border Conflict Monitor
                     </div>
                     <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', marginTop: '2px' }}>
-                        Geopolitical Risk &amp; Early Warning System · 3 Strategic Frontiers
+                        Geographic reference · 3 strategic frontiers
                     </div>
                 </div>
                 <span style={{
                     fontSize: 'var(--type-micro)', fontWeight: 700, letterSpacing: '0.8px',
-                    color: '#1a7444', padding: '2px 8px',
-                    background: 'rgba(34, 197, 94, 0.12)',
-                    borderRadius: '0', border: '1px solid rgba(34, 197, 94, 0.3)'
+                    color: 'var(--ink-2)', padding: '2px 0',
+                    background: 'transparent',
+                    borderRadius: '0', border: 'none'
                 }}>
-                    3 ZONES MONITORED
+                    REFERENCE · UNDATED
                 </span>
             </div>
+            <p style={{ fontSize: 'var(--type-body)', lineHeight: 1.5, color: 'var(--ink-2)', margin: '0 0 12px' }}>
+                {THAILAND_BORDER_PROVENANCE.qualification}
+                {' '}Source: {THAILAND_BORDER_PROVENANCE.source}. Observation date unavailable.
+            </p>
 
             {/* Zone Selector Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -60,21 +64,19 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                             style={{
                                 borderRadius: '0',
                                 border: `1px solid ${isSelected ? zone.color : 'var(--line)'}`,
-                                background: isSelected ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.2)',
+                                background: 'var(--panel)',
                                 padding: '8px 10px',
-                                transition: 'all 0.2s ease',
-                                cursor: 'pointer'
+                                transition: 'border-color 0.2s ease'
                             }}
-                            onClick={() => handleSelectZone(zone)}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <div style={{
                                         width: '8px', height: '8px', borderRadius: '50%',
-                                        background: zone.color, boxShadow: `0 0 8px ${zone.color}`
+                                        background: zone.color, flexShrink: 0
                                     }} />
                                     <div>
-                                        <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink)' }}>
+                                        <div style={{ fontSize: 'var(--type-body)', fontWeight: 700, color: 'var(--ink)' }}>
                                             {zone.shortName}
                                         </div>
                                         <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)' }}>
@@ -84,18 +86,20 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span style={{
-                                        fontSize: 'var(--type-micro)', fontWeight: 700, color: zone.color,
+                                        fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink-2)',
                                         padding: '2px 6px', borderRadius: '0',
-                                        background: `${zone.color}15`, border: `1px solid ${zone.color}35`
+                                        background: 'transparent', border: '1px solid var(--line)'
                                     }}>
-                                        {zone.riskLevel} ({zone.riskScore})
+                                        Unverified: {zone.riskLevel} ({zone.riskScore})
                                     </span>
                                     <button
                                         type="button"
+                                        aria-label={`Zoom to ${zone.name}`}
+                                        aria-expanded={isSelected}
                                         style={{
-                                            background: isSelected ? zone.color : 'var(--line-2)',
-                                            color: isSelected ? '#000' : 'var(--ink-2)',
-                                            border: 'none', borderRadius: '0',
+                                            background: 'var(--panel)',
+                                            color: 'var(--ink)',
+                                            border: '1px solid var(--line-2)', borderRadius: '0', minHeight: '44px', minWidth: '68px',
                                             padding: '4px 8px', fontSize: 'var(--type-micro)', fontWeight: 600,
                                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                                         }}
@@ -111,30 +115,30 @@ const ThailandBorderConflictTracker = ({ onFlyToBorder, activeBorderId }) => {
 
                             {isSelected && (
                                 <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--line-2)' }}>
-                                    <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', lineHeight: 1.4, marginBottom: '6px' }}>
-                                        {zone.summary}
+                                    <div style={{ fontSize: 'var(--type-body)', color: 'var(--ink-2)', lineHeight: 1.5, marginBottom: '6px' }}>
+                                        Undated reference: {zone.summary}
                                     </div>
 
                                     <div style={{ fontSize: 'var(--type-micro)', fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                                        Key Border Checkpoints &amp; Outposts:
+                                        Checkpoints · statuses below are unverified references:
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '4px' }}>
                                         {zone.checkpoints.map((cp, idx) => (
                                             <div
                                                 key={idx}
                                                 style={{
                                                     fontSize: 'var(--type-micro)', padding: '3px 6px',
-                                                    background: 'rgba(255,255,255,0.02)', borderRadius: '0',
+                                                    background: 'var(--panel)', borderRadius: '0',
                                                     border: '1px solid var(--line)', display: 'flex',
-                                                    alignItems: 'center', justifyContent: 'space-between'
+                                                    flexWrap: 'wrap', gap: '4px 8px', alignItems: 'center', justifyContent: 'space-between'
                                                 }}
                                             >
-                                                <span style={{ color: 'var(--ink-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '110px' }}>
+                                                <span style={{ color: 'var(--ink-2)', overflowWrap: 'anywhere', lineHeight: 1.5 }}>
                                                     {cp.name}
                                                 </span>
                                                 <span style={{
                                                     fontSize: 'var(--type-micro)', fontWeight: 700,
-                                                    color: cp.status === 'ALERT' ? '#a72144' : cp.status === 'MONITORED' ? '#f59e0b' : '#1a7444'
+                                                    color: 'var(--ink-2)'
                                                 }}>
                                                     {cp.status}
                                                 </span>

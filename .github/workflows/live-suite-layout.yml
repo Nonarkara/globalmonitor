@@ -1,0 +1,32 @@
+name: Verify public dashboard layouts
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-layout:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: globewatch, url: 'https://globalmonitor.nonarkara.org/' }
+          - { name: asia, url: 'https://asia.nonarkara.org/' }
+          - { name: middleeast, url: 'https://global.nonarkara.org/' }
+          - { name: mem, url: 'https://mem.nonarkara.org/' }
+          - { name: mem-backup, url: 'https://nonarkara.github.io/mem-by-non/' }
+          - { name: war, url: 'https://middleeast-monitor.pages.dev/' }
+          - { name: war-backup, url: 'https://nonarkara.github.io/middleeast-monitor/' }
+          - { name: flagship-backup, url: 'https://nonarkara.github.io/globalmonitor/' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm ci
+      - run: npx playwright install --with-deps chrome
+      - run: node scripts/live-suite-check.mjs '${{ matrix.url }}' '${{ matrix.name }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: layout-${{ matrix.name }}
+          path: .qa/live-suite-release/

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "decision": "Map-first suite repair approved 21 October 2026",
+  "decisions": {
+    "map": "At least 60% of the initial viewport belongs to geographic evidence. No filler is used to balance its empty geographic areas.",
+    "masthead": "The identity and clock fit inside compact chrome; an install action belongs in Tools, not a third title line.",
+    "theater": "A visible selector reserves at least 110px; on a phone the full selector moves to Tools.",
+    "drawers": "Intelligence and status instruments open on request. Their scroll area holds earned content, not an empty fixed-height card.",
+    "reference": "Border assessments have no observation date. The panel says undated and unverified; blank observation dates are not replaced with response time."
+  },
+  "verification": "scripts/live-suite-check.mjs measures actual CSS breakpoints and neighbours, captures preset views and falsifies the rendered overlap or map-size guard. This baseline records reasons; it is not an exemption from the checks."
+}

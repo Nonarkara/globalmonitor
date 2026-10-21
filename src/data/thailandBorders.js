@@ -4,6 +4,13 @@
  * across Thailand's primary border frontiers.
  */
 
+export const THAILAND_BORDER_PROVENANCE = Object.freeze({
+    source: 'Editorial reference registry',
+    tier: 'reference',
+    observedAt: null,
+    qualification: 'Undated, unverified assessments — not current border conditions. Check official notices before travel.'
+});
+
 export const THAILAND_BORDER_ZONES = [
     {
         id: 'border-myanmar',
@@ -78,6 +85,9 @@ export const THAILAND_BORDER_GEOJSON = {
             color: z.color,
             riskLevel: z.riskLevel,
             riskScore: z.riskScore,
+            source: THAILAND_BORDER_PROVENANCE.source,
+            tier: THAILAND_BORDER_PROVENANCE.tier,
+            observedAt: THAILAND_BORDER_PROVENANCE.observedAt,
             summary: z.summary,
             checkpointsCount: z.checkpoints.length
         }

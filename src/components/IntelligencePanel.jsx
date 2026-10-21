@@ -3,6 +3,7 @@ import { AlertTriangle, Shield, Anchor, Globe, Flame, Droplets, RefreshCw } from
 import { BRIEFING_DEFINITIONS } from '../services/liveNews';
 import { fetchBackendJson } from '../services/backendClient';
 import { useLiveResource } from '../hooks/useLiveResource';
+import { regionalBriefingItems } from '../utils/briefingRelevance.js';
 
 const ICONS = {
     iranStrikes: Flame,
@@ -59,6 +60,7 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
 
     const Icon = ICONS[briefingId] || AlertTriangle;
     const currentBriefing = briefing || staticBriefing;
+    const regional = regionalBriefingItems(briefingId, briefing?.items || []);
     const isDemo = isSample || status === 'demo';
     const statusLabel = isDemo
         ? 'DEMO'
@@ -103,7 +105,7 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                                     className="signal-chip signal-chip-strong"
                                     title="elevated = score ≥ 36 (source trust + freshness decaying over 24h + keyword weight)"
                                 >
-                                    {briefing.stats.highPriority} elevated of {briefing.stats.total} pulled · 24h
+                                    {regional.filtered ? `${regional.items.length} region-matched headlines` : `${briefing.stats.highPriority} elevated of ${briefing.stats.total} pulled · 24h`}
                                 </span>
                                 <span className="signal-chip">
                                     {lastUpdated ? `updated ${formatAge(lastUpdated)}` : 'syncing'}
@@ -131,13 +133,15 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                         </div>
 
                         <div className="briefing-summary">
-                            {briefing?.summary || (isLoading ? 'Connecting to live feeds…' : 'No live items are currently available. Use the official sources above while the feed retries.')}
+                            {regional.filtered && !isLoading
+                                ? 'Headlines must name this region. Text matching is not an assessment of border conditions; use the official sources above for notices.'
+                                : (briefing?.summary || (isLoading ? 'Connecting to live feeds…' : 'No live items are currently available. Use the official sources above while the feed retries.'))}
                         </div>
                     </>
                 )}
 
                 <div className="signal-list">
-                    {(briefing?.items || []).slice(0, 5).map((item, index) => (
+                    {regional.items.slice(0, 5).map((item, index) => (
                         <a
                             key={`${item.link}-${index}`}
                             href={item.link}
@@ -162,9 +166,9 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                         </a>
                     ))}
 
-                    {(!briefing || !briefing.items || briefing.items.length === 0) && (
+                    {regional.items.length === 0 && (
                         <span style={{ color: 'var(--text-muted)', fontSize: 'var(--type-body)' }}>
-                            {error ? 'No live items yet. Cached data will stay visible whenever it exists.' : 'Loading live items…'}
+                            {isLoading ? 'Loading headlines…' : error ? 'Headline feed unavailable. Use the official source links above.' : 'No region-matched headlines in this pull. Use the official source links above.'}
                         </span>
                     )}
                 </div>
