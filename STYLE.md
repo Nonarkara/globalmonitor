@@ -292,6 +292,18 @@ qualification is visible at once, and the plate is wide and tall enough to
 hold them. A qualifier is never scrolled out of sight. Machine identifiers
 are said in words — "NASA FIRMS public file · 24h", not "nasa-firms-public-24h".
 
+**A qualifier is claimed in EVERY place it is said, and the gate knows where
+those places are.** The wind field is a model on the plate *and* in the popup
+that opens on the layer; the barb convention is stated in both; the cyclone's
+provenance is in both. So every element that carries one of those claims says
+so — `data-claim="wind-model"` — and the rule checks **each** marked place:
+the claim must be made in at least as many places as it should be, and every
+one of them must carry the words. A count is not a place: "does the file
+contain this string at least N times?" cannot tell the plate saying it from
+the popup saying it, so both copies could be moved to one place and the
+count would stay at two while the popup had stopped qualifying anything.
+The marker is how the gate knows the difference.
+
 The plate earns its height by being big enough. It was capped at 384px, which
 held five rows and silently scrolled the rest — and the rows that went missing
 were the cable registry and the cyclone, the two that say what the new marks

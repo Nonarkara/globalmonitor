@@ -2541,7 +2541,7 @@ const MapContainer = ({
                                             )}
                                             <div className="traffic-tooltip-row">
                                                 <span>Source</span>
-                                                <span>JMA analysis — not a raw satellite retrieval</span>
+                                                <span data-claim="cyclone-provenance">JMA analysis — not a raw satellite retrieval</span>
                                             </div>
                                         </div>
                                     );
@@ -2578,7 +2578,7 @@ const MapContainer = ({
                                                     at both is looking at the
                                                     same fact twice. */}
                                                 <span>Barb</span>
-                                                <span>points into the wind — from {bearing}</span>
+                                                <span data-claim="wind-convention">points into the wind — from {bearing}</span>
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Speed</span>
@@ -2593,7 +2593,7 @@ const MapContainer = ({
                                             </div>
                                             <div className="traffic-tooltip-row">
                                                 <span>Source</span>
-                                                <span>Open-Meteo model — not an observation</span>
+                                                <span data-claim="wind-model">Open-Meteo model — not an observation</span>
                                             </div>
                                         </div>
                                     );
@@ -3148,7 +3148,7 @@ const MapContainer = ({
                                             chart barb does — at where the wind
                                             comes FROM — and the air, and the haze
                                             with it, is carried the other way. */}
-                                        <span>
+                                        <span data-claim="wind-model wind-convention">
                                             Open-Meteo model · staff points into the wind — the haze rides the other way
                                             {windDrawnIsTransport ? '' : ' · surface fallback'}
                                         </span>
@@ -3186,7 +3186,7 @@ const MapContainer = ({
                                             {typhoonMeta.observedAt ? ` · ${compactUtc(typhoonMeta.observedAt)}` : ''}
                                         </span>
                                         <LegendClasses marks={LEGEND_KEY.storm} />
-                                        <span>JMA analysis — not a raw satellite retrieval</span>
+                                        <span data-claim="cyclone-provenance">JMA analysis — not a raw satellite retrieval</span>
                                     </>
                                 ) : (
                                     <span>{typhoonMeta?.note || 'JMA bulletin unavailable'}</span>
@@ -3204,7 +3204,7 @@ const MapContainer = ({
                             </span>
                             <span className="map-legend-meta">
                                 <LegendClasses marks={LEGEND_KEY.cables} />
-                                <span>reference registry · not a live feed</span>
+                                <span data-claim="cables-registry">reference registry · not a live feed</span>
                             </span>
                         </span>
                     </div>
