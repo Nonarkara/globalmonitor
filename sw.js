@@ -4,7 +4,7 @@
  * Government offices may have restricted or intermittent connectivity.
  */
 
-const APP_ENTRY = '/globalmonitor/assets/index--RxIXDGo.css|/globalmonitor/assets/index-DSvbxxcc.js';
+const APP_ENTRY = '/globalmonitor/assets/index--RxIXDGo.css|/globalmonitor/assets/index-R7_F-d5_.js';
 const APP_BASE = '/globalmonitor/';
 const CACHE_NAME = 'gpd-v8-release-' + APP_ENTRY;
 const STATIC_ASSETS = [
