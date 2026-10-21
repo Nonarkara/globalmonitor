@@ -23,6 +23,7 @@ import { getRegion } from '../data/regions.js';
 import { setFlightStats } from '../services/flightCountBus.js';
 import { setVesselStats } from '../services/vesselCountBus.js';
 import { formatTrafficLegend } from '../utils/formatTrafficCount.js';
+import { observationAge, trafficObservationAt } from '../utils/observationAge.js';
 import { isValidLngLat, sanitizePointCollection, spreadSamplePointCollection } from '../utils/geojsonValidate.js';
 import { buildPopupClassName } from '../utils/mapPopup.js';
 import { getConflictBlackoutsGeoJson } from '../data/conflictBlackouts.js';
@@ -874,7 +875,7 @@ const MapContainer = ({
         const { collection, capped, totalInView } = spreadSamplePointCollection(sanitized, TRAFFIC_SESSION_MAX_FLIGHTS);
         return {
             collection,
-            meta: { capped, total: totalInView }
+            meta: { capped, total: totalInView, observedAt: trafficObservationAt(globalFlightsData?.meta), source: globalFlightsData?.meta?.source }
         };
     }, [globalFlightsData]);
 
@@ -892,7 +893,7 @@ const MapContainer = ({
         const { collection, capped, totalInView } = spreadSamplePointCollection(sanitized, TRAFFIC_SESSION_MAX_VESSELS);
         return {
             collection,
-            meta: { capped, total: totalInView }
+            meta: { capped, total: totalInView, observedAt: trafficObservationAt(globalVesselsData?.meta), sourceMeta: globalVesselsData?.meta }
         };
     }, [globalVesselsData]);
 
@@ -923,11 +924,11 @@ const MapContainer = ({
     const globalFlightCount = globalFlightsData?.features?.length ?? 0;
     const globalVesselCount = globalVesselsData?.features?.length ?? 0;
     const flightSourceLabel = visibleFlightCount > 0
-        ? 'ADS-B · session'
+        ? `ADS-B · ${flightsSnapshot.meta.source?.includes('snapshot') ? 'snapshot' : 'session capture'} · ${observationAge(flightsSnapshot.meta.observedAt)}`
         : (flightsResource.isLoading ? 'Loading ADS-B…' : (flightsResource.isStale ? 'ADS-B stale' : 'ADS-B'));
     const vesselsNeedKey = globalVesselsData?.meta?.requiresKey;
-    const vesselMeta = globalVesselsData?.meta;
-    const vesselSourceLabel = formatVesselSourceLabel(vesselMeta);
+    const vesselMeta = vesselsSnapshot.meta.sourceMeta || globalVesselsData?.meta;
+    const vesselSourceLabel = `${formatVesselSourceLabel(vesselMeta)} · ${observationAge(vesselsSnapshot.meta.observedAt || trafficObservationAt(vesselMeta))}`;
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
     // FIRMS and ACLED sit on the same map as traffic with no provenance line of

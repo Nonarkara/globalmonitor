@@ -20,6 +20,8 @@ Scientific map categories and supplied partner/GlobeWatch artwork keep their sou
 The live map is the operating table. Compact clock (24–28px), 56px masthead and 44px ticker; no panels open on first visit. Layers, intelligence and markets are explicit edge docks. One sponsor strip; PMUA remains largest. Prose at most 65ch. Square containers and no ornamental depth.
 
 ## Voice
+Traffic captured once per session retains its own observation timestamp. Observation time precedes collection time, which precedes response time; a missing date says age unavailable. The source line names a snapshot when it is one, not simply a fresh browser session.
+
 Keep authored titles, event identifiers, credits and source names. Say stale, sample, reference or unavailable plainly. No claims of complete global coverage.
 
 ## Protected voice
