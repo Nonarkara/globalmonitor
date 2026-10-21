@@ -103,14 +103,14 @@ const IntelligencePanel = ({ briefingId, activeSourceIds }) => {
                             <div className="signal-chip-row">
                                 <span
                                     className="signal-chip signal-chip-strong"
-                                    title="elevated = score ≥ 36 (source trust + freshness decaying over 24h + keyword weight)"
+                                    title={regional.filtered ? 'Headline text names this region; not an analyst assessment' : 'elevated = score ≥ 36 (source trust + freshness decaying over 24h + keyword weight)'}
                                 >
                                     {regional.filtered ? `${regional.items.length} region-matched headlines` : `${briefing.stats.highPriority} elevated of ${briefing.stats.total} pulled · 24h`}
                                 </span>
                                 <span className="signal-chip">
                                     {lastUpdated ? `updated ${formatAge(lastUpdated)}` : 'syncing'}
                                 </span>
-                                {(briefing.stats.dominantTags || []).map((tag) => (
+                                {(regional.filtered ? [...new Set(regional.items.flatMap(item => item.tags || []))].slice(0, 3) : (briefing.stats.dominantTags || [])).map((tag) => (
                                     <span key={tag} className="signal-chip">
                                         {tag}
                                     </span>

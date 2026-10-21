@@ -38,7 +38,11 @@ export async function verifySuiteTarget(url, name, out = '.qa/live-suite-release
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });
   const page = await context.newPage();
-  const errors = [], measurements = [];
+  const errors = [], measurements = [], wrongApiRequests = [];
+  page.on('request', request => {
+    const target = new URL(request.url());
+    if (target.hostname === 'nonarkara.github.io' && target.pathname.startsWith('/api/')) wrongApiRequests.push(target.pathname);
+  });
   page.on('pageerror', e => { if (!e.stack?.includes('youtube.com')) errors.push(e.message); });
   try {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -78,7 +82,8 @@ export async function verifySuiteTarget(url, name, out = '.qa/live-suite-release
       assert.ok(layoutProblems(await measureLayout(page)).includes('map loses first screen'), 'squeezed map mutant must fail');
     }
     assert.deepEqual(errors, []);
-    return { name, url, status: response.status(), checked: widths.length, measurements, errors, mutation: 'caught' };
+    assert.deepEqual(wrongApiRequests, [], 'GitHub Pages cannot serve the application API');
+    return { name, url, status: response.status(), checked: widths.length, measurements, errors, wrongApiRequests, mutation: 'caught' };
   } finally { await context.close(); await browser.close(); }
 }
 
