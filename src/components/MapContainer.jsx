@@ -3043,7 +3043,7 @@ const MapContainer = ({
                     </span>
                 </div>
                 {activeLayers.includes('firms') && (
-                    <div className="map-legend-item">
+                    <div className="map-legend-item" title={firmsSourceLabel}>
                         {/* The swatch is the colour the map actually draws. The
                             faint amber meant "no API key", but the public-file
                             detections are still painted — in Wada red. The key
@@ -3074,7 +3074,7 @@ const MapContainer = ({
                         className="map-legend-item"
                         title={acledCount > 0 && !acledLive
                             ? `Sample events, ${acledDemoRange(acledRaw?.features)}. ACLED is not connected.`
-                            : undefined}
+                            : acledSourceLabel}
                     >
                         {/* The swatch is the colour the map actually draws. It used
                             to be grey when ACLED was unconnected, while the map

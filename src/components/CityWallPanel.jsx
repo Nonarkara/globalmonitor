@@ -85,12 +85,12 @@ const CityWallPanel = () => {
     }, []);
 
     useEffect(() => {
-        load();
+        const initial = setTimeout(load, 0);
         const timer = setInterval(() => {
             setStamp(Date.now());
             load();
         }, POLL_MS);
-        return () => clearInterval(timer);
+        return () => { clearTimeout(initial); clearInterval(timer); };
     }, [load]);
 
     // Merge the probe over the static registry: the registry carries the
