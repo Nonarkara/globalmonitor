@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Rss, RefreshCw, Zap, Cpu } from 'lucide-react';
+import { openResearchTools } from '../research/research-tools.js';
 import { ASEAN_COUNTRIES, THAILAND_REGIONS } from '../data/regions.js';
 import { fetchAseanCountryNews, fetchThaiRegionNews } from '../services/regionalCountryNews.js';
 
@@ -104,6 +105,7 @@ const CountryNewsPanel = ({ mode = 'indopacific', selectedCode, onSelect }) => {
             </div>
 
             {/* Country / region chooser strip */}
+            <button type="button" className="research-context-open" onClick={() => openResearchTools({ system: 'globalmonitor', context: { label: items.find(it => it[codeKey] === activeCode)?.name } })}>Investigate selected place</button>
             <div
                 style={{
                     display: 'flex',

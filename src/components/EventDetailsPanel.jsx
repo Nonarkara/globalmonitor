@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Calendar, MapPin, ShieldAlert } from 'lucide-react';
+import { openResearchTools } from '../research/research-tools.js';
 
 const EventDetailsPanel = ({ event, onClose }) => {
     if (!event) return null;
@@ -42,6 +43,7 @@ const EventDetailsPanel = ({ event, onClose }) => {
             </div>
 
             <h2 className="details-title">{properties.title || properties.city || properties.country}</h2>
+            <button type="button" onClick={() => openResearchTools({ system: 'globalmonitor', context: { label: properties.title || properties.city || properties.country, observedAt: properties.observedAt, publishedAt: properties.publishedAt || properties.pubDate } })}>Investigate this event</button>
 
             <div className="details-meta">
                 {properties.country && (

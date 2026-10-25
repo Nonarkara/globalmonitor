@@ -26,6 +26,9 @@ import { LazyMapContainer, LazyPanel } from './components/LazyPanels';
 import { logActivity, LOG_TYPES } from './services/activityLog';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import './styles/print.css';
+import { openResearchTools } from './research/research-tools.js';
+import { selectedResearchContext } from './research/selection.js';
+import './research/research-tools.css';
 
 const DASHBOARD_VERSION = 'v8.3';
 // Entering Indo-Pacific adds the haze picture: Himawari-9 aerosol, VIIRS fire,
@@ -48,7 +51,11 @@ function App() {
   // Middle East flagship and the global conflict watch deployments.
   const [viewMode, setViewMode] = useState(DEFAULT_THEATER);
   // Selected country (Indo-Pacific) or province (Thailand) — drives CountryNewsPanel
-  const [selectedCountryCode, setSelectedCountryCode] = useState(null);
+  const [selectedCountryCode, writeSelectedCountryCode] = useState(null);
+  const setSelectedCountryCode = useCallback(code => {
+    writeSelectedCountryCode(code);
+    setSelectedEvent(null);
+  }, []);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNetworkOpen, setIsNetworkOpen] = useState(false);
@@ -167,7 +174,7 @@ function App() {
             <LazyMapContainer
               viewTarget={viewTarget}
               activeLayers={activeLayers}
-              onMarkerClick={setSelectedEvent}
+              onMarkerClick={event => { writeSelectedCountryCode(null); setSelectedEvent(event); }}
               copernicusPreview={copernicusResource.data}
               copernicusMode={copernicusMode}
               copernicusRuntimeSource={copernicusRuntimeSource}
@@ -293,6 +300,7 @@ function App() {
                 <div className="header-tools-menu" role="menu">
                   <label className="compact-region-menu">Choose theater <select aria-label="Choose theater from tools" value={viewMode} onChange={event => { const id = event.target.value; setViewMode(id); setViewTarget({ ...(REGIONS[id].viewState || REGIONS[id]), transitionDuration: 800 }); setActiveSources(getDefaultSourceIdsForRegion(id)); setSelectedCountryCode(null); }}>{Object.values(REGIONS).map(region => <option key={region.id} value={region.id}>{region.label}</option>)}</select></label>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsManualOpen(true); }}>System manual</button>
+                  <button role="menuitem" onClick={() => { setToolsOpen(false); openResearchTools({ system: 'globalmonitor', context: selectedResearchContext(selectedEvent, selectedCountryCode, viewMode), returnFocus: toolsRef.current?.querySelector('button') }); }}>Investigate place / event</button>
                   <button role="menuitem" onClick={() => { setToolsOpen(false); setIsPapersOpen(true); }}>
                     <FileText size={12} aria-hidden="true" /> Papers
                   </button>
