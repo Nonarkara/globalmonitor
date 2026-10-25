@@ -28,9 +28,14 @@ test('request bursts throttle, refill and stay bounded without evicting active i
     assert.equal(limit('a').allowed, false);
 });
 
-test('Pages rate limit returns 429 and Retry-After without an upstream request', async () => {
+test('Pages rate limit returns 429 and Retry-After without an upstream request', async t => {
+    // This is a burst test. On a loaded host the loop can take ten seconds,
+    // legitimately refilling the production bucket. Pin only this test clock
+    // and instantiate a fresh router after the clock is pinned.
+    t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-25T00:00:00Z') });
+    const { handleApiRequest: burstRequest } = await import('../functions/_lib/router.mjs?burst-clock-proof');
     let response;
-    for (let i = 0; i < 100; i++) response = await handleApiRequest(new Request(url('/api/health'), { headers: { 'CF-Connecting-IP': 'qa-isolated-caller' } }), {});
+    for (let i = 0; i < 100; i++) response = await burstRequest(new Request(url('/api/health'), { headers: { 'CF-Connecting-IP': 'qa-isolated-caller' } }), {});
     assert.equal(response.status, 429);
     assert.ok(Number(response.headers.get('Retry-After')) >= 1);
 });
