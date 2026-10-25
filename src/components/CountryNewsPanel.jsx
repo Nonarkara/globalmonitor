@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Rss, RefreshCw, Zap, Cpu } from 'lucide-react';
+import { openResearchTools } from '../research/research-tools.js';
 import { ASEAN_COUNTRIES, THAILAND_REGIONS, MIDDLE_EAST_COUNTRIES } from '../data/regions.js';
 import { fetchBackendJson } from '../services/backendClient.js';
 import { useLiveResource } from '../hooks/useLiveResource';
@@ -124,6 +125,7 @@ const CountryFeed = ({ mode, items, activeCode, onSelect }) => {
             </div>
 
             {/* Country / region chooser strip */}
+            <button type="button" className="research-context-open" onClick={() => openResearchTools({ system: 'asiawatch', context: { label: items.find(it => it[codeKey] === activeCode)?.name } })}>Investigate selected place</button>
             <div
                 style={{
                     display: 'flex',
