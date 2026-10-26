@@ -655,9 +655,11 @@
   opacity: 0.7;
 }
 
-/* ── Logo pills — CLAUDE.md exception for border-radius ── */
+/* Logos sit on the masthead. No chip, no pill, no second background. */
 .header-brand-strip {
   border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* ── Kill gradients site-wide on dashboard chrome; no backdrop-filter over WebGL map ── */

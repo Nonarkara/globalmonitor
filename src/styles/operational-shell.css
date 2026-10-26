@@ -86,7 +86,7 @@
      max-width keeps the four marks inside the space they were measured in. */
   flex:0 0 auto; width:auto!important; max-width:132px!important;
   display:flex; align-items:center; justify-content:flex-start; gap:6px!important;
-  padding:3px 4px!important; min-height:0!important; overflow:hidden; background:#fff;
+  padding:0!important; min-height:0!important; overflow:hidden; background:transparent; border:0; box-shadow:none;
 }
 .app-container[data-shell="compact"] .header-brand-logo {height:17px!important;max-width:27px!important;object-fit:contain;filter:none!important;}
 .app-container[data-shell="compact"] .header-brand-logo-pmua {height:22px!important;max-width:40px!important;}
@@ -231,7 +231,7 @@
   }
   .app-container[data-shell="compact"] .header-brand-strip {
     flex:0 0 auto!important; width:auto!important; max-width:none!important;
-    padding:0 3px!important; gap:4px!important; background:#fff;
+    padding:0 3px!important; gap:4px!important; background:transparent; border:0; box-shadow:none;
   }
   .app-container[data-shell="compact"] .header-brand-logo {height:12px!important;max-width:21px!important;min-width:0!important;}
   .app-container[data-shell="compact"] .header-brand-logo-pmua {height:15px!important;max-width:26px!important;}
