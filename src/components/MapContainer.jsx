@@ -1156,6 +1156,8 @@ const MapContainer = ({
         : formatVesselSourceLabel(vesselMeta);
     const axiomOverwatchActive = vesselMeta?.aisSource === 'axiom-overwatch'
         || vesselMeta?.source?.includes('axiom-overwatch');
+    // FIRMS and ACLED sit on the same map as traffic with no provenance line of
+    // their own. Same format as the traffic rows: count · source · age.
     const firmsMeta = firmsData?.meta;
     const firmsLive = firmsMeta?.source === 'nasa-firms-live';
     const firmsCount = firmsData?.features?.length ?? 0;
