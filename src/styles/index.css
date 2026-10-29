@@ -2945,14 +2945,63 @@ body {
   left: auto;
   right: 8px;
   bottom: 46px;
+  /* The plate is a COLUMN: a head, a list that scrolls, and a foot that says
+     how much of the list is below the fold. The scroll lives in the LIST, not
+     in the plate, so the disclosure can stay pinned and keep telling the
+     truth while the reader scrolls. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* The band the disclosure reserves, whether or not it has anything to say.
+     The list is fitted to whole readings against this number, so the fit does
+     not change when the disclosure appears or goes. */
+  --plate-foot-h: 26px;
 }
 
-.map-legend--strategic {
-  bottom: auto;
-  top: 12px;
-  left: 10px;
-  right: auto;
-  min-height: 168px;
+/* The scrolling part of the plate. It is the only box that scrolls, and it is
+   the box the live check measures for hidden content. `position: relative` so
+   a reading's offset is measured against THIS box, and so the fit can be
+   counted in whole readings. */
+.map-legend-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  /* A list of readings rests on a reading, not on a half-cut line. */
+  scroll-snap-type: y proximity;
+}
+.map-legend-list > .map-legend-item {
+  scroll-snap-align: start;
+}
+
+/* The disclosure. It appears ONLY when the list actually holds something the
+   reader cannot see, and it names how much. A plate that shows four of eight
+   readings and says nothing is a box that lies about what it holds. */
+.map-legend-more {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line-2);
+  font-size: var(--type-micro);
+  line-height: 1.25;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.map-legend-more[hidden] { display: none; }
+/* The mark that says "the list continues in this direction" — a rule, not a
+   badge, and not a glyph that could be mistaken for a reading. */
+.map-legend-more__rule {
+  display: block;
+  width: 18px;
+  height: 1px;
+  background: var(--ink-3);
+  flex: 0 0 18px;
 }
 
 .map-legend-title {
@@ -2977,7 +3026,12 @@ body {
 
 .map-legend-item {
   display: flex;
-  align-items: center;
+  /* The key sits on the FIRST line of the row — the reading it keys. It used
+     to be centred against the whole row, so a three-pixel strip floated 23 to
+     30 pixels below the value it belongs to and read as the key for the line
+     it happened to land beside. A key that is not next to its reading is not
+     a key. */
+  align-items: flex-start;
   gap: 8px;
   padding: 2px 0;
   font-size: var(--type-11);
@@ -3013,6 +3067,8 @@ body {
   height: 3px;
   border-radius: 0;
   flex-shrink: 0;
+  /* Centred on the cap height of the first line, not on the row. */
+  margin-top: 6px;
 }
 
 /* The key strip — one segment per colour the map paints for that source.
@@ -3025,6 +3081,9 @@ body {
   height: 3px;
   overflow: hidden;
   flex-shrink: 0;
+  /* Centred on the cap height of the first line — the reading's line — so the
+     key stands beside the number it explains. */
+  margin-top: 6px;
 }
 .map-legend-chip {
   display: block;
@@ -3046,6 +3105,9 @@ body {
   border-radius: 0;
   border: 1px solid;
   flex-shrink: 0;
+  /* A square swatch on the first line: centred on the cap height of the
+     reading it stands for. */
+  margin-top: 1px;
 }
 
 

@@ -35,7 +35,7 @@ export async function measureLayout(page) {
 }
 
 export async function verifySuiteTarget(url, name, out = '.qa/live-suite-release') {
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });
   const page = await context.newPage();
   const errors = [], measurements = [], wrongApiRequests = [];

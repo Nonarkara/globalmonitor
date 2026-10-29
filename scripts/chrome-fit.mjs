@@ -131,7 +131,7 @@ export async function sweepChromeFit(browser, url, widths = sweepWidths()) {
 // Run it on its own:  node scripts/chrome-fit.mjs <url>
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const url = process.argv[2] || 'https://asia.nonarkara.org/';
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const browser = await chromium.launch({ headless: true });
   try {
     const started = Date.now();
     const { checked, failures } = await sweepChromeFit(browser, url);

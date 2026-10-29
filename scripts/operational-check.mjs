@@ -5,7 +5,7 @@ import { sweepChromeFit } from './chrome-fit.mjs';
 
 const url = process.argv[2];
 if (!url || !/^https:\/\//.test(url)) throw new Error('Pass the deployed HTTPS URL');
-const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const browser = await chromium.launch({ headless: true });
 const results = [];
 await fs.mkdir('non-slop-shots', { recursive: true });
 try {
@@ -60,6 +60,105 @@ try {
           if (!plate) return 0;
           return Math.round(plate.scrollHeight - plate.clientHeight);
         })(),
+        /* ═══════════════════════════════════════════════════════════════
+           THE SPATIAL-HALLUCINATION MEASUREMENTS.
+           A plate that is hidden in place still occupies its box; a reading
+           cut through the middle of its own glyph reads as a broken plate; a
+           key that has drifted off the line of the reading it keys is not a
+           key; and two surfaces in one corner have to be neighbours, not
+           one of them cut in half. Each of these was measured and fixed, and
+           each is measured again here so it cannot come back quietly. */
+        // Every box that occupies space while showing nothing.
+        phantomSpace: (() => {
+          const ghosts = [];
+          for (const el of document.querySelectorAll('.map-legend, .map-legend *, .maplibregl-ctrl *')) {
+            const p = getComputedStyle(el);
+            if (p.visibility !== 'hidden' && p.opacity !== '0') continue;
+            const r = el.getBoundingClientRect();
+            if (r.height <= 0 || r.width <= 0) continue;
+            ghosts.push(`${el.className || el.tagName}:${Math.round(r.height)}px`);
+          }
+          return ghosts;
+        })(),
+        // The plate's list: what it shows, what is below the fold, and whether
+        // any reading is cut in half.
+        plateList: (() => {
+          const list = document.querySelector('.map-legend--traffic .map-legend-list');
+          if (!list) return null;
+          const rows = [...list.querySelectorAll('.map-legend-item')];
+          const viewBottom = list.scrollTop + list.clientHeight;
+          const below = rows.filter((r) => r.offsetTop - list.scrollTop + r.offsetHeight > viewBottom + 1).length;
+          const cut = rows.filter((r) => {
+            const top = r.offsetTop - list.scrollTop;
+            return top < viewBottom - 1 && top + r.offsetHeight > viewBottom + 1;
+          }).map((r) => (r.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30));
+          const more = document.querySelector('.map-legend--traffic .map-legend-more');
+          const moreText = more ? (more.textContent || '').trim() : null;
+          const moreCount = moreText ? Number((moreText.match(/\d+/) || [])[0]) : null;
+          return {
+            rows: rows.length,
+            below,
+            cut,
+            moreHidden: more ? more.hasAttribute('hidden') : null,
+            moreCount,
+            hidden: list.scrollHeight - list.clientHeight,
+          };
+        })(),
+        // The colour key must sit on the FIRST LINE of the reading it keys.
+        // It used to be centred against the whole row, so a three-pixel strip
+        // floated 23 to 30 pixels below the value it belonged to.
+        keysOffLine: (() => {
+          const plate = document.querySelector('.map-legend--traffic');
+          if (!plate) return 0;
+          let off = 0;
+          for (const key of plate.querySelectorAll('.map-legend-key, .map-legend-line, .map-legend-zone')) {
+            const row = key.closest('.map-legend-item');
+            const value = row && row.querySelector('.map-legend-value');
+            if (!value) continue;
+            const kr = key.getBoundingClientRect();
+            const vr = value.getBoundingClientRect();
+            if (kr.width === 0 || kr.height === 0) continue;
+            const line = parseFloat(getComputedStyle(value).lineHeight) || vr.height;
+            if (kr.top < vr.top - 1 || kr.top > vr.top + line) off += 1;
+          }
+          return off;
+        })(),
+        // Two surfaces in the bottom-right corner: the plate and the credit
+        // line. They have to be neighbours. The credit band's toggle also has
+        // to be clear of the wire, which sits on the map's bottom edge.
+        cornerOverlap: (() => {
+          const plate = document.querySelector('.map-legend--traffic');
+          const attrib = document.querySelector('.maplibregl-ctrl-attrib');
+          const ticker = document.querySelector('.news-ticker-wrapper');
+          const button = document.querySelector('.maplibregl-ctrl-attrib-button');
+          const box = (el) => (el ? el.getBoundingClientRect() : null);
+          const p = box(plate), a = box(attrib), t = box(ticker), b = box(button);
+          const overlap = (x, y) => (x && y
+            && Math.min(x.right, y.right) > Math.max(x.left, y.left)
+            && Math.min(x.bottom, y.bottom) > Math.max(x.top, y.top));
+          return {
+            plateOverCredit: overlap(p, a),
+            creditUnderWire: a && t ? a.bottom > t.top + 1 : false,
+            toggleUnderWire: b && t ? b.bottom > t.top + 1 : false,
+          };
+        })(),
+        // One font per role. MapLibre ships its own typeface in the credit
+        // control, and it leaked Helvetica into the product.
+        strayFonts: (() => {
+          const house = new Set(['Archivo', 'Archivo Narrow', 'JetBrains Mono', 'IBM Plex Sans Thai', 'Noto Sans Thai']);
+          const stray = [];
+          for (const el of document.querySelectorAll('body *')) {
+            if (!el.childNodes.length) continue;
+            if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+            const p = getComputedStyle(el);
+            if (p.visibility === 'hidden' || p.opacity === '0') continue;
+            const r = el.getBoundingClientRect();
+            if (r.width <= 0 || r.height <= 0) continue;
+            const f = p.fontFamily.split(',')[0].replace(/["']/g, '');
+            if (!house.has(f)) stray.push(`${f}:${(el.textContent || '').trim().slice(0, 24)}`);
+          }
+          return [...new Set(stray)];
+        })(),
         defaultPanels: visible('.left-sidebar,.right-sidebar,.bottom-bar'), failed: /Something went wrong|Map failed to render/.test(document.body.innerText),
         sponsors: [...document.querySelectorAll('.header-brand-logo')].map(i => i.complete && i.naturalWidth > 0) };
     });
@@ -106,6 +205,49 @@ try {
       assert.ok(geometry.plateHidden <= 1,
         `the SOURCES plate hides ${geometry.plateHidden}px of its content — a qualifier is scrolled out of sight`);
     }
+    /* ═══════════════════════════════════════════════════════════════════
+       THE SPATIAL-HALLUCINATION GATE.
+       Every one of these was a shipped defect, measured, fixed, and fixed
+       for good. They are measured again here so that none of them can come
+       back quietly — a green build is not a visual pass.
+       ═══════════════════════════════════════════════════════════════════ */
+    assert.deepEqual(geometry.phantomSpace, [],
+      `a box is occupying space while showing nothing: ${geometry.phantomSpace.join(', ')}`);
+
+    if (geometry.plateList) {
+      const list = geometry.plateList;
+      // A reading cut through the middle of its own glyph reads as a broken
+      // plate, not as a list that continues.
+      assert.deepEqual(list.cut, [],
+        `the SOURCES plate cuts a reading in half: ${list.cut.join(', ')}`);
+      // The disclosure has to tell the truth: it appears exactly when there
+      // is something below the fold, and it names how much.
+      assert.equal(list.moreHidden, list.below === 0,
+        `the SOURCES plate says ${list.moreHidden ? 'nothing' : '"' + list.moreCount + ' more below"'} but ${list.below} reading(s) are below the fold`);
+      if (list.below > 0) {
+        assert.equal(list.moreCount, list.below,
+          `the SOURCES plate says "${list.moreCount} more below" but ${list.below} readings are below the fold`);
+      }
+      // On a desktop the promise is every reading and every qualification at
+      // once. The plate may not hold anything back.
+      if (width > 720) {
+        assert.equal(list.below, 0,
+          `the SOURCES plate holds back ${list.below} reading(s) at ${width}px — every reading must be visible at once`);
+      }
+    }
+
+    assert.equal(geometry.keysOffLine, 0,
+      `${geometry.keysOffLine} colour key(s) are not on the line of the reading they key`);
+
+    assert.equal(geometry.cornerOverlap.plateOverCredit, false,
+      'the SOURCES plate overlaps the credit line — two surfaces in one corner must be neighbours');
+    assert.equal(geometry.cornerOverlap.creditUnderWire, false,
+      'the credit line runs under the wire');
+    assert.equal(geometry.cornerOverlap.toggleUnderWire, false,
+      'the credit line\'s toggle is under the wire — part of the control is unreachable');
+
+    assert.deepEqual(geometry.strayFonts, [],
+      `a font outside the house set is on the page: ${geometry.strayFonts.join(', ')}`);
     assert.ok(geometry.map.height * geometry.map.width >= width * 900 * .6, 'map loses first screen');
     assert.equal(geometry.defaultPanels, false);
     assert.equal(geometry.overflow, false);

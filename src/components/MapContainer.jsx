@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import Map, { Marker, Source, Layer, Popup } from 'react-map-gl/maplibre';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -58,9 +58,16 @@ const LegendKey = ({ marks }) => (
     </span>
 );
 
-/** The names of the marks a strip stands for, said in words under the reading. */
+/** The names of the marks a strip stands for, said in words under the reading.
+ *
+ * A LIST OF NAMES takes commas, not the middot. The middot is for a compound
+ * of attributes — "ADS-B · 58m old · global sample" — which is short and
+ * never breaks. A list of seven vessel classes does break, and with a middot
+ * the break left the separator hanging at the end of the line: "cargo ·
+ * tanker · passenger · fishing · tug ·" / "pleasure · other".
+ * A comma breaks the way a list is supposed to break. */
 const LegendClasses = ({ marks }) => (
-    <span className="map-legend-classes">{marks.map((m) => m.label).join(' · ')}</span>
+    <span className="map-legend-classes">{marks.map((m) => m.label).join(', ')}</span>
 );
 
 const acledDemoRange = (features) => {
@@ -1161,18 +1168,9 @@ const MapContainer = ({
     const firmsMeta = firmsData?.meta;
     const firmsLive = firmsMeta?.source === 'nasa-firms-live';
     const firmsCount = firmsData?.features?.length ?? 0;
-    const firmsSourceLabel = firmsLive
-        ? firmsCount + ' thermal · VIIRS · ' + (ageLabel(firmsMeta?.fetchedAt) || 'age unknown')
-        : firmsMeta?.source === 'no_firms_key' ? 'Thermal: no FIRMS key — nothing shown'
-            : firmsResource.isLoading ? 'Loading thermal…'
-                : firmsMeta?.source ? 'Thermal: ' + String(firmsMeta.source).replace(/_/g, ' ') : 'Thermal: no data';
     const acledRaw = acledResource.data;
     const acledLive = acledRaw?.source === 'acled';
     const acledCount = acledRaw?.features?.length ?? 0;
-    const acledSourceLabel = acledLive
-        ? acledCount + (acledRaw?.truncated ? '+' : '') + ' events · ACLED · since ' + (acledRaw?.since || '—')
-        : acledCount > 0 ? acledCount + ' sample events · ' + acledDemoRange(acledRaw?.features) + ' · ACLED not connected'
-            : acledResource.isLoading ? 'Loading events…' : 'Events: no data';
     // The haze reading, stated plainly. A map layer that carries a number has
     // to carry the number, not just a colour.
     const worstAqi = useMemo(() => {
@@ -1198,6 +1196,100 @@ const MapContainer = ({
         || activeLayers.includes('firms') || activeLayers.includes('conflicts')
         || activeLayers.includes('aqi') || activeLayers.includes('wind')
         || activeLayers.includes('cables') || activeLayers.includes('typhoon');
+
+    /* THE PLATE SAYS WHAT IT IS HOLDING.
+     *
+     * A phone's plate is a list that scrolls, and the scroll is only honest if
+     * the plate admits it. It used to hold eight readings in a 320px box: the
+     * list scrolled, four readings and every qualification below the fold were
+     * simply not there, the last visible row was cut through the middle of a
+     * glyph, and nothing on the plate said a word about it. A box that shows
+     * four of eight readings and says nothing is a box that lies about what it
+     * holds - and the qualifications that went missing were the ones that say
+     * what the new marks ARE.
+     *
+     * So the plate is a column: a head, a LIST that scrolls, and a foot that
+     * names how many readings are below the fold. The foot is pinned outside
+     * the scroller, so it keeps telling the truth while the reader scrolls,
+     * and it is not there at all when nothing is hidden. */
+    const plateListRef = useRef(null);
+    const [plateBelow, setPlateBelow] = useState(0);
+    const measurePlate = useCallback(() => {
+        const list = plateListRef.current;
+        const plate = list?.parentElement;
+        if (!list || !plate) return;
+        const rows = Array.from(list.querySelectorAll('.map-legend-item'));
+        if (!rows.length) { setPlateBelow(0); return; }
+
+        /* THE PLATE SHOWS WHOLE READINGS.
+         *
+         * The list is fitted to the room the plate has, and it is fitted in
+         * WHOLE readings. It used to be cut wherever the box ended, and a
+         * reading sliced through the middle of its own glyph - "ACLED not
+         * connected . Mar", with the tops of the letters sliced off - reads as
+         * a broken plate, not as a list that continues. A plate that shows
+         * three readings and says "5 more below" is an instrument; a plate
+         * that shows three and a half is a box that cut itself.
+         *
+         * The room is measured against the plate's own ceiling, not against
+         * the plate's current height, so shortening the list cannot shorten
+         * the room and shrink the list again. The disclosure's band is
+         * reserved whether or not it has anything to say, so the fit does not
+         * move when the disclosure appears. */
+        const ps = getComputedStyle(plate);
+        const padY = (parseFloat(ps.paddingTop) || 0) + (parseFloat(ps.paddingBottom) || 0);
+        const head = plate.querySelector('.map-legend-title');
+        const headH = head
+            ? head.offsetHeight + (parseFloat(getComputedStyle(head).marginBottom) || 0)
+            : 0;
+        const footReserve = parseFloat(ps.getPropertyValue('--plate-foot-h')) || 0;
+
+        /* The plate's own CEILING, measured rather than assumed: un-constrain
+         * the list and look at the plate. If the plate is still taller than
+         * its content, the plate is at its ceiling and that box IS the
+         * ceiling. If it is exactly its content, the content fits and every
+         * reading is on show. */
+        list.style.maxHeight = 'none';
+        void plate.offsetHeight;
+        const rowsSum = rows.reduce((sum, r) => sum + r.offsetHeight, 0);
+        const plateH = plate.clientHeight;
+        const clamped = rowsSum + padY + headH > plateH + 1;
+
+        const available = clamped
+            ? Math.max(0, plateH - padY - headH - footReserve)
+            : rowsSum;
+
+        let used = 0;
+        for (const r of rows) {
+            const h = r.offsetHeight;
+            if (used + h > available) break;
+            used += h;
+        }
+        list.style.maxHeight = `${used}px`;
+
+        const viewBottom = list.scrollTop + list.clientHeight;
+        const below = rows.filter(
+            (r) => r.offsetTop - list.scrollTop + r.offsetHeight > viewBottom + 1
+        ).length;
+        setPlateBelow(below);
+    }, []);
+    useLayoutEffect(() => {
+        const list = plateListRef.current;
+        if (!list) return undefined;
+        measurePlate();
+        /* The fit writes the list's height, so a ResizeObserver on the list
+         * is a LOOP: the observer sees the write the fit just made and calls
+         * the fit again, forever, and every call measures a half-written
+         * layout. So the plate watches the DOM for new readings and the
+         * window for a new viewport, and never watches its own output. */
+        const observer = new MutationObserver(measurePlate);
+        observer.observe(list, { childList: true, subtree: true, characterData: true });
+        window.addEventListener('resize', measurePlate);
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('resize', measurePlate);
+        };
+    }, [measurePlate, legendVisible, activeLayers]);
     const prevFlightStatsRef = useRef(null);
     useEffect(() => {
         const next = {
@@ -2973,270 +3065,283 @@ const MapContainer = ({
                 )}
             </div>
 
-            <div
-                className="map-legend map-legend--traffic"
-                style={{
-                    visibility: legendVisible ? 'visible' : 'hidden',
-                    pointerEvents: legendVisible ? 'auto' : 'none'
-                }}
-                aria-live="polite"
-                aria-hidden={!legendVisible}
-            >
+            {/* The plate describes what is on the map. When nothing is on the
+                map there is nothing to describe, and a plate that is only
+                HIDDEN is a 196x320 box holding nothing — space with no job.
+                It is rendered when it has something to say. */}
+            {legendVisible && (
+            <div className="map-legend map-legend--traffic">
                 {/* "SOURCES", not "LIVE TRAFFIC" — an item below may read "2h old".
                     Two voices per row: the reading in the data face, its
                     provenance in the micro face underneath. The number is the
                     fact; the qualification is never hidden inside it. */}
                 <div className="map-legend-title">SOURCES</div>
+                {/* The list is the only box in the plate that scrolls, and it is
+                    the box the release check measures for hidden content. */}
                 <div
-                    className="map-legend-item"
-                    style={{ visibility: flightsLayerActive ? 'visible' : 'hidden' }}
+                    className="map-legend-list"
+                    ref={plateListRef}
+                    onScroll={measurePlate}
+                    aria-live="polite"
                 >
-                    <LegendKey marks={LEGEND_KEY.aircraft} />
-                    <span className="map-legend-copy">
-                        <span className="map-legend-value">
-                            {visibleFlightCount > 0
-                                ? (flightsCapped && flightsGlobalTotal > visibleFlightCount
-                                    ? `${visibleFlightCount.toLocaleString()} of ${flightsGlobalTotal.toLocaleString()} aircraft`
-                                    : `${visibleFlightCount.toLocaleString()} aircraft`)
-                                : globalFlightCount > 0
-                                    ? `${globalFlightCount.toLocaleString()} aircraft`
-                                    : flightsResource.error
-                                        ? 'Aircraft unavailable'
-                                        : 'No aircraft'}
-                        </span>
-                        <span className="map-legend-meta">
-                            <LegendClasses marks={LEGEND_KEY.aircraft} />
-                            <span>
-                                {flightSourceLabel}
-                                {flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : ''}
+                    {flightsLayerActive && (
+                        <div className="map-legend-item">
+                            <LegendKey marks={LEGEND_KEY.aircraft} />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {visibleFlightCount > 0
+                                        ? (flightsCapped && flightsGlobalTotal > visibleFlightCount
+                                            ? `${visibleFlightCount.toLocaleString()} of ${flightsGlobalTotal.toLocaleString()} aircraft`
+                                            : `${visibleFlightCount.toLocaleString()} aircraft`)
+                                        : globalFlightCount > 0
+                                            ? `${globalFlightCount.toLocaleString()} aircraft`
+                                            : flightsResource.error
+                                                ? 'Aircraft unavailable'
+                                                : 'No aircraft'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    <LegendClasses marks={LEGEND_KEY.aircraft} />
+                                    <span>
+                                        {flightSourceLabel}
+                                        {flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : ''}
+                                    </span>
+                                </span>
                             </span>
-                        </span>
-                    </span>
+                        </div>
+                    )}
+                    {vesselsLayerActive && (
+                        <div className="map-legend-item">
+                            <LegendKey marks={LEGEND_KEY.vessels} />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {visibleVesselCount > 0
+                                        ? (vesselsCapped && vesselsGlobalTotal > visibleVesselCount
+                                            ? `${visibleVesselCount.toLocaleString()} of ${vesselsGlobalTotal.toLocaleString()} vessels`
+                                            : `${visibleVesselCount.toLocaleString()} vessels`)
+                                        : vesselsResource.isLoading
+                                            ? 'Loading ships'
+                                            : globalVesselCount > 0
+                                                ? `${globalVesselCount.toLocaleString()} vessels`
+                                                : vesselsResource.error
+                                                    ? 'Vessels unavailable'
+                                                    : vesselsNeedKey ? 'AIS key required' : 'No vessels'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    <LegendClasses marks={LEGEND_KEY.vessels} />
+                                    <span>
+                                        {vesselSourceLabel}
+                                        {axiomOverwatchActive ? ' · CC-BY 4.0' : ''}
+                                        {vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : ''}
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {activeLayers.includes('firms') && (
+                        <div className="map-legend-item">
+                            {/* The swatch is the colour the map actually draws. The
+                                faint amber meant "no API key", but the public-file
+                                detections are still painted — in Wada red. The key
+                                and the drawing disagreed; the provenance belongs in
+                                the words underneath. */}
+                            <LegendKey marks={LEGEND_KEY.thermal} />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {firmsCount > 0
+                                        ? (firmsMeta?.capped && Number(firmsMeta?.detectedInBox) > firmsCount
+                                            ? `${firmsCount.toLocaleString()} of ${Number(firmsMeta.detectedInBox).toLocaleString()} thermal detections`
+                                            : `${firmsCount.toLocaleString()} thermal detections`)
+                                        : 'No thermal detections'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    <LegendClasses marks={LEGEND_KEY.thermal} />
+                                    {firmsLive
+                                        ? `VIIRS · ${ageLabel(firmsMeta?.fetchedAt) || 'age unknown'}`
+                                        : firmsMeta?.source
+                                            ? FIRMS_SOURCE_LABELS[firmsMeta.source] || String(firmsMeta.source).replace(/_/g, ' ')
+                                            : 'no FIRMS key — nothing shown'}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {activeLayers.includes('conflicts') && (
+                        <div
+                            className="map-legend-item"
+                            title={acledCount > 0 && !acledLive
+                                ? `Sample events, ${acledDemoRange(acledRaw?.features)}. ACLED is not connected.`
+                                : undefined}
+                        >
+                            {/* The swatch is the colour the map actually draws. It used
+                                to be grey when ACLED was unconnected, while the map
+                                painted the sample events in four other colours — the
+                                key and the drawing disagreed. The sample/live
+                                distinction belongs in the words underneath. */}
+                            <LegendKey marks={LEGEND_KEY.conflicts} />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {acledLive
+                                        ? `${acledCount}${acledRaw?.truncated ? '+' : ''} events`
+                                        : acledCount > 0
+                                            ? `${acledCount} sample events`
+                                            : 'No events'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    <LegendClasses marks={LEGEND_KEY.conflicts} />
+                                    {acledLive
+                                        ? `ACLED · since ${acledRaw?.since || '—'}`
+                                        : acledCount > 0
+                                            ? `ACLED not connected · ${acledDemoWindow(acledRaw?.features)}`
+                                            : 'no data'}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {activeLayers.includes('aqi') && (
+                        <div className="map-legend-item">
+                            <span
+                                className="map-legend-line"
+                                style={{ background: worstAqi?.color || MARK.aqiNone }}
+                            />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {worstAqi ? `${worstAqi.city} AQI ${worstAqi.aqi}` : 'No AQI reading'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    {worstAqi ? `${worstAqi.category} · US EPA band` : 'upstream unavailable'}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {activeLayers.includes('wind') && (
+                        <div className="map-legend-item">
+                            <span className="map-legend-line" style={{ background: groundInk(basemapIsDark) }} />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {windMeta ? `${windMeta.count} barbs` : 'No wind reading'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    {windMeta ? (
+                                        <>
+                                            {/* The time is its own line, not a wrap. An
+                                                accidental wrap makes the plate look
+                                                broken; a deliberate second line makes
+                                                it look like an instrument. */}
+                                            <span>
+                                                {windMeta.level || '10 m above ground'}
+                                                {windMeta.partial ? ' · partial' : ''}
+                                            </span>
+                                            {/* The level is named because the map draws
+                                                the transport field when it has it and
+                                                falls back to the surface field when it
+                                                does not, and a silent swap would be the
+                                                map changing what it is telling you.
+                                                The convention is named because a barb
+                                                is read by its feathers and by which
+                                                way it points, and the reader has to be
+                                                told which way this one points. The
+                                                staff points INTO the wind, the way a
+                                                chart barb does — at where the wind
+                                                comes FROM — and the air, and the haze
+                                                with it, is carried the other way. */}
+                                            <span data-claim="wind-model wind-convention">
+                                                Open-Meteo model · staff points into the wind — the haze rides the other way
+                                                {windDrawnIsTransport ? '' : ' · surface fallback'}
+                                            </span>
+                                            <span>
+                                                1 feather = 10 kt
+                                                {compactUtc(windMeta.observedAt) ? ` · ${compactUtc(windMeta.observedAt)}` : ' · time unknown'}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <span>upstream unavailable</span>
+                                    )}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {activeLayers.includes('typhoon') && (
+                        <div className="map-legend-item">
+                            <span
+                                className="map-legend-zone"
+                                style={{ background: wash(MARK.storm, 0.3), borderColor: MARK.storm }}
+                            />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {typhoonMeta?.stormName
+                                        ? `${typhoonMeta.stormName} · ${typhoonMeta.maxWindKt ?? '—'} kt`
+                                        : typhoonResource.error
+                                            ? 'Cyclone bulletin unavailable'
+                                            : 'No tropical cyclone'}
+                                </span>
+                                <span className="map-legend-meta">
+                                    {typhoonMeta?.stormName ? (
+                                        <>
+                                            <span>
+                                                {typhoonMeta.category || 'TC'} · {typhoonMeta.pressureHpa ?? '—'} hPa
+                                                {typhoonMeta.observedAt ? ` · ${compactUtc(typhoonMeta.observedAt)}` : ''}
+                                            </span>
+                                            <LegendClasses marks={LEGEND_KEY.storm} />
+                                            <span data-claim="cyclone-provenance">JMA analysis — not a raw satellite retrieval</span>
+                                        </>
+                                    ) : (
+                                        <span>{typhoonMeta?.note || 'JMA bulletin unavailable'}</span>
+                                    )}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {activeLayers.includes('cables') && (
+                        <div className="map-legend-item">
+                            <span className="map-legend-line" style={{ background: MARK.cable }} />
+                            <span className="map-legend-copy">
+                                <span className="map-legend-value">
+                                    {CABLE_COUNT} submarine cables
+                                </span>
+                                <span className="map-legend-meta">
+                                    <LegendClasses marks={LEGEND_KEY.cables} />
+                                    <span data-claim="cables-registry">reference registry · not a live feed</span>
+                                </span>
+                            </span>
+                        </div>
+                    )}
                 </div>
-                <div
-                    className="map-legend-item"
-                    style={{ visibility: vesselsLayerActive ? 'visible' : 'hidden' }}
-                >
-                    <LegendKey marks={LEGEND_KEY.vessels} />
-                    <span className="map-legend-copy">
-                        <span className="map-legend-value">
-                            {visibleVesselCount > 0
-                                ? (vesselsCapped && vesselsGlobalTotal > visibleVesselCount
-                                    ? `${visibleVesselCount.toLocaleString()} of ${vesselsGlobalTotal.toLocaleString()} vessels`
-                                    : `${visibleVesselCount.toLocaleString()} vessels`)
-                                : vesselsResource.isLoading
-                                    ? 'Loading ships'
-                                    : globalVesselCount > 0
-                                        ? `${globalVesselCount.toLocaleString()} vessels`
-                                        : vesselsResource.error
-                                            ? 'Vessels unavailable'
-                                            : vesselsNeedKey ? 'AIS key required' : 'No vessels'}
-                        </span>
-                        <span className="map-legend-meta">
-                            <LegendClasses marks={LEGEND_KEY.vessels} />
-                            <span>
-                                {vesselSourceLabel}
-                                {axiomOverwatchActive ? ' · CC-BY 4.0' : ''}
-                                {vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : ''}
-                            </span>
-                        </span>
-                    </span>
+                {/* The disclosure. It appears only when the list is actually
+                    holding something the reader cannot see, and it names how
+                    much. A rule, not a badge, and not a word of instruction. */}
+                <div className="map-legend-more" hidden={plateBelow === 0} aria-live="off">
+                    <span className="map-legend-more__rule" aria-hidden="true" />
+                    <span>{plateBelow} more below</span>
                 </div>
-                {activeLayers.includes('firms') && (
-                    <div className="map-legend-item" title={firmsSourceLabel}>
-                        {/* The swatch is the colour the map actually draws. The
-                            faint amber meant "no API key", but the public-file
-                            detections are still painted — in Wada red. The key
-                            and the drawing disagreed; the provenance belongs in
-                            the words underneath. */}
-                        <LegendKey marks={LEGEND_KEY.thermal} />
-                        <span className="map-legend-copy">
-                            <span className="map-legend-value">
-                                {firmsCount > 0
-                                    ? (firmsMeta?.capped && Number(firmsMeta?.detectedInBox) > firmsCount
-                                        ? `${firmsCount.toLocaleString()} of ${Number(firmsMeta.detectedInBox).toLocaleString()} thermal detections`
-                                        : `${firmsCount.toLocaleString()} thermal detections`)
-                                    : 'No thermal detections'}
-                            </span>
-                            <span className="map-legend-meta">
-                                <LegendClasses marks={LEGEND_KEY.thermal} />
-                                {firmsLive
-                                    ? `VIIRS · ${ageLabel(firmsMeta?.fetchedAt) || 'age unknown'}`
-                                    : firmsMeta?.source
-                                        ? FIRMS_SOURCE_LABELS[firmsMeta.source] || String(firmsMeta.source).replace(/_/g, ' ')
-                                        : 'no FIRMS key — nothing shown'}
-                            </span>
-                        </span>
-                    </div>
-                )}
-                {activeLayers.includes('conflicts') && (
-                    <div
-                        className="map-legend-item"
-                        title={acledCount > 0 && !acledLive
-                            ? `Sample events, ${acledDemoRange(acledRaw?.features)}. ACLED is not connected.`
-                            : acledSourceLabel}
-                    >
-                        {/* The swatch is the colour the map actually draws. It used
-                            to be grey when ACLED was unconnected, while the map
-                            painted the sample events in four other colours — the
-                            key and the drawing disagreed. The sample/live
-                            distinction belongs in the words underneath. */}
-                        <LegendKey marks={LEGEND_KEY.conflicts} />
-                        <span className="map-legend-copy">
-                            <span className="map-legend-value">
-                                {acledLive
-                                    ? `${acledCount}${acledRaw?.truncated ? '+' : ''} events`
-                                    : acledCount > 0
-                                        ? `${acledCount} sample events`
-                                        : 'No events'}
-                            </span>
-                            <span className="map-legend-meta">
-                                <LegendClasses marks={LEGEND_KEY.conflicts} />
-                                {acledLive
-                                    ? `ACLED · since ${acledRaw?.since || '—'}`
-                                    : acledCount > 0
-                                        ? `ACLED not connected · ${acledDemoWindow(acledRaw?.features)}`
-                                        : 'no data'}
-                            </span>
-                        </span>
-                    </div>
-                )}
-                {activeLayers.includes('aqi') && (
-                    <div className="map-legend-item">
-                        <span
-                            className="map-legend-line"
-                            style={{ background: worstAqi?.color || MARK.aqiNone }}
-                        />
-                        <span className="map-legend-copy">
-                            <span className="map-legend-value">
-                                {worstAqi ? `${worstAqi.city} AQI ${worstAqi.aqi}` : 'No AQI reading'}
-                            </span>
-                            <span className="map-legend-meta">
-                                {worstAqi ? `${worstAqi.category} · US EPA band` : 'upstream unavailable'}
-                            </span>
-                        </span>
-                    </div>
-                )}
-                {activeLayers.includes('wind') && (
-                    <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: groundInk(basemapIsDark) }} />
-                        <span className="map-legend-copy">
-                            <span className="map-legend-value">
-                                {windMeta ? `${windMeta.count} barbs` : 'No wind reading'}
-                            </span>
-                            <span className="map-legend-meta">
-                                {windMeta ? (
-                                    <>
-                                        {/* The time is its own line, not a wrap. An
-                                            accidental wrap makes the plate look
-                                            broken; a deliberate second line makes
-                                            it look like an instrument. */}
-                                        <span>
-                                            {windMeta.level || '10 m above ground'}
-                                            {windMeta.partial ? ' · partial' : ''}
-                                        </span>
-                                        {/* The level is named because the map draws
-                                            the transport field when it has it and
-                                            falls back to the surface field when it
-                                            does not, and a silent swap would be the
-                                            map changing what it is telling you.
-                                            The convention is named because a barb
-                                            is read by its feathers and by which
-                                            way it points, and the reader has to be
-                                            told which way this one points. The
-                                            staff points INTO the wind, the way a
-                                            chart barb does — at where the wind
-                                            comes FROM — and the air, and the haze
-                                            with it, is carried the other way. */}
-                                        <span data-claim="wind-model wind-convention">
-                                            Open-Meteo model · staff points into the wind — the haze rides the other way
-                                            {windDrawnIsTransport ? '' : ' · surface fallback'}
-                                        </span>
-                                        <span>
-                                            1 feather = 10 kt
-                                            {compactUtc(windMeta.observedAt) ? ` · ${compactUtc(windMeta.observedAt)}` : ' · time unknown'}
-                                        </span>
-                                    </>
-                                ) : (
-                                    <span>upstream unavailable</span>
-                                )}
-                            </span>
-                        </span>
-                    </div>
-                )}
-                {activeLayers.includes('typhoon') && (
-                    <div className="map-legend-item">
-                        <span
-                            className="map-legend-zone"
-                            style={{ background: wash(MARK.storm, 0.3), borderColor: MARK.storm }}
-                        />
-                        <span className="map-legend-copy">
-                            <span className="map-legend-value">
-                                {typhoonMeta?.stormName
-                                    ? `${typhoonMeta.stormName} · ${typhoonMeta.maxWindKt ?? '—'} kt`
-                                    : typhoonResource.error
-                                        ? 'Cyclone bulletin unavailable'
-                                        : 'No tropical cyclone'}
-                            </span>
-                            <span className="map-legend-meta">
-                                {typhoonMeta?.stormName ? (
-                                    <>
-                                        <span>
-                                            {typhoonMeta.category || 'TC'} · {typhoonMeta.pressureHpa ?? '—'} hPa
-                                            {typhoonMeta.observedAt ? ` · ${compactUtc(typhoonMeta.observedAt)}` : ''}
-                                        </span>
-                                        <LegendClasses marks={LEGEND_KEY.storm} />
-                                        <span data-claim="cyclone-provenance">JMA analysis — not a raw satellite retrieval</span>
-                                    </>
-                                ) : (
-                                    <span>{typhoonMeta?.note || 'JMA bulletin unavailable'}</span>
-                                )}
-                            </span>
-                        </span>
-                    </div>
-                )}
-                {activeLayers.includes('cables') && (
-                    <div className="map-legend-item">
-                        <span className="map-legend-line" style={{ background: MARK.cable }} />
-                        <span className="map-legend-copy">
-                            <span className="map-legend-value">
-                                {CABLE_COUNT} submarine cables
-                            </span>
-                            <span className="map-legend-meta">
-                                <LegendClasses marks={LEGEND_KEY.cables} />
-                                <span data-claim="cables-registry">reference registry · not a live feed</span>
-                            </span>
-                        </span>
-                    </div>
-                )}
             </div>
+            )}
 
-            <div
-                className="map-legend map-legend--strategic"
-                style={{
-                    visibility: showStrategicContext ? 'visible' : 'hidden',
-                    pointerEvents: showStrategicContext ? 'auto' : 'none'
-                }}
-                aria-hidden={!showStrategicContext}
-            >
-                <div className="map-legend-title">STRATEGIC CONTEXT</div>
-                {STRATEGIC_KEY.routes.map((m) => (
-                    <div className="map-legend-item" key={m.mark}>
-                        <span className="map-legend-line" style={{ background: MARK[m.mark] }} />
-                        <span>{m.label}</span>
-                    </div>
-                ))}
-                <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
-                {STRATEGIC_KEY.zones.map((m) => (
-                    <div className="map-legend-item" key={m.mark}>
-                        <span
-                            className="map-legend-zone"
-                            style={{ background: wash(MARK[m.mark], 0.3), borderColor: MARK[m.mark] }}
-                        />
-                        <span>{m.label}</span>
-                    </div>
-                ))}
-            </div>
+            {/* The key for the strategic overlay, rendered WITH the overlay.
+                It used to be hidden in place: present in the DOM at every
+                viewport, invisible, and holding 206-211px of the map's top-left
+                — over the live layers control — for a panel that could
+                never be switched on. A panel that is not there must not be
+                there. */}
+            {showStrategicContext && (
+                <div className="map-legend map-legend--strategic">
+                    <div className="map-legend-title">STRATEGIC CONTEXT</div>
+                    {STRATEGIC_KEY.routes.map((m) => (
+                        <div className="map-legend-item" key={m.mark}>
+                            <span className="map-legend-line" style={{ background: MARK[m.mark] }} />
+                            <span>{m.label}</span>
+                        </div>
+                    ))}
+                    <div className="map-legend-title" style={{ marginTop: '6px' }}>REFERENCE ZONES</div>
+                    {STRATEGIC_KEY.zones.map((m) => (
+                        <div className="map-legend-item" key={m.mark}>
+                            <span
+                                className="map-legend-zone"
+                                style={{ background: wash(MARK[m.mark], 0.3), borderColor: MARK[m.mark] }}
+                            />
+                            <span>{m.label}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Active EO Layer Labels */}
             {(() => {

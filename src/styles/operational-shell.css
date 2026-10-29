@@ -160,7 +160,12 @@
    scrolled the rest — the cable registry and the cyclone, the two rows that
    say what the new marks ARE, were the ones that went missing. 620px holds
    all eight rows at 1440. */
-.app-container[data-shell="compact"] .map-legend--traffic {contain:none!important;width:300px!important;max-width:calc(100vw - 16px)!important;left:auto!important;right:8px!important;top:auto!important;bottom:46px!important;max-height:min(620px, calc(100% - 120px));overflow:auto;font-size: var(--type-micro);}
+/* The plate is a COLUMN: a head, a LIST that scrolls, and a foot that says
+   how many readings are below the fold. The scroll lives in the list, not in
+   the plate, so the disclosure stays pinned and keeps telling the truth while
+   the reader scrolls. The plate itself does not scroll — `overflow:hidden`,
+   not `auto` — because a plate that scrolls hides its own disclosure. */
+.app-container[data-shell="compact"] .map-legend--traffic {contain:none!important;width:300px!important;max-width:calc(100vw - 16px)!important;left:auto!important;right:8px!important;top:auto!important;bottom:56px!important;max-height:min(620px, calc(100% - 120px));overflow:hidden;font-size: var(--type-micro);}
 .app-container[data-shell="compact"] .map-coord-readout {left:8px;bottom:80px;padding:4px 6px;}
 .app-container[data-shell="compact"] .map-eo-labels {left:8px;right:240px;bottom:26px;transform:none;max-width:none;justify-content:flex-start;gap:2px;}
 .app-container[data-shell="compact"] .map-eo-label {padding:2px 4px;border:0;gap:4px;flex-wrap:wrap;}
@@ -177,8 +182,21 @@
 /* The attribution's own info button was enlarged to a 44px touch target
    while the control still reserved MapLibre's default 24–28px for it, so
    the button sat on the tail of the credit line and clipped it. Reserve the
-   space the button actually takes, and square it — no pills. */
-.app-container[data-shell="compact"] .maplibregl-ctrl-attrib {padding-right:48px!important;border-radius:0!important;}
+   space the button actually takes, and square it — no pills.
+   THE BUTTON ALSO HUNG UNDER THE WIRE. It is 44px tall on a 24px credit
+   line, so it overhung the map's bottom edge by 10px — and the ticker sits
+   on that edge, 30px above the button in the stack. Ten pixels of the
+   control was behind the wire.
+   THE ATTRIBUTION IS A BAND, AND THE PLATE SITS ABOVE IT. The credit line
+   and its 44px toggle share one 44px band in the map's bottom-right corner,
+   that band sits directly above the wire, and the plate's bottom edge sits
+   above that band. Two surfaces in one corner is a fact of the layout; the
+   fix is that they are neighbours, not that one of them is cut in half.
+   MapLibre ships its own typeface in this control, so the house font is
+   stated here: one font per role, and no Helvetica/Arial leaking in from a
+   vendor stylesheet. */
+.app-container[data-shell="compact"] .maplibregl-ctrl-bottom-right { bottom: 2px !important; }
+.app-container[data-shell="compact"] .maplibregl-ctrl-attrib {padding-right:48px!important;border-radius:0!important;min-height:44px;margin-bottom:0!important;font-family: var(--font-body);}
 .app-container[data-shell="compact"] .maplibregl-ctrl-attrib-button {width:44px;height:44px;border-radius:0!important;}
 /* ═══════════════════════════════════════════════════════════════════
    THE DROP ORDER — what gives way, in what order, and why.
@@ -254,8 +272,14 @@
   .app-container[data-shell="compact"] .clock-theater-ref {display:none!important;}
   /* On a phone the plate is narrower, so the copy stacks taller. It still has
      to hold every qualification: the cap gives way to the content, and only
-     scrolls when the screen genuinely has no room left. */
-  .app-container[data-shell="compact"] .map-legend--traffic {max-width:196px!important;max-height:min(320px, calc(100% - 130px))!important;right:4px!important;bottom:44px!important;padding:4px!important;}
+     scrolls when the screen genuinely has no room left.
+     THE CAP IS A MEASUREMENT, NOT A TYPED NUMBER. At 390x844 the map band is
+     720px; a 320px plate leaves 400px of it open across the full width, and
+     the 196px plate leaves a further 194px of open map beside it. The list
+     inside scrolls, and the plate says how many readings are below the fold —
+     a plate that shows four of eight readings and says nothing is a box that
+     lies about what it holds. */
+  .app-container[data-shell="compact"] .map-legend--traffic {max-width:196px!important;max-height:min(320px, calc(100% - 130px))!important;right:4px!important;bottom:54px!important;padding:4px!important;}
   /* On a phone the key is WORDS, not a strip. Twenty pixels divided seven
      ways is a mark of two point eight pixels: a smear, not a key. The class
      names are the key, and the mark's own popup names the class on tap. A

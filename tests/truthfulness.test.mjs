@@ -838,6 +838,40 @@ function hardcodedReadingProblems(source, plateClasses = PLATE_CLASSES) {
     return problems;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   RULE 16 — nothing on the plate is hidden IN PLACE
+   ───────────────────────────────────────────────────────────────────────── */
+
+/**
+ * A box that is only hidden still takes its space.
+ *
+ * The plate hid its rows with `visibility: hidden` and the STRATEGIC CONTEXT
+ * panel hid itself the same way, so at every viewport the map carried a
+ * 206-211px panel of nothing in its top-left corner — over the live layers
+ * control — for a panel that could never be switched on. And a hidden row
+ * leaves a gap in the list where a reading used to be.
+ *
+ * So: a plate row, and the plate itself, are RENDERED when they have
+ * something to say and are ABSENT otherwise. The rule is that the map
+ * component never asks the browser to lay out something the reader cannot
+ * see.
+ */
+function hiddenInPlaceProblems(source) {
+    const problems = [];
+    // `visibility: 'hidden'` / `visibility: hidden` inside a plate or a row
+    const hidden = /visibility\s*:\s*(['"]hidden['"]|hidden)/g;
+    for (const m of source.matchAll(hidden)) {
+        const line = source.slice(0, m.index).split('\n').length;
+        problems.push(`line ${line}: something is hidden in place — a hidden box still takes its space`);
+    }
+    // `opacity: 0` is the same trick wearing a different hat.
+    for (const m of source.matchAll(/opacity\s*:\s*(['"]0['"]|0)\s*[,}]/g)) {
+        const line = source.slice(0, m.index).split('\n').length;
+        problems.push(`line ${line}: something is painted at zero opacity — it still takes its space`);
+    }
+    return problems;
+}
+
 function hardcodedReadingInComponentsProblems(files) {
     const problems = [];
     for (const file of files) {
@@ -1062,6 +1096,30 @@ test('a density field is one hue that deepens with density', () => {
 
 test('the plate may not contain a hardcoded reading', () => {
     assert.deepEqual(hardcodedReadingProblems(mapContainer), []);
+});
+
+test('nothing on the map is hidden in place — a hidden box still takes its space', () => {
+    assert.deepEqual(hiddenInPlaceProblems(mapContainer), []);
+});
+
+test('mutation: a plate row hidden in place is caught', () => {
+    const broken = mapContainer.replace(
+        '{flightsLayerActive && (',
+        "{true && (\n                <div className=\"map-legend-item\" style={{ visibility: 'hidden' }}>"
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must hide a row in place');
+    const problems = hiddenInPlaceProblems(broken);
+    assert.ok(problems.length > 0, 'a row hidden in place must be reported');
+});
+
+test('mutation: the strategic panel hidden in place is caught', () => {
+    const broken = mapContainer.replace(
+        '{showStrategicContext && (',
+        "{true && (\n                <div className=\"map-legend map-legend--strategic\" style={{ visibility: 'hidden' }}>"
+    );
+    assert.notEqual(broken, mapContainer, 'the fixture must hide the panel in place');
+    const problems = hiddenInPlaceProblems(broken);
+    assert.ok(problems.length > 0, 'a panel hidden in place must be reported');
 });
 
 test('no component writes a hardcoded reading', () => {

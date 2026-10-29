@@ -326,6 +326,69 @@ is the honest form of that trade: the plate does not claim to show
 everything at once at that width, and it does not pretend the rows it is
 holding are the only readings there are.
 
+**AND THE PLATE SAYS HOW MUCH IS BELOW THE FOLD.** The trade above is only
+honest if the reader can see it. The plate used to scroll silently: it held
+eight readings in a 320px box, four of them and every qualification below the
+fold were simply not there, the last visible row was cut through the middle
+of its own glyph, and the plate said nothing about any of it. A box that
+shows four of eight readings and says nothing is a box that lies about what it
+holds — and the readings that went missing were the ones that say what the
+new marks ARE. So the plate is a **column**: a head, a **list that scrolls**,
+and a **foot that names how many readings are below the fold**. The foot is
+pinned outside the scroller, so it keeps telling the truth while the reader
+scrolls, and it is not there at all when nothing is hidden.
+
+**AND THE PLATE SHOWS WHOLE READINGS.** The list is fitted to the room the
+plate has, in whole readings and never a fraction of one more. A reading
+sliced through the middle of its own glyph reads as a broken plate, not as a
+list that continues. A plate that shows three readings and says "5 more
+below" is an instrument; a plate that shows three and a half is a box that
+cut itself. The list rests on a reading (`scroll-snap`), so the cut is never
+left hanging in the middle of a line.
+
+**NOTHING ON THE MAP IS HIDDEN IN PLACE.** A box that is only `visibility:
+hidden` still takes its space. The plate hid its rows that way — so an
+inactive layer left a gap in the list where a reading used to be — and the
+STRATEGIC CONTEXT panel hid itself that way, so at every viewport the map
+carried a **206–211px panel of nothing** in its top-left corner, over the live
+layers control, for a panel that could never be switched on. A plate row, and
+the plate itself, are **rendered when they have something to say and absent
+otherwise**, and the gate fails a build that hides one in place.
+
+**THE KEY SITS ON THE READING IT KEYS.** The key strip was centred against
+the whole row, so a three-pixel strip floated 23–30px below the value it
+belongs to and read as the key for the line it happened to land beside. A key
+that is not next to its reading is not a key. The row aligns to the first
+line, and the strip is centred on that line's cap height.
+
+**A LIST OF NAMES TAKES COMMAS.** The middot is for a compound of
+attributes — "ADS-B · 58m old · global sample" — which is short and never
+breaks. A list of seven vessel classes does break, and with a middot the
+break left the separator hanging at the end of the line: "cargo · tanker ·
+passenger · fishing · tug ·" / "pleasure · other". A comma breaks the way a
+list is supposed to break.
+
+**THE CREDIT LINE IS A BAND, AND THE PLATE SITS ABOVE IT.** The map's
+bottom-right corner holds two surfaces: the plate and the credit line. They
+must be **neighbours**, not one of them cut in half. The credit line's toggle
+is a 44px touch target on a 24px credit line, so it used to overhung the
+map's bottom edge by 10px — and the ticker sits on that edge: ten pixels of
+the control was behind the wire. The band is now 44px, sits directly above
+the ticker, and the plate's bottom edge sits above the band. MapLibre also
+ships its own typeface in that control, so the house font is stated there
+too: one font per role, and no Helvetica leaking in from a vendor
+stylesheet.
+
+**THE SPATIAL MEASUREMENTS ARE PART OF THE RELEASE CHECK.** A source scan
+and a green build cannot prove a visual pass. The live check now measures,
+at every width it visits: the boxes that occupy space while showing nothing;
+whether the plate cuts a reading in half; whether the disclosure's count
+matches the number of readings actually below the fold; whether the key is on
+the line of the reading it keys; whether the plate and the credit line
+overlap; and whether a font outside the house set is on the page. Each of
+these was a shipped defect, measured and fixed, and each is measured again
+so that it cannot come back quietly.
+
 **"Live" has three degrees, and a camera screen names the one it is.**
 An HLS stream is video. A snapshot is a **JPEG and not video**, and is never
 called "live video" or "streaming". Whether a snapshot **refreshes** is

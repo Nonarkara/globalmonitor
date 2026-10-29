@@ -1,6 +1,6 @@
 # Separate historical-host repair — 22 October 2026
 
-Status: live audit complete; implementation not started. This is separate from the shipped current-suite release, as the owner requested. Do not redirect this site or deploy a current dashboard over it.
+Status: original repair approved on 22 October; isolated implementation started. Paused for the dependency amendment below. This is separate from the shipped current-suite release, as the owner requested. Do not redirect this site or deploy a current dashboard over it.
 
 ## Evidence and target
 
@@ -36,3 +36,22 @@ Keep live maps, chronology, tickers, network view, actors, all panels, sponsor c
 Build and unit tests; scan source; render1440/1024/390/320 and CSS breakpoint neighbours; open and close every drawer; keyboard/Escape and modal return; inspect tiles; distinguish observations, snapshots and unavailable sources. Reintroduce the squeezed-map and artificial-counter defects and require guards to fail. Independent review, attributed commit, push, correct project deploy, canonical/custom byte checks and live task trial.
 
 This audit does not certify the historical backend, source freshness, all translations, physical devices or dependencies. A dependency/security or API-schema problem that changes the repair boundary needs a revised plan, not a silent rewrite.
+
+## Amendment requiring approval: historical map dependencies
+
+Installing the historical lockfile reported 19 npm advisories (2 critical, 11 high, 4 moderate, 2 low). These are package findings, not evidence of an observed attack. Both critical package reports trace to the same MapLibre sanitizer advisory: GHSA-jrc7-96c5-q579. The current lockfile installs MapLibre 3.x; the advisory affects versions through 6.4.0 and lists 6.4.1 as patched. npm proposes 6.15.0, a major upgrade. The vulnerable sanitizer also handles source attribution, so the absence of a Popup component is not sufficient assurance.
+
+Reference: https://github.com/advisories/GHSA-jrc7-96c5-q579
+
+### Proposed additional changes
+
+- [MODIFY] historical `package.json` and `package-lock.json`: update MapLibre to a patched 6.x version (candidate 6.15.0), its React wrapper to the compatible v8 MapLibre entry point, and apply non-breaking advisory fixes. Pin the resolved graph. No `audit fix --force`, no blanket framework rewrite, no package-removal cleanup.
+- [MODIFY] historical `src/components/MapContainer.jsx`: adapt only the wrapper import/API changes required by that upgrade. Preserve every geographical source, marker, layer, overlay, interaction and attribution. No large file reduction.
+- [NEW] dependency/migration regression tests: assert the resolved map version is patched, inspect attribution handling, exercise basemap switching and all existing layer toggles with no uncaught exceptions, and verify data through supported map APIs rather than private `_data` fields.
+- [MODIFY as already required by backend validation] the seven historical specialist API clients must use the shared backend resolver. The existing public flagship `/api/sentiment` currently returns HTML, not its historical JSON contract; show that panel as unavailable rather than fabricate a result or add a provider.
+
+### Release conditions and unchanged boundary
+
+Build, targeted lint, dependency audit and actual-browser migration checks must pass. Any remaining advisory gets an explicit disposition; no claim of a security certification. Independent review must check mobile/desktop layout, keyboard paths, map tiles and open evidence drawers. Deploy remains restricted to `middle-east-monitor`, production branch `main`, followed by canonical and custom-domain verification. The other released dashboards and their deployment slots remain untouched.
+
+Awaiting approval for this additional dependency work. No historical deployment has been made.

@@ -2,7 +2,8 @@ import { spawn } from 'node:child_process';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// Playwright's Chrome for Testing, not /Applications/Google Chrome.app — a headless system Chrome steals Dock clicks.
+const chromePath = process.env.CHROME_PATH || await (async () => { try { return (await import('playwright')).chromium.executablePath(); } catch { const fs = await import('node:fs'); const os = await import('node:os'); const root = `${os.homedir()}/Library/Caches/ms-playwright`; const dir = fs.readdirSync(root).filter((d) => /^chromium-\d+$/.test(d)).sort().pop(); return `${root}/${dir}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`; } })();
 const port = 9333;
 const url = process.env.QA_URL || 'https://globalmonitor.pages.dev/';
 
