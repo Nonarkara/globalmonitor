@@ -350,7 +350,7 @@ function App() {
             clocks, theater tabs, controls. The clock is an instrument inside
             that row, not a band above it. */}
         <div className="header-bar grid-panel" ref={headerRef}>
-          {/* Left: Sponsor logos in white pill */}
+          {/* Sponsor logos on the masthead, no chip */}
           <div className="header-brand-strip" aria-label="Project partners">
             <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" className="header-brand-logo header-brand-logo-pmua" />
             <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />

@@ -62,12 +62,12 @@ function AboutSection() {
         <img
           src={`${import.meta.env.BASE_URL}pmua-logo.webp`}
           alt="PMUA"
-          style={{ height: '36px', objectFit: 'contain', background: '#fff', borderRadius: '0', padding: '3px 8px' }}
+          style={{ height: '36px', objectFit: 'contain' }}
         />
         <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-2)', marginTop: '4px' }}>{aboutCopy.fundedBy}</div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '10px', background: '#fff', borderRadius: '0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
         <img src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" style={{ height: '20px', objectFit: 'contain' }} />
         <img src={`${import.meta.env.BASE_URL}mdes.png`} alt="Ministry of Digital Economy" style={{ height: '20px', objectFit: 'contain' }} />
         <img src={`${import.meta.env.BASE_URL}smart-city-thailand-logo.svg`} alt="Smart City Thailand" style={{ height: '18px', objectFit: 'contain' }} />
@@ -75,10 +75,8 @@ function AboutSection() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '18px' }}>
         <div style={{ fontSize: 'var(--type-micro)', color: 'var(--ink-3)', letterSpacing: '0.16em', fontWeight: 700, textTransform: 'uppercase' }}>EXECUTED BY</div>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: '#fff', borderRadius: '0', padding: '3px 8px' }}>
-          <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom AI" style={{ height: '20px', objectFit: 'contain' }} />
-          <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" style={{ height: '18px', objectFit: 'contain' }} />
-        </span>
+        <img src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" style={{ height: '20px', width: '20px', objectFit: 'contain' }} />
+        <img src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" style={{ height: '18px', objectFit: 'contain' }} />
       </div>
 
       <h2 id="legal-modal-title" style={{ fontSize: 'var(--type-display)', fontWeight: 600, color: 'var(--ink)', marginBottom: '4px' }}>
