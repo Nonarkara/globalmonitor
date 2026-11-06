@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { sweepChromeFit } from './chrome-fit.mjs';
+import { sweepPlateFit } from './plate-fit.mjs';
 import { danglingSeparatorProblems } from './lib/dangling.mjs';
 
 const url = process.argv[2];
@@ -105,6 +106,37 @@ try {
             hidden: list.scrollHeight - list.clientHeight,
           };
         })(),
+        // What the plate NEEDED, and what it was given. A plate whose box is
+        // shorter than its own content was not given the room, and may hold
+        // something back — as long as it says how much. A plate that had the
+        // room and held a reading back anyway is lying.
+        plateRoom: (() => {
+          const plate = document.querySelector('.map-legend--traffic');
+          const list = document.querySelector('.map-legend--traffic .map-legend-list');
+          if (!plate || !list) return null;
+          const rows = [...list.querySelectorAll('.map-legend-item')];
+          const ps = getComputedStyle(plate);
+          const padY = (parseFloat(ps.paddingTop) || 0) + (parseFloat(ps.paddingBottom) || 0);
+          const head = plate.querySelector('.map-legend-title');
+          const headH = head
+            ? head.getBoundingClientRect().height + (parseFloat(getComputedStyle(head).marginBottom) || 0)
+            : 0;
+          const foot = plate.querySelector('.map-legend-more');
+          const footShown = Boolean(foot) && getComputedStyle(foot).display !== 'none';
+          const band = footShown
+            ? foot.getBoundingClientRect().height + (parseFloat(getComputedStyle(foot).marginTop) || 0)
+            : (parseFloat(ps.getPropertyValue('--plate-foot-h')) || 0);
+          const rowsSum = rows.reduce((s, r) => s + r.getBoundingClientRect().height, 0);
+          const borders = (parseFloat(ps.borderTopWidth) || 0) + (parseFloat(ps.borderBottomWidth) || 0);
+          // The band is reserved whether or not the disclosure is showing,
+          // so the box is measured with it in mind.
+          const box = plate.getBoundingClientRect().height - borders + (footShown ? 0 : band);
+          return {
+            box: +box.toFixed(2),
+            need: +(padY + headH + rowsSum + band).toFixed(2),
+            rowsSum: +rowsSum.toFixed(2),
+          };
+        })(),
         // Every separator in the plate, MEASURED. A middot at the end of a
         // line is a bullet that lost its list, and nothing stopped it: the
         // plate's own comment says the middot is for a compound "which is
@@ -113,51 +145,54 @@ try {
         plateSeparators: (() => {
           const plate = document.querySelector('.map-legend--traffic');
           if (!plate) return [];
-          const out = [];
+          // The plate's text is a SEQUENCE, not a set of spans: a
+          // separator's neighbour can live in another span, and a rule that
+          // only looked inside one span would miss the separator that
+          // starts a line.
+          const chars = [];
           const walker = document.createTreeWalker(plate, NodeFilter.SHOW_TEXT);
           let node;
           while ((node = walker.nextNode())) {
             const text = node.nodeValue || '';
-            if (!/[·,]/.test(text)) continue;
-            const rects = [];
             for (let i = 0; i < text.length; i++) {
               const range = document.createRange();
               range.setStart(node, i);
               range.setEnd(node, i + 1);
               const b = range.getBoundingClientRect();
-              rects.push({ ch: text[i], top: b.top, bottom: b.bottom, w: b.width, h: b.height });
+              chars.push({ ch: text[i], top: b.top, bottom: b.bottom, w: b.width, h: b.height });
             }
-            for (let i = 0; i < text.length; i++) {
-              if (text[i] !== '·' && text[i] !== ',') continue;
-              const me = rects[i];
-              if (!me.w && !me.h) continue;
-              // The neighbours that can be SEEN. A space at the end of a
-              // line is invisible, so the space does not count as the next
-              // character — a middot followed by a space that ends the line
-              // is still a middot hanging at the end of the line.
-              let next = null;
-              let prev = null;
-              for (let j = i + 1; j < text.length && !next; j++) {
-                if (rects[j].ch.trim() === '') continue;
-                if (!rects[j].w && !rects[j].h) continue;
-                next = rects[j];
-              }
-              for (let j = i - 1; j >= 0 && !prev; j--) {
-                if (rects[j].ch.trim() === '') continue;
-                if (!rects[j].w && !rects[j].h) continue;
-                prev = rects[j];
-              }
-              out.push({
-                ch: text[i],
-                text: (node.parentElement?.textContent || text).trim().replace(/\s+/g, ' '),
-                top: me.top,
-                bottom: me.bottom,
-                nextTop: next ? next.top : null,
-                nextBottom: next ? next.bottom : null,
-                prevTop: prev ? prev.top : null,
-                prevBottom: prev ? prev.bottom : null,
-              });
+          }
+          const out = [];
+          for (let i = 0; i < chars.length; i++) {
+            if (chars[i].ch !== '·' && chars[i].ch !== ',') continue;
+            const me = chars[i];
+            if (!me.w && !me.h) continue;
+            // The neighbours that can be SEEN. A space at the end of a line
+            // is invisible, so the space does not count as the next
+            // character — a middot followed by a space that ends the line
+            // is still a middot hanging at the end of the line.
+            let next = null;
+            let prev = null;
+            for (let j = i + 1; j < chars.length && !next; j++) {
+              if (chars[j].ch.trim() === '') continue;
+              if (!chars[j].w && !chars[j].h) continue;
+              next = chars[j];
             }
+            for (let j = i - 1; j >= 0 && !prev; j--) {
+              if (chars[j].ch.trim() === '') continue;
+              if (!chars[j].w && !chars[j].h) continue;
+              prev = chars[j];
+            }
+            out.push({
+              ch: chars[i].ch,
+              text: (plate.textContent || '').trim().replace(/\s+/g, ' '),
+              top: me.top,
+              bottom: me.bottom,
+              nextTop: next ? next.top : null,
+              nextBottom: next ? next.bottom : null,
+              prevTop: prev ? prev.top : null,
+              prevBottom: prev ? prev.bottom : null,
+            });
           }
           return out;
         })(),
@@ -295,10 +330,15 @@ try {
           `the SOURCES plate says "${list.moreCount} more below" but ${list.below} readings are below the fold`);
       }
       // On a desktop the promise is every reading and every qualification at
-      // once. The plate may not hold anything back.
+      // once. The plate may not hold back a reading IT HAD ROOM FOR: a
+      // plate whose own box is shorter than the readings it holds was not
+      // given the room, and may keep one back — and then the disclosure
+      // above has to be true, which it is required to be either way.
       if (width > 720) {
-        assert.equal(list.below, 0,
-          `the SOURCES plate holds back ${list.below} reading(s) at ${width}px — every reading must be visible at once`);
+        const room = geometry.plateRoom;
+        const hadRoom = !room || room.need <= room.box + 1;
+        assert.ok(!hadRoom || list.below === 0,
+          `the SOURCES plate holds back ${list.below} reading(s) at ${width}px in a box of ${room?.box}px that needs ${room?.need}px — it had the room and did not use it`);
       }
     }
 
@@ -406,5 +446,14 @@ try {
   assert.deepEqual(sweep.failures, [],
     `the chrome row does not hold at every width:\n${sweep.failures.map(f => `  ${f.width}px  ${f.why}`).join('\n')}`);
 
-  console.log(JSON.stringify({ url, sweep: { checked: sweep.checked, failures: 0 }, results }, null, 2));
+  // ── The plate sweep ────────────────────────────────────────────
+  // The plate is fitted at run time too, and it was hiding a reading at
+  // thirty-nine widths BETWEEN the four the gate looked at — a half
+  // pixel of rounding, and a ceiling in fixed pixels for a font that
+  // scales with the viewport. The gate looked where it already looked.
+  const plateSweep = await sweepPlateFit(browser, url);
+  assert.deepEqual(plateSweep.failures, [],
+    `the SOURCES plate does not hold at every width:\n${plateSweep.failures.map(f => `  ${f.width}px  ${f.why}`).join('\n')}`);
+
+  console.log(JSON.stringify({ url, sweep: { checked: sweep.checked, failures: 0 }, plateSweep: { checked: plateSweep.checked, failures: 0 }, results }, null, 2));
 } finally { await browser.close(); }

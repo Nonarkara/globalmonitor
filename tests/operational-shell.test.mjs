@@ -89,6 +89,25 @@ test('the release gate sweeps the chrome row at every width, not four', async ()
   assert.match(fit, /phantomDrops/);
 });
 
+test('the release gate sweeps the PLATE at every width, not four', async () => {
+  const fit = await read('scripts/plate-fit.mjs');
+  // The gate looked at 1440/1024/390/320 and passed while the plate held
+  // back a reading at thirty-nine widths in between: the room was measured
+  // against a box rounded to whole pixels, and the ceiling was 620px for a
+  // font that scales with the viewport. The sweep is what closes that
+  // hole, so it has to stay in the gate.
+  assert.match(await read('scripts/operational-check.mjs'), /sweepPlateFit/);
+  assert.match(fit, /setViewportSize/);
+  // A reading cut in half, and a disclosure that does not tell the truth.
+  assert.match(fit, /cut/);
+  assert.match(fit, /moreCount/);
+  // And the promise it keeps: the plate may not hold back a reading IT
+  // HAD ROOM FOR — measured, not assumed from the viewport width.
+  assert.match(fit, /hadRoom/);
+  assert.match(fit, /need/);
+  assert.match(fit, /box/);
+});
+
 test('session export has accessible dialog and safe download lifetime', async () => {
   const source = await read('src/components/ActivityLogModal.jsx');
   assert.match(source, /role="dialog"/);

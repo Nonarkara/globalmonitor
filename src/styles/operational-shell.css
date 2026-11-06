@@ -165,7 +165,20 @@
    the plate, so the disclosure stays pinned and keeps telling the truth while
    the reader scrolls. The plate itself does not scroll — `overflow:hidden`,
    not `auto` — because a plate that scrolls hides its own disclosure. */
-.app-container[data-shell="compact"] .map-legend--traffic {contain:none!important;width:300px!important;max-width:calc(100vw - 16px)!important;left:auto!important;right:8px!important;top:auto!important;bottom:56px!important;max-height:min(620px, calc(100% - 120px));overflow:hidden;font-size: var(--type-micro);}
+/* The ceiling is in REM, because the type inside the plate is.
+   The cap used to be 620px — a fixed-pixel budget for a font that scales
+   with the fluid root (13px to 24px across the viewport range). At 1440
+   that left the plate 77px of room it never used; at 1913 the rows had
+   grown to 641px and the plate was 45px short of holding them, so it held
+   a reading back at 39 widths where the map was perfectly big enough.
+   The same lesson the chrome row learned: a budget in fixed pixels
+   measures the wrong thing on every screen but one.
+
+   AND THE CUSHION ABOVE THE PLATE WAS 64px OF NOTHING. The plate stands
+   56px above the credit band; above the plate there is no control, no
+   label, no map furniture — the map's top-right corner is map. So the
+   reserve was 16px, the same gap the plate keeps on its right edge. */
+.app-container[data-shell="compact"] .map-legend--traffic {contain:none!important;width:300px!important;max-width:calc(100vw - 16px)!important;left:auto!important;right:8px!important;top:auto!important;bottom:56px!important;max-height:min(44rem, calc(100% - 72px));overflow:hidden;font-size: var(--type-micro);}
 .app-container[data-shell="compact"] .map-coord-readout {left:8px;bottom:80px;padding:4px 6px;}
 .app-container[data-shell="compact"] .map-eo-labels {left:8px;right:240px;bottom:26px;transform:none;max-width:none;justify-content:flex-start;gap:2px;}
 .app-container[data-shell="compact"] .map-eo-label {padding:2px 4px;border:0;gap:4px;flex-wrap:wrap;}

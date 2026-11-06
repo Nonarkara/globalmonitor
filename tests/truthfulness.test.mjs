@@ -1450,9 +1450,14 @@ test('the release gate asks the rule about the plate', () => {
     // A rule that nothing calls is a rule that does not exist. The gate has
     // to MEASURE the separators and hand them to this rule, or the wave
     // comes back quietly.
+    //
+    // And it has to CALL it, not merely mention it: a gate that kept the
+    // name in a comment while the call was deleted would pass a test that
+    // only looked for the name. So the call itself is required, with the
+    // measurement it is handed.
     const gate = read('scripts/operational-check.mjs');
-    assert.ok(gate.includes('danglingSeparatorProblems'),
+    assert.match(gate, /danglingSeparatorProblems\(\s*geometry\.plateSeparators/,
         'the release gate does not ask the dangling-separator rule about the plate');
-    assert.ok(gate.includes('plateSeparators'),
+    assert.match(gate, /plateSeparators/,
         'the release gate does not measure the plate\'s separators');
 });

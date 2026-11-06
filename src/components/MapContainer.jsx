@@ -1276,7 +1276,7 @@ const MapContainer = ({
         const padY = (parseFloat(ps.paddingTop) || 0) + (parseFloat(ps.paddingBottom) || 0);
         const head = plate.querySelector('.map-legend-title');
         const headH = head
-            ? head.offsetHeight + (parseFloat(getComputedStyle(head).marginBottom) || 0)
+            ? head.getBoundingClientRect().height + (parseFloat(getComputedStyle(head).marginBottom) || 0)
             : 0;
         const chrome = padY + headH;
 
@@ -1288,17 +1288,18 @@ const MapContainer = ({
             foot.style.visibility = 'hidden';
         }
 
-        /* And the list is measured UNCONSTRAINED, so the room is the room the
-         * readings need, not the room a previous fit left behind. */
+        /* And the list is measured UNCONSTRAINED, so the room is the room
+         * the readings need, not the room a previous fit left behind. */
         list.style.maxHeight = 'none';
         void plate.offsetHeight;
 
         /* The band, measured off the element rather than assumed: its height
          * plus its margin is the strip it occupies. */
         const band = foot
-            ? foot.offsetHeight + (parseFloat(getComputedStyle(foot).marginTop) || 0)
+            ? foot.getBoundingClientRect().height + (parseFloat(getComputedStyle(foot).marginTop) || 0)
             : (parseFloat(ps.getPropertyValue('--plate-foot-h')) || 0);
-        const plateH = plate.clientHeight;
+        const plateBox = plate.getBoundingClientRect().height;
+        const borders = (parseFloat(ps.borderTopWidth) || 0) + (parseFloat(ps.borderBottomWidth) || 0);
         if (foot) {
             foot.style.display = prevDisplay;
             foot.style.visibility = prevVisibility;
@@ -1309,7 +1310,21 @@ const MapContainer = ({
          * That slack was enough to make the plate believe it was short and
          * clip a reading that was in fact fully visible. So the fit below is
          * in true heights, and when every row fits, no limit is set at all. */
-        const room = Math.max(0, plateH - chrome - band);
+        const rowsSum = rows.reduce((sum, r) => sum + r.getBoundingClientRect().height, 0);
+
+        /* THE ROOM IS THE READINGS, OR THE CEILING — WHICHEVER IS SMALLER.
+         *
+         * The plate's box is its own content, so measuring the room from the
+         * box hands back the content to the pixel — and half a pixel of
+         * rounding was enough to make the plate believe it was short and
+         * hold back a WHOLE reading: 420.7px of rows in a room of 420. So
+         * the room is the rows themselves, unless the plate is at its
+         * ceiling, and then the room is what the ceiling leaves. */
+        const box = plateBox - borders;
+        const need = chrome + rowsSum + band;
+        const room = need <= box + 0.5
+            ? rowsSum
+            : Math.max(0, box - chrome - band);
 
         const fitRows = (space) => {
             let used = 0;
