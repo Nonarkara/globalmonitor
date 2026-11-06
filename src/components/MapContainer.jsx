@@ -70,6 +70,21 @@ const LegendClasses = ({ marks }) => (
     <span className="map-legend-classes">{marks.map((m) => m.label).join(', ')}</span>
 );
 
+/** A SEPARATOR THAT CANNOT HANG.
+ *
+ * The middot is for a compound of attributes — "ADS-B · 58m old · global
+ * sample" — which is short and never breaks. It DID break, and it broke AT
+ * the middot, and the break left the separator hanging at the end of the
+ * line: "global sample ·" over "CC-BY 4.0". A middot at the end of a line
+ * is a bullet that lost its list.
+ *
+ * So the compound is BOUND: a non-breaking space on each side of the middot
+ * keeps the separator and the words it joins on one line, and the line
+ * breaks somewhere else — or not at all. The comma in a list of names is
+ * left alone: a list is supposed to break after its comma, and that is the
+ * one break a reader expects to see. */
+const bindSeparators = (text) => String(text ?? '').replace(/[ \t]*·[ \t]*/g, ' · ');
+
 const acledDemoRange = (features) => {
     const dates = (features || []).map((f) => f?.properties?.date).filter(Boolean).sort();
     if (!dates.length) return 'undated';
@@ -1240,41 +1255,82 @@ const MapContainer = ({
          * three readings and says "5 more below" is an instrument; a plate
          * that shows three and a half is a box that cut itself.
          *
-         * The room is measured against the plate's own ceiling, not against
-         * the plate's current height, so shortening the list cannot shorten
-         * the room and shrink the list again. The disclosure's band is
-         * reserved whether or not it has anything to say, so the fit does not
-         * move when the disclosure appears. */
+         * THE ROOM IS MEASURED WITH THE DISCLOSURE'S BAND RESERVED.
+         *
+         * The band - the strip that says how much is below the fold - only
+         * exists while something is hidden. So the plate's own height is
+         * different depending on whether the disclosure is showing, and
+         * measuring the room against the plate's CURRENT height made the
+         * answer depend on the very state the measurement was trying to
+         * correct. The plate found itself 26px short, clipped the list by one
+         * reading, and the disclosure it summoned took another 26px: a
+         * ratchet, down to seven of eight readings at a width where the plate
+         * had room for all eight. No resize undid it, because every
+         * measurement reproduced it.
+         *
+         * So the band is held open - invisible, but there - while the room is
+         * measured, and the room is the plate's ceiling minus what the plate
+         * spends on everything that is not a reading. The answer no longer
+         * depends on the moment it was taken. */
         const ps = getComputedStyle(plate);
         const padY = (parseFloat(ps.paddingTop) || 0) + (parseFloat(ps.paddingBottom) || 0);
         const head = plate.querySelector('.map-legend-title');
         const headH = head
             ? head.offsetHeight + (parseFloat(getComputedStyle(head).marginBottom) || 0)
             : 0;
-        const footReserve = parseFloat(ps.getPropertyValue('--plate-foot-h')) || 0;
+        const chrome = padY + headH;
 
-        /* The plate's own CEILING, measured rather than assumed: un-constrain
-         * the list and look at the plate. If the plate is still taller than
-         * its content, the plate is at its ceiling and that box IS the
-         * ceiling. If it is exactly its content, the content fits and every
-         * reading is on show. */
+        const foot = plate.querySelector('.map-legend-more');
+        const prevDisplay = foot ? foot.style.display : null;
+        const prevVisibility = foot ? foot.style.visibility : null;
+        if (foot) {
+            foot.style.display = 'flex';
+            foot.style.visibility = 'hidden';
+        }
+
+        /* And the list is measured UNCONSTRAINED, so the room is the room the
+         * readings need, not the room a previous fit left behind. */
         list.style.maxHeight = 'none';
         void plate.offsetHeight;
-        const rowsSum = rows.reduce((sum, r) => sum + r.offsetHeight, 0);
+
+        /* The band, measured off the element rather than assumed: its height
+         * plus its margin is the strip it occupies. */
+        const band = foot
+            ? foot.offsetHeight + (parseFloat(getComputedStyle(foot).marginTop) || 0)
+            : (parseFloat(ps.getPropertyValue('--plate-foot-h')) || 0);
         const plateH = plate.clientHeight;
-        const clamped = rowsSum + padY + headH > plateH + 1;
-
-        const available = clamped
-            ? Math.max(0, plateH - padY - headH - footReserve)
-            : rowsSum;
-
-        let used = 0;
-        for (const r of rows) {
-            const h = r.offsetHeight;
-            if (used + h > available) break;
-            used += h;
+        if (foot) {
+            foot.style.display = prevDisplay;
+            foot.style.visibility = prevVisibility;
         }
-        list.style.maxHeight = `${used}px`;
+
+        /* Row heights are fractional and offsetHeight rounds them, so a sum of
+         * rounded rows is a few pixels LONGER than the list it came from.
+         * That slack was enough to make the plate believe it was short and
+         * clip a reading that was in fact fully visible. So the fit below is
+         * in true heights, and when every row fits, no limit is set at all. */
+        const room = Math.max(0, plateH - chrome - band);
+
+        const fitRows = (space) => {
+            let used = 0;
+            let n = 0;
+            for (const r of rows) {
+                const h = r.getBoundingClientRect().height;
+                if (used + h > space + 0.5) break;
+                used += h;
+                n += 1;
+            }
+            return { used, all: n === rows.length };
+        };
+        let fit = fitRows(room);
+        list.style.maxHeight = fit.all ? 'none' : `${fit.used}px`;
+        /* The plate's own ceiling can squeeze the list below the height we
+         * asked for - and it can do it to a fit that claimed every row
+         * fitted. Re-fit against the room the list really has. */
+        if (list.clientHeight < fit.used - 1) {
+            fit = fitRows(list.clientHeight);
+            list.style.maxHeight = `${fit.used}px`;
+        }
 
         const viewBottom = list.scrollTop + list.clientHeight;
         const below = rows.filter(
@@ -1294,8 +1350,18 @@ const MapContainer = ({
         const observer = new MutationObserver(measurePlate);
         observer.observe(list, { childList: true, subtree: true, characterData: true });
         window.addEventListener('resize', measurePlate);
+        /* The plate's ceiling is a share of the MAP's height, and the map
+         * settles after first paint. A fit taken while the map was still
+         * short locked the list at a short height and never looked again.
+         * The map's box does not depend on the plate (the plate floats over
+         * it), so watching the map cannot loop the way watching the list does. */
+        const area = list.parentElement?.parentElement;
+        const sizeWatch = area && typeof ResizeObserver !== 'undefined'
+            ? new ResizeObserver(measurePlate) : null;
+        if (sizeWatch) sizeWatch.observe(area);
         return () => {
             observer.disconnect();
+            if (sizeWatch) sizeWatch.disconnect();
             window.removeEventListener('resize', measurePlate);
         };
     }, [measurePlate, legendVisible, activeLayers]);
@@ -3111,8 +3177,8 @@ const MapContainer = ({
                                 <span className="map-legend-meta">
                                     <LegendClasses marks={LEGEND_KEY.aircraft} />
                                     <span>
-                                        {flightSourceLabel}
-                                        {flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : ''}
+                                        {bindSeparators(flightSourceLabel)}
+                                        {bindSeparators(flightsCapped && flightsGlobalTotal > visibleFlightCount ? ' · global sample' : '')}
                                     </span>
                                 </span>
                             </span>
@@ -3138,9 +3204,9 @@ const MapContainer = ({
                                 <span className="map-legend-meta">
                                     <LegendClasses marks={LEGEND_KEY.vessels} />
                                     <span>
-                                        {vesselSourceLabel}
-                                        {axiomOverwatchActive ? ' · CC-BY 4.0' : ''}
-                                        {vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : ''}
+                                        {bindSeparators(vesselSourceLabel)}
+                                        {bindSeparators(axiomOverwatchActive ? ' · CC-BY 4.0' : '')}
+                                        {bindSeparators(vesselsCapped && vesselsGlobalTotal > visibleVesselCount ? ' · global sample' : '')}
                                     </span>
                                 </span>
                             </span>
@@ -3164,11 +3230,11 @@ const MapContainer = ({
                                 </span>
                                 <span className="map-legend-meta">
                                     <LegendClasses marks={LEGEND_KEY.thermal} />
-                                    {firmsLive
+                                    {bindSeparators(firmsLive
                                         ? `VIIRS · ${ageLabel(firmsMeta?.fetchedAt) || 'age unknown'}`
                                         : firmsMeta?.source
                                             ? FIRMS_SOURCE_LABELS[firmsMeta.source] || String(firmsMeta.source).replace(/_/g, ' ')
-                                            : 'no FIRMS key — nothing shown'}
+                                            : 'no FIRMS key — nothing shown')}
                                 </span>
                             </span>
                         </div>
@@ -3196,11 +3262,11 @@ const MapContainer = ({
                                 </span>
                                 <span className="map-legend-meta">
                                     <LegendClasses marks={LEGEND_KEY.conflicts} />
-                                    {acledLive
+                                    {bindSeparators(acledLive
                                         ? `ACLED · since ${acledRaw?.since || '—'}`
                                         : acledCount > 0
                                             ? `ACLED not connected · ${acledDemoWindow(acledRaw?.features)}`
-                                            : 'no data'}
+                                            : 'no data')}
                                 </span>
                             </span>
                         </div>
@@ -3216,7 +3282,7 @@ const MapContainer = ({
                                     {worstAqi ? `${worstAqi.city} AQI ${worstAqi.aqi}` : 'No AQI reading'}
                                 </span>
                                 <span className="map-legend-meta">
-                                    {worstAqi ? `${worstAqi.category} · US EPA band` : 'upstream unavailable'}
+                                    {bindSeparators(worstAqi ? `${worstAqi.category} · US EPA band` : 'upstream unavailable')}
                                 </span>
                             </span>
                         </div>
@@ -3236,8 +3302,8 @@ const MapContainer = ({
                                                 broken; a deliberate second line makes
                                                 it look like an instrument. */}
                                             <span>
-                                                {windMeta.level || '10 m above ground'}
-                                                {windMeta.partial ? ' · partial' : ''}
+                                                {bindSeparators(windMeta.level || '10 m above ground')}
+                                                {bindSeparators(windMeta.partial ? ' · partial' : '')}
                                             </span>
                                             {/* The level is named because the map draws
                                                 the transport field when it has it and
@@ -3253,12 +3319,12 @@ const MapContainer = ({
                                                 comes FROM — and the air, and the haze
                                                 with it, is carried the other way. */}
                                             <span data-claim="wind-model wind-convention">
-                                                Open-Meteo model · staff points into the wind — the haze rides the other way
-                                                {windDrawnIsTransport ? '' : ' · surface fallback'}
+                                                {bindSeparators('Open-Meteo model · staff points into the wind — the haze rides the other way')}
+                                                {bindSeparators(windDrawnIsTransport ? '' : ' · surface fallback')}
                                             </span>
                                             <span>
-                                                1 feather = 10 kt
-                                                {compactUtc(windMeta.observedAt) ? ` · ${compactUtc(windMeta.observedAt)}` : ' · time unknown'}
+                                                {bindSeparators('1 feather = 10 kt')}
+                                                {bindSeparators(compactUtc(windMeta.observedAt) ? ` · ${compactUtc(windMeta.observedAt)}` : ' · time unknown')}
                                             </span>
                                         </>
                                     ) : (
@@ -3276,18 +3342,18 @@ const MapContainer = ({
                             />
                             <span className="map-legend-copy">
                                 <span className="map-legend-value">
-                                    {typhoonMeta?.stormName
+                                    {bindSeparators(typhoonMeta?.stormName
                                         ? `${typhoonMeta.stormName} · ${typhoonMeta.maxWindKt ?? '—'} kt`
                                         : typhoonResource.error
                                             ? 'Cyclone bulletin unavailable'
-                                            : 'No tropical cyclone'}
+                                            : 'No tropical cyclone')}
                                 </span>
                                 <span className="map-legend-meta">
                                     {typhoonMeta?.stormName ? (
                                         <>
                                             <span>
-                                                {typhoonMeta.category || 'TC'} · {typhoonMeta.pressureHpa ?? '—'} hPa
-                                                {typhoonMeta.observedAt ? ` · ${compactUtc(typhoonMeta.observedAt)}` : ''}
+                                                {bindSeparators(`${typhoonMeta.category || 'TC'} · ${typhoonMeta.pressureHpa ?? '—'} hPa`)}
+                                                {bindSeparators(typhoonMeta.observedAt ? ` · ${compactUtc(typhoonMeta.observedAt)}` : '')}
                                             </span>
                                             <LegendClasses marks={LEGEND_KEY.storm} />
                                             <span data-claim="cyclone-provenance">JMA analysis — not a raw satellite retrieval</span>
@@ -3308,7 +3374,7 @@ const MapContainer = ({
                                 </span>
                                 <span className="map-legend-meta">
                                     <LegendClasses marks={LEGEND_KEY.cables} />
-                                    <span data-claim="cables-registry">reference registry · not a live feed</span>
+                                    <span data-claim="cables-registry">{bindSeparators('reference registry · not a live feed')}</span>
                                 </span>
                             </span>
                         </div>

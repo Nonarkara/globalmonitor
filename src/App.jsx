@@ -85,38 +85,84 @@ function App() {
     const drop = (el) => el.style.setProperty('display', 'none', 'important');
     const undrop = (el) => el.style.removeProperty('display');
 
+    /* THE ROW IS ASKED, NOT GUESSED.
+     *
+     * The old check added up the cells and the gaps between them. But a gap
+     * belongs to every cell that is still IN the row: a cell whose content
+     * was given up sits there at zero width and still takes its gap, so the
+     * sum came out short and the fit believed it had made room. At 721 and
+     * 744 pixels that gap was the whole difference between a row that fits
+     * and a control one pixel off the side of the screen.
+     *
+     * And the row's own scrollWidth is not the answer either: it is rounded
+     * to whole pixels, so a row that is 1.2 pixels too wide reads as one
+     * pixel of overflow — which the gate forgives, while the button it
+     * pushes off the side of the screen is not forgiven. So the row is
+     * asked where its content actually ends.
+     *
+     * The row knows. Ask it. */
+    const overflows = () => {
+      const cs = getComputedStyle(row);
+      const limit = row.getBoundingClientRect().left
+        + (parseFloat(cs.borderLeftWidth) || 0)
+        + row.clientWidth;
+      for (const cell of row.children) {
+        if (getComputedStyle(cell).display === 'none') continue;
+        if (cell.getBoundingClientRect().right > limit + 0.5) return true;
+      }
+      return false;
+    };
+
+    /* THE ORDER OF SACRIFICE. The world clock's index goes first, from the
+     * tail, whole clocks and never half of one — the far-flung clocks are the
+     * ones that say least about the theater being watched. Then the
+     * theater's name. Then the subtitle, then the product's own wordmark —
+     * and with it the cell that held it, because a cell of nothing still
+     * takes a gap, and space nobody can read is not space. Then the partner
+     * marks, and PMUA last because it is the anchor. */
     const fit = () => {
-      row.querySelectorAll('[data-chrome-drop]').forEach(undrop);
+      const clocks = [...row.querySelectorAll('[data-chrome-drop="clock"]')];
 
-      const rowStyle = getComputedStyle(row);
-      const padX = (parseFloat(rowStyle.paddingLeft) || 0) + (parseFloat(rowStyle.paddingRight) || 0);
-      const gap = parseFloat(rowStyle.columnGap) || 0;
-      const rowInner = row.clientWidth - padX;
-
-      // Only the cells that are actually laid out take part: a cell that is
-      // display:none makes no gap either, so counting it would overstate the
-      // row by one gap and hide a clock that would have fitted.
-      const visibleCells = () => [...row.children]
-        .filter((child) => child.getBoundingClientRect().width > 0);
-
-      const overflows = () => {
-        const cells = visibleCells();
-        let total = 0;
-        for (const cell of cells) total += cell.getBoundingClientRect().width;
-        return total + gap * Math.max(0, cells.length - 1) > rowInner + 0.5;
-      };
-
-      const clocks = [...row.querySelectorAll('[data-chrome-drop="clock"]')].reverse();
-      for (const el of clocks) {
+      /* GIVE THINGS UP UNTIL THE ROW FITS.
+       *
+       * A drop that frees nothing is not a drop. The stylesheet already
+       * hides most of the world's clocks below 1200 pixels, and giving up
+       * what is already gone frees no space and tells the reader nothing. */
+      for (const el of [...clocks].reverse()) {
         if (!overflows()) break;
+        if (getComputedStyle(el).display === 'none') continue;
         drop(el);
       }
       for (const kind of ['theater', 'subtitle', 'wordmark', 'brand']) {
         if (!overflows()) break;
         for (const el of row.querySelectorAll(`[data-chrome-drop="${kind}"]`)) {
           if (!overflows()) break;
+          if (getComputedStyle(el).display === 'none') continue;
           drop(el);
         }
+      }
+
+      /* AND TAKE BACK WHAT IS NOT NEEDED.
+       *
+       * The row is given up in order, so it must be taken back in the same
+       * order, or the reader loses the name at a width that has room for
+       * it — and the world's clocks stay gone at 1440 because the
+       * stylesheet showed them again and the fit never looked. A thing is
+       * only returned when the row still fits with it, so the row never
+       * overflows on the way back. */
+      for (const kind of ['brand', 'wordmark', 'subtitle', 'theater']) {
+        for (const el of row.querySelectorAll(`[data-chrome-drop="${kind}"]`)) {
+          if (el.style.display !== 'none') continue;
+          undrop(el);
+          if (overflows()) drop(el);
+        }
+      }
+      // The world's clocks go back from the head: they were given up from
+      // the tail, so they are taken back the other way round.
+      for (const el of clocks) {
+        if (el.style.display !== 'none') continue;
+        undrop(el);
+        if (overflows()) drop(el);
       }
     };
 
@@ -359,14 +405,20 @@ function App() {
           </div>
 
           {/* Center: Title */}
-          <div className="header-status">
+          <div className="header-status" data-chrome-drop="wordmark">
             {/* The wordmark is the next thing to give way. Between 341 and
                 390 pixels a phone row cannot hold the mark, the name, the
                 reference clock and four 44px touch targets — the row was
                 14 to 48 pixels too wide there, with the last button off the
                 side of the screen. The name goes; the sponsor's anchor
-                mark, the instrument and the controls stay. */}
-            <div className="header-title-lockup" data-chrome-drop="wordmark">
+                mark, the instrument and the controls stay.
+                THE CELL GOES WITH THE NAME. It is the cell that holds it,
+                and a cell whose content has gone is a cell of nothing: it
+                sat in the row at zero width and still took its gap, and
+                that gap was the whole difference between a row that fits at
+                721 and 744 pixels and a control one pixel off the side of
+                the screen. Space nobody can read is not space. */}
+            <div className="header-title-lockup">
               <span className="header-title">
                 AsiaWatch
               </span>

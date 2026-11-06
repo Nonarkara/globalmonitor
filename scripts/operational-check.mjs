@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { sweepChromeFit } from './chrome-fit.mjs';
+import { danglingSeparatorProblems } from './lib/dangling.mjs';
 
 const url = process.argv[2];
 if (!url || !/^https:\/\//.test(url)) throw new Error('Pass the deployed HTTPS URL');
@@ -103,6 +104,62 @@ try {
             moreCount,
             hidden: list.scrollHeight - list.clientHeight,
           };
+        })(),
+        // Every separator in the plate, MEASURED. A middot at the end of a
+        // line is a bullet that lost its list, and nothing stopped it: the
+        // plate's own comment says the middot is for a compound "which is
+        // short and never breaks", and it did break, at the middot. The
+        // browser measures the line boxes; the rule decides.
+        plateSeparators: (() => {
+          const plate = document.querySelector('.map-legend--traffic');
+          if (!plate) return [];
+          const out = [];
+          const walker = document.createTreeWalker(plate, NodeFilter.SHOW_TEXT);
+          let node;
+          while ((node = walker.nextNode())) {
+            const text = node.nodeValue || '';
+            if (!/[·,]/.test(text)) continue;
+            const rects = [];
+            for (let i = 0; i < text.length; i++) {
+              const range = document.createRange();
+              range.setStart(node, i);
+              range.setEnd(node, i + 1);
+              const b = range.getBoundingClientRect();
+              rects.push({ ch: text[i], top: b.top, bottom: b.bottom, w: b.width, h: b.height });
+            }
+            for (let i = 0; i < text.length; i++) {
+              if (text[i] !== '·' && text[i] !== ',') continue;
+              const me = rects[i];
+              if (!me.w && !me.h) continue;
+              // The neighbours that can be SEEN. A space at the end of a
+              // line is invisible, so the space does not count as the next
+              // character — a middot followed by a space that ends the line
+              // is still a middot hanging at the end of the line.
+              let next = null;
+              let prev = null;
+              for (let j = i + 1; j < text.length && !next; j++) {
+                if (rects[j].ch.trim() === '') continue;
+                if (!rects[j].w && !rects[j].h) continue;
+                next = rects[j];
+              }
+              for (let j = i - 1; j >= 0 && !prev; j--) {
+                if (rects[j].ch.trim() === '') continue;
+                if (!rects[j].w && !rects[j].h) continue;
+                prev = rects[j];
+              }
+              out.push({
+                ch: text[i],
+                text: (node.parentElement?.textContent || text).trim().replace(/\s+/g, ' '),
+                top: me.top,
+                bottom: me.bottom,
+                nextTop: next ? next.top : null,
+                nextBottom: next ? next.bottom : null,
+                prevTop: prev ? prev.top : null,
+                prevBottom: prev ? prev.bottom : null,
+              });
+            }
+          }
+          return out;
         })(),
         // The colour key must sit on the FIRST LINE of the reading it keys.
         // It used to be centred against the whole row, so a three-pixel strip
@@ -216,6 +273,15 @@ try {
 
     if (geometry.plateList) {
       const list = geometry.plateList;
+      // A separator that hangs at the end of a line is a bullet that lost
+      // its list. The plate's own comment says the middot is for a compound
+      // "which is short and never breaks" — and it did break, at the middot,
+      // with nothing to stop it. A comma that ends a line is a list
+      // breaking after its comma, which is how a list is supposed to break,
+      // and is not a problem.
+      const dangling = danglingSeparatorProblems(geometry.plateSeparators || []);
+      assert.deepEqual(dangling, [],
+        `the SOURCES plate leaves a separator hanging: ${dangling.join('; ')}`);
       // A reading cut through the middle of its own glyph reads as a broken
       // plate, not as a list that continues.
       assert.deepEqual(list.cut, [],

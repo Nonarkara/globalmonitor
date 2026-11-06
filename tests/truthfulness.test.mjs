@@ -42,6 +42,7 @@ import { MARK, LEGEND_KEY, STRATEGIC_KEY, VESSEL_CLASSES, groundInk } from '../s
 import { CITY_FEEDS, CAMERA_TIER, CHANNEL_STATE } from '../src/data/cityFeeds.js';
 import { MAP_STYLES, MAP_STYLE_FALLBACKS, ESRI_STREET_STYLE, ESRI_SATELLITE_STYLE } from '../src/data/basemaps.js';
 import { REGIONS } from '../src/data/regions.js';
+import { danglingSeparatorProblems } from '../scripts/lib/dangling.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
@@ -1374,4 +1375,84 @@ test('mutation: the vessel key dropping a painted class is caught', () => {
     // The colour set is unchanged, so this rule does not see it — the class
     // NAMES are what changed, and they are checked by the count rule below.
     assert.ok(VESSEL_CLASSES.length === 7, 'the vessel class list must stay in step with the paint');
+});
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RULE 17 — a separator may not hang
+   ─────────────────────────────────────────────────────────────────────────
+   The plate says "ADS-B · 58m old · global sample". The middot is there
+   because those are separate facts, not one hyphenated word — and a middot
+   at the END of a line is a bullet that lost its list:
+
+       global sample ·
+       CC-BY 4.0
+
+   The plate's own comment says the middot is for a compound "which is short
+   and never breaks". It DID break, at the middot, and nothing in the build
+   or the release gate noticed: there was no rule for it at all.
+
+   A comma is a different animal, and the house says so: "A LIST OF NAMES
+   takes commas, not the middot... A comma breaks the way a list is supposed
+   to break." So a comma ending a line is a list breaking after its comma,
+   and is NOT a problem. A comma STARTING a line is.
+
+   The browser measures the line boxes; this rule decides. The two are
+   separate so the decision can be tested against a subject carrying the
+   defect: if the rule goes blind, its own mutation test fails. */
+
+const separatorOnOneLine = (ch = '·') => ({
+    ch,
+    text: 'ADS-B · 58m old · global sample',
+    top: 100,
+    bottom: 112,
+    nextTop: 100,
+    nextBottom: 112,
+    prevTop: 100,
+    prevBottom: 112,
+});
+
+test('a separator in the middle of a line is not a problem', () => {
+    assert.deepEqual(danglingSeparatorProblems([separatorOnOneLine()]), []);
+});
+
+test('a comma ending a line is a list breaking, and is not a problem', () => {
+    const breaking = separatorOnOneLine(',');
+    breaking.nextTop = 120;
+    breaking.nextBottom = 132;
+    assert.deepEqual(danglingSeparatorProblems([breaking]), []);
+});
+
+test('mutation: a middot hanging at the end of a line is caught', () => {
+    const hanging = separatorOnOneLine('·');
+    hanging.nextTop = 120;   // the next visible character is on the next line
+    hanging.nextBottom = 132;
+    const problems = danglingSeparatorProblems([hanging]);
+    assert.ok(problems.length > 0, 'a middot hanging at the end of a line must be reported');
+});
+
+test('mutation: a separator starting a line is caught', () => {
+    const leading = separatorOnOneLine('·');
+    leading.prevTop = 80;    // the previous visible character is on the line above
+    leading.prevBottom = 92;
+    const problems = danglingSeparatorProblems([leading]);
+    assert.ok(problems.length > 0, 'a separator starting a line must be reported');
+});
+
+test('mutation: a comma starting a line is caught', () => {
+    const leading = separatorOnOneLine(',');
+    leading.prevTop = 80;
+    leading.prevBottom = 92;
+    const problems = danglingSeparatorProblems([leading]);
+    assert.ok(problems.length > 0, 'a comma starting a line must be reported');
+});
+
+test('the release gate asks the rule about the plate', () => {
+    // A rule that nothing calls is a rule that does not exist. The gate has
+    // to MEASURE the separators and hand them to this rule, or the wave
+    // comes back quietly.
+    const gate = read('scripts/operational-check.mjs');
+    assert.ok(gate.includes('danglingSeparatorProblems'),
+        'the release gate does not ask the dangling-separator rule about the plate');
+    assert.ok(gate.includes('plateSeparators'),
+        'the release gate does not measure the plate\'s separators');
 });
