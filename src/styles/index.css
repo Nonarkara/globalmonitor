@@ -573,9 +573,11 @@ body {
   gap: 6px;
   justify-self: start;
   min-width: 0;
-  background: #fff;
-  padding: 3px 8px;
+  background: transparent;
+  padding: 0;
+  border: 0;
   border-radius: 0;
+  box-shadow: none;
 }
 
 .header-brand-logo {
@@ -593,11 +595,14 @@ body {
 }
 
 .header-brand-logo-axiom {
+  /* 3D app icon on the light masthead. No chip. Compact shell sets the live
+     height (17px, 12px on a phone) and PMUA stays the tallest mark. */
   height: 16px;
   width: auto;
-  max-width: 72px;
+  max-width: 18px;
+  aspect-ratio: 1;
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
 }
 
 .header-status {
