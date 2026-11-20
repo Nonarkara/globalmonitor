@@ -191,4 +191,40 @@ test('the release gate walks the row up AND down, and compares the roads', async
   assert.match(sweep, /down\.set/);
   assert.match(sweep, /historyDifferences\(\{\s*up,\s*down,\s*fresh\s*\}\)/);
   assert.match(sweep, /reverse\(\)/);
+  // And it must wait for the row to STOP MOVING before it measures it.
+  // A row measured mid-settle is a row the reader never sees, and
+  // comparing it with a row measured at another moment of the settle
+  // is a difference in the timing, not in the row.
+  assert.match(sweep, /settleRow/);
+  // EVERY width gets all three roads. The pre-fix build was measured
+  // differing fresh-vs-resized at 1024 — a width a short list of "the
+  // interesting ones" had left out. A gate that only asks about the
+  // widths it already knows about is a decoration.
+  assert.match(sweep, /freshWidths\(widths\)/);
+  const { freshWidths, historyWidths } = await import('../scripts/chrome-history.mjs');
+  assert.deepEqual(freshWidths(historyWidths()), historyWidths(),
+    'the fresh-load road does not cover every width');
+});
+
+test('the sponsor marks reserve their space before their bytes arrive', async () => {
+  const app = await read('src/App.jsx');
+  // A mark with a height and no width is in the layout at ZERO width
+  // until it loads. Four marks arriving one at a time made the row
+  // change width four times, and the row's fit — which is measured —
+  // was asked the question at four different widths. The row gave up
+  // the theater's name on the strength of a row that had not finished
+  // arriving, and the same width showed the name on one road and not on
+  // another.
+  const marks = app.match(/<img[^>]*header-brand-logo[^>]*>/g) || [];
+  assert.equal(marks.length, 4, 'the header should carry four marks');
+  for (const mark of marks) {
+    assert.match(mark, /\swidth="\d+"/, `a mark does not reserve its width: ${mark}`);
+    assert.match(mark, /\sheight="\d+"/, `a mark does not reserve its height: ${mark}`);
+  }
+  // And the declared size is the picture's own size, so nothing is
+  // stretched: the ratio the browser reserves is the ratio it renders.
+  assert.match(app, /pmua-logo\.webp[\s\S]{0,60}width="2560" height="1233"/);
+  assert.match(app, /depa-logo\.png[\s\S]{0,60}width="1182" height="1182"/);
+  assert.match(app, /axiom-logo\.png[\s\S]{0,60}width="1080" height="2392"/);
+  assert.match(app, /retl-logo\.svg[\s\S]{0,60}width="200" height="120"/);
 });

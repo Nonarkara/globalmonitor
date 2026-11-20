@@ -43,12 +43,16 @@ export const historyWidths = () => [
   320, 360, 390, 430, 600, 720, 768, 900, 1024, 1200, 1440, 1600,
 ];
 
-/** The widths that are also loaded fresh, and compared with the sweep. */
-export const freshWidths = () => [1200, 390, 1440];
-
-const settle = (page) => page.evaluate(
-  () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
-);
+/**
+ * The widths that are also loaded fresh, and compared with the sweep.
+ *
+ * EVERY width, and not a hand-picked three. The pre-fix build was
+ * measured differing fresh-vs-resized at 1024 — a width that a short
+ * list of "the interesting ones" left out — and a gate that only asks
+ * about the widths it already knows about is a decoration. Loading the
+ * page afresh is the expensive part; asking the question is not.
+ */
+export const freshWidths = (widths = historyWidths()) => widths;
 
 /**
  * WAIT FOR THE ROW'S IMAGES TO ARRIVE.
@@ -107,6 +111,61 @@ const signature = async (page) => page.evaluate(() => {
   return parts.join(' ');
 });
 
+/**
+ * WAIT FOR THE ROW TO STOP MOVING.
+ *
+ * The row is fitted at run time, and it is fitted AGAIN when its content
+ * settles — the marks arrive, the words land in their real font, the
+ * theater's name is set. A sweep that measured the row mid-settle
+ * measured a row the reader never sees; it then compared that with a row
+ * measured at a different moment of the same settle, and called the
+ * difference a difference in the row. It was a difference in the timing.
+ *
+ * So the sweep waits for the row to be FINISHED before it measures it:
+ *
+ *   1. the app has chosen its shell — that decides the layout the row
+ *      lives in, and it is chosen after the first render;
+ *   2. the words are the words they will be — a fallback font is wider
+ *      than the real one, and a row measured against the fallback is
+ *      measured against a width the reader never sees;
+ *   3. the marks have arrived — their space is reserved, but their bytes
+ *      still decide what is on the row;
+ *   4. and then the row's state stops changing.
+ *
+ * Four readings the same apart is a settled row.
+ */
+const settleRow = async (page, { polls = 4, gap = 250, cap = 30000 } = {}) => {
+  const deadline = Date.now() + cap;
+  let previous = null;
+  let stable = 0;
+  while (Date.now() < deadline) {
+    const ready = await page.evaluate(() => {
+      const row = document.querySelector('.header-bar');
+      const app = document.querySelector('.app-container');
+      if (!row || !app) return false;
+      // The shell decides the layout, and it is decided after the first
+      // render. Before it is decided, the row is the wrong row.
+      if (!app.getAttribute('data-shell')) return false;
+      // The words must be the words they will be.
+      if (document.fonts && document.fonts.status !== 'loaded') return false;
+      // And the marks must have arrived.
+      const imgs = [...row.querySelectorAll('img')];
+      if (imgs.some((img) => !img.complete)) return false;
+      return true;
+    });
+    const now = await signature(page);
+    if (ready && now === previous) {
+      stable += 1;
+      if (stable >= polls) return now;
+    } else {
+      stable = 0;
+      previous = now;
+    }
+    await page.waitForTimeout(gap);
+  }
+  return previous;
+};
+
 const load = async (browser, url, width) => {
   const context = await browser.newContext({
     viewport: { width, height: 900 },
@@ -117,10 +176,8 @@ const load = async (browser, url, width) => {
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     if (!response || response.status() !== 200) throw new Error(`${url} answered ${response?.status()}`);
     await page.locator('.maplibregl-canvas').waitFor({ state: 'visible', timeout: 60000 });
-    await page.waitForTimeout(2500);
     await awaitImages(page);
-    await settle(page);
-    return await signature(page);
+    return await settleRow(page);
   } finally {
     await context.close();
   }
@@ -143,18 +200,15 @@ export async function sweepChromeHistory(browser, url, widths = historyWidths())
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     if (!response || response.status() !== 200) throw new Error(`${url} answered ${response?.status()}`);
     await page.locator('.maplibregl-canvas').waitFor({ state: 'visible', timeout: 60000 });
-    await page.waitForTimeout(2500);
     await awaitImages(page);
 
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
-      await settle(page);
-      up.set(width, await signature(page));
+      up.set(width, await settleRow(page));
     }
     for (const width of [...widths].reverse()) {
       await page.setViewportSize({ width, height: 900 });
-      await settle(page);
-      down.set(width, await signature(page));
+      down.set(width, await settleRow(page));
     }
   } finally {
     await context.close();
@@ -162,8 +216,28 @@ export async function sweepChromeHistory(browser, url, widths = historyWidths())
 
   // A fresh load is the first road. It must agree with the swept one.
   const fresh = new Map();
-  for (const width of freshWidths()) {
+  for (const width of freshWidths(widths)) {
     fresh.set(width, await load(browser, url, width));
+  }
+
+  /* EVERY ROAD MUST HAVE WALKED EVERY WIDTH.
+   *
+   * The rule compares the roads where they overlap. If one road did not
+   * reach a width — the page died on the way, the resize was refused —
+   * the rule would compare nothing there and say nothing, and the gate
+   * would pass a row it never looked at. A road that did not walk is a
+   * failure, not an absence. */
+  for (const [name, road] of [['going up', up], ['coming down', down]]) {
+    for (const width of widths) {
+      if (!road.has(width)) {
+        failures.push({ width, why: `the row was never measured ${name}` });
+      }
+    }
+  }
+  for (const width of freshWidths(widths)) {
+    if (!fresh.has(width)) {
+      failures.push({ width, why: 'the row was never measured on a fresh load' });
+    }
   }
 
   // THE RULE DECIDES, not the caller. `historyDifferences` is the same
@@ -174,7 +248,7 @@ export async function sweepChromeHistory(browser, url, widths = historyWidths())
     failures.push({ width, why });
   }
 
-  return { checked: widths.length * 2 + freshWidths().length, failures };
+  return { checked: widths.length * 2 + freshWidths(widths).length, failures };
 }
 // Run it on its own:  node scripts/chrome-history.mjs <url>
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

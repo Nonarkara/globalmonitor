@@ -158,7 +158,23 @@ function App() {
     const observer = new ResizeObserver(fit);
     observer.observe(row);
     for (const child of row.children) observer.observe(child);
-    if (document.fonts?.ready) document.fonts.ready.then(fit).catch(() => {});
+    /* THE ROW WAITS FOR ITS WORDS.
+     *
+     * The first fit measured the row while the webfont was still on its
+     * way, and a fallback font is WIDER than the real one. The row gave
+     * up the wordmark, and the clocks, for a width the reader never saw
+     * — and gave them back a moment later, when the font landed and the
+     * row changed shape. A row that takes things away and puts them back
+     * is a row that blinks.
+     *
+     * `fonts.ready` resolves when the font files have arrived, which is
+     * not the same moment as the row having been laid out with them.
+     * `loadingdone` is that moment: the words are the words they will
+     * be, and the row is measured against them. */
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(fit).catch(() => {});
+      document.fonts.addEventListener?.('loadingdone', fit);
+    }
     return () => observer.disconnect();
   }, []);
 
@@ -385,11 +401,28 @@ function App() {
             that row, not a band above it. */}
         <div className="header-bar grid-panel" ref={headerRef}>
           {/* Left: Sponsor logos in white pill */}
+          {/* THE MARKS RESERVE THEIR SPACE.
+           *
+           * A logo with a height and no width is in the layout at ZERO
+           * width until its bytes arrive, and it takes its real width
+           * when they do. Four marks arriving one at a time made the row
+           * change width four times, and the row's fit — which is
+           * measured, not guessed — was asked the question at four
+           * different widths. The row gave up the theater's name on the
+           * strength of a row that had not finished arriving, and kept
+           * the give-up: the same width showed the name on one road and
+           * not on another.
+           *
+           * The intrinsic size is declared, so the space is reserved
+           * before the first paint and the row's width is the width it
+           * will stay. The rendered box is unchanged — the CSS height
+           * and max-width still decide it, and the declared ratio is the
+           * picture's own ratio, so nothing is stretched. */}
           <div className="header-brand-strip" aria-label="Project partners">
-            <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" className="header-brand-logo header-brand-logo-pmua" />
-            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" className="header-brand-logo header-brand-logo-depa" />
-            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" className="header-brand-logo header-brand-logo-axiom" />
-            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" className="header-brand-logo header-brand-logo-retl" />
+            <img src={`${import.meta.env.BASE_URL}pmua-logo.webp`} alt="PMUA" width="2560" height="1233" className="header-brand-logo header-brand-logo-pmua" />
+            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}depa-logo.png`} alt="depa" width="1182" height="1182" className="header-brand-logo header-brand-logo-depa" />
+            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}axiom-logo.png`} alt="Axiom" width="1080" height="2392" className="header-brand-logo header-brand-logo-axiom" />
+            <img data-chrome-drop="brand" src={`${import.meta.env.BASE_URL}retl-logo.svg`} alt="ReTL" width="200" height="120" className="header-brand-logo header-brand-logo-retl" />
           </div>
 
           {/* Center: Title */}
