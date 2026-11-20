@@ -51,6 +51,31 @@ const settle = (page) => page.evaluate(
 );
 
 /**
+ * WAIT FOR THE ROW'S IMAGES TO ARRIVE.
+ *
+ * The sponsor's mark is an <img> with a height and no width: before its
+ * bytes arrive it is in the layout at ZERO width, and after they arrive
+ * it takes real space. A sweep that measured the row before the images
+ * landed measured a NARROWER row than the reader ever sees — and then
+ * compared that narrower row against a wider one and called it a
+ * difference in the row. The difference was in the network.
+ *
+ * So the images are waited for, once, before anything is measured.
+ */
+const awaitImages = async (page, timeout = 10000) => page.evaluate(async (cap) => {
+  const pending = [...document.images].filter((img) => !img.complete);
+  if (!pending.length) return 0;
+  await Promise.race([
+    Promise.all(pending.map((img) => new Promise((resolve) => {
+      img.addEventListener('load', resolve, { once: true });
+      img.addEventListener('error', resolve, { once: true });
+    }))),
+    new Promise((resolve) => setTimeout(resolve, cap)),
+  ]);
+  return pending.length;
+}, timeout);
+
+/**
  * The WHOLE state of the row, as one string. If two roads disagree on any
  * part of it, the roads disagree on the row.
  */
@@ -67,9 +92,12 @@ const signature = async (page) => page.evaluate(() => {
   }
   // The sponsor's anchor mark, which is never dropped but is sometimes
   // hidden by the stylesheet, and the number of clocks still standing.
+  // The mark is measured by whether it is IN THE ROW, not by whether its
+  // bytes have arrived: an image with a height and no width is in the
+  // layout at zero width until it loads, and "zero width until loaded" is
+  // a fact about the network, not about the row.
   const pmua = document.querySelector('.header-brand-logo-pmua');
-  const pr = pmua?.getBoundingClientRect();
-  parts.push(`pmua=${pr && pr.width > 0 && pr.height > 0 ? 'shown' : 'hidden'}`);
+  parts.push(`pmua=${pmua && pmua.getClientRects().length ? 'shown' : 'hidden'}`);
   const clocks = [...document.querySelectorAll('[data-chrome-drop="clock"]')];
   parts.push(`clocks=${clocks.filter((c) => getComputedStyle(c).display !== 'none').length}/${clocks.length}`);
   // And the row itself.
@@ -90,6 +118,7 @@ const load = async (browser, url, width) => {
     if (!response || response.status() !== 200) throw new Error(`${url} answered ${response?.status()}`);
     await page.locator('.maplibregl-canvas').waitFor({ state: 'visible', timeout: 60000 });
     await page.waitForTimeout(2500);
+    await awaitImages(page);
     await settle(page);
     return await signature(page);
   } finally {
@@ -115,6 +144,7 @@ export async function sweepChromeHistory(browser, url, widths = historyWidths())
     if (!response || response.status() !== 200) throw new Error(`${url} answered ${response?.status()}`);
     await page.locator('.maplibregl-canvas').waitFor({ state: 'visible', timeout: 60000 });
     await page.waitForTimeout(2500);
+    await awaitImages(page);
 
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });

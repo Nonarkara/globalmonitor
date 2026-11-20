@@ -45,6 +45,28 @@ export const sweepWidths = () => {
   return widths.sort((a, b) => a - b);
 };
 
+/**
+ * WAIT FOR THE ROW'S IMAGES TO ARRIVE.
+ *
+ * The sponsor's mark is an <img> with a height and no width: before its
+ * bytes arrive it is in the layout at ZERO width, and after they arrive
+ * it takes real space. A sweep that measured the row mid-load measured a
+ * narrower row than the reader ever sees, and called the difference a
+ * failure that was really the network.
+ */
+const awaitImages = async (page, timeout = 10000) => page.evaluate(async (cap) => {
+  const pending = [...document.images].filter((img) => !img.complete);
+  if (!pending.length) return 0;
+  await Promise.race([
+    Promise.all(pending.map((img) => new Promise((resolve) => {
+      img.addEventListener('load', resolve, { once: true });
+      img.addEventListener('error', resolve, { once: true });
+    }))),
+    new Promise((resolve) => setTimeout(resolve, cap)),
+  ]);
+  return pending.length;
+}, timeout);
+
 const measure = async (page) => page.evaluate(({ band, rowRem, phoneRow }) => {
   const row = document.querySelector('.header-bar');
   const rr = row?.getBoundingClientRect();
@@ -104,6 +126,7 @@ export async function sweepChromeFit(browser, url, widths = sweepWidths()) {
     if (!response || response.status() !== 200) throw new Error(`${url} answered ${response?.status()}`);
     await page.locator('.maplibregl-canvas').waitFor({ state: 'visible', timeout: 60000 });
     await page.waitForTimeout(2500);
+    await awaitImages(page);
 
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
