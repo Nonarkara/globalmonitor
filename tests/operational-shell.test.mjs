@@ -116,3 +116,79 @@ test('session export has accessible dialog and safe download lifetime', async ()
   assert.match(source, /setTimeout\(\(\) => URL.revokeObjectURL/);
   assert.match(await read('src/hooks/useDialogFocus.js'), /Tools and advanced options/);
 });
+
+/* ─────────────────────────────────────────────────────────────────────────
+   THE CHROME ROW MUST BE A FUNCTION OF THE WIDTH, NOT OF THE ROAD
+   ─────────────────────────────────────────────────────────────────────────
+   The row is fitted at run time, on every resize. It gave things up and
+   never took them back, so a row squeezed at 700 stayed squeezed at
+   1200: the same width showed a different row depending on how the
+   reader came to it. It was then given a way to take things back, and
+   that way made the row depend on the road even harder.
+
+   The release gate could not see it. The chrome sweep resizes ONE page
+   from narrow to wide, so it walks the widths in one direction only — it
+   never arrives at a width by more than one road, so it can never see a
+   row that depends on the road.
+
+   The rule is a function taking the row's state on each road and
+   returning the roads that disagree. It is tested here against a
+   subject that carries the defect; if the rule goes blind, this test
+   fails. */
+
+test('the chrome row is a function of the width, not of the road', async () => {
+  const { historyDifferences } = await import('../scripts/lib/history.mjs');
+
+  // A row that is the same row on every road: nothing to report.
+  const same = new Map([[1200, 'wordmark=shown theater=shown clocks=4/8']]);
+  assert.deepEqual(historyDifferences({ up: same, down: same, fresh: same }), []);
+
+  // A row that changed between the road up and the road down. This is
+  // the defect: the same 1200 pixels, two different rows.
+  const up = new Map([[1200, 'wordmark=hidden theater=shown clocks=4/8']]);
+  const down = new Map([[1200, 'wordmark=shown theater=shown clocks=2/8']]);
+  const problems = historyDifferences({ up, down, fresh: down });
+  assert.ok(problems.length, 'a row that differs between roads must be reported');
+  assert.match(problems[0], /1200px/);
+  assert.match(problems[0], /depends on the road/);
+
+  // A row that is fresh-load different from resized — the other road.
+  const fresh = new Map([[1440, 'wordmark=shown clocks=2/8']]);
+  const swept = new Map([[1440, 'wordmark=hidden clocks=5/8']]);
+  const other = historyDifferences({ up: swept, down: swept, fresh });
+  assert.ok(other.length, 'a row that differs when loaded fresh must be reported');
+  assert.match(other[0], /1440px/);
+
+  // A width that only one road knows about is not a disagreement: the
+  // gate did not look there, and it must not invent a difference.
+  const half = new Map([[1200, 'a']]);
+  assert.deepEqual(historyDifferences({ up: half, down: new Map(), fresh: new Map() }), []);
+});
+
+test('the chrome row is put whole again, every time', async () => {
+  const app = await read('src/App.jsx');
+  // The row starts whole and gives things up again in order, so its state
+  // is a function of the width and not of the widths visited before it.
+  assert.match(app, /querySelectorAll\('\[data-chrome-drop\]'\)\.forEach\(undrop\)/,
+    'the chrome row is not put whole again before it gives things up, so its state depends on the road');
+  // There must be exactly ONE order of sacrifice. A second list is the
+  // road: a restore order is a function of what was given up before.
+  const orders = app.match(/for \(const kind of \[([^\]]*)\]\)/g) || [];
+  assert.equal(orders.length, 1,
+    `the chrome row declares ${orders.length} orders of sacrifice — a second one is a restore path, and a restore path makes the row depend on the road`);
+});
+
+test('the release gate walks the row up AND down, and compares the roads', async () => {
+  const gate = await read('scripts/operational-check.mjs');
+  // The CALL, not the name: a comment that names the sweep would
+  // satisfy a source-scan for the name and the gate would stay blind.
+  assert.match(gate, /sweepChromeHistory\(browser,\s*url\)/,
+    'the release gate does not run the road sweep');
+  const sweep = await read('scripts/chrome-history.mjs');
+  // It must actually walk both ways and compare, and it must decide
+  // with the same rule the tests take a defective subject to.
+  assert.match(sweep, /up\.set/);
+  assert.match(sweep, /down\.set/);
+  assert.match(sweep, /historyDifferences\(\{\s*up,\s*down,\s*fresh\s*\}\)/);
+  assert.match(sweep, /reverse\(\)/);
+});

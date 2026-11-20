@@ -9,6 +9,7 @@
     "design:render": "node .non-slop/bin/non-slop.mjs render",
     "verify:live": "node scripts/operational-check.mjs",
     "verify:fit": "node scripts/chrome-fit.mjs",
+    "verify:history": "node scripts/chrome-history.mjs",
     "prebuild": "npm run design:check && npm run guard",
     "prebuild:pages": "npm run design:check && npm run guard",
     "api": "node server/index.mjs",

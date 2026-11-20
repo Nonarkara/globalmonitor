@@ -121,6 +121,17 @@ function App() {
      * takes a gap, and space nobody can read is not space. Then the partner
      * marks, and PMUA last because it is the anchor. */
     const fit = () => {
+      /* THE ROW IS PUT WHOLE AGAIN, EVERY TIME.
+       *
+       * The row's state must be a function of the WIDTH, not of the way the
+       * reader came to it. A fit that only ever gave things up kept a
+       * sacrifice because it had made it at 700 pixels — so the row at 1200
+       * showed a different row than the same 1200 reached from the left,
+       * with the theater's name gone in one and present in the other.
+       * A chrome row that lies about itself once a minute is a chrome row
+       * that lies. So the row starts whole, every time, and gives things
+       * up again in order. */
+      row.querySelectorAll('[data-chrome-drop]').forEach(undrop);
       const clocks = [...row.querySelectorAll('[data-chrome-drop="clock"]')];
 
       /* GIVE THINGS UP UNTIL THE ROW FITS.
@@ -140,29 +151,6 @@ function App() {
           if (getComputedStyle(el).display === 'none') continue;
           drop(el);
         }
-      }
-
-      /* AND TAKE BACK WHAT IS NOT NEEDED.
-       *
-       * The row is given up in order, so it must be taken back in the same
-       * order, or the reader loses the name at a width that has room for
-       * it — and the world's clocks stay gone at 1440 because the
-       * stylesheet showed them again and the fit never looked. A thing is
-       * only returned when the row still fits with it, so the row never
-       * overflows on the way back. */
-      for (const kind of ['brand', 'wordmark', 'subtitle', 'theater']) {
-        for (const el of row.querySelectorAll(`[data-chrome-drop="${kind}"]`)) {
-          if (el.style.display !== 'none') continue;
-          undrop(el);
-          if (overflows()) drop(el);
-        }
-      }
-      // The world's clocks go back from the head: they were given up from
-      // the tail, so they are taken back the other way round.
-      for (const el of clocks) {
-        if (el.style.display !== 'none') continue;
-        undrop(el);
-        if (overflows()) drop(el);
       }
     };
 

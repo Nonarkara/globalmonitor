@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { sweepChromeFit } from './chrome-fit.mjs';
+import { sweepChromeHistory } from './chrome-history.mjs';
 import { sweepPlateFit } from './plate-fit.mjs';
 import { danglingSeparatorProblems } from './lib/dangling.mjs';
 
@@ -446,6 +447,16 @@ try {
   assert.deepEqual(sweep.failures, [],
     `the chrome row does not hold at every width:\n${sweep.failures.map(f => `  ${f.width}px  ${f.why}`).join('\n')}`);
 
+  // ── The road sweep ─────────────────────────────────────────────
+  // The chrome sweep walks the widths in ONE direction, so it can never
+  // see a row that depends on the road the reader took to it. And the
+  // row did depend on the road: the same 1200 pixels showed a different
+  // row when it was reached by resizing up from 700 than when it was
+  // loaded fresh. The row must be a FUNCTION of the width.
+  const historySweep = await sweepChromeHistory(browser, url);
+  assert.deepEqual(historySweep.failures, [],
+    `the chrome row depends on how the reader got to the width:\n${historySweep.failures.map(f => `  ${f.width}px  ${f.why}`).join('\n')}`);
+
   // ── The plate sweep ────────────────────────────────────────────
   // The plate is fitted at run time too, and it was hiding a reading at
   // thirty-nine widths BETWEEN the four the gate looked at — a half
@@ -455,5 +466,5 @@ try {
   assert.deepEqual(plateSweep.failures, [],
     `the SOURCES plate does not hold at every width:\n${plateSweep.failures.map(f => `  ${f.width}px  ${f.why}`).join('\n')}`);
 
-  console.log(JSON.stringify({ url, sweep: { checked: sweep.checked, failures: 0 }, plateSweep: { checked: plateSweep.checked, failures: 0 }, results }, null, 2));
+  console.log(JSON.stringify({ url, sweep: { checked: sweep.checked, failures: 0 }, historySweep: { checked: historySweep.checked, failures: 0 }, plateSweep: { checked: plateSweep.checked, failures: 0 }, results }, null, 2));
 } finally { await browser.close(); }
